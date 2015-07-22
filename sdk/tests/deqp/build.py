@@ -82,7 +82,8 @@ targets = {
     'shaderindexing' : 'functional.gles3.es3fShaderIndexingTests',
     'shaderloop' : 'functional.gles3.es3fShaderLoopTests',
     'shaderstruct' : 'functional.gles3.es3fShaderStructTests',
-    'shaderswitch' : 'functional.gles3.es3fShaderSwitchTests'
+    'shaderswitch' : 'functional.gles3.es3fShaderSwitchTests',
+	'fborender' : 'functional.gles3.es3fFboRenderTest'
 }
 
 total_errors = 0
@@ -247,3 +248,4 @@ def main(argv):
 
 if __name__ == '__main__':
     main(sys.argv[1:])
+

@@ -105,6 +105,6 @@ WebGLTestUtils.GLErrorException = function(message, error){ /** @type {string} *
 /** @type {HTMLElement} */ var canvas;
 /** @type {Object} */ var wtu;
 
-/** @type {{create3DContext: function(string):WebGL2RenderingContext,
+/** @typedef {{create3DContext: function(string):WebGL2RenderingContext,
             loadTextFileAsync: function(string, function(boolean, string)),
             glEnumToString: function(WebGL2RenderingContext, number):string }} */ var WebGLTestUtils;

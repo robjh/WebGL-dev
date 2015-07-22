@@ -61,11 +61,15 @@ goog.scope(function() {
 
     //TODO: Implement automatic error checking in sglrReferenceContext, optional on creation.
 
+    /** @typedef {WebGLRenderbuffer|WebGLTexture|sglrReferenceContext.Renderbuffer|sglrReferenceContext.TextureContainer} */ sglrReferenceContext.AnyRenderbuffer;
+
+    /** @typedef {WebGLFramebuffer|sglrReferenceContext.Framebuffer} */ sglrReferenceContext.AnyFramebuffer;
+
     /**
-    * @param {number} error
-    * @param {number} message
-    * @throws {Error}
-    */
+     * @param {number} error
+     * @param {number} message
+     * @throws {Error}
+     */
     sglrReferenceContext.GLU_EXPECT_NO_ERROR = function(error, message) {
         if (error !== gl.NONE) {
             console.log('Assertion failed message:' + message);
@@ -1102,7 +1106,7 @@ goog.scope(function() {
                     throw new Error('Unrecognized target: ' + target);
             }
         } else {
-            if (!texture.textureType) {
+            if (texture.textureType == null) {
                 texture.init(target);
             } else {
                 // Validate type.
@@ -1150,6 +1154,11 @@ goog.scope(function() {
     sglrReferenceContext.ReferenceContext.prototype.createTexture = function() { return new sglrReferenceContext.TextureContainer(); };
 
     /**
+    * @param {sglrReferenceContext.Texture} texture
+    */
+    sglrReferenceContext.ReferenceContext.prototype.deleteTexture = function(texture) { /*empty*/ };
+
+    /**
     * @param {number} target
     * @param {framework.opengl.simplereference.sglrReferenceContext.Framebuffer} fbo
     */
@@ -1177,6 +1186,11 @@ goog.scope(function() {
     sglrReferenceContext.ReferenceContext.prototype.createFramebuffer = function() { return new sglrReferenceContext.Framebuffer(); };
 
     /**
+    * @param {sglrReferenceContext.Framebuffer} fbo
+    */
+    sglrReferenceContext.ReferenceContext.prototype.deleteFramebuffer = function(fbo) { /*empty*/ };
+
+    /**
     * @param {number} target
     * @param {sglrReferenceContext.Renderbuffer} rbo
     */
@@ -1191,6 +1205,11 @@ goog.scope(function() {
     * @return {sglrReferenceContext.Renderbuffer}
     */
     sglrReferenceContext.ReferenceContext.prototype.createRenderbuffer = function() { return new sglrReferenceContext.Renderbuffer(); };
+
+    /**
+    * @param {sglrReferenceContext.Renderbuffer} rbo
+    */
+    sglrReferenceContext.ReferenceContext.prototype.deleteRenderbuffer = function(rbo) { /*empty*/ };
 
     /**
     * @param {number} pname
@@ -2002,9 +2021,14 @@ goog.scope(function() {
     };
 
     /**
-    * @return {Array<number>}
+    * @return {Array<string>}
     */
-    sglrReferenceContext.ReferenceContext.getSupportedExtensions = function() { return []; };
+    sglrReferenceContext.ReferenceContext.prototype.getSupportedExtensions = function() {
+        var extensions = gl.getSupportedExtensions(); //TODO: Let's just return the context's supported extensions for now
+        extensions.push('EXT_color_buffer_float');
+        extensions.push('EXT_color_buffer_half_float');
+        return extensions;
+    };
 
     /** transpose matrix 'x' of 'size' columns and rows
      * @param {number} size
@@ -3833,7 +3857,7 @@ goog.scope(function() {
                 /** @type {?tcuTexture.WrapMode} */ var wrapS = sglrReferenceContext.mapGLWrapMode(value);
                 if (this.condtionalSetError(null == wrapS, gl.INVALID_VALUE))
                     return;
-                texture.getSampler().wrapS = wrapS;
+                texture.getSampler().wrapS = /** @type {tcuTexture.WrapMode} */ (wrapS);
                 break;
             }
 
@@ -3841,7 +3865,7 @@ goog.scope(function() {
                 /** @type {?tcuTexture.WrapMode} */ var wrapT = sglrReferenceContext.mapGLWrapMode(value);
                 if (this.condtionalSetError(null == wrapT, gl.INVALID_VALUE))
                     return;
-                texture.getSampler().wrapT = wrapT;
+                texture.getSampler().wrapT = /** @type {tcuTexture.WrapMode} */ (wrapT);
                 break;
             }
 
@@ -3849,7 +3873,7 @@ goog.scope(function() {
                 /** @type {?tcuTexture.WrapMode} */ var wrapR = sglrReferenceContext.mapGLWrapMode(value);
                 if (this.condtionalSetError(null == wrapR, gl.INVALID_VALUE))
                     return;
-                texture.getSampler().wrapR = wrapR;
+                texture.getSampler().wrapR = /** @type {tcuTexture.WrapMode} */ (wrapR);
                 break;
             }
 
@@ -3857,7 +3881,7 @@ goog.scope(function() {
                 /** @type {?tcuTexture.FilterMode} */ var minMode = sglrReferenceContext.mapGLFilterMode(value);
                 if (this.condtionalSetError(null == minMode, gl.INVALID_VALUE))
                     return;
-                texture.getSampler().minFilter = minMode;
+                texture.getSampler().minFilter = /** @type {tcuTexture.FilterMode} */ (minMode);
                 break;
             }
 
@@ -3865,7 +3889,7 @@ goog.scope(function() {
                 /** @type {?tcuTexture.FilterMode} */ var magMode = sglrReferenceContext.mapGLFilterMode(value);
                 if (this.condtionalSetError(null == magMode, gl.INVALID_VALUE))
                     return;
-                texture.getSampler().magFilter = magMode;
+                texture.getSampler().magFilter = /** @type {tcuTexture.FilterMode} */ (magMode);
                 break;
             }
 
