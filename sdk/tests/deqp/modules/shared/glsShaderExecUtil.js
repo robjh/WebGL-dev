@@ -20,18 +20,31 @@
  * \file
  * \brief Shader execution utilities.
  *//*--------------------------------------------------------------------*/
- 'use strict';
- goog.provide('modules.shared.glsShaderExecUtil');
- goog.require('framework.opengl.gluVarType');
- goog.require('framework.opengl.gluShaderUtil');
- goog.require('framework.opengl.gluShaderProgram');
+'use strict';
+goog.provide('modules.shared.glsShaderExecUtil');
+goog.require('framework.opengl.gluVarType');
+goog.require('framework.opengl.gluShaderUtil');
+goog.require('framework.opengl.gluShaderProgram');
+goog.require('framework.opengl.gluDrawUtil');
 
- goog.scope(function() {
 
-     var glsShaderExecUtil = modules.shared.glsShaderExecUtil;
-     var gluVarType = framework.opengl.gluVarType;
-     var gluShaderUtil = framework.opengl.gluShaderUtil;
-     var gluShaderProgram = framework.opengl.gluShaderProgram;
+goog.scope(function() {
+
+    var glsShaderExecUtil = modules.shared.glsShaderExecUtil;
+    var gluVarType = framework.opengl.gluVarType;
+    var gluShaderUtil = framework.opengl.gluShaderUtil;
+    var gluShaderProgram = framework.opengl.gluShaderProgram;
+    var gluDrawUtil = framework.opengl.gluDrawUtil;
+
+    var DE_ASSERT = function(x) {
+        if (!x)
+            throw new Error('Assert failed');
+    };
+
+    var setParentClass = function(child, parent) {
+        child.prototype = Object.create(parent.prototype);
+        child.prototype.constructor = child;
+    };
 
      /**
       * @constructor
@@ -39,8 +52,9 @@
       * @param {gluVarType.VarType=} varType
       */
       glsShaderExecUtil.Symbol = function(name, varType) {
+        name = name === undefined ? '<unnamed>' : name;
          /** @type {string} */ this.m_name = name;
-         /** @type {gluVarType.VarType} */ this.m_varType = varType;
+         /** @type {gluVarType.VarType} */ this.m_varType = varType || null;
      };
 
 
@@ -59,69 +73,54 @@
     /**
      * Base class for shader executor.
      * @constructor
-     * @param{glsShaderExecUtil.RenderContext} renderCtx
      * @param{glsShaderExecUtil.ShaderSpec} shaderSpec
      */
-    glsShaderExecUtil.ShaderExecutor = function(renderCtx, shaderSpec) {
-        /** @type{boolean} */ this.isOk;
-        /** @type{glsShaderExecUtil.RenderContext} */ this.m_renderCtx = renderCtx;
-
+    glsShaderExecUtil.ShaderExecutor = function(shaderSpec) {
         /** @type{Array<glsShaderExecUtil.Symbol>} */ this.m_inputs = shaderSpec.inputs;
     	/** @type{Array<glsShaderExecUtil.Symbol>} */ this.m_outputs = shaderSpec.outputs;
     };
 
-
-
-    /**
-     * Base class for shader executor.
-     * @constructor
-     * @param{glsShaderExecUtil.RenderContext} renderCtx
-     * @param{glsShaderExecUtil.ShaderSpec} shaderSpec
-     */
     glsShaderExecUtil.ShaderExecutor.prototype.useProgram = function() {
-    	DE_ASSERT(isOk());
-    	this.m_renderCtx.getFunctions().useProgram(this.getProgram());
+    	DE_ASSERT(this.isOk);
+    	gl.useProgram(this.getProgram());
     }
 
-// public:
-// 	virtual						~ShaderExecutor			(void);
-//
-// 	//! Check if executor can be used.
-// 	virtual bool				isOk					(void) const = 0;
-//
-// 	//! Log executor details (program etc.).
-// 	virtual void				log						(tcu::TestLog& log) const = 0;
-//
-// 	//! Get program.
-// 	virtual deUint32			getProgram				(void) const = 0;
-//
-// 	//! Set this shader program current in context. Must be called before execute().
-// 	virtual void				useProgram				(void);
-//
-// 	//! Execute active program. useProgram() must be called before this.
-// 	virtual void				execute					(int numValues, const void* const* inputs, void* const* outputs) = 0;
-//
-// protected:
-// 								ShaderExecutor			(const glu::RenderContext& renderCtx, const ShaderSpec& shaderSpec);
-//
-// 	const glu::RenderContext&	m_renderCtx;
-//
-// 	std::vector<Symbol>			m_inputs;
-// 	std::vector<Symbol>			m_outputs;
-// };
-//
-// inline tcu::TestLog& operator<< (tcu::TestLog& log, const ShaderExecutor* executor) { executor.log(log);	return log; }
-// inline tcu::TestLog& operator<< (tcu::TestLog& log, const ShaderExecutor& executor) { executor.log(log);	return log; }
+    /**
+     * @return {boolean}
+     */
+    glsShaderExecUtil.ShaderExecutor.prototype.isOK = function() {
+        throw new Error('Virtual function. Please override.');
+    };
+
+
+    /**
+     * @return {WebGLProgram}
+     */
+    glsShaderExecUtil.ShaderExecutor.prototype.getProgram = function() {
+        throw new Error('Virtual function. Please override.');
+    };
+
+
+    /**
+     */
+    glsShaderExecUtil.ShaderExecutor.prototype.execute = function(numValues, inputs, outputs) {
+        throw new Error('Virtual function. Please override.');
+    };
 
     /**
      * Base class for shader executor.
-     * @param{glsShaderExecUtil.RenderContext} renderCtx
      * @param{gluShaderProgram.shaderType} shaderType
      * @param{glsShaderExecUtil.ShaderSpec} shaderSpec
      * @return{glsShaderExecUtil.ShaderExecutor}
      */
-    glsShaderExecUtil.createExecutor = function(renderCtx, shaderType, shaderSpec) {
-
+    glsShaderExecUtil.createExecutor = function(shaderType, shaderSpec) {
+       switch (shaderType)
+       {
+           case gluShaderProgram.shaderType.VERTEX:                    return new glsShaderExecUtil.VertexShaderExecutor(shaderSpec);
+           case gluShaderProgram.shaderType.FRAGMENT:                  return new glsShaderExecUtil.FragmentShaderExecutor(shaderSpec);
+           default:
+               throw new Error("Unsupported shader type: " + shaderType);
+        }
     };
 
     /**
@@ -129,26 +128,29 @@
      * @return{string}
      */
     glsShaderExecUtil.generateVertexShader = function(shaderSpec) {
-    	/** @type{boolean} */ var usesInout	= true; //glslVersionUsesInOutQualifiers(shaderSpec.version);
+    	/** @type{boolean} */ var usesInout	= true;
     	/** @type{string} */ var in_ = usesInout ? 'in' : 'attribute';
     	/** @type{string} */ var out = usesInout ? 'out' : 'varying';
     	/** @type{string} */ var src = '';
+        /** @type{number} */ var vecSize;
+        /** @type{gluShaderUtil.DataType} */ var intBaseType;
 
-    	src += '#version 300 es\n'; // glu::getGLSLVersionDeclaration(shaderSpec.version) << "\n";
+    	src += '#version 300 es\n';
 
-    	if (!shaderSpec.globalDeclarations.empty())
+    	if (shaderSpec.globalDeclarations.length > 0)
     		src += (shaderSpec.globalDeclarations + '\n');
 
     	for (var i = 0; i < shaderSpec.inputs.length; ++i)
     		src += (in_ + ' ' + gluVarType.declareVariable(shaderSpec.inputs[i].varType, shaderSpec.inputs.name) + ';\n');
 
     	for (var i = 0; i < shaderSpec.outputs.length; i++)	{
+            var output = shaderSpec.outputs[i];
     		DE_ASSERT(output.varType.isBasicType());
 
     		if (gluShaderUtil.isDataTypeBoolOrBVec(output.varType.getBasicType())) {
-    			/** @type{number} */ var vecSize = gluShaderUtil.getDataTypeScalarSize(output.varType.getBasicType());
-    			/** @type{gluShaderUtil.DataType} */ var intBaseType = vecSize > 1 ? gluShaderUtil.getDataTypeVector(gluShaderUtil.DataType.INT, vecSize) : gluShaderUtil.DataType.INT;
-    			/** @type{gluVarType.Type} */ var intType = new gluVarType.Type(intBaseType, gluShaderUtil.precision.PRECISION_HIGHP);
+    			vecSize = gluShaderUtil.getDataTypeScalarSize(output.varType.getBasicType());
+    			intBaseType = vecSize > 1 ? gluShaderUtil.getDataTypeVector(gluShaderUtil.DataType.INT, vecSize) : gluShaderUtil.DataType.INT;
+    			/** @type{gluVarType.VarType} */ var intType = new gluVarType.VarType().VarTypeBasic(intBaseType, gluShaderUtil.precision.PRECISION_HIGHP);
 
     			src += ('flat ' + out + ' ' + gluVarType.declareVariable(intType, 'o_' + output.name) + ';\n');
     		}
@@ -159,8 +161,8 @@
     	src += '\n'
     		+ 'void main (void)\n'
     		+ '{\n'
-    		+ '	gl_Position = vec4(0.0);\n'
-    		+ '	gl_PointSize = 1.0;\n\n';
+    		+ '	gl.Position = vec4(0.0);\n'
+    		+ '	gl.PointSize = 1.0;\n\n';
 
     	// Declare necessary output variables (bools).
     	for (var i = 0; i < shaderSpec.outputs.length; i++)	{
@@ -180,8 +182,8 @@
     	// Assignments to outputs.
     	for (var i = 0; i < shaderSpec.outputs.length; i++)	{
     		if (gluShaderUtil.isDataTypeBoolOrBVec(output.varType.getBasicType())) {
-    			/** @type{number} */ var vecSize = gluShaderUtil.getDataTypeScalarSize(output.varType.getBasicType());
-    			/** @type{gluShaderUtil.DataType} */ var intBaseType = vecSize > 1 ? gluShaderUtil.getDataTypeVector(gluShaderUtil.DataType.INT, vecSize) : gluShaderUtil.DataType.INT;
+    			vecSize = gluShaderUtil.getDataTypeScalarSize(output.varType.getBasicType());
+    			intBaseType = vecSize > 1 ? gluShaderUtil.getDataTypeVector(gluShaderUtil.DataType.INT, vecSize) : gluShaderUtil.DataType.INT;
 
     			src += ('\to_' + output.name + ' = ' + gluShaderUtil.getDataTypeName(intBaseType) + '(' + output.name + ');\n');
     		}
@@ -201,7 +203,7 @@
 // 	src << glu::getGLSLVersionDeclaration(shaderSpec.version) << "\n";
 //
 // 	if (glu::glslVersionIsES(shaderSpec.version) && shaderSpec.version <= glu::GLSL_VERSION_310_ES)
-// 		src << "#extension GL_EXT_geometry_shader : require\n";
+// 		src << "#extension gl.EXT_geometry_shader : require\n";
 //
 // 	if (!shaderSpec.globalDeclarations.empty())
 // 		src << shaderSpec.globalDeclarations << "\n";
@@ -231,7 +233,7 @@
 // 	src << "\n"
 // 		<< "void main (void)\n"
 // 		<< "{\n"
-// 		<< "	gl_Position = gl_in[0].gl_Position;\n\n";
+// 		<< "	gl.Position = gl.in[0].gl.Position;\n\n";
 //
 // 	// Fetch input variables
 // 	for (vector<Symbol>::const_iterator input = shaderSpec.inputs.begin(); input != shaderSpec.inputs.end(); ++input)
@@ -287,7 +289,7 @@
 
     	src += 'void main (void)\n{\n';
     	if (!customOut)
-    		src += '	gl_FragColor = vec4(0.0);\n';
+    		src += '	gl.FragColor = vec4(0.0);\n';
     	src += '}\n';
 
     	return src;
@@ -314,8 +316,8 @@
     	}
 
     	src += '\nvoid main (void)\n{\n'
-    		+ '	gl_Position = a_position;\n'
-    		+ '	gl_PointSize = 1.0;\n';
+    		+ '	gl.Position = a_position;\n'
+    		+ '	gl.PointSize = 1.0;\n';
 
     	for (var i = 0; i <  shaderSpec.inputs.length; i++)
     		src += ('\t' + outputPrefix + shaderSpec.inputs[i].name + ' = ' + inputPrefix + shaderSpec.inputs[i].name + ';\n');
@@ -337,7 +339,7 @@
     	/** @type{string} */ var src;
     	src = "#version 300 es\n";
 
-    	if (!shaderSpec.globalDeclarations.empty())
+    	if (!shaderSpec.globalDeclarations.length > 0)
     		src += (shaderSpec.globalDeclarations + '\n');
 
     	for (var i = 0; i < shaderSpec.inputs.length; i++)
@@ -349,7 +351,7 @@
     		/** @type{string} */ var outVarName	= 'o_' + output.name;
     		// glu::VariableDeclaration	decl		(output.varType, outVarName, glu::STORAGE_OUT, glu::INTERPOLATION_LAST, glu::Layout(location));
 
-    		TCU_CHECK_INTERNAL(output.varType.isBasicType());
+    		DE_ASSERT(output.varType.isBasicType());
 
     		if (useIntOutputs && gluShaderUtil.isDataTypeFloatOrVec(output.varType.getBasicType()))	{
     			/** @type{number} */ var vecSize = gluShaderUtil.getDataTypeScalarSize(output.varType.getBasicType());
@@ -424,30 +426,38 @@
     	return src;
     };
 
+    /**
+     * @param {Array<string>} array
+     * @return {gluShaderProgram.TransformFeedbackVaryings}
+     */
+    glsShaderExecUtil.getTFVaryings = function(outputs) {
+        return new gluShaderProgram.TransformFeedbackVaryings(outputs);
+    };
+
     // VertexProcessorExecutor (base class for vertex and geometry executors)
+
 
     /**
      * @constructor
      * @extends{glsShaderExecUtil.ShaderExecutor}
-     * @param{glsShaderExecUtil.RenderContext} renderCtx
      * @param{glsShaderExecUtil.ShaderSpec} shaderSpec
      * @param{gluShaderProgram.ProgramSources} sources
      */
-    glsShaderExecUtil.VertexProcessorExecutor = function(renderCtx, shaderSpec, sources) {
-        glsShaderExecUtil.ShaderExecutor.call(this, renderCtx, shaderSpec);
-        // /** @type{gluShaderProgram.ShaderProgram} */ this.m_program = new gluShaderProgram.ShaderProgram(renderCtx,
-		// 				 glu::ProgramSources(sources) << getTFVaryings(shaderSpec.outputs.begin(), shaderSpec.outputs.end())
-		// 											  << glu::TransformFeedbackMode(GL_INTERLEAVED_ATTRIBS));
+    glsShaderExecUtil.VertexProcessorExecutor = function(shaderSpec, sources) {
+        sources.add(glsShaderExecUtil.getTFVaryings(shaderSpec.outputs));
+        sources.add(new gluShaderProgram.TransformFeedbackMode(gl.INTERLEAVED_ATTRIBS));
+        glsShaderExecUtil.ShaderExecutor.call(this, shaderSpec);
+        this.m_program = new gluShaderProgram.ShaderProgram(gl, sources);
     };
+
+    setParentClass(glsShaderExecUtil.VertexProcessorExecutor, glsShaderExecUtil.ShaderExecutor);
 
     /**
      * @return{boolean}
      */
-    glsShaderExecUtil.VertexProcessorExecutor.prototype.isOk = function(){
+    glsShaderExecUtil.VertexProcessorExecutor.prototype.isOk = function() {
         return this.m_program.isOk();
     };
-
-	// void						log						(tcu::TestLog& dst) const	{ dst << m_program;					}
 
     /**
      * @return{WebGLProgram}
@@ -462,18 +472,14 @@
      * @param{*} outputs
      */
     glsShaderExecUtil.VertexProcessorExecutor.prototype.execute = function(numValues, inputs, outputs) {
-    	// const glw::Functions&					gl					= m_renderCtx.getFunctions();
-    	/** @type{boolean} */ var useTFObject			= true; //isContextTypeES(m_renderCtx.getType()) || (isContextTypeGLCore(m_renderCtx.getType()) && m_renderCtx.getType().getMajorVersion() >= 4);
-    	/** @type{gluDrawUtil.VertexArrayBinding} */ var vertexArrays;
-    	// de::UniquePtr<glu::TransformFeedback>	transformFeedback	(useTFObject ? new glu::TransformFeedback(m_renderCtx) : DE_NULL);
-    	// glu::Buffer								outputBuffer		(m_renderCtx);
-    	/** @type{number} */ var outputBufferStride	= glsShaderExecUtil.computeTotalScalarSize(m_outputs) * 4;
+    	var useTFObject			= true;
+    	/** @type{Array<gluDrawUtil.VertexArrayBinding>} */ var vertexArrays = [];
+    	/** @type{number} */ var outputBufferStride	= glsShaderExecUtil.computeTotalScalarSize(this.m_outputs) * 4;
 
     	// Setup inputs.
     	for (var inputNdx = 0; inputNdx < this.m_inputs.length; inputNdx++) {
     		/** @type{glsShaderExecUtil.Symbol} */ var symbol = this.m_inputs[inputNdx];
-    		// const void*			ptr			= inputs[inputNdx];
-    		// const glu::DataType	basicType	= symbol.varType.getBasicType();
+    		var	basicType	= symbol.varType.getBasicType();
     		/** @type{number} */ var			vecSize		= gluShaderUtil.getDataTypeScalarSize(basicType);
 
     		if (gluShaderUtil.isDataTypeFloatOrVec(basicType))
@@ -496,27 +502,27 @@
 
     	// Setup TF outputs.
     	if (useTFObject)
-    		gl.bindTransformFeedback(GL_TRANSFORM_FEEDBACK/*, **transformFeedback*/);
-    	gl.bindBuffer(GL_TRANSFORM_FEEDBACK_BUFFER/*, *outputBuffer*/);
-    	gl.bufferData(GL_TRANSFORM_FEEDBACK_BUFFER, outputBufferStride*numValues, DE_NULL, GL_STREAM_READ);
-    	gl.bindBufferBase(GL_TRANSFORM_FEEDBACK_BUFFER, 0/*, *outputBuffer*/);
+    		gl.bindTransformFeedback(gl.TRANSFORM_FEEDBACK/*, **transformFeedback*/);
+    	gl.bindBuffer(gl.TRANSFORM_FEEDBACK_BUFFER/*, *outputBuffer*/);
+    	gl.bufferData(gl.TRANSFORM_FEEDBACK_BUFFER, outputBufferStride*numValues, DE_NULL, gl.STREAM_READ);
+    	gl.bindBufferBase(gl.TRANSFORM_FEEDBACK_BUFFER, 0/*, *outputBuffer*/);
     	GLU_EXPECT_NO_ERROR(gl.getError(), "Error in TF setup");
 
     	// Draw with rasterization disabled.
-    	gl.beginTransformFeedback(GL_POINTS);
-    	gl.enable(GL_RASTERIZER_DISCARD);
+    	gl.beginTransformFeedback(gl.POINTS);
+    	gl.enable(gl.RASTERIZER_DISCARD);
     	// glu::draw(m_renderCtx, m_program.getProgram(), (int)vertexArrays.size(), vertexArrays.empty() ? DE_NULL : &vertexArrays[0],
     	// 		  glu::pr::Points(numValues));
-    	gl.disable(GL_RASTERIZER_DISCARD);
+    	gl.disable(gl.RASTERIZER_DISCARD);
     	gl.endTransformFeedback();
     	GLU_EXPECT_NO_ERROR(gl.getError(), "Error in draw");
 
     	// Read back data.
     	{
-    		// const void*	srcPtr		= gl.mapBufferRange(GL_TRANSFORM_FEEDBACK_BUFFER, 0, outputBufferStride*numValues, GL_MAP_READ_BIT);
+    		// const void*	srcPtr		= gl.mapBufferRange(gl.TRANSFORM_FEEDBACK_BUFFER, 0, outputBufferStride*numValues, gl.MAP_READ_BIT);
     		/** @type{number} */ var curOffset	= 0; // Offset in buffer in bytes.
 
-    		GLU_EXPECT_NO_ERROR(gl.getError(), "glMapBufferRange(GL_TRANSFORM_FEEDBACK_BUFFER)");
+    		GLU_EXPECT_NO_ERROR(gl.getError(), "glMapBufferRange(gl.TRANSFORM_FEEDBACK_BUFFER)");
     		TCU_CHECK(srcPtr != DE_NULL);
 
     		for (var outputNdx = 0; outputNdx < m_outputs.length; outputNdx++) {
@@ -530,13 +536,13 @@
     			curOffset += scalarSize*4;
     		}
 
-    		gl.unmapBuffer(GL_TRANSFORM_FEEDBACK_BUFFER);
+    		gl.unmapBuffer(gl.TRANSFORM_FEEDBACK_BUFFER);
     		GLU_EXPECT_NO_ERROR(gl.getError(), "glUnmapBuffer()");
     	}
 
     	if (useTFObject)
-    		gl.bindTransformFeedback(GL_TRANSFORM_FEEDBACK, 0);
-    	gl.bindBuffer(GL_TRANSFORM_FEEDBACK_BUFFER, 0);
+    		gl.bindTransformFeedback(gl.TRANSFORM_FEEDBACK, 0);
+    	gl.bindBuffer(gl.TRANSFORM_FEEDBACK_BUFFER, 0);
     	GLU_EXPECT_NO_ERROR(gl.getError(), "Restore state");
     };
 
@@ -574,7 +580,7 @@ VertexProcessorExecutor::VertexProcessorExecutor (const glu::RenderContext& rend
 	: ShaderExecutor	(renderCtx, shaderSpec)
 	, m_program			(renderCtx,
 						 glu::ProgramSources(sources) << getTFVaryings(shaderSpec.outputs.begin(), shaderSpec.outputs.end())
-													  << glu::TransformFeedbackMode(GL_INTERLEAVED_ATTRIBS))
+													  << glu::TransformFeedbackMode(gl.INTERLEAVED_ATTRIBS))
 {
 }
 
@@ -633,27 +639,27 @@ VertexProcessorExecutor::VertexProcessorExecutor (const glu::RenderContext& rend
 
     	// Setup TF outputs.
     	if (useTFObject)
-    		gl.bindTransformFeedback(GL_TRANSFORM_FEEDBACK/*, **transformFeedback*/);
-    	// gl.bindBuffer(GL_TRANSFORM_FEEDBACK_BUFFER, *outputBuffer);
-    	gl.bufferData(GL_TRANSFORM_FEEDBACK_BUFFER, outputBufferStride*numValues, DE_NULL, GL_STREAM_READ);
-    	// gl.bindBufferBase(GL_TRANSFORM_FEEDBACK_BUFFER, 0, *outputBuffer);
+    		gl.bindTransformFeedback(gl.TRANSFORM_FEEDBACK/*, **transformFeedback*/);
+    	// gl.bindBuffer(gl.TRANSFORM_FEEDBACK_BUFFER, *outputBuffer);
+    	gl.bufferData(gl.TRANSFORM_FEEDBACK_BUFFER, outputBufferStride*numValues, DE_NULL, gl.STREAM_READ);
+    	// gl.bindBufferBase(gl.TRANSFORM_FEEDBACK_BUFFER, 0, *outputBuffer);
     	GLU_EXPECT_NO_ERROR(gl.getError(), "Error in TF setup");
 
     	// Draw with rasterization disabled.
-    	gl.beginTransformFeedback(GL_POINTS);
-    	gl.enable(GL_RASTERIZER_DISCARD);
+    	gl.beginTransformFeedback(gl.POINTS);
+    	gl.enable(gl.RASTERIZER_DISCARD);
     	// gluDrawUtil.draw(m_renderCtx, m_program.getProgram(), (int)vertexArrays.size(), vertexArrays.empty() ? DE_NULL : &vertexArrays[0],
     	// 		  glu::pr::Points(numValues));
-    	gl.disable(GL_RASTERIZER_DISCARD);
+    	gl.disable(gl.RASTERIZER_DISCARD);
     	gl.endTransformFeedback();
     	GLU_EXPECT_NO_ERROR(gl.getError(), "Error in draw");
 
     	// Read back data.
     	{
-    		// const void*	srcPtr		= gl.mapBufferRange(GL_TRANSFORM_FEEDBACK_BUFFER, 0, outputBufferStride*numValues, GL_MAP_READ_BIT);
+    		// const void*	srcPtr		= gl.mapBufferRange(gl.TRANSFORM_FEEDBACK_BUFFER, 0, outputBufferStride*numValues, gl.MAP_READ_BIT);
     		/** @type{number} */ var curOffset	= 0; // Offset in buffer in bytes.
 
-    		GLU_EXPECT_NO_ERROR(gl.getError(), "glMapBufferRange(GL_TRANSFORM_FEEDBACK_BUFFER)");
+    		GLU_EXPECT_NO_ERROR(gl.getError(), "glMapBufferRange(gl.TRANSFORM_FEEDBACK_BUFFER)");
     		TCU_CHECK(srcPtr != DE_NULL);
 
     		for (var outputNdx = 0; outputNdx < this.m_outputs.length; outputNdx++) {
@@ -667,13 +673,13 @@ VertexProcessorExecutor::VertexProcessorExecutor (const glu::RenderContext& rend
     			curOffset += scalarSize*4;
     		}
 
-    		gl.unmapBuffer(GL_TRANSFORM_FEEDBACK_BUFFER);
+    		gl.unmapBuffer(gl.TRANSFORM_FEEDBACK_BUFFER);
     		GLU_EXPECT_NO_ERROR(gl.getError(), "glUnmapBuffer()");
     	}
 
     	if (useTFObject)
-    		gl.bindTransformFeedback(GL_TRANSFORM_FEEDBACK, 0);
-    	gl.bindBuffer(GL_TRANSFORM_FEEDBACK_BUFFER, 0);
+    		gl.bindTransformFeedback(gl.TRANSFORM_FEEDBACK, 0);
+    	gl.bindBuffer(gl.TRANSFORM_FEEDBACK_BUFFER, 0);
     	GLU_EXPECT_NO_ERROR(gl.getError(), "Restore state");
     };
 
@@ -686,42 +692,13 @@ VertexProcessorExecutor::VertexProcessorExecutor (const glu::RenderContext& rend
  * @param{glsShaderExecUtil.ShaderSpec} shaderSpec
  */
 glsShaderExecUtil.VertexShaderExecutor = function(shaderSpec) {
-    glsShaderExecUtil.VertexProcessorExecutor.call(this, shaderSpec );
+    var sources = gluShaderProgram.makeVtxFragSources(glsShaderExecUtil.generateVertexShader(shaderSpec),
+                    glsShaderExecUtil.generateEmptyFragmentSource(shaderSpec.version));
+    glsShaderExecUtil.VertexProcessorExecutor.call(this, shaderSpec, sources);
 };
 
-// VertexShaderExecutor::VertexShaderExecutor (const glu::RenderContext& renderCtx, const ShaderSpec& shaderSpec)
-// 	: VertexProcessorExecutor	(renderCtx, shaderSpec,
-// 								 glu::ProgramSources() << glu::VertexSource(generateVertexShader(shaderSpec))
-// 													   << glu::FragmentSource(generateEmptyFragmentSource(shaderSpec.version)))
-// {
-// }
+setParentClass(glsShaderExecUtil.VertexShaderExecutor, glsShaderExecUtil.VertexProcessorExecutor);
 
-// GeometryShaderExecutor
-
-// class CheckGeomSupport
-// {
-// public:
-// 	inline CheckGeomSupport (const glu::RenderContext& renderCtx)
-// 	{
-// 		if (renderCtx.getType().getAPI().getProfile() == glu::PROFILE_ES)
-// 			checkExtension(renderCtx, "GL_EXT_geometry_shader");
-// 	}
-// };
-//
-// class GeometryShaderExecutor : private CheckGeomSupport, public VertexProcessorExecutor
-// {
-// public:
-// 								GeometryShaderExecutor	(const glu::RenderContext& renderCtx, const ShaderSpec& shaderSpec);
-// };
-//
-// GeometryShaderExecutor::GeometryShaderExecutor (const glu::RenderContext& renderCtx, const ShaderSpec& shaderSpec)
-// 	: CheckGeomSupport			(renderCtx)
-// 	, VertexProcessorExecutor	(renderCtx, shaderSpec,
-// 								 glu::ProgramSources() << glu::VertexSource(generatePassthroughVertexShader(shaderSpec, "", "geom_"))
-// 													   << glu::GeometrySource(generateGeometryShader(shaderSpec))
-// 													   << glu::FragmentSource(generateEmptyFragmentSource(shaderSpec.version)))
-// {
-// }
 
 // FragmentShaderExecutor
 // TODO: port this
@@ -825,7 +802,7 @@ glsShaderExecUtil.VertexShaderExecutor = function(shaderSpec) {
 // {
 // 	const glw::Functions&			gl					= m_renderCtx.getFunctions();
 // 	const bool						useIntOutputs		= !hasFloatRenderTargets(m_renderCtx);
-// 	/** @type{number} */ var						maxRenderbufferSize	= queryInt(gl, GL_MAX_RENDERBUFFER_SIZE);
+// 	/** @type{number} */ var						maxRenderbufferSize	= queryInt(gl, gl.MAX_RENDERBUFFER_SIZE);
 // 	/** @type{number} */ var						framebufferW		= de::min(maxRenderbufferSize, numValues);
 // 	/** @type{number} */ var						framebufferH		= (numValues / framebufferW) + ((numValues % framebufferW != 0) ? 1 : 0);
 //
@@ -880,7 +857,7 @@ glsShaderExecUtil.VertexShaderExecutor = function(shaderSpec) {
 // 	}
 //
 // 	// Construct framebuffer.
-// 	gl.bindFramebuffer(GL_FRAMEBUFFER, *framebuffer);
+// 	gl.bindFramebuffer(gl.FRAMEBUFFER, *framebuffer);
 //
 // 	for (int outNdx = 0; outNdx < (int)m_outLocationSymbols.size(); ++outNdx)
 // 	{
@@ -888,18 +865,18 @@ glsShaderExecUtil.VertexShaderExecutor = function(shaderSpec) {
 // 		const deUint32	renderbuffer	= renderbuffers[outNdx];
 // 		const deUint32	format			= glu::getInternalFormat(getRenderbufferFormatForOutput(output.varType, useIntOutputs));
 //
-// 		gl.bindRenderbuffer(GL_RENDERBUFFER, renderbuffer);
-// 		gl.renderbufferStorage(GL_RENDERBUFFER, format, framebufferW, framebufferH);
-// 		gl.framebufferRenderbuffer(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0+outNdx, GL_RENDERBUFFER, renderbuffer);
+// 		gl.bindRenderbuffer(gl.RENDERBUFFER, renderbuffer);
+// 		gl.renderbufferStorage(gl.RENDERBUFFER, format, framebufferW, framebufferH);
+// 		gl.framebufferRenderbuffer(gl.FRAMEBUFFER, gl.COLOR_ATTACHMENT0+outNdx, gl.RENDERBUFFER, renderbuffer);
 // 	}
-// 	gl.bindRenderbuffer(GL_RENDERBUFFER, 0);
+// 	gl.bindRenderbuffer(gl.RENDERBUFFER, 0);
 // 	GLU_EXPECT_NO_ERROR(gl.getError(), "Failed to set up framebuffer object");
-// 	TCU_CHECK(gl.checkFramebufferStatus(GL_FRAMEBUFFER) == GL_FRAMEBUFFER_COMPLETE);
+// 	TCU_CHECK(gl.checkFramebufferStatus(gl.FRAMEBUFFER) == gl.FRAMEBUFFER_COMPLETE);
 //
 // 	{
 // 		vector<deUint32> drawBuffers(m_outLocationSymbols.size());
 // 		for (var ndx = 0; ndx < (int)m_outLocationSymbols.size(); ndx++)
-// 			drawBuffers[ndx] = GL_COLOR_ATTACHMENT0+ndx;
+// 			drawBuffers[ndx] = gl.COLOR_ATTACHMENT0+ndx;
 // 		gl.drawBuffers((int)drawBuffers.size(), &drawBuffers[0]);
 // 		GLU_EXPECT_NO_ERROR(gl.getError(), "glDrawBuffers()");
 // 	}
@@ -931,7 +908,7 @@ glsShaderExecUtil.VertexShaderExecutor = function(shaderSpec) {
 //
 // 			for (int locNdx = 0; locNdx < outNumLocs; ++locNdx)
 // 			{
-// 				gl.readBuffer(GL_COLOR_ATTACHMENT0 + outLocation + locNdx);
+// 				gl.readBuffer(gl.COLOR_ATTACHMENT0 + outLocation + locNdx);
 // 				glu::readPixels(m_renderCtx, 0, 0, tmpBuf.getAccess());
 // 				GLU_EXPECT_NO_ERROR(gl.getError(), "Reading pixels");
 //
@@ -951,7 +928,7 @@ glsShaderExecUtil.VertexShaderExecutor = function(shaderSpec) {
 // 	}
 //
 // 	// \todo [2013-08-07 pyry] Clear draw buffers & viewport?
-// 	gl.bindFramebuffer(GL_FRAMEBUFFER, 0);
+// 	gl.bindFramebuffer(gl.FRAMEBUFFER, 0);
 // }
 //
 // // Shared utilities for compute and tess executors
@@ -1045,16 +1022,16 @@ glsShaderExecUtil.VertexShaderExecutor = function(shaderSpec) {
 // void BufferIoExecutor::resizeInputBuffer (int newSize)
 // {
 // 	const glw::Functions& gl = m_renderCtx.getFunctions();
-// 	gl.bindBuffer(GL_SHADER_STORAGE_BUFFER, *m_inputBuffer);
-// 	gl.bufferData(GL_SHADER_STORAGE_BUFFER, newSize, DE_NULL, GL_STATIC_DRAW);
+// 	gl.bindBuffer(gl.SHADER_STORAGE_BUFFER, *m_inputBuffer);
+// 	gl.bufferData(gl.SHADER_STORAGE_BUFFER, newSize, DE_NULL, gl.STATIC_DRAW);
 // 	GLU_EXPECT_NO_ERROR(gl.getError(), "Failed to allocate input buffer");
 // }
 //
 // void BufferIoExecutor::resizeOutputBuffer (int newSize)
 // {
 // 	const glw::Functions& gl = m_renderCtx.getFunctions();
-// 	gl.bindBuffer(GL_SHADER_STORAGE_BUFFER, *m_outputBuffer);
-// 	gl.bufferData(GL_SHADER_STORAGE_BUFFER, newSize, DE_NULL, GL_STATIC_DRAW);
+// 	gl.bindBuffer(gl.SHADER_STORAGE_BUFFER, *m_outputBuffer);
+// 	gl.bufferData(gl.SHADER_STORAGE_BUFFER, newSize, DE_NULL, gl.STATIC_DRAW);
 // 	GLU_EXPECT_NO_ERROR(gl.getError(), "Failed to allocate output buffer");
 // }
 //
@@ -1191,8 +1168,8 @@ glsShaderExecUtil.VertexShaderExecutor = function(shaderSpec) {
 // 	if (inputBufferSize == 0)
 // 		return; // No inputs
 //
-// 	gl.bindBuffer(GL_SHADER_STORAGE_BUFFER, buffer);
-// 	void* mapPtr = gl.mapBufferRange(GL_SHADER_STORAGE_BUFFER, 0, inputBufferSize, GL_MAP_WRITE_BIT);
+// 	gl.bindBuffer(gl.SHADER_STORAGE_BUFFER, buffer);
+// 	void* mapPtr = gl.mapBufferRange(gl.SHADER_STORAGE_BUFFER, 0, inputBufferSize, gl.MAP_WRITE_BIT);
 // 	GLU_EXPECT_NO_ERROR(gl.getError(), "glMapBufferRange()");
 // 	TCU_CHECK(mapPtr);
 //
@@ -1209,11 +1186,11 @@ glsShaderExecUtil.VertexShaderExecutor = function(shaderSpec) {
 // 	}
 // 	catch (...)
 // 	{
-// 		gl.unmapBuffer(GL_SHADER_STORAGE_BUFFER);
+// 		gl.unmapBuffer(gl.SHADER_STORAGE_BUFFER);
 // 		throw;
 // 	}
 //
-// 	gl.unmapBuffer(GL_SHADER_STORAGE_BUFFER);
+// 	gl.unmapBuffer(gl.SHADER_STORAGE_BUFFER);
 // 	GLU_EXPECT_NO_ERROR(gl.getError(), "glUnmapBuffer()");
 // }
 //
@@ -1226,8 +1203,8 @@ glsShaderExecUtil.VertexShaderExecutor = function(shaderSpec) {
 //
 // 	DE_ASSERT(outputBufferSize > 0); // At least some outputs are required.
 //
-// 	gl.bindBuffer(GL_SHADER_STORAGE_BUFFER, buffer);
-// 	void* mapPtr = gl.mapBufferRange(GL_SHADER_STORAGE_BUFFER, 0, outputBufferSize, GL_MAP_READ_BIT);
+// 	gl.bindBuffer(gl.SHADER_STORAGE_BUFFER, buffer);
+// 	void* mapPtr = gl.mapBufferRange(gl.SHADER_STORAGE_BUFFER, 0, outputBufferSize, gl.MAP_READ_BIT);
 // 	GLU_EXPECT_NO_ERROR(gl.getError(), "glMapBufferRange()");
 // 	TCU_CHECK(mapPtr);
 //
@@ -1244,11 +1221,11 @@ glsShaderExecUtil.VertexShaderExecutor = function(shaderSpec) {
 // 	}
 // 	catch (...)
 // 	{
-// 		gl.unmapBuffer(GL_SHADER_STORAGE_BUFFER);
+// 		gl.unmapBuffer(gl.SHADER_STORAGE_BUFFER);
 // 		throw;
 // 	}
 //
-// 	gl.unmapBuffer(GL_SHADER_STORAGE_BUFFER);
+// 	gl.unmapBuffer(gl.SHADER_STORAGE_BUFFER);
 // 	GLU_EXPECT_NO_ERROR(gl.getError(), "glUnmapBuffer()");
 // }
 //
@@ -1343,8 +1320,8 @@ glsShaderExecUtil.VertexShaderExecutor = function(shaderSpec) {
 //
 // 	src << "void main (void)\n"
 // 		<< "{\n"
-// 		<< "	uint invocationNdx = gl_NumWorkGroups.x*gl_NumWorkGroups.y*gl_WorkGroupID.z\n"
-// 		<< "	                   + gl_NumWorkGroups.x*gl_WorkGroupID.y + gl_WorkGroupID.x;\n";
+// 		<< "	uint invocationNdx = gl.NumWorkGroups.x*gl.NumWorkGroups.y*gl.WorkGroupID.z\n"
+// 		<< "	                   + gl.NumWorkGroups.x*gl.WorkGroupID.y + gl.WorkGroupID.x;\n";
 //
 // 	generateExecBufferIo(src, spec, "invocationNdx");
 //
@@ -1384,10 +1361,10 @@ glsShaderExecUtil.VertexShaderExecutor = function(shaderSpec) {
 // 			/** @type{number} */ var numToExec = de::min(maxValuesPerInvocation, numValues-curOffset);
 //
 // 			if (inputStride > 0)
-// 				gl.bindBufferRange(GL_SHADER_STORAGE_BUFFER, INPUT_BUFFER_BINDING, getInputBuffer(), curOffset*inputStride, numToExec*inputStride);
+// 				gl.bindBufferRange(gl.SHADER_STORAGE_BUFFER, INPUT_BUFFER_BINDING, getInputBuffer(), curOffset*inputStride, numToExec*inputStride);
 //
-// 			gl.bindBufferRange(GL_SHADER_STORAGE_BUFFER, OUTPUT_BUFFER_BINDING, getOutputBuffer(), curOffset*outputStride, numToExec*outputStride);
-// 			GLU_EXPECT_NO_ERROR(gl.getError(), "glBindBufferRange(GL_SHADER_STORAGE_BUFFER)");
+// 			gl.bindBufferRange(gl.SHADER_STORAGE_BUFFER, OUTPUT_BUFFER_BINDING, getOutputBuffer(), curOffset*outputStride, numToExec*outputStride);
+// 			GLU_EXPECT_NO_ERROR(gl.getError(), "glBindBufferRange(gl.SHADER_STORAGE_BUFFER)");
 //
 // 			gl.dispatchCompute(numToExec, 1, 1);
 // 			GLU_EXPECT_NO_ERROR(gl.getError(), "glDispatchCompute()");
@@ -1409,7 +1386,7 @@ glsShaderExecUtil.VertexShaderExecutor = function(shaderSpec) {
 // 	src << glu::getGLSLVersionDeclaration(version) << "\n";
 //
 // 	src << "void main (void)\n{\n"
-// 		<< "	gl_Position = vec4(gl_VertexID/2, gl_VertexID%2, 0.0, 1.0);\n"
+// 		<< "	gl.Position = vec4(gl.VertexID/2, gl.VertexID%2, 0.0, 1.0);\n"
 // 		<< "}\n";
 //
 // 	return src.str();
@@ -1421,7 +1398,7 @@ glsShaderExecUtil.VertexShaderExecutor = function(shaderSpec) {
 // 	inline CheckTessSupport (const glu::RenderContext& renderCtx)
 // 	{
 // 		if (renderCtx.getType().getAPI().getProfile() == glu::PROFILE_ES)
-// 			checkExtension(renderCtx, "GL_EXT_tessellation_shader");
+// 			checkExtension(renderCtx, "gl.EXT_tessellation_shader");
 // 	}
 // };
 
@@ -1446,7 +1423,7 @@ glsShaderExecUtil.VertexShaderExecutor = function(shaderSpec) {
 // 	src << glu::getGLSLVersionDeclaration(shaderSpec.version) << "\n";
 //
 // 	if (shaderSpec.version == glu::GLSL_VERSION_310_ES)
-// 		src << "#extension GL_EXT_tessellation_shader : require\n";
+// 		src << "#extension gl.EXT_tessellation_shader : require\n";
 //
 // 	if (!shaderSpec.globalDeclarations.empty())
 // 		src << shaderSpec.globalDeclarations << "\n";
@@ -1458,13 +1435,13 @@ glsShaderExecUtil.VertexShaderExecutor = function(shaderSpec) {
 // 	src << "void main (void)\n{\n";
 //
 // 	for (var ndx = 0; ndx < 2; ndx++)
-// 		src << "\tgl_TessLevelInner[" << ndx << "] = 1.0;\n";
+// 		src << "\tgl.TessLevelInner[" << ndx << "] = 1.0;\n";
 //
 // 	for (var ndx = 0; ndx < 4; ndx++)
-// 		src << "\tgl_TessLevelOuter[" << ndx << "] = 1.0;\n";
+// 		src << "\tgl.TessLevelOuter[" << ndx << "] = 1.0;\n";
 //
 // 	src << "\n"
-// 		<< "\thighp uint invocationId = uint(gl_PrimitiveID);\n";
+// 		<< "\thighp uint invocationId = uint(gl.PrimitiveID);\n";
 //
 // 	generateExecBufferIo(src, shaderSpec, "invocationId");
 //
@@ -1480,12 +1457,12 @@ glsShaderExecUtil.VertexShaderExecutor = function(shaderSpec) {
 // 	src << glu::getGLSLVersionDeclaration(version) << "\n";
 //
 // 	if (version == glu::GLSL_VERSION_310_ES)
-// 		src << "#extension GL_EXT_tessellation_shader : require\n\n";
+// 		src << "#extension gl.EXT_tessellation_shader : require\n\n";
 //
 // 	src << "layout(triangles, ccw) in;\n";
 //
 // 	src << "\nvoid main (void)\n{\n"
-// 		<< "\tgl_Position = vec4(gl_TessCoord.xy, 0.0, 1.0);\n"
+// 		<< "\tgl.Position = vec4(gl.TessCoord.xy, 0.0, 1.0);\n"
 // 		<< "}\n";
 //
 // 	return src.str();
@@ -1515,13 +1492,13 @@ glsShaderExecUtil.VertexShaderExecutor = function(shaderSpec) {
 // 	uploadInputBuffer(inputs, numValues);
 //
 // 	if (!m_inputs.empty())
-// 		gl.bindBufferBase(GL_SHADER_STORAGE_BUFFER, INPUT_BUFFER_BINDING, getInputBuffer());
+// 		gl.bindBufferBase(gl.SHADER_STORAGE_BUFFER, INPUT_BUFFER_BINDING, getInputBuffer());
 //
-// 	gl.bindBufferBase(GL_SHADER_STORAGE_BUFFER, OUTPUT_BUFFER_BINDING, getOutputBuffer());
+// 	gl.bindBufferBase(gl.SHADER_STORAGE_BUFFER, OUTPUT_BUFFER_BINDING, getOutputBuffer());
 //
 // 	// Render patches
-// 	gl.patchParameteri(GL_PATCH_VERTICES, 3);
-// 	gl.drawArrays(GL_PATCHES, 0, 3*numValues);
+// 	gl.patchParameteri(gl.PATCH_VERTICES, 3);
+// 	gl.drawArrays(gl.PATCHES, 0, 3*numValues);
 //
 // 	// Read back data
 // 	readOutputBuffer(outputs, numValues);
@@ -1548,17 +1525,17 @@ glsShaderExecUtil.VertexShaderExecutor = function(shaderSpec) {
 // 	src << glu::getGLSLVersionDeclaration(version) << "\n";
 //
 // 	if (version == glu::GLSL_VERSION_310_ES)
-// 		src << "#extension GL_EXT_tessellation_shader : require\n\n";
+// 		src << "#extension gl.EXT_tessellation_shader : require\n\n";
 //
 // 	src << "layout(vertices = 1) out;\n\n";
 //
 // 	src << "void main (void)\n{\n";
 //
 // 	for (var ndx = 0; ndx < 2; ndx++)
-// 		src << "\tgl_TessLevelInner[" << ndx << "] = 1.0;\n";
+// 		src << "\tgl.TessLevelInner[" << ndx << "] = 1.0;\n";
 //
 // 	for (var ndx = 0; ndx < 4; ndx++)
-// 		src << "\tgl_TessLevelOuter[" << ndx << "] = 1.0;\n";
+// 		src << "\tgl.TessLevelOuter[" << ndx << "] = 1.0;\n";
 //
 // 	src << "}\n";
 //
@@ -1572,7 +1549,7 @@ glsShaderExecUtil.VertexShaderExecutor = function(shaderSpec) {
 // 	src << glu::getGLSLVersionDeclaration(shaderSpec.version) << "\n";
 //
 // 	if (shaderSpec.version == glu::GLSL_VERSION_310_ES)
-// 		src << "#extension GL_EXT_tessellation_shader : require\n";
+// 		src << "#extension gl.EXT_tessellation_shader : require\n";
 //
 // 	if (!shaderSpec.globalDeclarations.empty())
 // 		src << shaderSpec.globalDeclarations << "\n";
@@ -1584,8 +1561,8 @@ glsShaderExecUtil.VertexShaderExecutor = function(shaderSpec) {
 // 	declareBufferBlocks(src, shaderSpec);
 //
 // 	src << "void main (void)\n{\n"
-// 		<< "\tgl_Position = vec4(gl_TessCoord.x, 0.0, 0.0, 1.0);\n"
-// 		<< "\thighp uint invocationId = uint(gl_PrimitiveID) + (gl_TessCoord.x > 0.5 ? 1u : 0u);\n";
+// 		<< "\tgl.Position = vec4(gl.TessCoord.x, 0.0, 0.0, 1.0);\n"
+// 		<< "\thighp uint invocationId = uint(gl.PrimitiveID) + (gl.TessCoord.x > 0.5 ? 1u : 0u);\n";
 //
 // 	generateExecBufferIo(src, shaderSpec, "invocationId");
 //
@@ -1622,54 +1599,16 @@ glsShaderExecUtil.VertexShaderExecutor = function(shaderSpec) {
 // 	// \todo [2014-06-26 pyry] Duplicate last value in the buffer to prevent infinite loops for example?
 //
 // 	if (!m_inputs.empty())
-// 		gl.bindBufferBase(GL_SHADER_STORAGE_BUFFER, INPUT_BUFFER_BINDING, getInputBuffer());
+// 		gl.bindBufferBase(gl.SHADER_STORAGE_BUFFER, INPUT_BUFFER_BINDING, getInputBuffer());
 //
-// 	gl.bindBufferBase(GL_SHADER_STORAGE_BUFFER, OUTPUT_BUFFER_BINDING, getOutputBuffer());
+// 	gl.bindBufferBase(gl.SHADER_STORAGE_BUFFER, OUTPUT_BUFFER_BINDING, getOutputBuffer());
 //
 // 	// Render patches
-// 	gl.patchParameteri(GL_PATCH_VERTICES, 2);
-// 	gl.drawArrays(GL_PATCHES, 0, 2*alignedValues);
+// 	gl.patchParameteri(gl.PATCH_VERTICES, 2);
+// 	gl.drawArrays(gl.PATCHES, 0, 2*alignedValues);
 //
 // 	// Read back data
 // 	readOutputBuffer(outputs, numValues);
 // }
-
-// Utilities
-// TODO: port this
-// ShaderExecutor* createExecutor (const glu::RenderContext& renderCtx, glu::ShaderType shaderType, const ShaderSpec& shaderSpec)
-// {
-// 	switch (shaderType)
-// 	{
-// 		case glu::SHADERTYPE_VERTEX:					return new VertexShaderExecutor		(renderCtx, shaderSpec);
-// 		// case glu::SHADERTYPE_TESSELLATION_CONTROL:		return new TessControlExecutor		(renderCtx, shaderSpec);
-// 		// case glu::SHADERTYPE_TESSELLATION_EVALUATION:	return new TessEvaluationExecutor	(renderCtx, shaderSpec);
-// 		// case glu::SHADERTYPE_GEOMETRY:					return new GeometryShaderExecutor	(renderCtx, shaderSpec);
-// 		case glu::SHADERTYPE_FRAGMENT:					return new FragmentShaderExecutor	(renderCtx, shaderSpec);
-// 		// case glu::SHADERTYPE_COMPUTE:					return new ComputeShaderExecutor	(renderCtx, shaderSpec);
-// 		default:
-// 			throw tcu::InternalError("Unsupported shader type");
-// 	}
-// }
-//
-// } // ShaderExecUtil
-// } // gls
-// } // deqp
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 });

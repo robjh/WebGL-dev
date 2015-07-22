@@ -190,7 +190,7 @@ var setParentClass = function(child, parent) {
     /**
      * template <typename Out>
      * Returns true for all other types except Void
-     * @param{*} In
+     * @param{*} Out
      * @return{number}
      */
     glsBuiltinPrecisionTests.numOutputs = function(Out) {
@@ -2218,11 +2218,8 @@ var setParentClass = function(child, parent) {
     	// }
 
     	// Initialize ShaderSpec from precision, variables and statement.
-    	// {
-    	// 	ostringstream os;
-    	// 	os << "precision " << glu::getPrecisionName(m_ctx.precision) << " float;\n";
-    	// 	spec.globalDeclarations = os.str();
-    	// }
+
+		spec.globalDeclarations = "precision " + gluShaderUtil.getPrecisionName(this.m_ctx.precision) + " float;\n"
 
     	if (this.m_extension.length > 0)
     		spec.globalDeclarations = '#extension ' + this.m_extension + ' : require\n';
@@ -2250,7 +2247,7 @@ var setParentClass = function(child, parent) {
     	// Run the shader with inputs.
     	{
     		/** @type{glsShaderExecUtil.ShaderExecutor} */
-            var executor = glsShaderExecUtil.createExecutor(gl, this.m_ctx.shaderType, spec);
+            var executor = glsShaderExecUtil.createExecutor(this.m_ctx.shaderType, spec);
     		/** @type{Array<*>} */ var inputArr	=
     		[
     			inputs.in0, inputs.in1, inputs.in2, inputs.in3
