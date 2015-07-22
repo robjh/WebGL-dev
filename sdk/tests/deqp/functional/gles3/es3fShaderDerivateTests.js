@@ -23,6 +23,9 @@ goog.provide('functional.gles3.es3fShaderDerivateTests');
 
 goog.scope(function() {
 	var es3fShaderDerivateTests = functional.gles3.es3fShaderDerivateTests;
+	var tcuTexture.ConstPixelBufferAccess;
+	var gluShaderUtil;
+	var deMath;
 
 	/** @const {number} */ es3fShaderDerivateTests.VIEWPORT_WIDTH = 167,
 	/** @const {number} */ es3fShaderDerivateTests.VIEWPORT_HEIGHT = 103,
@@ -91,7 +94,6 @@ goog.scope(function() {
 	};
 
 	/**
-	 * [function description]
 	 * @param  {es3fShaderDerivateTests.DerivateFunc} function
 	 * @return {string}
 	 */
@@ -100,23 +102,87 @@ goog.scope(function() {
 			case es3fShaderDerivateTests.DerivateFunc.DFDX: return "dFdx";
 			case es3fShaderDerivateTests.DerivateFunc.DFDY: return "dFdy";
 			case es3fShaderDerivateTests.DerivateFunc.FWIDTH: return "fwidth";
-			default: throw new Error("Derivate Fuctnon not supported.");
+			default: throw new Error("Derivate Func not supported.");
 		}
 	};
 
 	/**
-	 * [function description]
 	 * @param  {es3fShaderDerivateTests.DerivateFunc} function
 	 * @return {string}
 	 */
-	es3fShaderDerivateTests.getDerivateFuncName = function(func) {
+	es3fShaderDerivateTests.getDerivateFuncCaseName = function(func) {
 		switch (func) {
 			case es3fShaderDerivateTests.DerivateFunc.DFDX: return "dfdx";
 			case es3fShaderDerivateTests.DerivateFunc.DFDY: return "dfdy";
 			case es3fShaderDerivateTests.DerivateFunc.FWIDTH: return "fwidth";
-			default: throw new Error("Derivate Fuctnon not supported.");
+			default: throw new Error("Derivate Func not supported.");
 		}
 	};
+
+	/**
+	 * @param  {gluShaderUtil.DataType} type
+	 * @return {Array<boolean>}
+	 */
+	es3fShaderDerivateTests.getDerivateMask = function(type) {
+		switch (type) {
+			case gluShaderUtil.DataType.FLOAT: return [true, false, false, false];
+			case gluShaderUtil.DataType.FLOAT_VEC2: return [true, true, false, false];
+			case gluShaderUtil.DataType.FLOAT_VEC3: return [true, true, true, false];
+			case gluShaderUtil.DataType.FLOAT_VEC4: return [true, true, true, true];
+			default: throw new Error("Data Type not supported.");
+		}
+	};
+
+	/**
+	 * @param  {tcuTexture.ConstPixelBufferAccess} surface
+	 * @param  {Array<number>} derivScale
+	 * @param  {Array<number>} derivBias
+	 * @param  {number} x
+	 * @param  {number} y
+	 * @return {Array<number>}
+	 */
+	es3fShaderDerivateTests.readDerivate = function(surface, derivScale, derivBias, x, y)	{
+		return deMath.divide(deMath.subtract(surface.getPixel(x, y), derivBias), derivScale);
+	};
+
+	/**
+	 * @param  {Array<number>} v
+	 * @return {Array<number>}
+	 */
+    es3fShaderDerivateTests.getCompExpBits = function(v) {
+		return [tcuFloat.newFloat32(v[0]).exponentBits(),
+			tcuFloat.newFloat32(v[1]).exponentBits(),
+			tcuFloat.newFloat32(v[2]).exponentBits(),
+			tcuFloat.newFloat32(v[3]).exponentBits()];
+	};
+
+	/**
+	 * @param  {number} value
+	 * @param  {number} numAccurateBits
+	 * @return {number}
+	 */
+	es3fShaderDerivateTests.computeFloatingPointError = function(value, numAccurateBits) 	{
+		/** @type {number} */ var numGarbageBits = 23 - numAccurateBits;
+		/** @type {number} */ var mask = (1 << numGarbageBits) - 1 ;
+		/** @type {number} */ var exp = tcuFloat.newFloat32(value).exponent();
+
+		/** @type {tcuFloat.deFloat} */ var f1 = new tcuFloat.deFloat();
+        /** @type {tcuFloat.deFloat} */ var f2 = new tcuFloat.deFloat();
+		return f1.construct(1, exp, (1 << 23) | mask).getValue() - f2.construct(1, exp, 1 << 23).getValue();
+	};
+
+	//TODO IMPLEMENT
+	// static int getNumMantissaBits (const glu::Precision precision) {
+	// 	switch (precision)
+	// 	{
+	// 		case glu::PRECISION_HIGHP:		return 23;
+	// 		case glu::PRECISION_MEDIUMP:	return 10;
+	// 		case glu::PRECISION_LOWP:		return 6;
+	// 		default:
+	// 			DE_ASSERT(false);
+	// 			return 0;
+	// 	}
+	// }
 
 	/**
      * Run test
