@@ -252,10 +252,10 @@ goog.scope(function() {
             ];
 
             var viewportW = deMath.min(
-                TEX2D_VIEWPORT_WIDTH, 0/** TODO: gl.getRenderTarget().getWidth() */
+                TEX2D_VIEWPORT_WIDTH, 0 /** TODO: gl.getRenderTarget().getWidth() */
             );
             var viewportH = deMath.min(
-                TEX2D_VIEWPORT_HEIGHT,0 /** TODO: gl.getRenderTarget().getHeight() */
+                TEX2D_VIEWPORT_HEIGHT, 0 /** TODO: gl.getRenderTarget().getHeight() */
             );
 
             for (var caseNdx = 0; caseNdx < cases.length; caseNdx++)
@@ -309,17 +309,20 @@ goog.scope(function() {
      */
     es3fTextureFilteringTests.Texture2DFilteringCase.iterate = function ()
     {
-        /** @type {glsTextureTestUtil.RandomViewport} */ var viewport =
-        new glsTextureTestUtil.RandomViewport(
-             gl.canvas, TEX2D_VIEWPORT_WIDTH,
-             TEX2D_VIEWPORT_HEIGHT, deString.deStringHash(this.getName()) ^
-             deMath.deMathHash(this.m_caseNdx)
+        /** @type {glsTextureTestUtil.RandomViewport} */
+        var viewport = new glsTextureTestUtil.RandomViewport(
+            gl.canvas, TEX2D_VIEWPORT_WIDTH,
+            TEX2D_VIEWPORT_HEIGHT, deMath.binaryOp(
+                deString.deStringHash(this.getName()),
+                deMath.deMathHash(this.m_caseNdx),
+                deMAth.BinaryOp.XOR
+            );
         );
-        /** @type {tcuTexture.TextureFormat} */ var texFmt =
-            this.m_textures[0].getRefTexture().getFormat();
+        /** @type {tcuTexture.TextureFormat} */
+        var texFmt = this.m_textures[0].getRefTexture().getFormat();
 
-        /** @type {tcuTexture.TextureFormatInfo} */ var fmtInfo =
-            tcuTexture.getTextureFormatInfo(texFmt);
+        /** @type {tcuTexture.TextureFormatInfo} */
+        var fmtInfo = tcuTexture.getTextureFormatInfo(texFmt);
         var curCase = this.m_cases[m_caseNdx];
         bufferedLogToConsole("Test " + this.m_caseNdx);
         var refParams = new glsTextureTestUtil.ReferenceParams(
@@ -328,35 +331,49 @@ goog.scope(function() {
         var rendered = tcuSurface.Surface(viewport.width, viewport.height);
         var texCoord = [0, 0];
 
-        if (viewport.width < TEX2D_MIN_VIEWPORT_WIDTH || viewport.height < TEX2D_MIN_VIEWPORT_HEIGHT)
+        if (viewport.width < TEX2D_MIN_VIEWPORT_WIDTH ||
+            viewport.height < TEX2D_MIN_VIEWPORT_HEIGHT)
             throw new Error("Too small render target");
 
         // Setup params for reference.
-        refParams.sampler        = gluTextureUtil.mapGLSampler(
+        refParams.sampler = gluTextureUtil.mapGLSampler(
             this.m_wrapS, m_wrapT, m_minFilter, m_magFilter
         );
-        refParams.samplerType    = glsTextureTestUtil.getSamplerType(texFmt);
-        refParams.lodMode        = glsTextureTestUtil.lodMode.EXACT;
-        refParams.colorBias        = fmtInfo.lookupBias;
-        refParams.colorScale    = fmtInfo.lookupScale;
+        refParams.samplerType = glsTextureTestUtil.getSamplerType(texFmt);
+        refParams.lodMode = glsTextureTestUtil.lodMode.EXACT;
+        refParams.colorBias = fmtInfo.lookupBias;
+        refParams.colorScale = fmtInfo.lookupScale;
 
         // Compute texture coordinates.
-        bufferedLogToConsole("Texture coordinates: " + curCase.minCoord + " -> " + curCase.maxCoord);
-        texCoord = glsTextureTestUtil.computeQuadTexCoord2D(curCase.minCoord, curCase.maxCoord);
+        bufferedLogToConsole(
+            "Texture coordinates: " + curCase.minCoord +
+            " -> " + curCase.maxCoord
+        );
+        texCoord = glsTextureTestUtil.computeQuadTexCoord2D(
+            curCase.minCoord, curCase.maxCoord
+        );
 
-        gl.bindTexture    (gl.TEXTURE_2D, curCase.texture.getGLTexture());
-        gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER,    this.m_minFilter);
-        gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER,    this.m_magFilter);
-        gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S,        this.m_wrapS);
-        gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T,        this.m_wrapT);
+        gl.bindTexture(gl.TEXTURE_2D, curCase.texture.getGLTexture());
+        gl.texParameteri(
+            gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, this.m_minFilter
+        );
+        gl.texParameteri(
+            gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, this.m_magFilter
+        );
+        gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, this.m_wrapS);
+        gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, this.m_wrapT);
 
         gl.viewport(viewport.x, viewport.y, viewport.width, viewport.height);
         //TODO: m_renderer.renderQuad(0, &texCoord[0], refParams);
-        rendered.readViewport(gl, viewport.x, viewport.y, rendered.getAccess());
+        rendered.readViewport(
+            gl, viewport.x, viewport.y, rendered.getAccess()
+        );
 
         /** @type {boolean} */ var isNearestOnly =
             this.m_minFilter == gl.NEAREST && this.m_magFilter == gl.NEAREST;
-        /** @type {tcuPixelFormat.PixelFormat} */ var pixelFormat = this.getRenderTarget().getPixelFormat();
+        /** @type {tcuPixelFormat.PixelFormat} */
+        var pixelFormat = this.getRenderTarget().getPixelFormat();
+
         //(iVec4)
         var colorBits = deMath.max(
             glsTextureTestUtil.getBitsVec(pixelFormat) -
@@ -364,42 +381,60 @@ goog.scope(function() {
             [0, 0, 0, 0]
         ); // 1 inaccurate bit if nearest only, 2 otherwise
 
-        /** @type {tcuTexLookupVerifier.LodPrecision} */ tcu::LodPrecision        lodPrecision;
-        tcu::LookupPrecision    lookupPrecision;
+        /** @type {tcuTexLookupVerifier.LodPrecision} */
+        var lodPrecision = new tcuTexLookupVerifier.LodPrecision();
+        /** @type {tcuTexLookupVerifier.LookupPrecision} */
+        var lookupPrecision = new tcuTexLookupVerifier.LookupPrecision();
 
         lodPrecision.derivateBits        = 18;
         lodPrecision.lodBits            = 6;
-        lookupPrecision.colorThreshold    = tcu::computeFixedPointThreshold(colorBits) / refParams.colorScale;
-        lookupPrecision.coordBits        = tcu::IVec3(20,20,0);
-        lookupPrecision.uvwBits            = tcu::IVec3(7,7,0);
-        lookupPrecision.colorMask        = getCompareMask(pixelFormat);
+        lookupPrecision.colorThreshold =
+            tcuTexLookupVerifier.computeFixedPointThreshold(colorBits) /
+            refParams.colorScale;
+        lookupPrecision.coordBits = [20, 20, 0];
+        lookupPrecision.uvwBits = [7, 7, 0];
+        lookupPrecision.colorMask =
+            glsTextureTestUtil.getCompareMask(pixelFormat);
 
-        const bool isHighQuality = verifyTextureResult(m_testCtx, rendered.getAccess(), curCase.texture->getRefTexture(),
-                                                       &texCoord[0], refParams, lookupPrecision, lodPrecision, pixelFormat);
+        var isHighQuality = glsTextureTestUtil.verifyTexture2DResult(
+            rendered.getAccess(), curCase.texture.getRefTexture(),
+            texCoord[0], refParams, lookupPrecision, lodPrecision, pixelFormat
+        );
 
         if (!isHighQuality)
         {
             // Evaluate against lower precision requirements.
             lodPrecision.lodBits    = 4;
-            lookupPrecision.uvwBits    = tcu::IVec3(4,4,0);
+            lookupPrecision.uvwBits    = [4,4,0];
 
-            m_testCtx.getLog() << TestLog::Message << "Warning: Verification against high precision requirements failed, trying with lower requirements." << TestLog::EndMessage;
+            bufferedLogToConsole("Warning: Verification against high " +
+                'precision requirements failed, trying with lower ' +
+                'requirements.'
+            );
 
-            const bool isOk = verifyTextureResult(m_testCtx, rendered.getAccess(), curCase.texture->getRefTexture(),
-                                                  &texCoord[0], refParams, lookupPrecision, lodPrecision, pixelFormat);
+            var isOk = glsTextureTestUtil.verifyTexture2DResult(
+                rendered.getAccess(), curCase.texture.getRefTexture(),
+                texCoord[0], refParams, lookupPrecision, lodPrecision,
+                pixelFormat
+            );
 
             if (!isOk)
             {
-                m_testCtx.getLog() << TestLog::Message << "ERROR: Verification against low precision requirements failed, failing test case." << TestLog::EndMessage;
-                m_testCtx.setTestResult(QP_TEST_RESULT_FAIL, "Image verification failed");
+                bufferedLogToConsole(
+                    "ERROR: Verification against low ' +
+                    'precision requirements failed, failing test case."
+                );
+                testFailed("Image verification failed");
             }
-            else if (m_testCtx.getTestResult() == QP_TEST_RESULT_PASS)
-                m_testCtx.setTestResult(QP_TEST_RESULT_QUALITY_WARNING, "Low-quality filtering result");
+            else
+                checkMessage("Low-quality filtering result");
         }
 
-        m_caseNdx += 1;
-        return m_caseNdx < (int)m_cases.size() ? CONTINUE : STOP;
-    }
+        this.m_caseNdx += 1;
+        return this.m_caseNdx < this.m_cases.length ?
+            tcuTestCase.IterateResult.CONTINUE :
+            tcuTestCase.IterateResult.STOP;
+    };
 
     /**
      * init
@@ -413,9 +448,13 @@ goog.scope(function() {
 
         /** @type {Array<WrapMode>} */
         var wrapModes = [
-            { name: "clamp",        mode: gl.CLAMP_TO_EDGE },
-            { name: "repeat",        mode: gl.REPEAT },
-            { name: "mirror",        mode: gl.MIRRORED_REPEAT }
+            {
+                name: "clamp",        mode: gl.CLAMP_TO_EDGE
+            }, {
+                name: "repeat",        mode: gl.REPEAT
+            }, {
+                name: "mirror",        mode: gl.MIRRORED_REPEAT
+            }
         ];
 
         /**
@@ -425,12 +464,19 @@ goog.scope(function() {
 
         /** @type {Array<MinFilterMode>} */
         var minFilterModes = [
-            { name: "nearest",                mode: gl.NEAREST                    },
-            { name: "linear",                    mode: gl.LINEAR                    },
-            { name: "nearest_mipmap_nearest",    mode: gl.NEAREST_MIPMAP_NEAREST    },
-            { name: "linear_mipmap_nearest",    mode: gl.LINEAR_MIPMAP_NEAREST    },
-            { name: "nearest_mipmap_linear",    mode: gl.NEAREST_MIPMAP_LINEAR    },
-            { name: "linear_mipmap_linear",    mode: gl.LINEAR_MIPMAP_LINEAR        }
+            {
+                name: "nearest", mode: gl.NEAREST
+            }, {
+                name: "linear",                    mode: gl.LINEAR
+            }, {
+                name: "nearest_mipmap_nearest", mode: gl.NEAREST_MIPMAP_NEAREST
+            }, {
+                name: "linear_mipmap_nearest",    mode: gl.LINEAR_MIPMAP_NEAREST
+            }, {
+                name: "nearest_mipmap_linear",    mode: gl.NEAREST_MIPMAP_LINEAR
+            }, {
+                name: "linear_mipmap_linear",    mode: gl.LINEAR_MIPMAP_LINEAR
+            }
         ];
 
         /**
@@ -440,45 +486,67 @@ goog.scope(function() {
 
         /** @type {Array<MagFilterModes>} */
         var magFilterModes = [
-               { name: "nearest",    mode: gl.NEAREST },
-               { name: "linear",        mode: gl.LINEAR }
+            {
+                   name: "nearest",    mode: gl.NEAREST
+            }, {
+                   name: "linear",        mode: gl.LINEAR
+            }
         ];
 
         /** @typedef {{width: number, height: number}} */
         var Sizes2D = {};
 
         /** @type {Array<Sizes2D>} */
-           var sizes2D = [
-               { width:  4, height:      8 },
-               { width: 32, height:     64 },
-               { width:128, height:    128    },
-               { width:  3, height:      7 },
-               { width: 31, height:     55 },
-               { width:127, height:     99 }
+        var sizes2D = [
+            {
+                width:  4, height:      8
+            }, {
+                width: 32, height:     64
+            }, {
+                width:128, height:    128
+            }, {
+                width:  3, height:      7
+            }, {
+                width: 31, height:     55
+            }, {
+                width:127, height:     99
+            }
         ];
 
         /** @typedef {{width: number, height: number}} */
         var SizesCube = {};
 
         /** @type {Array<SizesCube>} */
-           var sizesCube = [
-               { width:  8, height:   8 },
-               { width: 64, height:  64 },
-               { width:128, height: 128 },
-               { width:  7, height:   7 },
-               { width: 63, height:  63 }
+        var sizesCube = [
+            {
+                width:  8, height:   8
+            }, {
+                width: 64, height:  64
+            }, {
+                width:128, height: 128
+            }, {
+                width:  7, height:   7
+            }, {
+                width: 63, height:  63
+            }
         ];
 
            /** @typedef {{width: number, height: number, numLayers: number}} */
         var Sizes2DArray = {};
 
         /** @type {Array<sizes2DArray>} */
-           var sizes2DArray = [
-               { width:   4, height:   8, numLayers:   8 },
-               { width:  32, height:  64, numLayers:  16 },
-               { width: 128, height:  32, numLayers:  64 },
-               { width:   3, height:   7, numLayers:   5 },
-               { width:  63, height:  63, numLayers:  63 }
+        var sizes2DArray = [
+            {
+                width:   4, height:   8, numLayers:   8
+            }, {
+                width:  32, height:  64, numLayers:  16
+            }, {
+                width: 128, height:  32, numLayers:  64
+            }, {
+                width:   3, height:   7, numLayers:   5
+            }, {
+                width:  63, height:  63, numLayers:  63
+            }
         ];
 
         /** @typedef {{width: number, height: number, depth: number}} */
@@ -486,11 +554,17 @@ goog.scope(function() {
 
         /** @type {Array<Sizes3D>} */
         var sizes3D = [
-               { width:   4, height:   8, depth:   8 },
-               { width:  32, height:  64, depth:  16 },
-               { width: 128, height:  32, depth:  64 },
-               { width:   3, height:   7, depth:   5 },
-               { width:  63, height:  63, depth:  63 }
+            {
+                width:   4, height:   8, depth:   8
+            }, {
+                width:  32, height:  64, depth:  16
+            }, {
+                width: 128, height:  32, depth:  64
+            }, {
+                width:   3, height:   7, depth:   5
+            }, {
+                width:  63, height:  63, depth:  63
+            }
         ];
 
         /** @typedef {{name: string, format: number}} */
@@ -498,16 +572,27 @@ goog.scope(function() {
 
         /** @type {Array<FilterableFormatsByType>} */
         var filterableFormatsByType = [
-               { name: "rgba16f", format:        gl.RGBA16F            },
-               { name: "r11f_g11f_b10f", format:    gl.R11F_G11F_B10F    },
-               { name: "rgb9_e5", format:        gl.RGB9_E5            },
-               { name: "rgba8", format:            gl.RGBA8            },
-               { name: "rgba8_snorm", format:    gl.RGBA8_SNORM        },
-               { name: "rgb565", format:            gl.RGB565            },
-               { name: "rgba4", format:            gl.RGBA4            },
-               { name: "rgb5_a1", format:        gl.RGB5_A1            },
-               { name: "srgb8_alpha8", format:    gl.SRGB8_ALPHA8        },
-               { name: "rgb10_a2", format:        gl.RGB10_A2            }
+            {
+                name: "rgba16f", format:        gl.RGBA16F
+            }, {
+                name: "r11f_g11f_b10f", format:    gl.R11F_G11F_B10F
+            }, {
+                name: "rgb9_e5", format:        gl.RGB9_E5
+            }, {
+                name: "rgba8", format:            gl.RGBA8
+            }, {
+                name: "rgba8_snorm", format:    gl.RGBA8_SNORM
+            }, {
+                name: "rgb565", format:            gl.RGB565
+            }, {
+                name: "rgba4", format:            gl.RGBA4
+            }, {
+                name: "rgb5_a1", format:        gl.RGB5_A1
+            }, {
+                name: "srgb8_alpha8", format:    gl.SRGB8_ALPHA8
+            }, {
+                name: "rgb10_a2", format:        gl.RGB10_A2
+            }
         ];
 
            // 2D texture filtering.
@@ -594,7 +679,9 @@ goog.scope(function() {
         group2D.addChild(sizesGroup);
         for (var sizeNdx = 0; sizeNdx < sizes2D.length; sizeNdx++)
         {
-            for (var filterNdx = 0; filterNdx < minFilterModes.length; filterNdx++)
+            for (var filterNdx = 0;
+                filterNdx < minFilterModes.length;
+                filterNdx++)
             {
                 /** @type {number} */
                 var    minFilter    = minFilterModes[filterNdx].mode;
@@ -603,7 +690,8 @@ goog.scope(function() {
                 /** @type {number} */
                 var    format        = gl.RGBA8;
                 /** @type {boolean} */
-                var isMipmap    = minFilter != gl.NEAREST && minFilter != gl.LINEAR;
+                var isMipmap    = minFilter != gl.NEAREST &&
+                    minFilter != gl.LINEAR;
                 /** @type {number} */
                 var    magFilter    = isMipmap ? gl.LINEAR : minFilter;
                 /** @type {number} */
@@ -615,7 +703,7 @@ goog.scope(function() {
                 /** @type {number} */
                 var    height        = sizes2D[sizeNdx].height;
                 /** @type {string} */
-                var    name        = '' + width + "x" + height + "_" + filterName;
+                var name = '' + width + "x" + height + "_" + filterName;
 
                 sizesGroup.addChild(
                     new es3fTextureFilteringTests.Texture2DFilteringCase(
@@ -1061,7 +1149,9 @@ goog.scope(function() {
         group3D.addChild(sizesGroup);
         for (var sizeNdx = 0; sizeNdx < sizes3D.length; sizeNdx++)
         {
-            for (var filterNdx = 0; filterNdx < minFilterModes.length; filterNdx++)
+            for (var filterNdx = 0;
+                filterNdx < minFilterModes.length;
+                filterNdx++)
             {
                 /** @type {number} */
                 var minFilter = minFilterModes[filterNdx].mode;
