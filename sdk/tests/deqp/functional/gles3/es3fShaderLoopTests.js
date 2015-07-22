@@ -426,12 +426,10 @@ es3fShaderLoopTests.createGenericLoopCase = function(caseName, description, isVe
 	frag += '}\n';
 
 	// Fill in shader templates.
-	var params = {};
+	/** @type {Object} */ var params = {};
 	params['LOOP_VAR_TYPE'] = gluShaderUtil.getDataTypeName(loopCountDataType);
 	params['PRECISION'] = 'mediump';
 	params['COUNTER_PRECISION'] = gluShaderUtil.getPrecisionName(loopCountPrecision);
-
-	tcuStringTemplate.specialize(vtx, params);
 
 	/** @type {string} */ var vertexShaderSource = tcuStringTemplate.specialize(vtx, params);
 	/** @type {string} */ var fragmentShaderSource = tcuStringTemplate.specialize(frag, params);
