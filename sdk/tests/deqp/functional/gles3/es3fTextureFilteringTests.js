@@ -372,7 +372,7 @@ goog.scope(function() {
         /** @type {boolean} */ var isNearestOnly =
             this.m_minFilter == gl.NEAREST && this.m_magFilter == gl.NEAREST;
         /** @type {tcuPixelFormat.PixelFormat} */
-        var pixelFormat = this.getRenderTarget().getPixelFormat();
+        var pixelFormat = tcuPixelFormat.PixelFormatFromContext(gl);
 
         //(iVec4)
         var colorBits = deMath.max(
@@ -437,6 +437,480 @@ goog.scope(function() {
     };
 
     /**
+     * @constructor
+     * @extends {tcuTestCase.DeqpTest}
+     * @param {string} name
+     * @param {string} desc
+     * @param {number} minFilter
+     * @param {number} magFilter
+     * @param {number} wrapS
+     * @param {number} wrapT
+     * @param {boolean} onlySampleFaceInterior
+     * @param {number} internalFormat
+     * @param {number} width
+     * @param {number} height
+     */
+    es3fTextureFilteringTests.TextureCubeFilteringCase = function (
+        name, desc, minFilter, magFilter, wrapS, wrapT, onlySampleFaceInterior,
+        internalFormat, width, height
+    ) {
+        tcuTestCase.DeqpTest.call(this, name, desc);
+        this.m_minFilter = minFilter;
+        this.m_magFilter = magFilter;
+        this.m_wrapS = wrapS;
+        this.m_wrapT = wrapT;
+        /** @type {boolean}*/
+        this.m_onlySampleFaceInterior = onlySampleFaceInterior;
+        this.m_internalFormat = internalFormat;
+        this.m_width = width;
+        this.m_height = height;
+        /** @type {glsTextureTestUtil.TextureRenderer} */
+        this.m_renderer = new glsTextureTestUtil.TextureRenderer(
+            es3fTextureFilteringTests.version,
+            gluShaderUtil.precision.PRECISION_HIGHP
+        );
+        this.m_caseNdx = 0;
+        /** @type {Array<string>} */ this.m_filenames = [];
+        /** @type {Array<gluTexture.Texture2D>} */ this.m_textures = [];
+        /** @type {Array<es3fTextureFilteringTests.
+         *      TextureCubeFilteringCase.FilterCase>}
+         */
+        this.m_cases = [];
+    };
+
+    /**
+     * @param {string} name
+     * @param {string} desc
+     * @param {number} minFilter
+     * @param {number} magFilter
+     * @param {number} wrapS
+     * @param {number} wrapT
+     * @param {boolean} onlySampleFaceInterior
+     * @param {Array<string>} filenames
+     * @return {es3fTextureFilteringTests.TextureCubeFilteringCase}
+     */
+    es3fTextureFilteringTests.newTextureCubeFilteringCaseFromFile = function (
+        name, desc, minFilter, magFilter, wrapS, wrapT, onlySampleFaceInterior,
+        filenames
+    ) {
+        var cubeCase = new es3fTextureFilteringTests.TextureCubeFilteringCase(
+            name, desc, minFilter, magFilter, wrapS, wrapT,
+            onlySampleFaceInterior, gl.NONE, 0, 0
+        );
+        cubeCase.m_filenames = filenames;
+
+        return cubeCase;
+    };
+
+    es3fTextureFilteringTests.TextureCubeFilteringCase.prototype =
+        Object.create(tcuTestCase.DeqpTest.prototype);
+    es3fTextureFilteringTests.TextureCubeFilteringCase.prototype.constructor =
+        es3fTextureFilteringTests.TextureCubeFilteringCase;
+
+    /**
+     * init
+     */
+    es3fTextureFilteringTests.TextureCubeFilteringCase.prototype.init =
+    function () {
+        try
+        {
+            if (!this.m_filenames.empty())
+            {
+                //TODO:
+                /*this.m_textures.push(gluTexture.TextureCube.create(
+                    this.m_renderCtx, this.m_renderCtxInfo,
+                    this.m_testCtx.getArchive(), this.m_filenames.length / 6,
+                    this.m_filenames
+                ));*/
+            }
+            else
+            {
+                assertMsgOptions(
+                    this.m_width == this.m_height, 'Texture has to be squared',
+                    false, true
+                );
+                for (var ndx = 0; ndx < 2; ndx++)
+                    this.m_textures.push(new gluTexture.TextureCube(
+                        this.m_internalFormat, this.m_width
+                    ));
+
+                var numLevels = deMath.logToFloor(
+                    Math.max(this.m_width, this.m_height)
+                ) + 1;
+                /** @type {tcuTexture.TextureFormatInfo} */
+                var fmtInfo = tcuTexture.getTextureFormatInfo(
+                    this.m_textures[0].getRefTexture().getFormat()
+                );
+                /** @type {Array<number>} */
+                var cBias = fmtInfo.valueMin;
+                /** @type {Array<number>} */
+                var cScale = fmtInfo.valueMax-fmtInfo.valueMin;
+
+                // Fill first with gradient texture.
+                /** @type {Array<Array<number>} (array of 4 component vectors)*/
+                var gradients = [
+                    [ // negative x
+                        [0.0, 0.0, 0.0, 1.0], [1.0, 1.0, 1.0, 0.0]
+                    ], [ // positive x
+                        [0.5, 0.0, 0.0, 1.0], [1.0, 1.0, 1.0, 0.0]
+                    ], [ // negative y
+                        [0.0, 0.5, 0.0, 1.0], [1.0, 1.0, 1.0, 0.0]
+                    ], [ // positive y
+                        [0.0, 0.0, 0.5, 1.0], [1.0, 1.0, 1.0, 0.0]
+                    ], [ // negative z
+                        [0.0, 0.0, 0.0, 0.5], [1.0, 1.0, 1.0, 1.0]
+                    ], [ // positive z
+                        [0.5, 0.5, 0.5, 1.0], [1.0, 1.0, 1.0, 0.0]
+                    ]
+                ];
+                for (var face = 0;
+                    face < Object.keys(tcuTexture.CubeFace).length;
+                    face++
+                ) {
+                    for (var levelNdx = 0; levelNdx < numLevels; levelNdx++)
+                    {
+                        this.m_textures[0].getRefTexture().allocLevel(
+                            face, levelNdx
+                        );
+                        tcuTextureUtil.fillWithComponentGradients(
+                            this.m_textures[0].getRefTexture().getLevelFace(
+                                levelNdx, face, deMath.add(deMath.multiply(
+                                    gradients[face][0], cScale), cBias
+                                ), deMath.add(deMath.multiply(
+                                    gradients[face][1], cScale), cBias
+                                )
+                            )
+                        );
+                    }
+                }
+
+                // Fill second with grid texture.
+                for (var face = 0;
+                    face < Object.keys(tcuTexture.CubeFace).length;
+                    face++
+                ) {
+                    for (var levelNdx = 0; levelNdx < numLevels; levelNdx++)
+                    {
+                        var step = 0x00ffffff / (
+                            numLevels * Object.keys(tcuTexture.CubeFace).length
+                        );
+                        var rgb = step * levelNdx * face;
+                        /** @type {number} */ var colorA = deMath.binaryOp(
+                            0xff000000, rgb, deMath.BinaryOp.OR
+                        );
+                        /** @type {number} */ var colorB = deMath.binaryOp(
+                            0xff000000, deMath.binaryNot(rgb),
+                            deMath.BinaryOp.OR
+                        );
+
+                        this.m_textures[1].getRefTexture().allocLevel(
+                            face, levelNdx
+                        );
+                        tcuTextureUtil.fillWithGrid(
+                            this.m_textures[1].getRefTexture().getLevelFace(
+                                levelNdx, face
+                            ), 4, deMath.add(
+                                deMath.multiply(
+                                new tcuRGBA.RGBA(colorA).toVec(),
+                                cScale), cBias
+                            ), deMath.add(
+                                deMath.multiply(
+                                new tcuRGBA.RGBA(colorB).toVec(),
+                                cScale), cBias
+                            )
+                        );
+                    }
+                }
+
+                // Upload.
+                for (var i = 0; i < this.m_textures.length; i++)
+                    this.m_textures[i].upload();
+            }
+
+            // Compute cases
+            /** @type {gluTexture.TextureCube} */
+            var tex0 = this.m_textures[0];
+            /** @type {gluTexture.TextureCube} */
+            var tex1 = this.m_textures.length > 1 ? this.m_textures[1] : tex0;
+
+            if (this.m_onlySampleFaceInterior)
+            {
+                // minification
+                this.m_cases.push(new es3fTextureFilteringTests.
+                    TextureCubeFilteringCase.FilterCase(
+                    tex0, [-0.8, -0.8], [0.8,  0.8]
+                ));
+                // magnification
+                this.m_cases.push(new es3fTextureFilteringTests.
+                    TextureCubeFilteringCase.FilterCase(
+                    tex0, [0.5, 0.65], [0.8,  0.8]
+                ));
+                // minification
+                this.m_cases.push(new es3fTextureFilteringTests.
+                    TextureCubeFilteringCase.FilterCase(
+                    tex1, [-0.8, -0.8], [0.8,  0.8]
+                ));
+                // magnification
+                this.m_cases.push(new es3fTextureFilteringTests.
+                    TextureCubeFilteringCase.FilterCase(
+                    tex1, [0.2, 0.2], [0.6,  0.5]
+                ));
+            }
+            else
+            {
+                // minification
+                if (gl.getParameter(gl.SAMPLES) == 0)
+                    this.m_cases.push(
+                        new es3fTextureFilteringTests.TextureCubeFilteringCase.
+                        FilterCase(
+                            tex0, [-1.25, -1.2], [1.2, 1.25]
+                        )
+                    );
+                // minification - w/ tweak to avoid hitting triangle
+                // edges with face switchpoint.
+                else
+                    this.m_cases.push(
+                        new es3fTextureFilteringTests.TextureCubeFilteringCase.
+                        FilterCase(
+                            tex0, [-1.19, -1.3], [1.1, 1.35]
+                        )
+                    );
+
+                // magnification
+                this.m_cases.push(
+                    new es3fTextureFilteringTests.TextureCubeFilteringCase.
+                    FilterCase(
+                        tex0, [0.8, 0.8], [1.25, 1.20]
+                    )
+                );
+                // minification
+                this.m_cases.push(
+                    new es3fTextureFilteringTests.TextureCubeFilteringCase.
+                    FilterCase(
+                        tex1, [-1.19, -1.3], [1.1, 1.35]
+                    )
+                );
+                // magnification
+                this.m_cases.push(
+                    new es3fTextureFilteringTests.TextureCubeFilteringCase.
+                    FilterCase(
+                        tex1, [-1.2, -1.1], [-0.8, -0.8]
+                    )
+                );
+            }
+
+            this.m_caseNdx = 0;
+            testPassed("");
+        }
+        catch (e) {
+            // Clean up to save memory.
+            this.deinit();
+            throw e;
+        }
+    };
+
+    /**
+     * TODO:
+     * deinit
+     */
+    es3fTextureFilteringTests.TextureCubeFilteringCase.prototype.deinit =
+    function ()
+    {
+        /*for (var i = 0; i < this.m_textures.length; i++)
+            delete *i;
+        this.m_textures.clear();
+
+        this.m_renderer.clear();
+        this.m_cases.clear();*/
+    };
+
+    /**
+     * @param {tcuTexture.CubeFace} face
+     * @return {string}
+     */
+    es3fTextureFilteringTests.getFaceDesc = function (face) {
+        switch (face) {
+            case tcuTexture.CubeFace.CUBEFACE_NEGATIVE_X: return "-X";
+            case tcuTexture.CubeFace.CUBEFACE_POSITIVE_X: return "+X";
+            case tcuTexture.CubeFace.CUBEFACE_NEGATIVE_Y: return "-Y";
+            case tcuTexture.CubeFace.CUBEFACE_POSITIVE_Y: return "+Y";
+            case tcuTexture.CubeFace.CUBEFACE_NEGATIVE_Z: return "-Z";
+            case tcuTexture.CubeFace.CUBEFACE_POSITIVE_Z: return "+Z";
+            default:
+                throw new Error('Invalid cube face specified');
+        }
+    };
+
+    /**
+     * @return {tcuTestCase.DeqpTest}
+     */
+    es3fTextureFilteringTests.TextureCubeFilteringCase.prototype.iterate =
+    function () {
+        var viewportSize = 28;
+        /** @type {glsTextureTestUtil.RandomViewport} */
+        var viewport = new glsTextureTestUtil.RandomViewport(
+            gl.canvas, viewportSize,
+            viewportSize, deMath.binaryOp(
+                deString.deStringHash(this.getName()),
+                deMath.deMathHash(this.m_caseNdx),
+                deMAth.BinaryOp.XOR
+            );
+        );
+        bufferedLogToConsole("Test" + this.m_caseNdx);
+        /** @type {es3fTextureFilteringTests.
+         *      TextureCubeFilteringCase.FilterCase}
+         */
+        var curCase = this.m_cases[this.m_caseNdx];
+
+        /** @type {tcuTexture.TextureFormat} */
+        var texFmt = this.m_textures[0].getRefTexture().getFormat();
+        /** @type {tcuTexture.TextureFormatInfo} */
+        var fmtInfo = tcuTexture.getTextureFormatInfo(texFmt);
+        var curCase = this.m_cases[m_caseNdx];
+        bufferedLogToConsole("Test " + this.m_caseNdx);
+        var refParams = new glsTextureTestUtil.ReferenceParams(
+            glsTextureTestUtil.textureType.TEXTURETYPE_2D
+        );
+        /** @type {tcuTexture.TextureFormat} */
+        var texFmt = curCase.texture.getRefTexture().getFormat();
+        /** @type {tcuTexture.TextureFormatInfo} */
+        var fmtInfo = tcuTextureUtil.getTextureFormatInfo(texFmt);
+        /** @type {glsTextureTestUtil.ReferenceParams} */
+        var sampleParams = new glsTextureTestUtil.ReferenceParams(
+            glsTextureTestUtil.textureType.TEXTURETYPE_CUBE
+        );
+
+        if (viewport.width < viewportSize || viewport.height < viewportSize)
+            throw new Error("Too small render target");
+
+        // Setup texture
+        gl.bindTexture(gl.TEXTURE_CUBE_MAP, curCase.texture->getGLTexture());
+        gl.texParameteri(
+            gl.TEXTURE_CUBE_MAP, gl.TEXTURE_MIN_FILTER, this.m_minFilter
+        );
+        gl.texParameteri(
+            gl.TEXTURE_CUBE_MAP, gl.TEXTURE_MAG_FILTER, this.m_magFilter
+        );
+        gl.texParameteri(
+            gl.TEXTURE_CUBE_MAP, gl.TEXTURE_WRAP_S, this.m_wrapS
+        );
+        gl.texParameteri(
+            gl.TEXTURE_CUBE_MAP, gl.TEXTURE_WRAP_T, this.m_wrapT
+        );
+
+        // Other state
+        gl.viewport(viewport.x, viewport.y, viewport.width, viewport.height);
+
+        // Params for reference computation.
+        sampleParams.sampler = gluTextureUtil.mapGLSampler(
+            gl.CLAMP_TO_EDGE, gl.CLAMP_TO_EDGE,
+            this.m_minFilter, this.m_magFilter
+        );
+        sampleParams.sampler.seamlessCubeMap = true;
+        sampleParams.samplerType = glsTextureTestUtil.getSamplerType(texFmt);
+        sampleParams.colorBias = fmtInfo.lookupBias;
+        sampleParams.colorScale = fmtInfo.lookupScale;
+        sampleParams.lodMode = glsTextureTestUtil.lodMode.EXACT;
+
+        bufferedLogToConsole(
+            "Coordinates: " + curCase.bottomLeft + " -> " + curCase.topRight
+        );
+
+        for (var faceNdx = 0;
+            faceNdx < Object.keys(tcuTexture.CubeFace).length;
+            faceNdx++
+        ) {
+            /** @type {tcuTexture.CubeFace} */
+            var face = /** @type {tcuTexture.CubeFace.} */ (faceNdx);
+            /** @type {tcuSurface.Surface} */
+            var result = new tcuSurface.Surface(
+                viewport.width, viewport.height
+            );
+            /** @type {Array<number>} */ var texCoord;
+
+            glsTextureTestUtil.computeQuadTexCoordCube(
+                texCoord, face, curCase.bottomLeft, curCase.topRight
+            );
+
+            bufferedLogToConsole(
+                "Face " + es3fTextureFilteringTests.getFaceDesc(face)
+            );
+
+            // \todo Log texture coordinates.
+
+            //TODO: this.m_renderer.renderQuad(0, &texCoord[0], sampleParams);
+
+            result.readPixels(
+                gl, viewport.x, viewport.y, viewport.width, viewport.height
+            );
+
+            /** @type {boolean} */
+            var isNearestOnly = this.m_minFilter == gl.NEAREST &&
+                this.m_magFilter == gl.NEAREST;
+            /** @type {tcuPixelFormat.PixelFormat} */
+            var pixelFormat = tcuPixelFormat.PixelFormatFromContext(gl);
+
+            //(iVec4)
+            var colorBits = deMath.max(
+                glsTextureTestUtil.getBitsVec(pixelFormat) -
+                (isNearestOnly ? 1 : 2),
+                [0, 0, 0, 0]
+            ); // 1 inaccurate bit if nearest only, 2 otherwise
+            /** @type {tcuTexLookupVerifier.LodPrecision} */
+            var lodPrecision = new tcuTexLookupVerifier.LodPrecision();
+            /** @type {tcuTexLookupVerifier.LookupPrecision} */
+            var lookupPrecision = new tcuTexLookupVerifier.LookupPrecision();
+
+            lodPrecision.derivateBits = 10;
+            lodPrecision.lodBits = 5;
+            lookupPrecision.colorThreshold =
+                tcuTexLookupVerifier.computeFixedPointThreshold(colorBits) /
+                sampleParams.colorScale;
+            lookupPrecision.coordBits = [10,10,10];
+            lookupPrecision.uvwBits = [6,6,0];
+            lookupPrecision.colorMask =
+                glsTextureTestUtil.getCompareMask(pixelFormat);
+
+            var isHighQuality = glsTextureTestUtil.verifyTexture2DResult(
+                result.getAccess(), curCase.texture.getRefTexture(),
+                texCoord[0], sampleParams, lookupPrecision, lodPrecision,
+                pixelFormat
+            );
+
+            if (!isHighQuality)
+            {
+                // Evaluate against lower precision requirements.
+                lodPrecision.lodBits    = 4;
+                lookupPrecision.uvwBits    = [4,4,0];
+
+                bufferedLogToConsole('Warning: Verification against high ' +
+                 'precision requirements failed, trying with lower ' +
+                 'requirements.');
+
+                var isOk = glsTextureTestUtil.verifyTexture2DResult(
+                    result.getAccess(), curCase.texture.getRefTexture(),
+                    texCoord[0], sampleParams, lookupPrecision, lodPrecision,
+                    pixelFormat
+                );
+
+                if (!isOk)
+                {
+                    bufferedLogToConsole('ERROR: Verification against low' +
+                        'precision requirements failed, failing test case.');
+                    testFailed("Image verification failed");
+                }
+                else
+                    testPassed("Low-quality filtering result");
+            }
+        }
+
+        this.m_caseNdx += 1;
+        return this.m_caseNdx < this.m_cases.length ?
+            tcuTestCase.IterateResult.CONTINUE :
+            tcuTestCase.IterateResult.STOP;
+    };
+
+    /**
      * init
      */
     es3fTextureFilteringTests.TextureFilteringTests.prototype.init =
@@ -449,11 +923,11 @@ goog.scope(function() {
         /** @type {Array<WrapMode>} */
         var wrapModes = [
             {
-                name: "clamp",        mode: gl.CLAMP_TO_EDGE
+                name: "clamp", mode: gl.CLAMP_TO_EDGE
             }, {
-                name: "repeat",        mode: gl.REPEAT
+                name: "repeat", mode: gl.REPEAT
             }, {
-                name: "mirror",        mode: gl.MIRRORED_REPEAT
+                name: "mirror", mode: gl.MIRRORED_REPEAT
             }
         ];
 
@@ -467,15 +941,15 @@ goog.scope(function() {
             {
                 name: "nearest", mode: gl.NEAREST
             }, {
-                name: "linear",                    mode: gl.LINEAR
+                name: "linear",                mode: gl.LINEAR
             }, {
                 name: "nearest_mipmap_nearest", mode: gl.NEAREST_MIPMAP_NEAREST
             }, {
-                name: "linear_mipmap_nearest",    mode: gl.LINEAR_MIPMAP_NEAREST
+                name: "linear_mipmap_nearest", mode: gl.LINEAR_MIPMAP_NEAREST
             }, {
-                name: "nearest_mipmap_linear",    mode: gl.NEAREST_MIPMAP_LINEAR
+                name: "nearest_mipmap_linear",  mode: gl.NEAREST_MIPMAP_LINEAR
             }, {
-                name: "linear_mipmap_linear",    mode: gl.LINEAR_MIPMAP_LINEAR
+                name: "linear_mipmap_linear", mode: gl.LINEAR_MIPMAP_LINEAR
             }
         ];
 

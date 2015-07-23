@@ -40,6 +40,19 @@ tcuPixelFormat.PixelFormat = function(r, g, b, a) {
 };
 
 /**
+ * @param {WebGL2RenderingContext} context
+ * @return {tcuPixelFormat.PixelFormat}
+ */
+tcuPixelFormat.PixelFormatFromContext = function(context) {
+    var r = context.getParameter(gl.RED_BITS);
+    var g = context.getParameter(gl.GREEN_BITS);
+    var b = context.getParameter(gl.BLUE_BITS);
+    var a = context.getParameter(gl.ALPHA_BITS);
+
+    return new tcuPixelFormat.PixelFormat(r, g, b, a);
+};
+
+/**
  * @param {number} r
  * @param {number} g
  * @param {number} b
