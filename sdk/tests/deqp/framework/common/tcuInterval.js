@@ -142,6 +142,14 @@
         }
     };
 
+    tcuInterval.Interval.prototype.toString = function() {
+        var str = 'Interval(' + this.m_lo + ', ' + this.m_hi;
+        if (this.m_hasNaN)
+            str += ', hasNaN';
+        str += ')';
+        return str;
+    };
+    
     /**
      * @param {tcuInterval.Interval} a
      * @param {tcuInterval.Interval} b
@@ -241,7 +249,7 @@
      * @param{tcuInterval.Interval} other
      */
     tcuInterval.Interval.prototype.operatorOrAssignBinary = function(other) {
-        /** @type{tcuInterval.Interval} */ var temp = new tcuInterval.Interval();
+        /** @type{tcuInterval.Interval} */ var temp = this.operatorOrBinary(other);
 		this.m_hasNaN = temp.m_hasNaN;
         this.m_lo = temp.m_lo;
         this.m_hi = temp.m_hi;

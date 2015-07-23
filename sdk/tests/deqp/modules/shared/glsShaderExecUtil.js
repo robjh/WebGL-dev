@@ -461,87 +461,6 @@ goog.scope(function() {
         return this.m_program.getProgram();
     };
 
-    /**
-     * @param{number} numValues
-     * @param{*} inputs
-     * @param{*} outputs
-     */
-    glsShaderExecUtil.VertexProcessorExecutor.prototype.execute = function(numValues, inputs, outputs) {
-    	var useTFObject			= true;
-    	/** @type{Array<gluDrawUtil.VertexArrayBinding>} */ var vertexArrays = [];
-    	/** @type{number} */ var outputBufferStride	= glsShaderExecUtil.computeTotalScalarSize(this.m_outputs) * 4;
-
-    	// Setup inputs.
-    	for (var inputNdx = 0; inputNdx < this.m_inputs.length; inputNdx++) {
-    		/** @type{glsShaderExecUtil.Symbol} */ var symbol = this.m_inputs[inputNdx];
-    		var	basicType	= symbol.varType.getBasicType();
-    		/** @type{number} */ var			vecSize		= gluShaderUtil.getDataTypeScalarSize(basicType);
-
-    		if (gluShaderUtil.isDataTypeFloatOrVec(basicType))
-    			vertexArrays.push(0);//glu::va::Float(symbol.name, vecSize, numValues, 0, (const float*)ptr));
-    		else if (gluShaderUtil.isDataTypeIntOrIVec(basicType))
-    			vertexArrays.push(0);//glu::va::Int32(symbol.name, vecSize, numValues, 0, (const deInt32*)ptr));
-    		else if (gluShaderUtil.isDataTypeUintOrUVec(basicType))
-    			vertexArrays.push(0);//glu::va::Uint32(symbol.name, vecSize, numValues, 0, (const deUint32*)ptr));
-    		else if (gluShaderUtil.isDataTypeMatrix(basicType)) {
-    			/** @type{number} */ var numRows	= gluShaderUtil.getDataTypeMatrixNumRows(basicType);
-    			/** @type{number} */ var numCols	= gluShaderUtil.getDataTypeMatrixNumColumns(basicType);
-    			/** @type{number} */ var stride	= numRows * numCols * 4;//sizeof(float);
-
-    			for (var colNdx = 0; colNdx < numCols; ++colNdx)
-    				vertexArrays.push(0);//glu::va::Float(symbol.name, colNdx, numRows, numValues, stride, ((const float*)ptr) + colNdx * numRows));
-    		}
-    		else
-    			DE_ASSERT(false);
-    	}
-
-    	// Setup TF outputs.
-    	if (useTFObject)
-    		gl.bindTransformFeedback(gl.TRANSFORM_FEEDBACK/*, **transformFeedback*/);
-    	gl.bindBuffer(gl.TRANSFORM_FEEDBACK_BUFFER/*, *outputBuffer*/);
-    	gl.bufferData(gl.TRANSFORM_FEEDBACK_BUFFER, outputBufferStride*numValues, DE_NULL, gl.STREAM_READ);
-    	gl.bindBufferBase(gl.TRANSFORM_FEEDBACK_BUFFER, 0/*, *outputBuffer*/);
-    	GLU_EXPECT_NO_ERROR(gl.getError(), "Error in TF setup");
-
-    	// Draw with rasterization disabled.
-    	gl.beginTransformFeedback(gl.POINTS);
-    	gl.enable(gl.RASTERIZER_DISCARD);
-    	// glu::draw(m_renderCtx, m_program.getProgram(), (int)vertexArrays.size(), vertexArrays.empty() ? DE_NULL : &vertexArrays[0],
-    	// 		  glu::pr::Points(numValues));
-    	gl.disable(gl.RASTERIZER_DISCARD);
-    	gl.endTransformFeedback();
-    	GLU_EXPECT_NO_ERROR(gl.getError(), "Error in draw");
-
-    	// Read back data.
-    	{
-    		// const void*	srcPtr		= gl.mapBufferRange(gl.TRANSFORM_FEEDBACK_BUFFER, 0, outputBufferStride*numValues, gl.MAP_READ_BIT);
-    		/** @type{number} */ var curOffset	= 0; // Offset in buffer in bytes.
-
-    		GLU_EXPECT_NO_ERROR(gl.getError(), "glMapBufferRange(gl.TRANSFORM_FEEDBACK_BUFFER)");
-    		TCU_CHECK(srcPtr != DE_NULL);
-
-    		for (var outputNdx = 0; outputNdx < m_outputs.length; outputNdx++) {
-    			/** @type{glsShaderExecUtil.Symbol} */ var symbol = m_outputs[outputNdx];
-    			/*void* */var				dstPtr		= outputs[outputNdx];
-    			/** @type{number} */ var			scalarSize	= symbol.varType.getScalarSize();
-
-    			for (var ndx = 0; ndx < numValues; ndx++)
-    				deMemcpy(/*(deUint32*)*/dstPtr + scalarSize*ndx, /*(const deUint8*)*/srcPtr + curOffset + ndx*outputBufferStride, scalarSize*4);
-
-    			curOffset += scalarSize*4;
-    		}
-
-    		gl.unmapBuffer(gl.TRANSFORM_FEEDBACK_BUFFER);
-    		GLU_EXPECT_NO_ERROR(gl.getError(), "glUnmapBuffer()");
-    	}
-
-    	if (useTFObject)
-    		gl.bindTransformFeedback(gl.TRANSFORM_FEEDBACK, 0);
-    	gl.bindBuffer(gl.TRANSFORM_FEEDBACK_BUFFER, 0);
-    	GLU_EXPECT_NO_ERROR(gl.getError(), "Restore state");
-    };
-
-
 
 /*
 template<typename Iterator>
@@ -596,10 +515,11 @@ VertexProcessorExecutor::VertexProcessorExecutor (const glu::RenderContext& rend
     /**
      * template<typename Iterator>
      * @param{number} numValues
-     * @param{Array<*>} inputs
-     * @param{Array<*>} outputs
+     * @param{Array<number>} inputs
+     * @return{Array<goog.NumberArray>} outputs
      */
-    glsShaderExecUtil.VertexProcessorExecutor.prototype.execute = function(numValues, inputs, outputs) {
+    glsShaderExecUtil.VertexProcessorExecutor.prototype.execute = function(numValues, inputs) {
+      var outputs = [];
     	// const glw::Functions&					gl					= m_renderCtx.getFunctions();
     	/** @type{boolean} */ var useTFObject			= true; //isContextTypeES(m_renderCtx.getType()) || (isContextTypeGLCore(m_renderCtx.getType()) && m_renderCtx.getType().getMajorVersion() >= 4);
     	/** @type{Array<gluDrawUtil.VertexArrayBinding>} */ var vertexArrays = [];
@@ -653,28 +573,30 @@ VertexProcessorExecutor::VertexProcessorExecutor (const glu::RenderContext& rend
     	// Read back data.
         var result = new ArrayBuffer(outputBufferStride*numValues);
         gl.getBufferSubData(gl.TRANSFORM_FEEDBACK_BUFFER, 0, result);
-		// const void*	srcPtr		= gl.mapBufferRange(gl.TRANSFORM_FEEDBACK_BUFFER, 0, outputBufferStride*numValues, gl.MAP_READ_BIT);
-		/** @type{number} */ var curOffset	= 0; // Offset in buffer in bytes.
+		  // const void*	srcPtr		= gl.mapBufferRange(gl.TRANSFORM_FEEDBACK_BUFFER, 0, outputBufferStride*numValues, gl.MAP_READ_BIT);
+		  /** @type{number} */ var curOffset	= 0; // Offset in buffer in bytes.
 
 
-		for (var outputNdx = 0; outputNdx < this.m_outputs.length; outputNdx++) {
-			/** @type{glsShaderExecUtil.Symbol} */ var		symbol		= this.m_outputs[outputNdx];
-			/** @type{number} */ var scalarSize	= symbol.varType.getScalarSize();
-            /*void* */var               dstPtr      = new Uint8Array(scalarSize * numValues * 4);
+  		for (var outputNdx = 0; outputNdx < this.m_outputs.length; outputNdx++) {
+  			/** @type{glsShaderExecUtil.Symbol} */ var		symbol		= this.m_outputs[outputNdx];
+  			/** @type{number} */ var scalarSize	= symbol.varType.getScalarSize();
+              /*void* */var               dstPtr      = new Uint8Array(scalarSize * numValues * 4);
 
-			for (var ndx = 0; ndx < numValues; ndx++) {
-                for (var j = 0; j < scalarSize*4; j++) {
-                    dstPtr[scalarSize*ndx + j] = result[curOffset + ndx*outputBufferStride + j];
-                }
+  		  for (var ndx = 0; ndx < numValues; ndx++) {
+            for (var j = 0; j < scalarSize*4; j++) {
+                dstPtr[scalarSize*ndx + j] = result[curOffset + ndx*outputBufferStride + j];
             }
-            outputs[outputNdx] = dstPtr;
+        }
+        outputs[outputNdx] = dstPtr;
 
-			curOffset += scalarSize*4;
-		}
+  			curOffset += scalarSize*4;
+  		}
 
     	if (useTFObject)
     		gl.bindTransformFeedback(gl.TRANSFORM_FEEDBACK, null);
     	gl.bindBuffer(gl.TRANSFORM_FEEDBACK_BUFFER, null);
+
+      return outputs;
     };
 
 // VertexShaderExecutor

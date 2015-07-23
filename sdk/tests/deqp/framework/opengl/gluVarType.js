@@ -545,6 +545,8 @@ goog.scope(function() {
     };
 
     /**
+     * @param {*} T
+     * @param {gluShaderUtil.precision=} precision
      * @return {gluVarType.VarType}
      */
     gluVarType.getVarTypeOf = function(T, precision) {

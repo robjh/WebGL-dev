@@ -86,8 +86,7 @@
      	/** @type{tcuFloatFormat.YesNoMaybe} */ this.m_hasInf = hasInf === undefined ? tcuFloatFormat.YesNoMaybe.MAYBE : hasInf;			// Does the format support infinities?
      	/** @type{tcuFloatFormat.YesNoMaybe} */ this.m_hasNaN = hasNaN === undefined ? tcuFloatFormat.YesNoMaybe.MAYBE : hasNaN;			// Does the format support NaNs?
      	/** @type{boolean} */ this.m_exactPrecision = exactPrecision;	// Are larger precisions disallowed?
-     	/** @type{number} */ this.m_maxValue; //= (deLdExp(1.0, maxExp) +
- 			// deLdExp(double((1ull << fractionBits) - 1), maxExp - fractionBits));			// Largest representable finite value.
+     	/** @type{number} */ this.m_maxValue = tcuFloatFormat.computeMaxValue(maxExp, fractionBits);
      };
 
      /**
@@ -237,7 +236,7 @@
     	if (!x.empty()) {
             var a = new tcuInterval.Interval(this.roundOutDir(x.lo(), false, roundUnderOverflow));
             var b = new tcuInterval.Interval(this.roundOutDir(x.hi(), true, roundUnderOverflow));
-    		ret.operatorOrBinary(tcuInterval.withIntervals(a, b));
+    		ret.operatorOrAssignBinary(tcuInterval.withIntervals(a, b));
         }
     	return ret;
     };
