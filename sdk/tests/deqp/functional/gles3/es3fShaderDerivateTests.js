@@ -1028,36 +1028,27 @@ goog.scope(function() {
 		/** @type {Array<number>} */ var xScale = [1.0, 0.0, 0.5, -0.5];
 		/** @type {Array<number>} */ var yScale = [0.0, 1.0, 0.5, -0.5];
 		/** @type {Array<number>} */ var surfaceThreshold = deMath.divide(this.getSurfaceThreshold(), deMath.abs(this.m_derivScale));
-		//
-		// if (m_func == DERIVATE_DFDX || m_func == DERIVATE_DFDY)
-		// {
-		// 	const bool			isX			= m_func == DERIVATE_DFDX;
-		// 	const float			div			= isX ? float(result.getWidth()) : float(result.getHeight());
-		// 	const tcu::Vec4		scale		= isX ? xScale : yScale;
-		// 	const tcu::Vec4		reference	= ((m_coordMax - m_coordMin) / div) * scale;
-		// 	const tcu::Vec4		opThreshold	= getDerivateThreshold(m_precision, m_coordMin*scale, m_coordMax*scale, reference);
-		// 	const tcu::Vec4		threshold	= max(surfaceThreshold, opThreshold);
-		// 	const int			numComps	= glu::getDataTypeFloatScalars(m_dataType);
-		//
-		// 	m_testCtx.getLog()
-		// 		<< tcu::TestLog::Message
-		// 		<< "Verifying result image.\n"
-		// 		<< "\tValid derivative is " << LogVecComps(reference, numComps) << " with threshold " << LogVecComps(threshold, numComps)
-		// 		<< tcu::TestLog::EndMessage;
-		//
-		// 	// short circuit if result is strictly within the normal value error bounds.
-		// 	// This improves performance significantly.
-		// 	if (verifyConstantDerivate(m_testCtx.getLog(), result, errorMask, m_dataType,
-		// 							   reference, threshold, m_derivScale, m_derivBias,
-		// 							   LOG_NOTHING))
-		// 	{
-		// 		m_testCtx.getLog()
-		// 			<< tcu::TestLog::Message
-		// 			<< "No incorrect derivatives found, result valid."
-		// 			<< tcu::TestLog::EndMessage;
-		//
-		// 		return true;
-		// 	}
+
+		if (this.m_func == es3fShaderDerivateTests.DerivateFunc.DFDX || this.m_func == es3fShaderDerivateTests.DerivateFunc.DFDY) {
+			/** @type {boolean} */ var isX = m_func == es3fShaderDerivateTests.DerivateFunc.DFDX;
+			/** @type {number} */ var div = isX ? result.getWidth() : result.getHeight();
+			/** @type {Array<number>} */ var scale		= isX ? xScale : yScale;
+			/** @type {Array<number>} */ var reference	= ((m_coordMax - m_coordMin) / div) * scale;
+			/** @type {Array<number>} */ var opThreshold	= getDerivateThreshold(m_precision, m_coordMin*scale, m_coordMax*scale, reference);
+			/** @type {Array<number>} */ var threshold	= max(surfaceThreshold, opThreshold);
+			/** @type {number} */ var numComps	= glu::getDataTypeFloatScalars(m_dataType);
+			bufferedLogToConsole("Verifying result image.\n" +
+				"\tValid derivative is " + reference + " with threshold " + threshold);
+
+			// short circuit if result is strictly within the normal value error bounds.
+			// This improves performance significantly.
+			if (es3fShaderDerivateTests.verifyConstantDerivate(result, errorMask,
+				this.m_dataType, reference, threshold, this.m_derivScale,
+				this.m_derivBias, es3fShaderDerivateTests.VerificationLogging.LOG_NOTHING)) {
+				bufferedLogToConsole('No incorrect derivatives found, result valid.');
+				return true;
+			}
+
 		//
 		// 	// some pixels exceed error bounds calculated for normal values. Verify that these
 		// 	// potentially invalid pixels are in fact valid due to (for example) subnorm flushing.
@@ -1069,10 +1060,10 @@ goog.scope(function() {
 		// 		<< tcu::TestLog::EndMessage;
 		//
 		// 	{
-		// 		const tcu::IVec2			viewportSize	= getViewportSize();
-		// 		const float					w				= float(viewportSize.x());
-		// 		const float					h				= float(viewportSize.y());
-		// 		const tcu::Vec4				valueRamp		= (m_coordMax - m_coordMin);
+		// 		/** @type {Array<number>} */ var viewportSize = getViewportSize();
+		// 		/** @type {number} */ var w = float(viewportSize.x());
+		// 		/** @type {number} */ var h = float(viewportSize.y());
+		// 		/** @type {Array<number>} */ var valueRamp = (m_coordMax - m_coordMin);
 		// 		Linear2DFunctionEvaluator	function;
 		//
 		// 		function.matrix.setRow(0, tcu::Vec3(valueRamp.x() / w, 0.0f, m_coordMin.x()));
@@ -1088,7 +1079,7 @@ goog.scope(function() {
 		// }
 		// else
 		// {
-		// 	DE_ASSERT(m_func == DERIVATE_FWIDTH);
+		// 	DE_ASSERT(m_func == es3fShaderDerivateTests.DerivateFunc.FWIDTH);
 		// 	const float			w			= float(result.getWidth());
 		// 	const float			h			= float(result.getHeight());
 		//
