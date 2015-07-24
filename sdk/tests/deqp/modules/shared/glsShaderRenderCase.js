@@ -649,10 +649,10 @@ goog.scope(function() {
         /** @type {number} */ var yOffsetMax = gl.drawingBufferHeight - height;
 
         /** @type {number} */ var hash = deString.deStringHash(this.m_vertShaderSource) + deString.deStringHash(this.m_fragShaderSource);
-        /** @type {deRandom.deRandom} */ var rnd = new deRandom.deRandom();
+        /** @type {deRandom.Random} */ var rnd = new deRandom.Random(hash);
 
-        /** @type {number} */ var xOffset = deRandom.deRandom_getInt(rnd, [0, xOffsetMax]);
-        /** @type {number} */ var yOffset = deRandom.deRandom_getInt(rnd, [0, yOffsetMax]);
+        /** @type {number} */ var xOffset = rnd.getInt(0, xOffsetMax);
+        /** @type {number} */ var yOffset = rnd.getInt(0, yOffsetMax);
 
         gl.viewport(xOffset, yOffset, width, height);
 
