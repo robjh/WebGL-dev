@@ -26,6 +26,9 @@ goog.require('framework.opengl.gluVarType');
 goog.require('framework.opengl.gluShaderUtil');
 goog.require('framework.opengl.gluShaderProgram');
 goog.require('framework.opengl.gluDrawUtil');
+goog.require('framework.opengl.gluTextureUtil');
+goog.require('framework.common.tcuTexture');
+
 
 
 goog.scope(function() {
@@ -35,6 +38,8 @@ goog.scope(function() {
     var gluShaderUtil = framework.opengl.gluShaderUtil;
     var gluShaderProgram = framework.opengl.gluShaderProgram;
     var gluDrawUtil = framework.opengl.gluDrawUtil;
+    var gluTextureUtil = framework.opengl.gluTextureUtil;
+    var tcuTexture = framework.common.tcuTexture;
 
     var DE_ASSERT = function(x) {
         if (!x)
@@ -88,7 +93,7 @@ goog.scope(function() {
     /**
      * @return {boolean}
      */
-    glsShaderExecUtil.ShaderExecutor.prototype.isOK = function() {
+    glsShaderExecUtil.ShaderExecutor.prototype.isOk = function() {
         throw new Error('Virtual function. Please override.');
     };
 
@@ -312,7 +317,7 @@ goog.scope(function() {
 
     	src += '\nvoid main (void)\n{\n'
     		+ '	gl_Position = a_position;\n'
-    		+ '	gl.PointSize = 1.0;\n';
+    		+ '	gl_PointSize = 1.0;\n';
 
     	for (var i = 0; i <  shaderSpec.inputs.length; i++)
     		src += ('\t' + outputPrefix + shaderSpec.inputs[i].name + ' = ' + inputPrefix + shaderSpec.inputs[i].name + ';\n');
@@ -344,7 +349,7 @@ goog.scope(function() {
     		/** @type{glsShaderExecUtil.Symbol} */ var output = shaderSpec.outputs[outNdx];
     		/** @type{number} */ var location = outLocationMap[output.name];
     		/** @type{string} */ var outVarName	= 'o_' + output.name;
-    		// glu::VariableDeclaration	decl		(output.varType, outVarName, glu::STORAGE_OUT, glu::INTERPOLATION_LAST, glu::Layout(location));
+    		/** @type {gluVarType.VariableDeclaration} */ var	decl	= new gluVarType.VariableDeclaration(output.varType, outVarName, gluVarType.Storage.STORAGE_OUT, undefined, new gluVarType.Layout(location));
 
     		DE_ASSERT(output.varType.isBasicType());
 
@@ -602,7 +607,6 @@ VertexProcessorExecutor::VertexProcessorExecutor (const glu::RenderContext& rend
 // VertexShaderExecutor
 
 /**
- * template<typename Iterator>
  * @constructor
  * @extends{glsShaderExecUtil.VertexProcessorExecutor}
  * @param{glsShaderExecUtil.ShaderSpec} shaderSpec
@@ -615,68 +619,223 @@ glsShaderExecUtil.VertexShaderExecutor = function(shaderSpec) {
 
 setParentClass(glsShaderExecUtil.VertexShaderExecutor, glsShaderExecUtil.VertexProcessorExecutor);
 
+/**
+ * @constructor
+ * @extends{glsShaderExecUtil.ShaderExecutor}
+ * @param{glsShaderExecUtil.ShaderSpec} shaderSpec
+ */
+glsShaderExecUtil.FragmentShaderExecutor = function(shaderSpec) {
+    glsShaderExecUtil.ShaderExecutor.call(this, shaderSpec);
+    /** @type {Array<glsShaderExecUtil.Symbol>} */ this.m_outLocationSymbols = [];
+    this.m_outLocationMap = glsShaderExecUtil.generateLocationMap(this.m_outputs, this.m_outLocationSymbols);
+    var sources = gluShaderProgram.makeVtxFragSources(glsShaderExecUtil.generatePassthroughVertexShader(shaderSpec, "a_", ""),
+      glsShaderExecUtil.generateFragmentShader(shaderSpec, true, this.m_outLocationMap));
+    this.m_program = new gluShaderProgram.ShaderProgram(gl, sources);
+};
 
-// FragmentShaderExecutor
-// TODO: port this
-// class FragmentShaderExecutor : public ShaderExecutor
-// {
-// public:
-// 								FragmentShaderExecutor	(const glu::RenderContext& renderCtx, const ShaderSpec& shaderSpec);
-// 								~FragmentShaderExecutor	(void);
-//
-// 	bool						isOk					(void) const				{ return m_program.isOk();			}
-// 	void						log						(tcu::TestLog& dst) const	{ dst << m_program;					}
-// 	deUint32					getProgram				(void) const				{ return m_program.getProgram();	}
-//
-// 	void						execute					(int numValues, const void* const* inputs, void* const* outputs);
-//
-// protected:
-// 	std::vector<const Symbol*>	m_outLocationSymbols;
-// 	std::map<std::string, int>	m_outLocationMap;
-// 	glu::ShaderProgram			m_program;
-// };
-//
-// static std::map<std::string, int> generateLocationMap (const std::vector<Symbol>& symbols, std::vector<const Symbol*>& locationSymbols)
-// {
-// 	std::map<std::string, int>	ret;
-// 	int							location	= 0;
-//
-// 	locationSymbols.clear();
-//
-// 	for (std::vector<Symbol>::const_iterator it = symbols.begin(); it != symbols.end(); ++it)
-// 	{
-// 		/** @type{number} */ var	numLocations	= glu::getDataTypeNumLocations(it.varType.getBasicType());
-//
-// 		TCU_CHECK_INTERNAL(!de::contains(ret, it.name));
-// 		de::insert(ret, it.name, location);
-// 		location += numLocations;
-//
-// 		for (var ndx = 0; ndx < numLocations; ++ndx)
-// 			locationSymbols.push(&*it);
-// 	}
-//
-// 	return ret;
-// }
-//
-// inline bool hasFloatRenderTargets (const glu::RenderContext& renderCtx)
-// {
-// 	glu::ContextType type = renderCtx.getType();
-// 	return glu::isContextTypeGLCore(type);
-// }
-//
-// FragmentShaderExecutor::FragmentShaderExecutor (const glu::RenderContext& renderCtx, const ShaderSpec& shaderSpec)
-// 	: ShaderExecutor		(renderCtx, shaderSpec)
-// 	, m_outLocationSymbols	()
-// 	, m_outLocationMap		(generateLocationMap(m_outputs, m_outLocationSymbols))
-// 	, m_program				(renderCtx,
-// 							 glu::ProgramSources() << glu::VertexSource(generatePassthroughVertexShader(shaderSpec, "a_", ""))
-// 												   << glu::FragmentSource(generateFragmentShader(shaderSpec, !hasFloatRenderTargets(renderCtx), m_outLocationMap)))
-// {
-// }
-//
-// FragmentShaderExecutor::~FragmentShaderExecutor (void)
-// {
-// }
+setParentClass(glsShaderExecUtil.FragmentShaderExecutor, glsShaderExecUtil.ShaderExecutor);
+
+/**
+ * @return{boolean}
+ */
+glsShaderExecUtil.FragmentShaderExecutor.prototype.isOk = function() {
+    return this.m_program.isOk();
+};
+
+/**
+ * @return{WebGLProgram}
+ */
+glsShaderExecUtil.FragmentShaderExecutor.prototype.getProgram = function() {
+    return this.m_program.getProgram();
+};
+
+/**
+ * @param {gluVarType.VarType} outputType
+ * @param {boolean} useIntOutputs
+ * @return {tcuTexture.TextureFormat}
+ */
+glsShaderExecUtil.getRenderbufferFormatForOutput = function(outputType, useIntOutputs)
+{
+  var channelOrderMap = [
+    tcuTexture.ChannelOrder.R,
+    tcuTexture.ChannelOrder.RG,
+    tcuTexture.ChannelOrder.RGBA, // No RGB variants available.
+    tcuTexture.ChannelOrder.RGBA
+  ];
+
+  var basicType   = outputType.getBasicType();
+  var numComps    = gluShaderUtil.getDataTypeNumComponents(basicType);
+  var channelType;
+
+  switch (gluShaderUtil.getDataTypeScalarType(basicType))
+  {
+    case 'uint':  channelType = tcuTexture.ChannelType.UNSIGNED_INT32;                       break;
+    case 'int':   channelType = tcuTexture.ChannelType.SIGNED_INT32;                         break;
+    case 'bool':  channelType = tcuTexture.ChannelType.SIGNED_INT32;                         break;
+    case 'float': channelType = useIntOutputs ? tcuTexture.ChannelType.UNSIGNED_INT32 :  tcuTexture.ChannelType.FLOAT; break;
+    default:
+      throw new Error("Invalid output type " + gluShaderUtil.getDataTypeScalarType(basicType));
+  }
+
+  return new tcuTexture.TextureFormat(channelOrderMap[numComps-1], channelType);
+};
+
+/**
+ * template<typename Iterator>
+ * @param{number} numValues
+ * @param{Array<number>} inputs
+ * @return{Array<goog.NumberArray>} outputs
+ */
+glsShaderExecUtil.FragmentShaderExecutor.prototype.execute = function(numValues, inputs) {
+ /** @type {boolean} */ var useIntOutputs   = true;
+ var outputs = [];
+ /** @type{number} */ var            maxRenderbufferSize = /** @type {number} */ (gl.getParameter(gl.MAX_RENDERBUFFER_SIZE));
+ /** @type{number} */ var            framebufferW    = Math.min(maxRenderbufferSize, numValues);
+ /** @type{number} */ var            framebufferH    = Math.ceil(numValues / framebufferW);
+
+ var framebuffer = gl.createFramebuffer();
+ var renderbuffers = [];
+ for (var i = 0 ; i < this.m_outLocationSymbols.length; i++)
+    renderbuffers.push(gl.createRenderbuffer());
+
+ var vertexArrays = [];
+ var positions = [];
+
+ if (framebufferH > maxRenderbufferSize)
+   throw new Error("Value count is too high for maximum supported renderbuffer size");
+
+ // Compute positions - 1px points are used to drive fragment shading.
+ for (var valNdx = 0; valNdx < numValues; valNdx++) {
+   /** @type{number} */ var    ix    = valNdx % framebufferW;
+   /** @type{number} */ var    iy    = Math.floor(valNdx / framebufferW);
+   var fx    = -1 + 2*(ix + 0.5) / framebufferW;
+   var fy    = -1 + 2*(iy + 0.5) / framebufferH;
+
+   positions[2 * valNdx] = fx;
+   positions[2 * valNdx + 1] = fy;
+ }
+
+ // Vertex inputs.
+ vertexArrays.push(gluDrawUtil.newFloatVertexArrayBinding("a_position", 2, numValues, 0, positions));
+
+ for (var inputNdx = 0; inputNdx < this.m_inputs.length; inputNdx++)
+ {
+   /** @type{glsShaderExecUtil.Symbol} */ var    symbol    = this.m_inputs[inputNdx];
+   var attribName  = "a_" + symbol.name;
+   var ptr     = inputs[inputNdx];
+   /** @type{gluShaderUtil.DataType} */ var basicType  = symbol.varType.getBasicType();
+   /** @type{number} */ var      vecSize   = gluShaderUtil.getDataTypeScalarSize(basicType);
+
+   if (gluShaderUtil.isDataTypeFloatOrVec(basicType))
+     vertexArrays.push(gluDrawUtil.newFloatVertexArrayBinding(attribName, vecSize, numValues, 0, ptr));
+   //TODO: Add other types
+   // else if (gluShaderUtil.isDataTypeIntOrIVec(basicType))
+   //   vertexArrays.push(glu::va::Int32(attribName, vecSize, numValues, 0, (const deInt32*)ptr));
+   // else if (gluShaderUtil.isDataTypeUintOrUVec(basicType))
+   //   vertexArrays.push(glu::va::Uint32(attribName, vecSize, numValues, 0, (const deUint32*)ptr));
+   // else if (gluShaderUtil.isDataTypeMatrix(basicType))
+   // {
+   //   int   numRows = gluShaderUtil.getDataTypeMatrixNumRows(basicType);
+   //   int   numCols = gluShaderUtil.getDataTypeMatrixNumColumns(basicType);
+   //   int   stride  = numRows * numCols * sizeof(float);
+
+   //   for (int colNdx = 0; colNdx < numCols; ++colNdx)
+   //     vertexArrays.push(glu::va::Float(attribName, colNdx, numRows, numValues, stride, ((const float*)ptr) + colNdx * numRows));
+   // }
+   else
+     DE_ASSERT(false);
+ }
+
+ // Construct framebuffer.
+ gl.bindFramebuffer(gl.FRAMEBUFFER, framebuffer);
+
+ for (var outNdx = 0; outNdx < this.m_outLocationSymbols.length; ++outNdx)
+ {
+   /** @type{glsShaderExecUtil.Symbol} */ var  output      = this.m_outLocationSymbols[outNdx];
+   var  renderbuffer  = renderbuffers[outNdx];
+   var  format      = gluTextureUtil.getInternalFormat(glsShaderExecUtil.getRenderbufferFormatForOutput(output.varType, useIntOutputs));
+
+   gl.bindRenderbuffer(gl.RENDERBUFFER, renderbuffer);
+   gl.renderbufferStorage(gl.RENDERBUFFER, format, framebufferW, framebufferH);
+   gl.framebufferRenderbuffer(gl.FRAMEBUFFER, gl.COLOR_ATTACHMENT0+outNdx, gl.RENDERBUFFER, renderbuffer);
+ }
+ gl.bindRenderbuffer(gl.RENDERBUFFER, null);
+ assertMsgOptions(gl.checkFramebufferStatus(gl.FRAMEBUFFER) == gl.FRAMEBUFFER_COMPLETE, 'Framebuffer is incomplete', false, true);
+
+ var drawBuffers = [];
+ for (var ndx = 0; ndx < this.m_outLocationSymbols.length; ndx++)
+   drawBuffers[ndx] = gl.COLOR_ATTACHMENT0+ndx;
+ gl.drawBuffers(drawBuffers);
+
+ // Render
+ gl.viewport(0, 0, framebufferW, framebufferH);
+  gluDrawUtil.draw(gl, this.m_program.getProgram(), vertexArrays, 
+        new gluDrawUtil.PrimitiveList(gluDrawUtil.primitiveType.POINTS, numValues));
+
+ // Read back pixels.
+
+   // \todo [2013-08-07 pyry] Some fast-paths could be added here.
+
+   for (var outNdx = 0; outNdx < this.m_outputs.length; ++outNdx)
+   {
+     /** @type{glsShaderExecUtil.Symbol} */ var        output      = this.m_outputs[outNdx];
+     /** @type{number} */ var          outSize     = output.varType.getScalarSize();
+     /** @type{number} */ var          outVecSize    = gluShaderUtil.getDataTypeNumComponents(output.varType.getBasicType());
+     /** @type{number} */ var          outNumLocs    = gluShaderUtil.getDataTypeNumLocations(output.varType.getBasicType());
+     var format      = glsShaderExecUtil.getRenderbufferFormatForOutput(output.varType, useIntOutputs);
+     var readFormat  = new tcuTexture.TextureFormat(tcuTexture.ChannelOrder.RGBA, format.type);
+     var transferFormat = gluTextureUtil.getTransferFormat(readFormat);
+     /** @type{number} */ var          outLocation   =this.m_outLocationMap[output.name];
+     var  tmpBuf = new tcuTexture.TextureLevel(readFormat, framebufferW, framebufferH);
+
+     for (var locNdx = 0; locNdx < outNumLocs; ++locNdx)
+     {
+       gl.readBuffer(gl.COLOR_ATTACHMENT0 + outLocation + locNdx);
+       gl.readPixels(0, 0, framebufferW, framebufferH, transferFormat.format, transferFormat.dataType, tmpBuf.getAccess().getDataPtr());
+
+       if (outSize == 4 && outNumLocs == 1)
+         outputs[outNdx] = new Uint8Array(tmpBuf.getAccess().getBuffer());
+       else
+       {
+         outputs[outNdx] = new Uint8Array(numValues*outVecSize*4);
+         var srcPtr = new Uint8Array(tmpBuf.getAccess().getBuffer());
+         for (var valNdx = 0; valNdx < numValues; valNdx++)
+         {
+           var srcOffset =  valNdx*4;
+           var dstOffset = outSize*valNdx + outVecSize*locNdx;
+           for (var j = 0; j < outVecSize*4; j++)
+            outputs[outNdx][dstOffset + j] = srcPtr[srcOffset + j];
+         }
+       }
+     }
+   }
+ 
+
+ // \todo [2013-08-07 pyry] Clear draw buffers & viewport?
+ gl.bindFramebuffer(gl.FRAMEBUFFER, null);
+ return outputs;
+};
+
+
+
+glsShaderExecUtil.generateLocationMap = function(symbols, locationSymbols) {
+  var ret = [];
+  locationSymbols.length = 0;
+  var location = 0;
+
+  for (var i = 0; i < symbols.length; i++) {
+    var symbol = symbols[i];
+    var numLocations = gluShaderUtil.getDataTypeNumLocations(symbol.varType.getBasicType());
+    ret[symbol.name] = location;
+    location += numLocations;
+
+    for (var ndx = 0; ndx < numLocations; ++ndx)
+      locationSymbols.push(symbol);
+  }
+
+  return ret;
+};
+
 //
 // inline int queryInt (const glw::Functions& gl, deUint32 pname)
 // {
@@ -685,167 +844,6 @@ setParentClass(glsShaderExecUtil.VertexShaderExecutor, glsShaderExecUtil.VertexP
 // 	return value;
 // }
 //
-// static tcu::TextureFormat getRenderbufferFormatForOutput (const glu::VarType& outputType, bool useIntOutputs)
-// {
-// 	const tcu::TextureFormat::ChannelOrder channelOrderMap[] =
-// 	{
-// 		tcu::TextureFormat::R,
-// 		tcu::TextureFormat::RG,
-// 		tcu::TextureFormat::RGBA,	// No RGB variants available.
-// 		tcu::TextureFormat::RGBA
-// 	};
-//
-// 	/** @type{gluShaderUtil.DataType} */ var 				basicType		= outputType.getBasicType();
-// 	/** @type{number} */ var numComps = glu::getDataTypeNumComponents(basicType);
-// 	/** @type{tcuTexture.ChannelType} */ var channelType;
-//
-// 	switch (glu::getDataTypeScalarType(basicType))
-// 	{
-// 		case gluShaderUtil.DataType.UINT:	channelType = tcu::TextureFormat::UNSIGNED_INT32;												break;
-// 		case gluShaderUtil.DataType.INT:		channelType = tcu::TextureFormat::SIGNED_INT32;													break;
-// 		case glu::TYPE_BOOL:	channelType = tcu::TextureFormat::SIGNED_INT32;													break;
-// 		case glu::TYPE_FLOAT:	channelType = useIntOutputs ? tcu::TextureFormat::UNSIGNED_INT32 : tcu::TextureFormat::FLOAT;	break;
-// 		default:
-// 			throw tcu::InternalError("Invalid output type");
-// 	}
-//
-// 	DE_ASSERT(de::inRange<int>(numComps, 1, DE_LENGTH_OF_ARRAY(channelOrderMap)));
-//
-// 	return tcu::TextureFormat(channelOrderMap[numComps-1], channelType);
-// }
-//
-// void FragmentShaderExecutor::execute (int numValues, const void* const* inputs, void* const* outputs)
-// {
-// 	const glw::Functions&			gl					= m_renderCtx.getFunctions();
-// 	const bool						useIntOutputs		= !hasFloatRenderTargets(m_renderCtx);
-// 	/** @type{number} */ var						maxRenderbufferSize	= queryInt(gl, gl.MAX_RENDERBUFFER_SIZE);
-// 	/** @type{number} */ var						framebufferW		= de::min(maxRenderbufferSize, numValues);
-// 	/** @type{number} */ var						framebufferH		= (numValues / framebufferW) + ((numValues % framebufferW != 0) ? 1 : 0);
-//
-// 	glu::Framebuffer				framebuffer			(m_renderCtx);
-// 	glu::RenderbufferVector			renderbuffers		(m_renderCtx, m_outLocationSymbols.size());
-//
-// 	vector<glu::VertexArrayBinding>	vertexArrays;
-// 	vector<tcu::Vec2>				positions			(numValues);
-//
-// 	if (framebufferH > maxRenderbufferSize)
-// 		throw tcu::NotSupportedError("Value count is too high for maximum supported renderbuffer size");
-//
-// 	// Compute positions - 1px points are used to drive fragment shading.
-// 	for (int valNdx = 0; valNdx < numValues; valNdx++)
-// 	{
-// 		/** @type{number} */ var		ix		= valNdx % framebufferW;
-// 		/** @type{number} */ var		iy		= valNdx / framebufferW;
-// 		const float		fx		= -1.0f + 2.0f*((float(ix) + 0.5f) / float(framebufferW));
-// 		const float		fy		= -1.0f + 2.0f*((float(iy) + 0.5f) / float(framebufferH));
-//
-// 		positions[valNdx] = tcu::Vec2(fx, fy);
-// 	}
-//
-// 	// Vertex inputs.
-// 	vertexArrays.push(glu::va::Float("a_position", 2, numValues, 0, (const float*)&positions[0]));
-//
-// 	for (var inputNdx = 0; inputNdx < (int)m_inputs.size(); inputNdx++)
-// 	{
-// 		/** @type{glsShaderExecUtil.Symbol} */ var		symbol		= m_inputs[inputNdx];
-// 		const std::string	attribName	= "a_" + symbol.name;
-// 		const void*			ptr			= inputs[inputNdx];
-// 		/** @type{gluShaderUtil.DataType} */ var basicType	= symbol.varType.getBasicType();
-// 		/** @type{number} */ var			vecSize		= gluShaderUtil.getDataTypeScalarSize(basicType);
-//
-// 		if (gluShaderUtil.isDataTypeFloatOrVec(basicType))
-// 			vertexArrays.push(glu::va::Float(attribName, vecSize, numValues, 0, (const float*)ptr));
-// 		else if (gluShaderUtil.isDataTypeIntOrIVec(basicType))
-// 			vertexArrays.push(glu::va::Int32(attribName, vecSize, numValues, 0, (const deInt32*)ptr));
-// 		else if (gluShaderUtil.isDataTypeUintOrUVec(basicType))
-// 			vertexArrays.push(glu::va::Uint32(attribName, vecSize, numValues, 0, (const deUint32*)ptr));
-// 		else if (gluShaderUtil.isDataTypeMatrix(basicType))
-// 		{
-// 			int		numRows	= gluShaderUtil.getDataTypeMatrixNumRows(basicType);
-// 			int		numCols	= gluShaderUtil.getDataTypeMatrixNumColumns(basicType);
-// 			int		stride	= numRows * numCols * sizeof(float);
-//
-// 			for (int colNdx = 0; colNdx < numCols; ++colNdx)
-// 				vertexArrays.push(glu::va::Float(attribName, colNdx, numRows, numValues, stride, ((const float*)ptr) + colNdx * numRows));
-// 		}
-// 		else
-// 			DE_ASSERT(false);
-// 	}
-//
-// 	// Construct framebuffer.
-// 	gl.bindFramebuffer(gl.FRAMEBUFFER, *framebuffer);
-//
-// 	for (int outNdx = 0; outNdx < (int)m_outLocationSymbols.size(); ++outNdx)
-// 	{
-// 		/** @type{glsShaderExecUtil.Symbol} */ var	output			= *m_outLocationSymbols[outNdx];
-// 		const deUint32	renderbuffer	= renderbuffers[outNdx];
-// 		const deUint32	format			= glu::getInternalFormat(getRenderbufferFormatForOutput(output.varType, useIntOutputs));
-//
-// 		gl.bindRenderbuffer(gl.RENDERBUFFER, renderbuffer);
-// 		gl.renderbufferStorage(gl.RENDERBUFFER, format, framebufferW, framebufferH);
-// 		gl.framebufferRenderbuffer(gl.FRAMEBUFFER, gl.COLOR_ATTACHMENT0+outNdx, gl.RENDERBUFFER, renderbuffer);
-// 	}
-// 	gl.bindRenderbuffer(gl.RENDERBUFFER, 0);
-// 	GLU_EXPECT_NO_ERROR(gl.getError(), "Failed to set up framebuffer object");
-// 	TCU_CHECK(gl.checkFramebufferStatus(gl.FRAMEBUFFER) == gl.FRAMEBUFFER_COMPLETE);
-//
-// 	{
-// 		vector<deUint32> drawBuffers(m_outLocationSymbols.size());
-// 		for (var ndx = 0; ndx < (int)m_outLocationSymbols.size(); ndx++)
-// 			drawBuffers[ndx] = gl.COLOR_ATTACHMENT0+ndx;
-// 		gl.drawBuffers((int)drawBuffers.size(), &drawBuffers[0]);
-// 		GLU_EXPECT_NO_ERROR(gl.getError(), "glDrawBuffers()");
-// 	}
-//
-// 	// Render
-// 	gl.viewport(0, 0, framebufferW, framebufferH);
-// 	glu::draw(m_renderCtx, m_program.getProgram(), (int)vertexArrays.size(), &vertexArrays[0],
-// 			  glu::pr::Points(numValues));
-// 	GLU_EXPECT_NO_ERROR(gl.getError(), "Error in draw");
-//
-// 	// Read back pixels.
-// 	{
-// 		tcu::TextureLevel	tmpBuf;
-//
-// 		// \todo [2013-08-07 pyry] Some fast-paths could be added here.
-//
-// 		for (int outNdx = 0; outNdx < (int)m_outputs.size(); ++outNdx)
-// 		{
-// 			/** @type{glsShaderExecUtil.Symbol} */ var				output			= m_outputs[outNdx];
-// 			/** @type{number} */ var					outSize			= output.varType.getScalarSize();
-// 			/** @type{number} */ var					outVecSize		= glu::getDataTypeNumComponents(output.varType.getBasicType());
-// 			/** @type{number} */ var					outNumLocs		= glu::getDataTypeNumLocations(output.varType.getBasicType());
-// 			deUint32*					dstPtrBase		= static_cast<deUint32*>(outputs[outNdx]);
-// 			const tcu::TextureFormat	format			= getRenderbufferFormatForOutput(output.varType, useIntOutputs);
-// 			const tcu::TextureFormat	readFormat		(tcu::TextureFormat::RGBA, format.type);
-// 			/** @type{number} */ var					outLocation		= de::lookup(m_outLocationMap, output.name);
-//
-// 			tmpBuf.setStorage(readFormat, framebufferW, framebufferH);
-//
-// 			for (int locNdx = 0; locNdx < outNumLocs; ++locNdx)
-// 			{
-// 				gl.readBuffer(gl.COLOR_ATTACHMENT0 + outLocation + locNdx);
-// 				glu::readPixels(m_renderCtx, 0, 0, tmpBuf.getAccess());
-// 				GLU_EXPECT_NO_ERROR(gl.getError(), "Reading pixels");
-//
-// 				if (outSize == 4 && outNumLocs == 1)
-// 					deMemcpy(dstPtrBase, tmpBuf.getAccess().getDataPtr(), numValues*outVecSize*4);
-// 				else
-// 				{
-// 					for (int valNdx = 0; valNdx < numValues; valNdx++)
-// 					{
-// 						const deUint32* srcPtr = (const deUint32*)tmpBuf.getAccess().getDataPtr() + valNdx*4;
-// 						deUint32*		dstPtr = &dstPtrBase[outSize*valNdx + outVecSize*locNdx];
-// 						deMemcpy(dstPtr, srcPtr, outVecSize*4);
-// 					}
-// 				}
-// 			}
-// 		}
-// 	}
-//
-// 	// \todo [2013-08-07 pyry] Clear draw buffers & viewport?
-// 	gl.bindFramebuffer(gl.FRAMEBUFFER, 0);
-// }
 //
 // // Shared utilities for compute and tess executors
 //

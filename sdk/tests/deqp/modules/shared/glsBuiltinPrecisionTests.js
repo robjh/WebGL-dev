@@ -793,12 +793,15 @@ var setParentClass = function(child, parent) {
      * @return {string}
      */
     glsBuiltinPrecisionTests.VariableStatement.prototype.doPrint = function() {
+        var v = this.m_variable;
+        if (v instanceof Array)
+            v = v[0];
         var os = '';
         if (this.m_isDeclaration)
-            os += gluVarType.declareVariable(gluVarType.getVarTypeOf(this.m_variable.T),
-                        this.m_variable.getName());
+            os += gluVarType.declareVariable(gluVarType.getVarTypeOf(v.T),
+                        v.getName());
         else
-            os += this.m_variable.getName();
+            os += v.getName();
 
         os += " = " + this.m_value.printExpr() + ";\n";
 
@@ -818,7 +821,7 @@ var setParentClass = function(child, parent) {
      * @constructor
      * @param{*} typename
      */
-    glsBuiltinPrecisionTests.ExprP = function(typename) {
+    glsBuiltinPrecisionTests.ExprP = function(typename, size) {
         this.T = typename;
     };
 
@@ -862,6 +865,22 @@ var setParentClass = function(child, parent) {
     glsBuiltinPrecisionTests.Variable.prototype.doEvaluate = function(ctx) {
         return ctx.env.lookup(this);
 	};
+
+    /**
+     * @param{*} typename
+     * @param{string} name
+     * @param{number=} size
+     */
+    glsBuiltinPrecisionTests.createVariable = function(typename, name, size) {
+        if (size > 1) {
+            var ret = [];
+            for (var i = 0; i < size; i++)
+                ret[i] = new glsBuiltinPrecisionTests.Variable(typename, name);
+            return ret;
+        }
+
+        return new glsBuiltinPrecisionTests.Variable(typename, name);
+    };
 
     /**
      * @constructor
@@ -1794,9 +1813,9 @@ var setParentClass = function(child, parent) {
     glsBuiltinPrecisionTests.makeVectorizedFuncs = function(F) {
     	return new glsBuiltinPrecisionTests.GenFuncs(
                 new F(),
-                new glsBuiltinPrecisionTests.VectorizedFunc(new F()),
-                new glsBuiltinPrecisionTests.VectorizedFunc(new F()),
-                new glsBuiltinPrecisionTests.VectorizedFunc(new F()));
+                new glsBuiltinPrecisionTests.VectorizedFunc(new F(), 2),
+                new glsBuiltinPrecisionTests.VectorizedFunc(new F(), 3),
+                new glsBuiltinPrecisionTests.VectorizedFunc(new F(), 4));
 
         // <typename F::Sig>
         // (instance<F>(),
@@ -1817,20 +1836,17 @@ var setParentClass = function(child, parent) {
 
     /**
      * @param{*} T
+     * @param {number=} size
      * @return {glsBuiltinPrecisionTests.Sampling}
      */
-    glsBuiltinPrecisionTests.SamplingFactory = function(T) {
+    glsBuiltinPrecisionTests.SamplingFactory = function(T, size) {
+        if (size > 1)
+            return new glsBuiltinPrecisionTests.DefaultSamplingVector(T, size);
+        //TODO: add matrix support
         switch(T) {
             case 'boolean' : return new glsBuiltinPrecisionTests.DefaultSamplingBool(T)
             case 'float' : return new glsBuiltinPrecisionTests.DefaultSamplingFloat(T);
             case 'int' : return new glsBuiltinPrecisionTests.DefaultSamplingInt(T);
-        }
-        if (T instanceof Array) {
-            if (T.length > 0 && T[0] instanceof Array) {
-                return new glsBuiltinPrecisionTests.DefaultSamplingMatrix(T);
-            } else {
-                return new glsBuiltinPrecisionTests.DefaultSamplingVector(T);
-            }
         }
         return new glsBuiltinPrecisionTests.DefaultSamplingVoid(T);
     };
@@ -1900,7 +1916,7 @@ var setParentClass = function(child, parent) {
     /**
      * template <>  :  public Sampling<bool>
      * @param{tcuFloatFormat.FloatFormat} fmt
-     * @param{Array<Boolean} dst
+     * @param{Array<Boolean>} dst
      */
     glsBuiltinPrecisionTests.DefaultSamplingBool.prototype.genFixeds = function(fmt, dst) {
 		dst.push(true);
@@ -2115,7 +2131,7 @@ var setParentClass = function(child, parent) {
      * @return{Array<*>}
      */
     glsBuiltinPrecisionTests.DefaultSamplingVector.prototype.genRandom = function(fmt, prec, rnd) {
-		/* @type{Array<*>} */ var ret = [];
+		/** @type{Array<*>} */ var ret = [];
 
 		for (var ndx = 0; ndx < this.size; ++ndx)
 			ret[ndx] = glsBuiltinPrecisionTests.SamplingFactory(this.typename).genRandom(fmt, prec, rnd);
@@ -2128,12 +2144,16 @@ var setParentClass = function(child, parent) {
      * @param{Array<*>} dst
      */
     glsBuiltinPrecisionTests.DefaultSamplingVector.prototype.genFixeds = function(fmt, dst) {
-		/** @type{Array<*>} */ scalars = [];
+		/** @type{Array<*>} */ var scalars = [];
 
 		glsBuiltinPrecisionTests.SamplingFactory(this.typename).genFixeds(fmt, scalars);
 
-		for (var scalarNdx = 0; scalarNdx < scalars.length; ++scalarNdx)
-			dst.push([scalars[scalarNdx]]);
+		for (var scalarNdx = 0; scalarNdx < scalars.length; ++scalarNdx) {
+            var value = [];
+            for (var i = 0; i < this.size; i++)
+                value[i] = scalars[scalarNdx];
+            dst.push(value);
+        }
 	};
 
     /**
@@ -2219,25 +2239,27 @@ var setParentClass = function(child, parent) {
     /**
      * template<typename In>
      * @constructor
+     * @param {number=} size
      * @extends{glsBuiltinPrecisionTests.Samplings}
      * @param{In} In
      */
-     glsBuiltinPrecisionTests.Samplings = function(In) {
-        this.in0 = glsBuiltinPrecisionTests.SamplingFactory(In.In0);
-        this.in1 = glsBuiltinPrecisionTests.SamplingFactory(In.In1);
-        this.in2 = glsBuiltinPrecisionTests.SamplingFactory(In.In2);
-        this.in3 = glsBuiltinPrecisionTests.SamplingFactory(In.In3);
+     glsBuiltinPrecisionTests.Samplings = function(In, size) {
+        this.in0 = glsBuiltinPrecisionTests.SamplingFactory(In.In0, size);
+        this.in1 = glsBuiltinPrecisionTests.SamplingFactory(In.In1, size);
+        this.in2 = glsBuiltinPrecisionTests.SamplingFactory(In.In2, size);
+        this.in3 = glsBuiltinPrecisionTests.SamplingFactory(In.In3, size);
     };
 
 
     /**
      * template<typename In>
      * @param{*} In
+     * @param {number=} size
      * @constructor
      * @extends{glsBuiltinPrecisionTests.Samplings}
      */
-     glsBuiltinPrecisionTests.DefaultSamplings = function(In) {
-    	glsBuiltinPrecisionTests.Samplings.call(this,In);
+     glsBuiltinPrecisionTests.DefaultSamplings = function(In, size) {
+    	glsBuiltinPrecisionTests.Samplings.call(this, In, size);
     };
 
     /**
@@ -2495,7 +2517,13 @@ var setParentClass = function(child, parent) {
      * @return{glsShaderExecUtil.Symbol}
      */
     glsBuiltinPrecisionTests.PrecisionCase.prototype.makeSymbol = function (variable) {
-		return new glsShaderExecUtil.Symbol(variable.getName(), gluVarType.getVarTypeOf(variable.T, this.m_ctx.precision));
+        var v = variable;
+        var size = 1;
+        if (variable instanceof Array) {
+            v = variable[0];
+            size = variable.length;
+        }
+		return new glsShaderExecUtil.Symbol(v.getName(), gluVarType.getVarTypeOf(v.T, size, this.m_ctx.precision));
 	};
 
     /**
@@ -2715,6 +2743,7 @@ var setParentClass = function(child, parent) {
         this.Arg3 = func.Sig.Arg3;
         this.In = new glsBuiltinPrecisionTests.InTypes(this.Arg0, this.Arg1, this.Arg2, this.Arg3);
         this.Out = new glsBuiltinPrecisionTests.OutTypes(this.Ret);
+        this.m_size = this.m_func.m_size;
     };
 
     glsBuiltinPrecisionTests.FuncCase.prototype = Object.create(glsBuiltinPrecisionTests.FuncCaseBase.prototype);
@@ -2725,7 +2754,7 @@ var setParentClass = function(child, parent) {
      * @return{glsBuiltinPrecisionTests.Samplings}
      */
     glsBuiltinPrecisionTests.FuncCase.prototype.getSamplings = function()	{
-        return new glsBuiltinPrecisionTests.DefaultSamplings(this.In);
+        return new glsBuiltinPrecisionTests.DefaultSamplings(this.In, this.m_size);
     };
 
     /**
@@ -2741,15 +2770,15 @@ var setParentClass = function(child, parent) {
     												this.m_ctx.numRandoms,
     												this.m_rnd));
 
-        var variables = new glsBuiltinPrecisionTests.Variables(this.In, this.Out);
+        var variables = new glsBuiltinPrecisionTests.Variables(this.In, this.Out, this.m_size);
     	// Variables<In, Out>	variables;
         //
-    	variables.out0	= new glsBuiltinPrecisionTests.Variable(this.Ret, "out0");
-    	variables.out1	= new glsBuiltinPrecisionTests.Variable(glsBuiltinPrecisionTests.Void, "out1");
-    	variables.in0	= new glsBuiltinPrecisionTests.Variable(this.Arg0, "in0");
-    	variables.in1	= new glsBuiltinPrecisionTests.Variable(this.Arg1, "in1");
-    	variables.in2	= new glsBuiltinPrecisionTests.Variable(this.Arg2, "in2");
-    	variables.in3	= new glsBuiltinPrecisionTests.Variable(this.Arg3, "in3");
+    	variables.out0	= new glsBuiltinPrecisionTests.createVariable(this.Ret, "out0", this.m_size);
+    	variables.out1	= new glsBuiltinPrecisionTests.createVariable(glsBuiltinPrecisionTests.Void, "out1", this.m_size);
+    	variables.in0	= new glsBuiltinPrecisionTests.createVariable(this.Arg0, "in0", this.m_size);
+    	variables.in1	= new glsBuiltinPrecisionTests.createVariable(this.Arg1, "in1", this.m_size);
+    	variables.in2	= new glsBuiltinPrecisionTests.createVariable(this.Arg2, "in2", this.m_size);
+    	variables.in3	= new glsBuiltinPrecisionTests.createVariable(this.Arg3, "in3", this.m_size);
         
 
 		var	expr	= glsBuiltinPrecisionTests.applyVar(this.m_func,
@@ -2835,7 +2864,7 @@ var setParentClass = function(child, parent) {
      * @param{string} name
      * @param{glsBuiltinPrecisionTests.Signature} Sig_
      * @param{glsBuiltinPrecisionTests.Func} func
-     * @param{glsBuiltinPrecisionTests.PrecisionCase}
+     * @return{glsBuiltinPrecisionTests.PrecisionCase}
      */
     glsBuiltinPrecisionTests.createFuncCase = function(context, name, func) {
     	switch (func.getOutParamIndex()) {
@@ -2879,12 +2908,13 @@ var setParentClass = function(child, parent) {
      *	typename ContainerOf<typename Sig_::Arg3, Size>::Container> >
      * @constructor
      * @extends{glsBuiltinPrecisionTests.PrimitiveFunc}
-     * @param{glsBuiltinPrecisionTests.Signature} Sig_
      * @param{glsBuiltinPrecisionTests.Func} scalarFunc
+     * @param{number=} size
      */
-    glsBuiltinPrecisionTests.GenFunc = function(scalarFunc, Sig_) {
+    glsBuiltinPrecisionTests.GenFunc = function(scalarFunc, size) {
         glsBuiltinPrecisionTests.PrimitiveFunc.call(this, scalarFunc.Sig);
         this.m_func = scalarFunc;
+        this.m_size = size;
     };
 
     glsBuiltinPrecisionTests.GenFunc.prototype = Object.create(glsBuiltinPrecisionTests.PrimitiveFunc.prototype);
@@ -2914,8 +2944,8 @@ var setParentClass = function(child, parent) {
     /**
      * @param{Array<glsBuiltinPrecisionTests.ExprBase>} args
      */
-    glsBuiltinPrecisionTests.GenFunc.prototype.doPrint = function(/*ostream& os,*/ args) {
-       return this.m_func.print(/*os,*/ args);
+    glsBuiltinPrecisionTests.GenFunc.prototype.doPrint = function(args) {
+       return this.m_func.print(args);
     };
 
     /**
@@ -2923,11 +2953,11 @@ var setParentClass = function(child, parent) {
      * @param{glsBuiltinPrecisionTests.Tuple4} iargs
      * @return{*}
      */
-    glsBuiltinPrecisionTests.GenFunc.prototype.doApply = function(/*ostream& os,*/ args) {
+    glsBuiltinPrecisionTests.GenFunc.prototype.doApply = function(ctx, iargs) {
         /** @type{Array<*>} */ var ret = [];
 
-        for (var ndx = 0; ndx < Size; ++ndx) {
-            ret[ndx] = this.m_func.apply(this.ctx, iargs.a[ndx], iargs.b[ndx], iargs.c[ndx], iargs.d[ndx]);
+        for (var ndx = 0; ndx < this.m_size; ++ndx) {
+            ret[ndx] = this.m_func.apply(ctx, iargs.a[ndx], iargs.b[ndx], iargs.c[ndx], iargs.d[ndx]);
         }
 
         return ret;
@@ -2947,9 +2977,10 @@ var setParentClass = function(child, parent) {
      * @constructor
      * @extends{glsBuiltinPrecisionTests.GenFunc}
      * @param{*} F typename
+     * @param{number} size
      */
-     glsBuiltinPrecisionTests.VectorizedFunc = function(F) {
-         glsBuiltinPrecisionTests.GenFunc.call(this, F);
+     glsBuiltinPrecisionTests.VectorizedFunc = function(F, size) {
+         glsBuiltinPrecisionTests.GenFunc.call(this, F, size);
     };
 
     glsBuiltinPrecisionTests.VectorizedFunc.prototype = Object.create(glsBuiltinPrecisionTests.GenFunc.prototype);
