@@ -55,6 +55,8 @@ var DE_ASSERT = function(x) {
         throw new Error('Assert failed');
 };
 
+var MIN_SUBPIXEL_BITS = 4;
+
 /**
  * @enum
  */
@@ -1543,48 +1545,36 @@ glsTextureTestUtil.computeTextureCompareDiff2D = function(result, reference, err
 es3fTextureFilteringTests.verifyTextureCubeResult = function (
     result, src, texCoord, sampleParams, lookupPrec, lodPrec, pixelFormat
 ) {
-    /** @type {tcuSurface.Surface} */ var reference = new tcuSurface.Surface(result.getWidth(), result.getHeight());
-    /** @type {tcuSurface.Surface} */ var errorMask = new tcuSurface.Surface(result.getWidth(), result.getHeight());
-    /** @type {number} */ var numFailedPixels;
+    /** @type {tcuSurface.Surface} */
+    var reference = new tcuSurface.Surface(
+        result.getWidth(), result.getHeight()
+    );
+    /** @type {tcuSurface.Surface} */
+    var errorMask = new tcuSurface.Surface(
+        result.getWidth(), result.getHeight()
+    );
+    /** @type {number} */ var numFailedPixels = 0;
 
     assertMsgOptions(
         glsTextureTestUtil.getCompareMask(pixelFormat) == lookupPrec.colorMask,
         'Compare color masks do not match', false, true
     );
 
-    /** @type {glsTextureTestUtil.SurfaceAccess} */ var surface = new glsTextureTestUtil.SurfaceAccess(reference, pixelFormat);
+    /** @type {glsTextureTestUtil.SurfaceAccess} */
+    var surface = new glsTextureTestUtil.SurfaceAccess(reference, pixelFormat);
 
-    glsTextureTestUtil.sampleTexture2D(surface, src, texCoord, sampleParams);
-    numFailedPixels = glsTextureTestUtil.computeTextureLookupDiff2D(result, reference.getAccess(), errorMask.getAccess(), src, texCoord, sampleParams, lookupPrec, lodPrec/*, testCtx.getWatchDog()*/);
+    es3fTextureFilteringTests.sampleTexture(
+        surface, src, texCoord, sampleParams
+    );
+
+    numFailedPixels = glsTextureTestUtil.computeTextureLookupDiffCube(
+        result, reference.getAccess(), errorMask.getAccess(),
+        src, texCoord, sampleParams, lookupPrec, lodPrec
+        /*, testCtx.getWatchDog()*/
+    );
 
     if (numFailedPixels > 0)
         tcuImageCompare.displayImages(result, reference.getAccess(), errorMask.getAccess());
-
-    return numFailedPixels == 0;
-
-=============
-
-    es3fTextureFilteringTests.sampleTextureMultiFace(
-        surface, src, texCoord, sampleParams
-    );
-    numFailedPixels = glsTextureTestUtil.computeTextureCompareDiffCube(
-        result, reference.getAccess(), errorMask.getAccess(), src,
-        texCoord, sampleParams, lookupPrec, lodPrec, testCtx.getWatchDog()
-    );
-
-    if (numFailedPixels > 0)
-        log << TestLog::Message << "ERROR: Result verification failed, got " << numFailedPixels << " invalid pixels!" << TestLog::EndMessage;
-
-    log << TestLog::ImageSet("VerifyResult", "Verification result")
-        << TestLog::Image("Rendered", "Rendered image", result);
-
-    if (numFailedPixels > 0)
-    {
-        log << TestLog::Image("Reference", "Ideal reference image", reference)
-            << TestLog::Image("ErrorMask", "Error mask", errorMask);
-    }
-
-    log << TestLog::EndImageSet;
 
     return numFailedPixels == 0;
 };
@@ -1616,27 +1606,34 @@ es3fTextureFilteringTests.computeTextureLookupDiffCube = function(
     );
 
     /** @type {tcuTexture.Texture2DView} */
-    var src = baseView.getSubView(sampleParams.baseLevel, sampleParams.maxLevel);
+    var src = baseView.getSubView(
+        sampleParams.baseLevel, sampleParams.maxLevel
+    );
 
     var sq =
-        [texCoord[0 + 0], texCoord[2 + 0], texCoord[4 + 0], texCoord[6 + 0]];
+        [texCoord[0 + 0], texCoord[3 + 0], texCoord[6 + 0], texCoord[9 + 0]];
     var tq =
-        [texCoord[0 + 1], texCoord[2 + 1], texCoord[4 + 1], texCoord[6 + 1]];
+        [texCoord[0 + 1], texCoord[3 + 1], texCoord[6 + 1], texCoord[9 + 1]];
+    var rq =
+        [texCoord[0 + 2], texCoord[3 + 2], texCoord[6 + 2], texCoord[9 + 2]];
 
     var dstSize = [result.getWidth(), result.getHeight()];
-    var dstW = dstSize.x();
-    var dstH = dstSize.y();
+    var dstW = dstSize[0];
+    var dstH = dstSize[0];
     var srcSize = [src.getWidth(), src.getHeight()];
 
     // Coordinates and lod per triangle.
     var triS = [ deMath.swizzle(sq, [0, 1, 2]), deMath.swizzle(sq, [3, 2, 1]) ];
     var triT = [ deMath.swizzle(tq, [0, 1, 2]), deMath.swizzle(tq, [3, 2, 1]) ];
+    var triR = [ deMath.swizzle(rq, [0, 1, 2]), deMath.swizzle(rq, [3, 2, 1]) ];
     var triW = [
         deMath.swizzle(sampleParams.w, [0, 1, 2]),
         deMath.swizzle(sampleParams.w, [3, 2, 1])
     ];
 
     var lodBias = sampleParams.flags.useBias ? sampleParams.bias : 0.0;
+
+    var posEps = 1.0 / ((1<<MIN_SUBPIXEL_BITS) + 1);
 
     var numFailed = 0;
 
@@ -1645,9 +1642,17 @@ es3fTextureFilteringTests.computeTextureLookupDiffCube = function(
         [+1,  0],
         [ 0, -1],
         [ 0, +1],
+
+        // \note Not strictly allowed by spec,
+        // but implementations do this in practice.
+        [-1, -1],
+        [-1, 1],
+        [1, -1],
+        [1, 1],
     ];
 
-    errorMask.clear(new tcuRGBA.RGBA([0, 1, 0, 1].toVec()));
+    var green = [0, 255, 0, 255];
+    errorMask.clear(new tcuRGBA.RGBA(green).toVec());
 
     for (var py = 0; py < result.getHeight(); py++)
     {
@@ -1657,83 +1662,153 @@ es3fTextureFilteringTests.computeTextureLookupDiffCube = function(
 
         for (var px = 0; px < result.getWidth(); px++)
         {
-            var resPix = deMath.divide(
-                Math.subtract(result.getPixel(px, py), sampleParams.colorBias),
-                sampleParams.colorScale
-            );
-            var refPix = deMath.divide(
-                Math.subtract(
-                    reference.getPixel(px, py), sampleParams.colorBias
-                ), sampleParams.colorScale
-            );
+            var resPix = result.getPixel(px, py);
+            var refPix = reference.getPixel(px, py);
 
-            // Try comparison to ideal reference first, and if that fails use slower verificator.
-            if (!deMath.boolAll(deMath.lessThanEqual(deMath.absDiff(resPix, refPix), lookupPrec.colorThreshold)))
-            {
+            // Try comparison to ideal reference first,
+            // and if that fails use slower verificator.
+            if (!deMath.boolAll(deMath.lessThanEqual(
+                deMath.absDiff(resPix, refPix),
+                lookupPrec.colorThreshold))
+            ) {
                 /** @type {number} */ var wx = px + 0.5;
                 /** @type {number} */ var wy = py + 0.5;
                 /** @type {number} */ var nx = wx / dstW;
                 /** @type {number} */ var ny = wy / dstH;
 
-                /** @type {number} */ var triNdx = nx + ny >= 1.0 ? 1 : 0;
-                /** @type {number} */ var triWx = triNdx ? dstW - wx : wx;
-                /** @type {number} */ var triWy = triNdx ? dstH - wy : wy;
-                /** @type {number} */ var triNx = triNdx ? 1.0 - nx : nx;
-                /** @type {number} */ var triNy = triNdx ? 1.0 - ny : ny;
+                /** @type {number} */ var tri0 = nx + ny - posEps <= 1.0;
+                /** @type {number} */ var tri1 = nx + ny + posEps >= 1.0;
 
-                var coord = [
-                    glsTextureTestUtil.projectedTriInterpolate(
-                        triS[triNdx], triW[triNdx], triNx, triNy
-                    ),
-                    glsTextureTestUtil.projectedTriInterpolate(
-                        triT[triNdx], triW[triNdx], triNx, triNy
-                    )
-                ];
-                var coordDx = deMath.scale([
-                    glsTextureTestUtil.triDerivateX(
-                        triS[triNdx], triW[triNdx], wx, dstW, triNy
-                    ),
-                    glsTextureTestUtil.triDerivateX(
-                        triT[triNdx], triW[triNdx], wx, dstW, triNy
-                    )], srcSize
+                var isOk = false;
+
+                assertMsgOptions(
+                    tri0 || tri1,
+                    'Pixel should belong at least to one triangle',
+                    false, true
                 );
-                var coordDy = deMath.scale([
-                    glsTextureTestUtil.triDerivateY(
-                        triS[triNdx], triW[triNdx], wy, dstH, triNx]
-                    ),
-                    glsTextureTestUtil.triDerivateY(
-                        triT[triNdx], triW[triNdx], wy, dstH, triNx
-                    )
-                ], srcSize);
 
-                tcu::Vec2        lodBounds    = tcu::computeLodBoundsFromDerivates(coordDx.x(), coordDx.y(), coordDy.x(), coordDy.y(), lodPrec);
-
-                // Compute lod bounds across lodOffsets range.
-                for (int lodOffsNdx = 0; lodOffsNdx < DE_LENGTH_OF_ARRAY(lodOffsets); lodOffsNdx++)
+                // Pixel can belong to either of the triangles
+                // if it lies close enough to the edge.
+                for (var triNdx = (tri0 ? 0 : 1);
+                    triNdx <= (tri1 ? 1 : 0);
+                    triNdx++)
                 {
-                    const float        wxo        = triWx + lodOffsets[lodOffsNdx].x();
-                    const float        wyo        = triWy + lodOffsets[lodOffsNdx].y();
-                    const float        nxo        = wxo/dstW;
-                    const float        nyo        = wyo/dstH;
+                    var triWx = triNdx ? dstW - wx : wx;
+                    var triWy = triNdx ? dstH - wy : wy;
+                    var triNx = triNdx ? 1.0 - nx : nx;
+                    var triNy = triNdx ? 1.0 - ny : ny;
 
-                    const tcu::Vec2    coordO        (projectedTriInterpolate(triS[triNdx], triW[triNdx], nxo, nyo),
-                                                 projectedTriInterpolate(triT[triNdx], triW[triNdx], nxo, nyo));
-                    const tcu::Vec2    coordDxo    = tcu::Vec2(triDerivateX(triS[triNdx], triW[triNdx], wxo, dstW, nyo),
-                                                            triDerivateX(triT[triNdx], triW[triNdx], wxo, dstW, nyo)) * srcSize.asFloat();
-                    const tcu::Vec2    coordDyo    = tcu::Vec2(triDerivateY(triS[triNdx], triW[triNdx], wyo, dstH, nxo),
-                                                            triDerivateY(triT[triNdx], triW[triNdx], wyo, dstH, nxo)) * srcSize.asFloat();
-                    const tcu::Vec2    lodO        = tcu::computeLodBoundsFromDerivates(coordDxo.x(), coordDxo.y(), coordDyo.x(), coordDyo.y(), lodPrec);
+                    var coord = [
+                        glsTextureTestUtil.projectedTriInterpolate(
+                            triS[triNdx], triW[triNdx], triNx, triNy
+                        ),
+                        glsTextureTestUtil.projectedTriInterpolate(
+                            triT[triNdx], triW[triNdx], triNx, triNy
+                        ),
+                        glsTextureTestUtil.projectedTriInterpolate(
+                            triR[triNdx], triW[triNdx], triNx, triNy
+                        )
+                    ];
+                    var coordDx = [
+                        glsTextureTestUtil.triDerivateX(
+                            triS[triNdx], triW[triNdx], wx, dstW, triNy
+                        ),
+                        glsTextureTestUtil.triDerivateX(
+                            triT[triNdx], triW[triNdx], wx, dstW, triNy
+                        ),
+                        glsTextureTestUtil.triDerivateX(
+                            triR[triNdx], triW[triNdx], wx, dstW, triNy
+                        )
+                    ];
+                    var coordDy = [
+                        glsTextureTestUtil.triDerivateY(
+                            triS[triNdx], triW[triNdx], wy, dstH, triNx
+                        ),
+                        glsTextureTestUtil.triDerivateY(
+                            triT[triNdx], triW[triNdx], wy, dstH, triNx
+                        ),
+                        glsTextureTestUtil.triDerivateY(
+                            triR[triNdx], triW[triNdx], wy, dstH, triNx
+                        )
+                    ];
 
-                    lodBounds.x() = de::min(lodBounds.x(), lodO.x());
-                    lodBounds.y() = de::max(lodBounds.y(), lodO.y());
+                    var lodBounds =
+                        tcuTexLookupVerifier.computeCubeLodBoundsFromDerivates(
+                            coord, coordDx, coordDy, srcSize, lodPrec
+                        );
+
+                    // Compute lod bounds across lodOffsets range.
+                    for (var lodOffsNdx = 0;
+                        lodOffsNdx < lodOffsets.length;
+                        lodOffsNdx++)
+                    {
+                        var wxo = triWx + lodOffsets[lodOffsNdx][0];
+                        var wyo = triWy + lodOffsets[lodOffsNdx][1];
+                        var nxo = wxo / dstW;
+                        var nyo = wyo / dstH;
+
+                        var coordO = [
+                            glsTextureTestUtil.projectedTriInterpolate(
+                                triS[triNdx], triW[triNdx], nxo, nyo
+                            ),
+                            glsTextureTestUtil.projectedTriInterpolate(
+                                triT[triNdx], triW[triNdx], nxo, nyo
+                            ),
+                            glsTextureTestUtil.projectedTriInterpolate(
+                                triR[triNdx], triW[triNdx], nxo, nyo
+                            )
+                        ];
+                        var coordDxo = [
+                            glsTextureTestUtil.triDerivateX(
+                                triS[triNdx], triW[triNdx], wxo, dstW, nyo
+                            ),
+                            glsTextureTestUtil.triDerivateX(
+                                triT[triNdx], triW[triNdx], wxo, dstW, nyo
+                            ),
+                            glsTextureTestUtil.triDerivateX(
+                                triR[triNdx], triW[triNdx], wxo, dstW, nyo
+                            )
+                        ];
+                        var coordDyo = [
+                            glsTextureTestUtil.triDerivateY(
+                                triS[triNdx], triW[triNdx], wyo, dstH, nxo
+                            ),
+                            glsTextureTestUtil.triDerivateY(
+                                triT[triNdx], triW[triNdx], wyo, dstH, nxo
+                            ),
+                            glsTextureTestUtil.triDerivateY(
+                                triR[triNdx], triW[triNdx], wyo, dstH, nxo
+                            )
+                        ];
+                        var lodO =
+                            glsTextureTestUtil.
+                            computeCubeLodBoundsFromDerivates(
+                                coordO, coordDxo, coordDyo, srcSize, lodPrec
+                            );
+
+                        lodBounds[0] = Math.min(lodBounds[0], lodO[0]);
+                        lodBounds[1] = Math.max(lodBounds[0], lodO[0]);
+                    }
+
+                    var clampedLod = tcuTexLookupVerifier.clampLodBounds(
+                        lodBounds + lodBias, [sampleParams.minLod,
+                        sampleParams.maxLod],
+                        lodPrec
+                    );
+
+                    if (tcuTexLookupVerifier.
+                        isLookupResultValid_TextureCubeView(
+                            src, sampleParams.sampler, lookupPrec, coord, clampedLod, resPix
+                        )
+                    ) {
+                        isOk = true;
+                        break;
+                    }
                 }
 
-                const tcu::Vec2    clampedLod    = tcu::clampLodBounds(lodBounds + lodBias, tcu::Vec2(sampleParams.minLod, sampleParams.maxLod), lodPrec);
-                const bool        isOk        = tcu::isLookupResultValid(src, sampleParams.sampler, lookupPrec, coord, clampedLod, resPix);
-
-                if (!isOk)
-                {
-                    errorMask.setPixel(tcu::RGBA::red.toVec(), px, py);
+                if (!isOk) {
+                    var red = [255, 0, 0, 255];
+                    errorMask.setPixel(new tcuRGBA.RGBA(red).toVec()), px, py);
                     numFailed += 1;
                 }
             }

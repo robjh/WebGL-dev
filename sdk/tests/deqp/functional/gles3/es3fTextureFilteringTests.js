@@ -784,7 +784,7 @@ goog.scope(function() {
             throw new Error("Too small render target");
 
         // Setup texture
-        gl.bindTexture(gl.TEXTURE_CUBE_MAP, curCase.texture->getGLTexture());
+        gl.bindTexture(gl.TEXTURE_CUBE_MAP, curCase.texture.getGLTexture());
         gl.texParameteri(
             gl.TEXTURE_CUBE_MAP, gl.TEXTURE_MIN_FILTER, this.m_minFilter
         );
