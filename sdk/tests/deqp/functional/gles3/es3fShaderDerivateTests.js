@@ -20,25 +20,42 @@
 
 'use strict';
 goog.provide('functional.gles3.es3fShaderDerivateTests');
+goog.require('framework.delibs.debase.deMath');
+goog.require('framework.delibs.debase.deRandom');
+goog.require('framework.opengl.gluDrawUtil');
+goog.require('framework.opengl.gluShaderProgram');
+goog.require('framework.opengl.gluShaderUtil');
+goog.require('framework.common.tcuFloat');
+goog.require('framework.common.tcuLogImage');
+goog.require('framework.common.tcuMatrix');
+goog.require('framework.common.tcuPixelFormat');
+goog.require('framework.common.tcuRGBA');
+goog.require('framework.common.tcuStringTemplate');
+goog.require('framework.common.tcuSurface');
+goog.require('framework.common.tcuTexture');
 
 goog.scope(function() {
 	var es3fShaderDerivateTests = functional.gles3.es3fShaderDerivateTests;
-	var tcuTexture.ConstPixelBufferAccess;
-	var gluShaderUtil;
-	var deMath;
-	var tcuRGBA;
-	var tcuMatrix;
-	var tcuStringTemplate;
-	var gluShaderProgram
-	var deRandom;
-	var tcuPixelFormat;
+	var deMath = framework.delibs.debase.deMath;
+	var deRandom = framework.delibs.debase.deRandom;
+	var gluDrawUtil = framework.opengl.gluDrawUtil;
+	var gluShaderProgram = framework.opengl.gluShaderProgram;
+	var gluShaderUtil = framework.opengl.gluShaderUtil;
+	var tcuFloat = framework.common.tcuFloat;
+	var tcuLogImage = framework.common.tcuLogImage;
+	var tcuMatrix = framework.common.tcuMatrix;
+	var tcuPixelFormat = framework.common.tcuPixelFormat;
+	var tcuRGBA = framework.common.tcuRGBA;
+	var tcuStringTemplate = framework.common.tcuStringTemplate;
+	var tcuSurface = framework.common.tcuSurface;
+	var tcuTexture = framework.common.tcuTexture;
 
-	/** @const {number} */ es3fShaderDerivateTests.VIEWPORT_WIDTH = 167,
-	/** @const {number} */ es3fShaderDerivateTests.VIEWPORT_HEIGHT = 103,
-	/** @const {number} */ es3fShaderDerivateTests.FBO_WIDTH = 99,
-	/** @const {number} */ es3fShaderDerivateTests.FBO_HEIGHT = 133,
-	/** @const {number} */ es3fShaderDerivateTests.MAX_FAILED_MESSAGES = 10
-	/** @const {number} */ es3fShaderDerivateTests.INTERPOLATION_LOST_BITS = 3, // number mantissa of bits allowed to be lost in varying interpolation
+	/** @const {number} */ es3fShaderDerivateTests.VIEWPORT_WIDTH = 167;
+	/** @const {number} */ es3fShaderDerivateTests.VIEWPORT_HEIGHT = 103;
+	/** @const {number} */ es3fShaderDerivateTests.FBO_WIDTH = 99;
+	/** @const {number} */ es3fShaderDerivateTests.FBO_HEIGHT = 133;
+	/** @const {number} */ es3fShaderDerivateTests.MAX_FAILED_MESSAGES = 10;
+	/** @const {number} */ es3fShaderDerivateTests.INTERPOLATION_LOST_BITS = 3; // number mantissa of bits allowed to be lost in varying interpolation
 	/**
 	 * @enum {number}
 	 */
@@ -99,7 +116,7 @@ goog.scope(function() {
 	 */
 	es3fShaderDerivateTests.AutoRbo = function(gl_) {
 		/** @type {WebGL2RenderingContext} */ this.m_gl = gl_;
-		/** @type {?WebGLFramebuffer} */ this.m_rbo = null;
+		/** @type {?WebGLRenderbuffer} */ this.m_rbo = null;
 	};
 
 	es3fShaderDerivateTests.AutoRbo.prototype.deinit = function() {
@@ -115,7 +132,7 @@ goog.scope(function() {
 	};
 
 	/**
-	 * @return {?WebGLFramebuffer}
+	 * @return {?WebGLRenderbuffer}
 	 */
 	es3fShaderDerivateTests.AutoRbo.prototype.get = function() {
 		return this.m_rbo;
@@ -239,7 +256,7 @@ goog.scope(function() {
 			return (new tcuFloat.deFloat()).construct(1, exp, (1 << 23) | (1 << ulpBitNdx)).getValue() - (new tcuFloat.deFloat()).construct(1, exp, 1 << 23).getValue();
 		}
 		else {
-			assertMsgOptions((numMantissaBits == 0, 'numMantissaBits must equal to 0.', false, true);
+			assertMsgOptions(numMantissaBits == 0, 'numMantissaBits must equal to 0.', false, true);
 			return (new tcuFloat.deFloat()).construct(1, exp, (1 << 23)).getValue()
 		}
 	};
@@ -650,171 +667,445 @@ goog.scope(function() {
 			// TODO: line below this
 			//TCU_CHECK(gl.checkFramebufferStatus(gl.FRAMEBUFFER) == gl.FRAMEBUFFER_COMPLETE);
 		}
-		else
-		{
+		else {
 			/** @type {tcuPixelFormat.PixelFormat} */ var pixelFormat = tcuPixelFormat.PixelFormatFromContext(gl);
 
-			m_testCtx.getLog()
-				<< TestLog::Message
-				<< "Rendering to default framebuffer\n"
-				<< "\tColor depth: R=" << pixelFormat.redBits << ", G=" << pixelFormat.greenBits << ", B=" << pixelFormat.blueBits << ", A=" << pixelFormat.alphaBits
-				<< TestLog::EndMessage;
+			bufferedLogToConsole("Rendering to default framebuffer\n" +
+				"\tColor depth: R=" + pixelFormat.redBits + ", G=" + pixelFormat.greenBits + ", B=" + pixelFormat.blueBits + ", A=" + pixelFormat.alphaBits);
 		}
 
-		m_testCtx.getLog() << TestLog::Message << "in: " << m_coordMin << " -> " << m_coordMax << "\n"
-											   << "v_coord.x = in.x * x\n"
-											   << "v_coord.y = in.y * y\n"
-											   << "v_coord.z = in.z * (x+y)/2\n"
-											   << "v_coord.w = in.w * (1 - (x+y)/2)\n"
-						   << TestLog::EndMessage
-						   << TestLog::Message << "u_scale: " << m_derivScale << ", u_bias: " << m_derivBias << " (displayed values have scale/bias removed)" << TestLog::EndMessage
-						   << TestLog::Message << "Viewport: " << viewportSize.x() << "x" << viewportSize.y() << TestLog::EndMessage
-						   << TestLog::Message << "GL_FRAGMENT_SHADER_DERIVATE_HINT: " << glu::getHintModeStr(m_hint) << TestLog::EndMessage;
-
+		bufferedLogToConsole("in: " + this.m_coordMin + " -> " + this.m_coordMax + "\n" +
+			"v_coord.x = in.x * x\n" +
+			"v_coord.y = in.y * y\n" +
+			"v_coord.z = in.z * (x+y)/2\n" +
+			"v_coord.w = in.w * (1 - (x+y)/2)\n" +
+			"\n" +
+			"u_scale: " + this.m_derivScale + ", u_bias: " + this.m_derivBias + " (displayed values have scale/bias removed)" +
+			"Viewport: " + viewportSize[0] + "x" + viewportSize[1] +
+			"gl.FRAGMENT_SHADER_DERIVATE_HINT: " + /*glu::getHintModeStr(*/m_hint/*)*/);
+			// TODO: glu::getHintModeStr()
+			//
 		// Draw
-		{
-			const float positions[] =
-			{
-				-1.0f, -1.0f, 0.0f, 1.0f,
-				-1.0f,  1.0f, 0.0f, 1.0f,
-				 1.0f, -1.0f, 0.0f, 1.0f,
-				 1.0f,  1.0f, 0.0f, 1.0f
-			};
-			const float coords[] =
-			{
-				m_coordMin.x(), m_coordMin.y(), m_coordMin.z(),							m_coordMax.w(),
-				m_coordMin.x(), m_coordMax.y(), (m_coordMin.z()+m_coordMax.z())*0.5f,	(m_coordMin.w()+m_coordMax.w())*0.5f,
-				m_coordMax.x(), m_coordMin.y(), (m_coordMin.z()+m_coordMax.z())*0.5f,	(m_coordMin.w()+m_coordMax.w())*0.5f,
-				m_coordMax.x(), m_coordMax.y(), m_coordMax.z(),							m_coordMin.w()
-			};
-			const glu::VertexArrayBinding vertexArrays[] =
-			{
-				glu::va::Float("a_position",	4, 4, 0, &positions[0]),
-				glu::va::Float("a_coord",		4, 4, 0, &coords[0])
-			};
-			const deUint16 indices[] = { 0, 2, 1, 2, 3, 1 };
+		/** @type {Array<number>} */ var positions = [
+			-1.0, -1.0, 0.0, 1.0,
+			-1.0, 1.0, 0.0, 1.0,
+			1.0, -1.0, 0.0, 1.0,
+			1.0, 1.0, 0.0, 1.0
+		];
 
-			gl.clearColor(0.125f, 0.25f, 0.5f, 1.0f);
-			gl.clear(GL_COLOR_BUFFER_BIT|GL_DEPTH_BUFFER_BIT|GL_STENCIL_BUFFER_BIT);
-			gl.disable(GL_DITHER);
+		/** @type {Array<number>} */ var coords =[
+			this.m_coordMin[0], this.m_coordMin[1], this.m_coordMin[2], this.m_coordMax[3],
+			this.m_coordMin[0], this.m_coordMax[1], (this.m_coordMin[2] + this.m_coordMax[2]) * 0.5, (this.m_coordMin[3]+this.m_coordMax[3]) * 0.5,
+			this.m_coordMax[0], this.m_coordMin[1], (this.m_coordMin[2] + this.m_coordMax[2]) * 0.5, (this.m_coordMin[3]+this.m_coordMax[3]) * 0.5,
+			this.m_coordMax[0], this.m_coordMax[1], this.m_coordMax[2], this.m_coordMin[3]
+		];
 
-			gl.useProgram(program.getProgram());
+		/** @type {Array<gluDrawUtil.VertexArrayBinding>} */ var vertexArrays = [
+			gluDrawUtil.newFloatVertexArrayBinding('a_position', 4, 4, 0, positions),
+			gluDrawUtil.newFloatVertexArrayBinding('a_coord', 4, 4, 0, coords)
+		];
 
-			{
-				const int	scaleLoc	= gl.getUniformLocation(program.getProgram(), "u_scale");
-				const int	biasLoc		= gl.getUniformLocation(program.getProgram(), "u_bias");
+		/** @type {Array<number>} */ var indices = [0, 2, 1, 2, 3, 1];
 
-				switch (m_dataType)
-				{
-					case glu::TYPE_FLOAT:
-						gl.uniform1f(scaleLoc, m_derivScale.x());
-						gl.uniform1f(biasLoc, m_derivBias.x());
-						break;
+		gl.clearColor(0.125, 0.25, 0.5, 1.0);
+		gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT | gl.STENCIL_BUFFER_BIT);
+		gl.disable(gl.DITHER);
 
-					case glu::TYPE_FLOAT_VEC2:
-						gl.uniform2fv(scaleLoc, 1, m_derivScale.getPtr());
-						gl.uniform2fv(biasLoc, 1, m_derivBias.getPtr());
-						break;
+		gl.useProgram(program.getProgram());
 
-					case glu::TYPE_FLOAT_VEC3:
-						gl.uniform3fv(scaleLoc, 1, m_derivScale.getPtr());
-						gl.uniform3fv(biasLoc, 1, m_derivBias.getPtr());
-						break;
+		/** @type {number} */ var scaleLoc = gl.getUniformLocation(program.getProgram(), 'u_scale');
+		/** @type {number} */ var biasLoc = gl.getUniformLocation(program.getProgram(), 'u_bias');
 
-					case glu::TYPE_FLOAT_VEC4:
-						gl.uniform4fv(scaleLoc, 1, m_derivScale.getPtr());
-						gl.uniform4fv(biasLoc, 1, m_derivBias.getPtr());
-						break;
+		switch (m_dataType) {
+			case gluShaderUtil.DataType.FLOAT:
+				gl.uniform1f(scaleLoc, this.m_derivScale[0]);
+				gl.uniform1f(biasLoc, this.m_derivBias[0]);
+				break;
 
-					default:
-						DE_ASSERT(false);
-				}
-			}
+			case gluShaderUtil.DataType.FLOAT_VEC2:
+				gl.uniform2fv(scaleLoc, 1, this.m_derivScale);
+				gl.uniform2fv(biasLoc, 1, this.m_derivBias);
+				break;
 
-			gls::setupDefaultUniforms(m_context.getRenderContext(), program.getProgram());
-			setupRenderState(program.getProgram());
+			case gluShaderUtil.DataType.FLOAT_VEC3:
+				gl.uniform3fv(scaleLoc, 1, this.m_derivScale);
+				gl.uniform3fv(biasLoc, 1, this.m_derivBias);
+				break;
 
-			gl.hint(GL_FRAGMENT_SHADER_DERIVATIVE_HINT, m_hint);
-			GLU_EXPECT_NO_ERROR(gl.getError(), "Setup program state");
+			case gluShaderUtil.DataType.FLOAT_VEC4:
+				gl.uniform4fv(scaleLoc, 1, this.m_derivScale);
+				gl.uniform4fv(biasLoc, 1, this.m_derivBias);
+				break;
 
-			gl.viewport(viewportX, viewportY, viewportSize.x(), viewportSize.y());
-			glu::draw(m_context.getRenderContext(), program.getProgram(), DE_LENGTH_OF_ARRAY(vertexArrays), &vertexArrays[0],
-					  glu::pr::Triangles(DE_LENGTH_OF_ARRAY(indices), &indices[0]));
-			GLU_EXPECT_NO_ERROR(gl.getError(), "Draw");
+			default:
+				throw new Error('Data Type not supported: ' + m_dataType);
 		}
+
+		glsShaderRenderCase.setupDefaultUniforms(program.getProgram());
+		es3fShaderDerivateTests.setupRenderState(program.getProgram());
+
+		gl.hint(gl.FRAGMENT_SHADER_DERIVATIVE_HINT, this.m_hint);
+		// TODO GLU_EXPECT_NO_ERROR(gl.getError(), "Setup program state");
+
+		gl.viewport(viewportX, viewportY, viewportSize[0], viewportSize[1]);
+		gluDrawUtil.draw(gl, program.getProgram(), vertexArrays, gluDrawUtil.triangles(indices));
+		// TODO GLU_EXPECT_NO_ERROR(gl.getError(), "Draw");
 
 		// Read back results
-		{
-			const bool		isMSAA		= useFbo && m_numSamples > 0;
-			AutoFbo			resFbo		(gl);
-			AutoRbo			resRbo		(gl);
 
-			// Resolve if necessary
-			if (isMSAA)
-			{
-				resFbo.gen();
-				resRbo.gen();
+		/** @type {boolean} */ var isMSAA = useFbo && this.m_numSamples > 0;
+		/** @type {es3fShaderDerivateTests.AutoFbo} */ var resFbo = new es3fShaderDerivateTests.AutoFbo(gl);
+		/** @type {es3fShaderDerivateTests.AutoRbo} */ var resRbo = new es3fShaderDerivateTests.AutoFbo(gl);
 
-				gl.bindRenderbuffer(GL_RENDERBUFFER, *resRbo);
-				gl.renderbufferStorageMultisample(GL_RENDERBUFFER, 0, fboFormat, viewportSize.x(), viewportSize.y());
-				gl.bindFramebuffer(GL_DRAW_FRAMEBUFFER, *resFbo);
-				gl.framebufferRenderbuffer(GL_DRAW_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_RENDERBUFFER, *resRbo);
-				TCU_CHECK(gl.checkFramebufferStatus(GL_FRAMEBUFFER) == GL_FRAMEBUFFER_COMPLETE);
+		// Resolve if necessary
+		if (isMSAA) {
+			resFbo.gen();
+			resRbo.gen();
 
-				gl.blitFramebuffer(0, 0, viewportSize.x(), viewportSize.y(), 0, 0, viewportSize.x(), viewportSize.y(), GL_COLOR_BUFFER_BIT, GL_NEAREST);
-				GLU_EXPECT_NO_ERROR(gl.getError(), "Resolve blit");
+			gl.bindRenderbuffer(gl.RENDERBUFFER, resRbo.get());
+			gl.renderbufferStorageMultisample(gl.RENDERBUFFER, 0, fboFormat, viewportSize[0], viewportSize[1]);
+			gl.bindFramebuffer(gl.DRAW_FRAMEBUFFER, resFbo.get());
+			gl.framebufferRenderbuffer(gl.DRAW_FRAMEBUFFER, gl.COLOR_ATTACHMENT0, gl.RENDERBUFFER, resRbo.get());
+			// TODO TCU_CHECK(gl.checkFramebufferStatus(gl.FRAMEBUFFER) == gl.FRAMEBUFFER_COMPLETE);
 
-				gl.bindFramebuffer(GL_READ_FRAMEBUFFER, *resFbo);
-			}
+			gl.blitFramebuffer(0, 0, viewportSize[0], viewportSize[1], 0, 0, viewportSize[0], viewportSize[1], gl.COLOR_BUFFER_BIT, gl.NEAREST);
+			// TODO GLU_EXPECT_NO_ERROR(gl.getError(), "Resolve blit");
 
-			switch (m_surfaceType)
-			{
-				case SURFACETYPE_DEFAULT_FRAMEBUFFER:
-				case SURFACETYPE_UNORM_FBO:
-					result.setStorage(tcu::TextureFormat(tcu::TextureFormat::RGBA, tcu::TextureFormat::UNORM_INT8), viewportSize.x(), viewportSize.y());
-					glu::readPixels(m_context.getRenderContext(), viewportX, viewportY, result);
-					break;
-
-				case SURFACETYPE_FLOAT_FBO:
-				{
-					const tcu::TextureFormat	dataFormat		(tcu::TextureFormat::RGBA, tcu::TextureFormat::FLOAT);
-					const tcu::TextureFormat	transferFormat	(tcu::TextureFormat::RGBA, tcu::TextureFormat::UNSIGNED_INT32);
-
-					result.setStorage(dataFormat, viewportSize.x(), viewportSize.y());
-					glu::readPixels(m_context.getRenderContext(), viewportX, viewportY,
-									tcu::PixelBufferAccess(transferFormat, result.getWidth(), result.getHeight(), result.getDepth(), result.getAccess().getDataPtr()));
-					break;
-				}
-
-				default:
-					DE_ASSERT(false);
-			}
-
-			GLU_EXPECT_NO_ERROR(gl.getError(), "Read pixels");
+			gl.bindFramebuffer(gl.READ_FRAMEBUFFER, resFbo.get());
 		}
+		/** @type {tcuSurface.Surface} */ var resultSurface;
+		switch (this.m_surfaceType) {
+			case es3fShaderDerivateTests.SurfaceType.DEFAULT_FRAMEBUFFER:
+			case es3fShaderDerivateTests.SurfaceType.UNORM_FBO:
+				// result.setStorage(
+				// 	tcuTexture.TextureFormat(tcuTexture.ChannelOrder.RGBA, tcuTexture.ChannelType.UNORM_INT8),
+				// 	viewportSize[0],
+				// 	viewportSize[1]);
+				resultSurface = new tcuSurface.Surface(viewportSize[0], viewportSize[1]);
+				resultSurface.readViewport(gl, [viewportX, viewportY, viewportSize[0], viewportSize[1]]);
+				//glu::readPixels(m_context.getRenderContext(), viewportX, viewportY, result);
+				break;
+
+			case es3fShaderDerivateTests.SurfaceType.FLOAT_FBO:
+				// /** @type {tcuTexture.TextureFormat} */
+				// var dataFormat = new tcuTexture.TextureFormat(
+				// 	tcuTexture.ChannelOrder.RGBA, tcuTexture.ChannelType.FLOAT);
+				// /** @type {tcuTexture.TextureFormat} */
+				// var transferFormat = new tcuTexture.TextureFormat(
+				// 	tcuTexture.ChannelOrder.RGBA, tcuTexture.ChannelType.UNSIGNED_INT32);
+
+				//result.setStorage(dataFormat, viewportSize[0], viewportSize[1]);
+				resultSurface = new tcuSurface.Surface(viewportSize[0], viewportSize[1]);
+				resultSurface.readViewport(gl, [viewportX, viewportY, viewportSize[0], viewportSize[1]]);
+				// glu::readPixels(m_context.getRenderContext(), viewportX, viewportY,
+				// 				tcu::PixelBufferAccess(transferFormat, result.getWidth(), result.getHeight(), result.getDepth(), result.getAccess().getDataPtr()));
+				break;
+
+			default:
+				throw new Error('Surface Type not supported: ' + this.m_surfaceType);
+		}
+
+		// TODO GLU_EXPECT_NO_ERROR(gl.getError(), "Read pixels");
 
 		// Verify
-		{
-			tcu::Surface errorMask(result.getWidth(), result.getHeight());
-			tcu::clear(errorMask.getAccess(), tcu::RGBA::green.toVec());
+		/** @type {tcuSurface.Surface} */
+		var errorMask = new Surface(result.getWidth(), result.getHeight());
 
-			const bool isOk = verify(result.getAccess(), errorMask.getAccess());
+		errorMask.getAccess().clear(tcuRGBA.green.toVec());
 
-			m_testCtx.getLog() << TestLog::ImageSet("Result", "Result images")
-							   << TestLog::Image("Rendered", "Rendered image", result);
+		/** @type {boolean} */ var isOk = this.verify(resultSurface.getAccess(), errorMask.getAccess());
 
-			if (!isOk)
-				m_testCtx.getLog() << TestLog::Image("ErrorMask", "Error mask", errorMask);
+		tcuLogImage.logImage("Rendered", "Rendered image", resultSurface);
 
-			m_testCtx.getLog() << TestLog::EndImageSet;
+		if (!isOk) {
+			tcuLogImage.logImage("ErrorMask", "Error mask", errorMask);
+			testFailedOptions("Fail", false);
+		}
+        else
+            testPassedOptions("Pass", true);
 
-			m_testCtx.setTestResult(isOk ? QP_TEST_RESULT_PASS	: QP_TEST_RESULT_FAIL,
-									isOk ? "Pass"				: "Image comparison failed");
+		return tcuTestCase.IterateResult.STOP;
+	};
+
+	/**
+	 * @return {Array<number>}
+	 */
+	es3fShaderDerivateTests.TriangleDerivateCase.prototype.getSurfaceThreshold = function() {
+		switch (this.m_surfaceType) {
+			case es3fShaderDerivateTests.SurfaceType.DEFAULT_FRAMEBUFFER:
+				/** @type {tcuPixelFormat.PixelFormat} */ var pixelFormat = tcuPixelFormat.PixelFormatFromContext(gl);
+				/** @type {Array<number>} */ var channelBits = [pixelFormat.redBits, pixelFormat.greenBits, pixelFormat.blueBits, pixelFormat.alphaBits];
+				/** @type {Array<number>} */ var intThreshold = deMath.arrayShiftLeft([1, 1, 1, 1], deMath.subtract([8, 8, 8, 8], channelBits));
+				/** @type {Array<number>} */ var normThreshold = deMath.scale(intThreshold, 1.0/255.0);
+
+				return normThreshold;
+
+			case es3fShaderDerivateTests.SurfaceType.UNORM_FBO: return deMath.scale([1, 1, 1, 1], 1.0/255.0);
+			case es3fShaderDerivateTests.SurfaceType.FLOAT_FBO: return [0.0, 0.0, 0.0, 0.0];
+			default:
+				assertMsgOptions(false,'Surface Type not supported. Falling back to default retun value [0.0, 0.0, 0.0, 0.0]', false, false);
+				return [0.0, 0.0, 0.0, 0.0];
+		}
+	};
+
+	/**
+	 * @constructor
+	 * @extends {es3fShaderDerivateTests.TriangleDerivateCase}
+	 * @param  {string} name
+	 * @param  {string} description
+	 * @param  {es3fShaderDerivateTests.DerivateFunc} func
+	 * @param  {gluShaderUtil.DataType} type
+	 */
+	es3fShaderDerivateTests.ConstantDerivateCase = function(name, description, func, type) {
+		es3fShaderDerivateTests.TriangleDerivateCase.call(this, name, description);
+		/** @type {es3fShaderDerivateTests.DerivateFunc} */ this.m_func = func;
+		this.m_dataType = type;
+		this.m_precision = gluShaderUtil.precision.PRECISION_HIGHP;
+		this.m_coordDataType = this.m_dataType;
+		this.m_coordPrecision = this.m_precision;
+	};
+
+	es3fShaderDerivateTests.ConstantDerivateCase.prototype = Object.create(es3fShaderDerivateTests.TriangleDerivateCase.prototype);
+	es3fShaderDerivateTests.ConstantDerivateCase.prototype.constructor = es3fShaderDerivateTests.ConstantDerivateCase;
+
+	es3fShaderDerivateTests.ConstantDerivateCase.prototype.init = function() {
+		/** @type {string} */ var fragmentTmpl = '' +
+			'#version 300 es\n' +
+			'layout(location = 0) out mediump vec4 o_color;\n' +
+			'uniform ${PRECISION} ${DATATYPE} u_scale;\n' +
+			'uniform ${PRECISION} ${DATATYPE} u_bias;\n' +
+			'void main (void)\n' +
+			'{\n' +
+			'	${PRECISION} ${DATATYPE} res = ${FUNC}(${VALUE}) * u_scale + u_bias;\n' +
+			'	o_color = ${CAST_TO_OUTPUT};\n' +
+			'}\n';
+
+		/** @type {Object} */ var fragmentParams = {};
+		fragmentParams['PRECISION'] = gluShaderUtil.getPrecisionName(this.m_precision);
+		fragmentParams['DATATYPE'] = gluShaderUtil.getDataTypeName(this.m_dataType);
+		fragmentParams['FUNC'] = getDerivateFuncName(this.m_func);
+		fragmentParams['VALUE'] = this.m_dataType === gluShaderUtil.DataType.FLOAT_VEC4 ? 'vec4(1.0, 7.2, -1e5, 0.0)' :
+											  this.m_dataType === gluShaderUtil.DataType.FLOAT_VEC3 ? 'vec3(1e2, 8.0, 0.01)' :
+											  this.m_dataType === gluShaderUtil.DataType.FLOAT_VEC2 ? 'vec2(-0.0, 2.7)' :
+											  '7.7';
+		fragmentParams['CAST_TO_OUTPUT'] = this.m_dataType === gluShaderUtil.DataType.FLOAT_VEC4 ? 'res' :
+											  this.m_dataType === gluShaderUtil.DataType.FLOAT_VEC3 ? 'vec4(res, 1.0)' :
+											  this.m_dataType === gluShaderUtil.DataType.FLOAT_VEC2 ? 'vec4(res, 0.0, 1.0)' :
+											  'vec4(res, 0.0, 0.0, 1.0)';
+
+		this.m_fragmentSrc = tcuStringTemplate.specialize(fragmentTmpl, fragmentParams);
+
+		this.m_derivScale = [1e3, 1e3, 1e3, 1e3];
+		this.m_derivBias = [0.5, 0.5, 0.5, 0.5];
+	};
+
+	/**
+	 * @param {tcuTexture.ConstPixelBufferAccess} result
+	 * @param {tcuTexture.PixelBufferAccess} errorMask
+	 * @return {boolean}
+	 */
+	es3fShaderDerivateTests.ConstantDerivateCase.prototype.verify = function(result, errorMask) {
+		/** @type {Array<number>} */ var reference	= [0.0, 0.0, 0.0, 0.0]; // Derivate of constant argument should always be 0
+		/** @type {Array<number>} */ var threshold	= deMath.divide(this.getSurfaceThreshold(), deMath.abs(this.m_derivScale));
+		return es3fShaderDerivateTests.verifyConstantDerivate(result, errorMask, this.m_dataType,
+									  reference, threshold, this.m_derivScale, this.m_derivBias);
+	};
+
+	/**
+	 * @constructor
+	 * @extends {es3fShaderDerivateTests.TriangleDerivateCase}
+	 * @param  {string} name
+	 * @param  {string} description
+	 * @param  {es3fShaderDerivateTests.DerivateFunc} func
+	 * @param  {gluShaderUtil.DataType} type
+	 * @param  {gluShaderUtil.precision} precision
+	 * @param  {number} hint
+	 * @param  {es3fShaderDerivateTests.SurfaceType} surfaceType
+	 * @param  {number} numSamples
+	 * @param  {string} fragmentSrcTmpl
+	 */
+	es3fShaderDerivateTests.LinearDerivateCase = function(name, description, func, type, precision, hint, surfaceType, numSamples, fragmentSrcTmpl) {
+		es3fShaderDerivateTests.TriangleDerivateCase.call(this, name, description);
+		/** @type {es3fShaderDerivateTests.DerivateFunc} */ this.m_func = func;
+		/** @type {string} */ this.m_fragmentTmpl = fragmentSrcTmpl;
+		this.m_dataType = type;
+		this.m_precision = precision;
+		this.m_coordDataType = this.m_dataType;
+		this.m_coordPrecision = this.m_precision;
+		this.m_hint = hint;
+		this.m_surfaceType = surfaceType;
+		this.m_numSamples = numSamples;
+	};
+
+	es3fShaderDerivateTests.LinearDerivateCase.prototype = Object.create(es3fShaderDerivateTests.TriangleDerivateCase.prototype);
+	es3fShaderDerivateTests.LinearDerivateCase.prototype.constructor = es3fShaderDerivateTests.LinearDerivateCase;
+
+	es3fShaderDerivateTests.LinearDerivateCase.prototype.init = function() {
+		/** @type {Array<number>} */ var viewportSize = this.getViewportSize();
+		/** @type {number} */ var w = viewportSize[0];
+		/** @type {number} */ var h = viewportSize[1];
+		/** @type {boolean} */ var packToInt = this.m_surfaceType === es3fShaderDerivateTests.SurfaceType.FLOAT_FBO;
+
+		/** @type {Object} */ var fragmentParams = {};
+		fragmentParams["OUTPUT_TYPE"] = gluShaderUtil.getDataTypeName(packToInt ? gluShaderUtil.DataType.UINT_VEC4 : gluShaderUtil.DataType.FLOAT_VEC4);
+		fragmentParams["OUTPUT_PREC"] = gluShaderUtil.getPrecisionName(packToInt ? gluShaderUtil.PRECISION_HIGHP : this.m_precision);
+		fragmentParams["PRECISION"] = gluShaderUtil.getPrecisionName(this.m_precision);
+		fragmentParams["DATATYPE"] = gluShaderUtil.getDataTypeName(this.m_dataType);
+		fragmentParams["FUNC"] = es3fShaderDerivateTests.getDerivateFuncName(this.m_func);
+
+		if (packToInt) {
+			fragmentParams["CAST_TO_OUTPUT"] = this.m_dataType === gluShaderUtil.DataType.FLOAT_VEC4 ? "floatBitsToUint(res)" :
+												  this.m_dataType === gluShaderUtil.DataType.FLOAT_VEC3 ? "floatBitsToUint(vec4(res, 1.0))" :
+												  this.m_dataType === gluShaderUtil.DataType.FLOAT_VEC2 ? "floatBitsToUint(vec4(res, 0.0, 1.0))" :
+												  "floatBitsToUint(vec4(res, 0.0, 0.0, 1.0))";
+		}
+		else {
+			fragmentParams["CAST_TO_OUTPUT"] = this.m_dataType === gluShaderUtil.DataType.FLOAT_VEC4 ? "res" :
+												  this.m_dataType === gluShaderUtil.DataType.FLOAT_VEC3 ? "vec4(res, 1.0)" :
+												  this.m_dataType === gluShaderUtil.DataType.FLOAT_VEC2 ? "vec4(res, 0.0, 1.0)" :
+												  "vec4(res, 0.0, 0.0, 1.0)";
 		}
 
-		return STOP;
-	}
+		this.m_fragmentSrc = tcuStringTemplate.specialize(this.m_fragmentTmpl, fragmentParams);
 
+		switch (this.m_precision) {
+			case gluShaderUtil.precision.HIGHP:
+				this.m_coordMin = [-97., 0.2, 71., 74.];
+				this.m_coordMax = [-13.2, -77., 44., 76.];
+				break;
+
+			case gluShaderUtil.precision.MEDIUMP:
+				this.m_coordMin = [-37.0, 47., -7., 0.0];
+				this.m_coordMax = [-1.0, 12., 7., 19.];
+				break;
+
+			case gluShaderUtil.precision.LOWP:
+				this.m_coordMin = [0.0, -1.0, 0.0, 1.0];
+				this.m_coordMax = [1.0, 1.0, -1.0, -1.0];
+				break;
+
+			default:
+				throw new Error('Precision not supported: ' + this.m_precision);
+		}
+
+		if (m_surfaceType === es3fShaderDerivateTests.SurfaceType.FLOAT_FBO) {
+			// No scale or bias used for accuracy.
+			this.m_derivScale = [1.0, 1.0, 1.0, 1.0];
+			this.m_derivBias = [0.0, 0.0, 0.0, 0.0];
+		}
+		else {
+			// Compute scale - bias that normalizes to 0..1 range.
+			/** @type {Array<number>} */ var dx = deMath.divide(deMath.subtract(this.m_coordMax, this.m_coordMin), [w, w, w * 0.5, -w * 0.5]);
+			/** @type {Array<number>} */ var dy = deMath.divide(deMath.subtract(this.m_coordMax, this.m_coordMin), [h, h, h * 0.5, -h * 0.5]);
+
+			switch (this.m_func) {
+				case es3fShaderDerivateTests.DerivateFunc.DFDX:
+					this.m_derivScale = deMath.divide([0.5, 0.5, 0.5, 0.5], dx);
+					break;
+
+				case es3fShaderDerivateTests.DerivateFunc.DFDY:
+					this.m_derivScale = deMath.divide([0.5, 0.5, 0.5, 0.5], dy);
+					break;
+
+				case es3fShaderDerivateTests.DerivateFunc.FWIDTH:
+					this.m_derivScale = deMath.divide([0.5, 0.5, 0.5, 0.5], deMath.add(deMath.abs(dx), deMath.abs(dy)));
+					break;
+
+				default:
+					throw new Error('Derivate Function not supported: ' + this.m_func);
+			}
+
+			this.m_derivBias = [0.0, 0.0, 0.0, 0.0];
+		}
+	};
+
+	/**
+	 * @param {tcuTexture.ConstPixelBufferAccess} result
+	 * @param {tcuTexture.PixelBufferAccess} errorMask
+	 * @return {boolean}
+	 */
+	es3fShaderDerivateTests.LinearDerivateCase.prototype.verify = function(result, errorMask) {
+		/** @type {Array<number>} */ var xScale = [1.0, 0.0, 0.5, -0.5];
+		/** @type {Array<number>} */ var yScale = [0.0, 1.0, 0.5, -0.5];
+		/** @type {Array<number>} */ var surfaceThreshold = deMath.divide(this.getSurfaceThreshold(), deMath.abs(this.m_derivScale));
+		//
+		// if (m_func == DERIVATE_DFDX || m_func == DERIVATE_DFDY)
+		// {
+		// 	const bool			isX			= m_func == DERIVATE_DFDX;
+		// 	const float			div			= isX ? float(result.getWidth()) : float(result.getHeight());
+		// 	const tcu::Vec4		scale		= isX ? xScale : yScale;
+		// 	const tcu::Vec4		reference	= ((m_coordMax - m_coordMin) / div) * scale;
+		// 	const tcu::Vec4		opThreshold	= getDerivateThreshold(m_precision, m_coordMin*scale, m_coordMax*scale, reference);
+		// 	const tcu::Vec4		threshold	= max(surfaceThreshold, opThreshold);
+		// 	const int			numComps	= glu::getDataTypeFloatScalars(m_dataType);
+		//
+		// 	m_testCtx.getLog()
+		// 		<< tcu::TestLog::Message
+		// 		<< "Verifying result image.\n"
+		// 		<< "\tValid derivative is " << LogVecComps(reference, numComps) << " with threshold " << LogVecComps(threshold, numComps)
+		// 		<< tcu::TestLog::EndMessage;
+		//
+		// 	// short circuit if result is strictly within the normal value error bounds.
+		// 	// This improves performance significantly.
+		// 	if (verifyConstantDerivate(m_testCtx.getLog(), result, errorMask, m_dataType,
+		// 							   reference, threshold, m_derivScale, m_derivBias,
+		// 							   LOG_NOTHING))
+		// 	{
+		// 		m_testCtx.getLog()
+		// 			<< tcu::TestLog::Message
+		// 			<< "No incorrect derivatives found, result valid."
+		// 			<< tcu::TestLog::EndMessage;
+		//
+		// 		return true;
+		// 	}
+		//
+		// 	// some pixels exceed error bounds calculated for normal values. Verify that these
+		// 	// potentially invalid pixels are in fact valid due to (for example) subnorm flushing.
+		//
+		// 	m_testCtx.getLog()
+		// 		<< tcu::TestLog::Message
+		// 		<< "Initial verification failed, verifying image by calculating accurate error bounds for each result pixel.\n"
+		// 		<< "\tVerifying each result derivative is within its range of legal result values."
+		// 		<< tcu::TestLog::EndMessage;
+		//
+		// 	{
+		// 		const tcu::IVec2			viewportSize	= getViewportSize();
+		// 		const float					w				= float(viewportSize.x());
+		// 		const float					h				= float(viewportSize.y());
+		// 		const tcu::Vec4				valueRamp		= (m_coordMax - m_coordMin);
+		// 		Linear2DFunctionEvaluator	function;
+		//
+		// 		function.matrix.setRow(0, tcu::Vec3(valueRamp.x() / w, 0.0f, m_coordMin.x()));
+		// 		function.matrix.setRow(1, tcu::Vec3(0.0f, valueRamp.y() / h, m_coordMin.y()));
+		// 		function.matrix.setRow(2, tcu::Vec3(valueRamp.z() / w, valueRamp.z() / h, m_coordMin.z() + m_coordMin.z()) / 2.0f);
+		// 		function.matrix.setRow(3, tcu::Vec3(-valueRamp.w() / w, -valueRamp.w() / h, m_coordMax.w() + m_coordMax.w()) / 2.0f);
+		//
+		// 		return reverifyConstantDerivateWithFlushRelaxations(m_testCtx.getLog(), result, errorMask,
+		// 															m_dataType, m_precision, m_derivScale,
+		// 															m_derivBias, surfaceThreshold, m_func,
+		// 															function);
+		// 	}
+		// }
+		// else
+		// {
+		// 	DE_ASSERT(m_func == DERIVATE_FWIDTH);
+		// 	const float			w			= float(result.getWidth());
+		// 	const float			h			= float(result.getHeight());
+		//
+		// 	const tcu::Vec4		dx			= ((m_coordMax - m_coordMin) / w) * xScale;
+		// 	const tcu::Vec4		dy			= ((m_coordMax - m_coordMin) / h) * yScale;
+		// 	const tcu::Vec4		reference	= tcu::abs(dx) + tcu::abs(dy);
+		// 	const tcu::Vec4		dxThreshold	= getDerivateThreshold(m_precision, m_coordMin*xScale, m_coordMax*xScale, dx);
+		// 	const tcu::Vec4		dyThreshold	= getDerivateThreshold(m_precision, m_coordMin*yScale, m_coordMax*yScale, dy);
+		// 	const tcu::Vec4		threshold	= max(surfaceThreshold, max(dxThreshold, dyThreshold));
+		//
+		// 	return verifyConstantDerivate(m_testCtx.getLog(), result, errorMask, m_dataType,
+		// 								  reference, threshold, m_derivScale, m_derivBias);
+		// }
+	};
+
+
+	//TODO: next to implement TextureDerivateCase, lines 1133+
 	/**
      * Run test
      * @param {WebGL2RenderingContext} context
