@@ -753,7 +753,7 @@ goog.scope(function() {
             viewportSize, deMath.binaryOp(
                 deString.deStringHash(this.getName()),
                 deMath.deMathHash(this.m_caseNdx),
-                deMAth.BinaryOp.XOR
+                deMath.BinaryOp.XOR
             );
         );
         bufferedLogToConsole("Test" + this.m_caseNdx);
@@ -902,6 +902,435 @@ goog.scope(function() {
                 else
                     testPassed("Low-quality filtering result");
             }
+        }
+
+        this.m_caseNdx += 1;
+        return this.m_caseNdx < this.m_cases.length ?
+            tcuTestCase.IterateResult.CONTINUE :
+            tcuTestCase.IterateResult.STOP;
+    };
+
+    // 2D array filtering
+
+    /**
+     *
+     */
+    es3fTextureFilteringTests.Texture2DArrayFilteringCase = function () {
+    public:
+                                        Texture2DArrayFilteringCase        (Context& context, const char* name, const char* desc, deUint32 minFilter, deUint32 magFilter, deUint32 wrapS, deUint32 wrapT, deUint32 internalFormat, int width, int height, int numLayers);
+                                        ~Texture2DArrayFilteringCase    (void);
+
+        void                            init                            (void);
+        void                            deinit                            (void);
+        IterateResult                    iterate                            (void);
+
+    private:
+                                        Texture2DArrayFilteringCase        (const Texture2DArrayFilteringCase&);
+        Texture2DArrayFilteringCase&    operator=                        (const Texture2DArrayFilteringCase&);
+
+        const deUint32                    m_minFilter;
+        const deUint32                    m_magFilter;
+        const deUint32                    m_wrapS;
+        const deUint32                    m_wrapT;
+
+        const deUint32                    m_internalFormat;
+        const int                        m_width;
+        const int                        m_height;
+        const int                        m_numLayers;
+
+        struct FilterCase
+        {
+            const glu::Texture2DArray*    texture;
+            tcu::Vec2                    lod;
+            tcu::Vec2                    offset;
+            tcu::Vec2                    layerRange;
+
+            FilterCase (void)
+                : texture(DE_NULL)
+            {
+            }
+
+            FilterCase (const glu::Texture2DArray* tex_, const tcu::Vec2& lod_, const tcu::Vec2& offset_, const tcu::Vec2& layerRange_)
+                : texture    (tex_)
+                , lod        (lod_)
+                , offset    (offset_)
+                , layerRange(layerRange_)
+            {
+            }
+        };
+
+        glu::Texture2DArray*            m_gradientTex;
+        glu::Texture2DArray*            m_gridTex;
+
+        TextureRenderer                    m_renderer;
+
+        std::vector<FilterCase>            m_cases;
+        int                                m_caseNdx;
+    };
+
+    /**
+     * @constructor
+     * @extends {tcuTestCase.DeqpTest}
+     * @param {string} name
+     * @param {string} desc
+     * @param {number} minFilter
+     * @param {number} magFilter
+     * @param {number} wrapS
+     * @param {number} wrapT
+     * @param {number} internalFormat
+     * @param {number} width
+     * @param {number} height
+     * @param {number} numLayers
+     */
+    es3fTextureFilteringTests.Texture2DArrayFilteringCase = function(
+        name, desc, minFilter, magFilter, wrapS, wrapT,
+        internalFormat, width, height, numLayers
+    ) {
+        tcuTestCase.DeqpTest.call(this, name, desc);
+        this.minFilter = minFilter;
+        this.magFilter = magFilter;
+        this.wrapS = wrapS;
+        this.wrapT = wrapT;
+        this.internalFormat = internalFormat;
+        this.width = width;
+        this.height = height;
+        this.numLayers = numLayers;
+        this.gradientTex = null;
+        this.gridTex = null;
+        /** @type {glsTextureTestUtil.TextureRenderer} */
+        this.m_renderer = new glsTextureTestUtil.TextureRenderer(
+            es3fTextureFilteringTests.version,
+            gluShaderUtil.precision.PRECISION_HIGHP
+        );
+        this.caseNdx = 0;
+    };
+
+    es3fTextureFilteringTests.Texture2DArrayFilteringCase.prototype =
+        Object.create(tcuTestCase.DeqpTest.prototype);
+
+    es3fTextureFilteringTests.Texture2DArrayFilteringCase.prototype.
+    constructor = es3fTextureFilteringTests.Texture2DArrayFilteringCase;
+
+    /**
+     * @constructor
+     * @param {gluTexture.Texture2DArray} tex_
+     * @param {Array<number>} lod_
+     * @param {Array<number>} offset_
+     * @param {Array<number>} layerRange_
+     */
+    es3fTextureFilteringTests.Texture2DArrayFilteringCase.FilterCase =
+    function (
+        tex_, lod_, offset_, layerRange_
+    ) {
+        this.texture = tex_;
+        this.lod = lod_;
+        this.offset = offset_;
+        this.layerRange = layerRange_;
+    };
+
+    /*
+     * init
+     */
+    es3fTextureFilteringTests.Texture2DArrayFilteringCase.prototype.init =
+    function () {
+        try
+        {
+            texFmt = this.m_textures[0].getRefTexture().getFormat();
+
+            /** @type {tcuTexture.TextureFormat} */
+            var texFmt = gluTextureUtil.mapGLInternalFormat(
+                this.m_internalFormat
+            );
+            /** @type {tcuTextureUtil.TextureFormatInfo} */
+            var fmtInfo = tcuTexture.getTextureFormatInfo(texFmt);
+            var cScale = fmtInfo.valueMax - fmtInfo.valueMin;
+            var cBias = fmtInfo.valueMin;
+            var numLevels = deMath.logToFloor(
+                Math.max(this.m_width, this.m_height)
+            ) + 1;
+
+            // Create textures.
+            this.m_gradientTex = new gluTexture.Texture2DArray(
+                this.m_internalFormat, this.m_width,
+                this.m_height, this.m_numLayers
+            );
+            this.m_gridTex = new gluTexture.Texture2DArray(
+                this.m_internalFormat, this.m_width,
+                this.m_height, this.m_numLayers
+            );
+
+            var levelSwz = [
+                [0,1,2,3],
+                [2,1,3,0],
+                [3,0,1,2],
+                [1,3,2,0]
+            ];
+
+            // Fill first gradient texture (gradient direction varies between layers).
+            for (var levelNdx = 0; levelNdx < numLevels; levelNdx++) {
+                this.m_gradientTex.getRefTexture().allocLevel(levelNdx);
+
+                var levelBuf =
+                    this.m_gradientTex.getRefTexture().getLevel(levelNdx);
+
+                for (var layerNdx = 0; layerNdx < this.m_numLayers; layerNdx++)
+                {
+                    var swz = levelSwz[layerNdx % levelSwz.length];
+                    var gMin = deMath.add(deMath.scale(deMath.swizzle(
+                        [0.0, 0.0, 0.0, 1.0], swz[0], swz[1], swz[2], swz[3]
+                    ), cScale), cBias);
+                    var gMax = deMath.add(deMath.scale(deMath.swizzle(
+                        [1.0, 1.0, 1.0, 0.0], swz[0], swz[1], swz[2], swz[3]
+                    ), cScale), cBias);
+
+                    tcuTextureUtil.fillWithComponentGradients2D(
+                        tcuTextureUtil.getSubregion(
+                            levelBuf, 0, 0, layerNdx, levelBuf.getWidth(), levelBuf.getHeight(), 1
+                        ), gMin, gMax
+                    );
+                }
+            }
+
+            // Fill second with grid texture (each layer has unique colors).
+            for (var levelNdx = 0; levelNdx < numLevels; levelNdx++)
+            {
+                this.m_gridTex.getRefTexture().allocLevel(levelNdx);
+
+                /** @type {tcuTexture.PixelBufferAccess} */ var levelBuf =
+                    this.m_gridTex.getRefTexture().getLevel(levelNdx);
+
+                for (var layerNdx = 0; layerNdx < this.m_numLayers; layerNdx++) {
+                    var step = 0x00ffffff / (numLevels * this.m_numLayers - 1);
+                    var rgb = step * (levelNdx + layerNdx * numLevels);
+                    /** @type {number} */ var colorA = deMath.binaryOp(
+                        0xff000000, rgb, deMath.BinaryOp.OR
+                    );
+                    /** @type {number} */ var colorB = deMath.binaryOp(
+                        0xff000000, deMath.binaryNot(rgb), deMath.BinaryOp.OR
+                    );
+
+                    tcuTextureUtil.fillWithGrid(
+                        tcuTexture.getSubregion(
+                            levelBuf, 0, 0, layerNdx, levelBuf.getWidth(),
+                            levelBuf.getHeight(), 1
+                        ), 4,
+                        deMath.add(deMath.scale(
+                            new tcuRGBA.RGBA(colorA).toVec(), cScale
+                        ), cBias),
+                        deMath.add(deMath.scale(
+                            new tcuRGBA.RGBA(colorB).toVec(), cScale
+                        ), cBias)
+                    );
+                }
+            }
+
+            // Upload.
+            this.m_gradientTex.upload();
+            this.m_gridTex.upload();
+
+            // Test cases
+            this.m_cases.push(
+                es3fTextureFilteringTests.
+                Texture2DArrayFilteringCase.FilterCase(
+                    this.m_gradientTex, [1.5,  2.8], [-1.0, -2.7],
+                    [-0.5, this.m_numLayers] + 0.5
+                )
+            );
+            this.m_cases.push(
+                es3fTextureFilteringTests.
+                Texture2DArrayFilteringCase.FilterCase(
+                    this.m_gridTex, [ 0.2,  0.175], [-2.0, -3.7],
+                    [-0.5, this.m_numLayers + 0.5]
+                )
+            );
+            this.m_cases.push(
+                es3fTextureFilteringTests.
+                Texture2DArrayFilteringCase.FilterCase(
+                    this.m_gridTex, [-0.8, -2.3  ], [ 0.2, -0.1],
+                    [this.m_numLayers + 0.5, -0.5]
+                )
+            );
+
+            // Level rounding - only in single-sample configs as multisample configs may produce smooth transition at the middle.
+            if (gl.getParameter(gl.SAMPLES) == 0)
+                this.m_cases.push(
+                    es3fTextureFilteringTests.
+                    Texture2DArrayFilteringCase.FilterCase(
+                        this.m_gradientTex, [-2.0, -1.5], [-0.1, 0.9],
+                        [1.50001, 1.49999]
+                    )
+                );
+
+            this.m_caseNdx = 0;
+            testPassed("");
+        }
+        catch (e)
+        {
+            // Clean up to save memory.
+            this.deinit();
+            throw e;
+        }
+    };
+
+    /**
+     * deinit
+     */
+    es3fTextureFilteringTests.Texture2DArrayFilteringCase.prototype.deinit =
+    function () {
+        /*TODO: delete this.m_gradientTex;
+        delete this.m_gridTex;
+
+        this.m_gradientTex    = DE_NULL;
+        this.m_gridTex        = DE_NULL;
+
+        this.m_renderer.clear();
+        this.m_cases.clear();*/
+    };
+
+    /**
+     * iterate
+     * @return {tcuTestCase.IterateResult}
+     */
+    es3fTextureFilteringTests.Texture2DArrayFilteringCase.prototype.iterate =
+    function () {
+        /** @type {glsTextureTestUtil.RandomViewport} */
+        var viewport = new glsTextureTestUtil.RandomViewport(
+            gl.canvas, TEX3D_VIEWPORT_WIDTH,
+            TEX3D_VIEWPORT_HEIGHT, deMath.binaryOp(
+                deString.deStringHash(this.getName()),
+                deMath.deMathHash(this.m_caseNdx),
+                deMath.BinaryOp.XOR
+            );
+        );
+
+        /** @type {es3fTextureFilteringTests.Texture2DArrayFilteringCase.
+         * FilterCase} */ var curCase = this.m_cases[this.m_caseNdx];
+
+        /** @type {tcuTexture.TextureFormat} */
+        var texFmt = curCase.texture.getRefTexture().getFormat();
+        /** @type {tcuTextureUtil.TextureFormatInfo} */
+        var fmtInfo = tcuTextureUtil.getTextureFormatInfo(texFmt);
+
+        bufferedLogToConsole("Test" + this.m_caseNdx);
+
+        /** @type {glsTextureTestUtil.ReferenceParams} */
+        var refParams = glsTextureTestUtil.ReferenceParams(
+            glsTextureTestUtil.textureType.TEXTURETYPE_2D_ARRAY
+        );
+
+        /** @type{tcuSurface.Surface} */
+        var rendered = new tcuSurface.Surface(viewport.width, viewport.height);
+        /** @type {Array<Array<number>>}*/
+        var texCoord = [];
+
+        if (viewport.width < TEX3D_MIN_VIEWPORT_WIDTH ||
+            viewport.height < TEX3D_MIN_VIEWPORT_HEIGHT)
+            throw new Error("Too small render target");
+
+        // Setup params for reference.
+        refParams.sampler = gluTextureUtil.mapGLSampler(
+            this.m_wrapS, this.m_wrapT, this.m_wrapT,
+            this.m_minFilter, this.m_magFilter
+        );
+        refParams.samplerType    = glsTextureTestUtil.getSamplerType(texFmt);
+        refParams.lodMode        = glsTextureTestUtil.lodMode.EXACT;
+        refParams.colorBias        = fmtInfo.lookupBias;
+        refParams.colorScale    = fmtInfo.lookupScale;
+
+        // Compute texture coordinates.
+        bufferedLogToConsole(
+            "Approximate lod per axis = " + curCase.lod +
+            ", offset = " + curCase.offset
+        );
+
+        /** @type {number} */ var lodX = curCase.lod[0];
+        /** @type {number} */ var lodY = curCase.lod[1];
+        /** @type {number} */ var oX = curCase.offset[0];
+        /** @type {number} */ var oY = curCase.offset[1];
+        /** @type {number} */ var sX = Math.pow(2, lodX) * viewport.width /
+            this.m_gradientTex.getRefTexture().getWidth();
+        /** @type {number} */ var sY = Math.pow(2, lodY) * viewport.height /
+            this.m_gradientTex.getRefTexture().getHeight();
+        /** @type {number} */ var l0 = curCase.layerRange[0];
+        /** @type {number} */ var l1 = curCase.layerRange[1];
+
+        texCoord[0] = [oX, oY, l0];
+        texCoord[1] = [oX, oY + sY, l0 * 0.5 + l1 * 0.5];
+        texCoord[2] = [oX + sX, oY, l0 * 0.5 + l1 * 0.5];
+        texCoord[3] = [oX + sX, oY + sY, l1];
+
+        gl.bindTexture(gl.TEXTURE_2D_ARRAY, curCase.texture.getGLTexture());
+        gl.texParameteri(
+            gl.TEXTURE_2D_ARRAY, gl.TEXTURE_MIN_FILTER, this.m_minFilter
+        );
+        gl.texParameteri(
+            gl.TEXTURE_2D_ARRAY, gl.TEXTURE_MAG_FILTER, this.m_magFilter
+        );
+        gl.texParameteri(gl.TEXTURE_2D_ARRAY, gl.TEXTURE_WRAP_S, this.m_wrapS);
+        gl.texParameteri(gl.TEXTURE_2D_ARRAY, gl.TEXTURE_WRAP_T, this.m_wrapT);
+
+        gl.viewport(viewport.x, viewport.y, viewport.width, viewport.height);
+        //TODO: this.m_renderer.renderQuad(0, (const float*)&texCoord[0], refParams);
+        rendered.readViewport(
+            gl, viewport.x, viewport.y, viewport.width, viewport.height
+        );
+
+        /** @type {boolean} */
+        var isNearestOnly = this.m_minFilter == gl.NEAREST &&
+            this.m_magFilter == gl.NEAREST;
+        /** @type {tcuPixelFormat.PixelFormat} */
+        var pixelFormat = tcuPixelFormat.PixelFormatFromContext(gl);
+        var colorBits = deMath.max(
+            glsTextureTestUtil.getBitsVec(pixelFormat) -
+            // 1 inaccurate bit if nearest only, 2 otherwise
+            (isNearestOnly ? 1 : 2), [0, 0, 0, 0]
+        );
+        /** @type {tcuTexLookupVerifier.LodPrecision} */
+        var lodPrecision = new tcuTexLookupVerifier.LodPrecision();
+        /** @type {tcuTexLookupVerifier.LookupPrecision} */
+        var lookupPrecision = new tcuTexLookupVerifier.LookupPrecision();
+
+        lodPrecision.derivateBits        = 18;
+        lodPrecision.lodBits            = 6;
+        lookupPrecision.colorThreshold =
+            tcuTexLookupVerifier.computeFixedPointThreshold(colorBits) /
+            refParams.colorScale;
+        lookupPrecision.coordBits = [20, 20, 20];
+        lookupPrecision.uvwBits     = [7, 7, 0];
+        lookupPrecision.colorMask =
+            glsTextureTestUtil.getCompareMask(pixelFormat);
+
+        var isHighQuality = glsTextureTestUtil.verifyTexture2DArrayResult(
+            rendered.getAccess(), curCase.texture.getRefTexture(),
+            texCoord, refParams, lookupPrecision, lodPrecision, pixelFormat);
+
+        if (!isHighQuality)
+        {
+            // Evaluate against lower precision requirements.
+            lodPrecision.lodBits    = 4;
+            lookupPrecision.uvwBits    = [4, 4, 0];
+
+            bufferedLogToConsole(
+                "Warning: Verification against high " +
+                "precision requirements failed, " +
+                "trying with lower requirements."
+            );
+
+            var isOk = glsTextureTestUtil.verifyTexture2DArrayResult(
+                rendered.getAccess(), curCase.texture.getRefTexture(),
+                texCoord, refParams, lookupPrecision, lodPrecision, pixelFormat
+            );
+
+            if (!isOk)
+            {
+                bufferedLogToConsole(
+                    "ERROR: Verification against low precision requirements " +
+                    "failed, failing test case."
+                );
+                testFailed("Image verification failed");
+            }
+            else
+                testPassed("Low-quality filtering result");
         }
 
         this.m_caseNdx += 1;
