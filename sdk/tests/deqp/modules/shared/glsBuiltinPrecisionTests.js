@@ -275,10 +275,18 @@ var setParentClass = function(child, parent) {
      * @param{string} T typename
      * @param{tcuFloatFormat.FloatFormat} fmt
      * @param{*} value
-     * @return{tcuInterval.Interval}
+     * @return{tcuInterval.Interval|Array<tcuInterval.Interval>}
      */
      glsBuiltinPrecisionTests.convert = function(T, fmt, value) {
-    	return glsBuiltinPrecisionTests.Traits.traitsFactory(T).doConvert(fmt, value);
+        var traits = glsBuiltinPrecisionTests.Traits.traitsFactory(T);
+        if (value instanceof Array) {
+            var ret = [];
+            for (var i = 0 ; i < value.length; i++)
+                ret.push(traits.doConvert(fmt, value[i]));
+            return ret;
+        }
+
+        return traits.doConvert(fmt, value);
     };
 
     /**
@@ -289,7 +297,15 @@ var setParentClass = function(child, parent) {
      * @return{boolean}
      */
      glsBuiltinPrecisionTests.contains = function(T, ival, value) {
-    	return glsBuiltinPrecisionTests.Traits.traitsFactory(T).doContains(ival, value);
+        var traits = glsBuiltinPrecisionTests.Traits.traitsFactory(T);
+        var contains = true;
+        if (value instanceof Array) {
+            for (var i = 0 ; i < value.length; i++)
+                contains &= traits.doContains(ival[i], value[i]);
+            return contains;
+        }
+
+    	return traits.doContains(ival, value);
     };
 
 
@@ -317,8 +333,15 @@ var setParentClass = function(child, parent) {
 
     glsBuiltinPrecisionTests.round = function(T, fmt, value) {
         var traits = glsBuiltinPrecisionTests.Traits.traitsFactory(T);
+        if (value instanceof Array) {
+            var ret = [];
+            for (var i = 0 ; i < value.length; i++)
+                ret.push(traits.doRound(fmt, value[i]));
+            return ret;
+        }
+
         return traits.doRound(fmt, value);
-    }
+    };
 
     /**
      * cast the input typed array to correct type
@@ -2282,12 +2305,33 @@ var setParentClass = function(child, parent) {
 
 
     /**
+     * Return an output value extracted from flat array
+     * @param {good.NumberArray} output
+     * @param {number} index Index of the element to extract
+     * @param {size} size Size of the element to extract
+     * @return {number|Array<number>}
+     */ 
+    glsBuiltinPrecisionTests.getOutput = function(output, index, size) {
+        if (size > 1) {
+            var ret = [];
+            for (var i = 0; i < size; i++)
+                ret[i] = output[size * index + i];
+            return ret;
+        }
+        return output[index];
+    }
+    /**
      * template <typename In, typename Out>
      * @param{glsBuiltinPrecisionTests.Variables} variables Variables<In, Out>
      * @param{glsBuiltinPrecisionTests.Inputs} inputs Inputs<In>
      * @param{glsBuiltinPrecisionTests.Statement} stmt
      */
     glsBuiltinPrecisionTests.PrecisionCase.prototype.testStatement = function(variables, inputs, stmt){
+        var flatten = function(a) {
+            var merged = [];
+            return merged.concat.apply(merged, a);
+        };
+
     	// using namespace ShaderExecUtil;
         //
     	// typedef typename 	In::In0		In0;
@@ -2365,7 +2409,7 @@ var setParentClass = function(child, parent) {
         var executor = glsShaderExecUtil.createExecutor(this.m_ctx.shaderType, spec);
 		/** @type{Array<*>} */ var inputArr	=
 		[
-			inputs.in0, inputs.in1, inputs.in2, inputs.in3
+			flatten(inputs.in0), flatten(inputs.in1), flatten(inputs.in2), flatten(inputs.in3)
 		];
 
 		// executor.log(log());
@@ -2422,14 +2466,16 @@ var setParentClass = function(child, parent) {
     		switch (outCount) {
     			case 2:
     				reference1 = glsBuiltinPrecisionTests.convert(this.Out.Out1, highpFmt, env.lookup(variables.out1));
-    				if (!glsBuiltinPrecisionTests.contains(this.Out.Out1, reference1, outputs[1][valueNdx])) {
-                        msg = 'Shader output 1 (' + outputs[1][valueNdx] + ') is outside acceptable range: ' + reference1;
+                    var value = glsBuiltinPrecisionTests.getOutput(outputs[1], valueNdx, this.m_size);
+    				if (!glsBuiltinPrecisionTests.contains(this.Out.Out1, reference1, value)) {
+                        msg = 'Shader output 1 (' + value + ') is outside acceptable range: ' + reference1;
                         result = false;
                     }
     			case 1:
                     reference0 = glsBuiltinPrecisionTests.convert(this.Out.Out0, highpFmt, env.lookup(variables.out0));
-                    if (!glsBuiltinPrecisionTests.contains(this.Out.Out0, reference0, outputs[0][valueNdx])) {
-                        msg = 'Shader output 0 (' + outputs[0][valueNdx] + ') is outside acceptable range: ' + reference0;
+                    var value = glsBuiltinPrecisionTests.getOutput(outputs[0], valueNdx, this.m_size);
+                    if (!glsBuiltinPrecisionTests.contains(this.Out.Out0, reference0, value)) {
+                        msg = 'Shader output 0 (' + value + ') is outside acceptable range: ' + reference0;
                         result = false;
                     }
     			default: break;
@@ -2500,12 +2546,7 @@ var setParentClass = function(child, parent) {
      */
     glsBuiltinPrecisionTests.PrecisionCase.prototype.makeSymbol = function (variable) {
         var v = variable;
-        var size = 1;
-        if (variable instanceof Array) {
-            v = variable[0];
-            size = variable.length;
-        }
-		return new glsShaderExecUtil.Symbol(v.getName(), gluVarType.getVarTypeOf(v.T, size, this.m_ctx.precision));
+		return new glsShaderExecUtil.Symbol(v.getName(), gluVarType.getVarTypeOf(v.T, this.m_size, this.m_ctx.precision));
 	};
 
     /**
@@ -2938,9 +2979,12 @@ var setParentClass = function(child, parent) {
     glsBuiltinPrecisionTests.GenFunc.prototype.doApply = function(ctx, iargs) {
         /** @type{Array<*>} */ var ret = [];
 
-        for (var ndx = 0; ndx < this.m_size; ++ndx) {
-            ret[ndx] = this.m_func.apply(ctx, iargs.a.get(ndx), iargs.b.get(ndx), iargs.c.get(ndx), iargs.d.get(ndx));
-        }
+        if (this.m_size > 1) {
+            for (var ndx = 0; ndx < this.m_size; ++ndx) {
+                ret[ndx] = this.m_func.apply(ctx, iargs.a[ndx], iargs.b[ndx], iargs.c[ndx], iargs.d[ndx]);
+            }
+        } else
+            ret[0] = this.m_func.apply(ctx, iargs.a, iargs.b, iargs.c, iargs.d);
 
         return ret;
     };

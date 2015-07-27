@@ -546,19 +546,19 @@ goog.scope(function() {
 
     /**
      * @param {*} T
-     * @param {number} size
+     * @param {number=} size
      * @param {gluShaderUtil.precision=} precision
      * @return {gluVarType.VarType}
      */
     gluVarType.getVarTypeOf = function(T, size, precision) {
-        //TODO
-        bufferedLogToConsole('Warning.  gluVarType.getVarTypeOf is incomplete');
+        size = size || 1;
+        precision = precision || gluShaderUtil.precision.PRECISION_LOWP;
         switch (size) {
-            case 4: return gluVarType.newTypeBasic(gluShaderUtil.DataType.FLOAT_VEC4, gluShaderUtil.precision.PRECISION_HIGHP);
-            case 3: return gluVarType.newTypeBasic(gluShaderUtil.DataType.FLOAT_VEC3, gluShaderUtil.precision.PRECISION_HIGHP);
-            case 2: return gluVarType.newTypeBasic(gluShaderUtil.DataType.FLOAT_VEC2, gluShaderUtil.precision.PRECISION_HIGHP);
+            case 4: return gluVarType.newTypeBasic(gluShaderUtil.DataType.FLOAT_VEC4, precision);
+            case 3: return gluVarType.newTypeBasic(gluShaderUtil.DataType.FLOAT_VEC3, precision);
+            case 2: return gluVarType.newTypeBasic(gluShaderUtil.DataType.FLOAT_VEC2, precision);
         }
-        return gluVarType.newTypeBasic(gluShaderUtil.DataType.FLOAT, gluShaderUtil.precision.PRECISION_HIGHP)
+        return gluVarType.newTypeBasic(gluShaderUtil.DataType.FLOAT, precision);
     };
 
     /**
