@@ -794,8 +794,6 @@ var setParentClass = function(child, parent) {
      */
     glsBuiltinPrecisionTests.VariableStatement.prototype.doPrint = function() {
         var v = this.m_variable;
-        if (v instanceof Array)
-            v = v[0];
         var os = '';
         if (this.m_isDeclaration)
             os += gluVarType.declareVariable(gluVarType.getVarTypeOf(v.T),
@@ -865,22 +863,6 @@ var setParentClass = function(child, parent) {
     glsBuiltinPrecisionTests.Variable.prototype.doEvaluate = function(ctx) {
         return ctx.env.lookup(this);
 	};
-
-    /**
-     * @param{*} typename
-     * @param{string} name
-     * @param{number=} size
-     */
-    glsBuiltinPrecisionTests.createVariable = function(typename, name, size) {
-        if (size > 1) {
-            var ret = [];
-            for (var i = 0; i < size; i++)
-                ret[i] = new glsBuiltinPrecisionTests.Variable(typename, name);
-            return ret;
-        }
-
-        return new glsBuiltinPrecisionTests.Variable(typename, name);
-    };
 
     /**
      * @constructor
@@ -2773,12 +2755,12 @@ var setParentClass = function(child, parent) {
         var variables = new glsBuiltinPrecisionTests.Variables(this.In, this.Out, this.m_size);
     	// Variables<In, Out>	variables;
         //
-    	variables.out0	= new glsBuiltinPrecisionTests.createVariable(this.Ret, "out0", this.m_size);
-    	variables.out1	= new glsBuiltinPrecisionTests.createVariable(glsBuiltinPrecisionTests.Void, "out1", this.m_size);
-    	variables.in0	= new glsBuiltinPrecisionTests.createVariable(this.Arg0, "in0", this.m_size);
-    	variables.in1	= new glsBuiltinPrecisionTests.createVariable(this.Arg1, "in1", this.m_size);
-    	variables.in2	= new glsBuiltinPrecisionTests.createVariable(this.Arg2, "in2", this.m_size);
-    	variables.in3	= new glsBuiltinPrecisionTests.createVariable(this.Arg3, "in3", this.m_size);
+    	variables.out0	= new glsBuiltinPrecisionTests.Variable(this.Ret, "out0", this.m_size);
+    	variables.out1	= new glsBuiltinPrecisionTests.Variable(glsBuiltinPrecisionTests.Void, "out1", this.m_size);
+    	variables.in0	= new glsBuiltinPrecisionTests.Variable(this.Arg0, "in0", this.m_size);
+    	variables.in1	= new glsBuiltinPrecisionTests.Variable(this.Arg1, "in1", this.m_size);
+    	variables.in2	= new glsBuiltinPrecisionTests.Variable(this.Arg2, "in2", this.m_size);
+    	variables.in3	= new glsBuiltinPrecisionTests.Variable(this.Arg3, "in3", this.m_size);
         
 
 		var	expr	= glsBuiltinPrecisionTests.applyVar(this.m_func,
@@ -2957,7 +2939,7 @@ var setParentClass = function(child, parent) {
         /** @type{Array<*>} */ var ret = [];
 
         for (var ndx = 0; ndx < this.m_size; ++ndx) {
-            ret[ndx] = this.m_func.apply(ctx, iargs.a[ndx], iargs.b[ndx], iargs.c[ndx], iargs.d[ndx]);
+            ret[ndx] = this.m_func.apply(ctx, iargs.a.get(ndx), iargs.b.get(ndx), iargs.c.get(ndx), iargs.d.get(ndx));
         }
 
         return ret;
