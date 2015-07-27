@@ -1316,7 +1316,7 @@ glsTextureTestUtil.sampleTextureCube = function(dst, src, texCoord, params) {
 /**
  * @param {glsTextureTestUtil.SurfaceAccess} dst
  * @param {tcuTexture.Texture2DArrayView} src
- * @param {Array<Array<number>} texCoord
+ * @param {Array<Array<number>>} texCoord
  * @param {glsTextureTestUtil.ReferenceParams} params
  */
 glsTextureTestUtil.sampleTexture2DArray = function(dst, src, texCoord, params) {
@@ -1648,7 +1648,7 @@ es3fTextureFilteringTests.computeTextureLookupDiffCube = function(
         [-1, -1],
         [-1, 1],
         [1, -1],
-        [1, 1],
+        [1, 1]
     ];
 
     var green = [0, 255, 0, 255];
@@ -1808,7 +1808,7 @@ es3fTextureFilteringTests.computeTextureLookupDiffCube = function(
 
                 if (!isOk) {
                     var red = [255, 0, 0, 255];
-                    errorMask.setPixel(new tcuRGBA.RGBA(red).toVec()), px, py);
+                    errorMask.setPixel(new tcuRGBA.RGBA(red).toVec(), px, py);
                     numFailed += 1;
                 }
             }

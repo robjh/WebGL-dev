@@ -179,7 +179,7 @@ deMath.scale = function(a, b) {
 };
 
 /**
- * Add two vectors, element by element
+ * Add vector and scalar, element by element
  * @param {goog.NumberArray} a
  * @param {number} b
  * @return {Array<number>} Result array
