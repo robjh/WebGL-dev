@@ -4,14 +4,14 @@
  *
  * Copyright 2014 The Android Open Source Project
  *
- * Licensed under the Apache License, Version 2.0 (the "License");
+ * Licensed under the Apache License, Version 2.0 (the 'License');
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
  *
  *      http://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
+ * distributed under the License is distributed on an 'AS IS' BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  * See the License for the specific language governing permissions and
  * limitations under the License.
@@ -25,6 +25,7 @@ goog.require('framework.delibs.debase.deRandom');
 goog.require('framework.opengl.gluDrawUtil');
 goog.require('framework.opengl.gluShaderProgram');
 goog.require('framework.opengl.gluShaderUtil');
+goog.require('framework.common.tcuInterval');
 goog.require('framework.common.tcuFloat');
 goog.require('framework.common.tcuLogImage');
 goog.require('framework.common.tcuMatrix');
@@ -41,6 +42,7 @@ goog.scope(function() {
 	var gluDrawUtil = framework.opengl.gluDrawUtil;
 	var gluShaderProgram = framework.opengl.gluShaderProgram;
 	var gluShaderUtil = framework.opengl.gluShaderUtil;
+	var tcuInterval = framework.common.tcuInterval;
 	var tcuFloat = framework.common.tcuFloat;
 	var tcuLogImage = framework.common.tcuLogImage;
 	var tcuMatrix = framework.common.tcuMatrix;
@@ -144,10 +146,10 @@ goog.scope(function() {
 	 */
 	es3fShaderDerivateTests.getDerivateFuncName = function(func) {
 		switch (func) {
-			case es3fShaderDerivateTests.DerivateFunc.DFDX: return "dFdx";
-			case es3fShaderDerivateTests.DerivateFunc.DFDY: return "dFdy";
-			case es3fShaderDerivateTests.DerivateFunc.FWIDTH: return "fwidth";
-			default: throw new Error("Derivate Func not supported.");
+			case es3fShaderDerivateTests.DerivateFunc.DFDX: return 'dFdx';
+			case es3fShaderDerivateTests.DerivateFunc.DFDY: return 'dFdy';
+			case es3fShaderDerivateTests.DerivateFunc.FWIDTH: return 'fwidth';
+			default: throw new Error('Derivate Func not supported.');
 		}
 	};
 
@@ -157,10 +159,10 @@ goog.scope(function() {
 	 */
 	es3fShaderDerivateTests.getDerivateFuncCaseName = function(func) {
 		switch (func) {
-			case es3fShaderDerivateTests.DerivateFunc.DFDX: return "dfdx";
-			case es3fShaderDerivateTests.DerivateFunc.DFDY: return "dfdy";
-			case es3fShaderDerivateTests.DerivateFunc.FWIDTH: return "fwidth";
-			default: throw new Error("Derivate Func not supported.");
+			case es3fShaderDerivateTests.DerivateFunc.DFDX: return 'dfdx';
+			case es3fShaderDerivateTests.DerivateFunc.DFDY: return 'dfdy';
+			case es3fShaderDerivateTests.DerivateFunc.FWIDTH: return 'fwidth';
+			default: throw new Error('Derivate Func not supported.');
 		}
 	};
 
@@ -174,7 +176,7 @@ goog.scope(function() {
 			case gluShaderUtil.DataType.FLOAT_VEC2: return [true, true, false, false];
 			case gluShaderUtil.DataType.FLOAT_VEC3: return [true, true, true, false];
 			case gluShaderUtil.DataType.FLOAT_VEC4: return [true, true, true, true];
-			default: throw new Error("Data Type not supported.");
+			default: throw new Error('Data Type not supported.');
 		}
 	};
 
@@ -391,7 +393,7 @@ goog.scope(function() {
 		/** @type {number} */ var numFailedPixels = 0;
 
 		if (logPolicy === es3fShaderDerivateTests.VerificationLogging.LOG_ALL)
-			bufferedLogToConsole("Expecting " + reference + " with threshold " + threshold);
+			bufferedLogToConsole('Expecting ' + reference + ' with threshold ' + threshold);
 
 		for (var y = 0; y < result.getHeight(); y++) {
 			for (var x = 0; x < result.getWidth(); x++) {
@@ -406,7 +408,7 @@ goog.scope(function() {
 
 				if (!isOk) {
 					if (numFailedPixels < es3fShaderDerivateTests.MAX_FAILED_MESSAGES && logPolicy === es3fShaderDerivateTests.VerificationLogging.LOG_ALL)
-						bufferedLogToConsole("FAIL: got " + resDerivate + ", diff = " + deMath.abs(deMath.subtract(reference, resDerivate)) + ", at x = " + x + ", y = " + y);
+						bufferedLogToConsole('FAIL: got ' + resDerivate + ', diff = ' + deMath.abs(deMath.subtract(reference, resDerivate)) + ', at x = ' + x + ', y = ' + y);
 					numFailedPixels += 1;
 					errorMask.setPixel(tcuRGBA.RGBA.red.toVec(), x, y);
 				}
@@ -414,10 +416,10 @@ goog.scope(function() {
 		}
 
 		if (numFailedPixels >= es3fShaderDerivateTests.MAX_FAILED_MESSAGES && logPolicy === es3fShaderDerivateTests.VerificationLogging.LOG_ALL)
-			bufferedLogToConsole("...");
+			bufferedLogToConsole('...');
 
 		if (numFailedPixels > 0 && logPolicy === es3fShaderDerivateTests.VerificationLogging.LOG_ALL)
-			bufferedLogToConsole("FAIL: found " + numFailedPixels + " failed pixels");
+			bufferedLogToConsole('FAIL: found ' + numFailedPixels + ' failed pixels');
 
 		return numFailedPixels === 0;
 	};
@@ -497,57 +499,63 @@ goog.scope(function() {
 			// check components separately
 			for (var c = 0; c < numComponents; ++c) {
 				// interpolation value range
-				// TODO: tcuInterval is WIP; the following line needs to be uncommented once it is finished
-				// /** @type {tcuInterval.Interval} */ var forwardComponent = new tcuInteral.Interval(es3fShaderDerivateTests.convertFloorFlushToZero(functionValueForward[c], minExponent, numVaryingSampleBits),
-				// 											 es3fShaderDerivateTests.convertCeilFlushToZero(functionValueForward[c], minExponent, numVaryingSampleBits));
-				//
-				// /** @type {tcuInterval.Interval} */ var backwardComponent = new tcuInteral.Interval(es3fShaderDerivateTests.convertFloorFlushToZero(functionValueBackward[c], minExponent, numVaryingSampleBits),
-				// 											 es3fShaderDerivateTests.convertCeilFlushToZero(functionValueBackward[c], minExponent, numVaryingSampleBits));
+				/** @type {tcuInterval.Interval} */ var forwardComponent = new tcuInteral.Interval(
+					new tcuInteral.Interval(es3fShaderDerivateTests.convertFloorFlushToZero(functionValueForward[c], minExponent, numVaryingSampleBits)),
+					new tcuInteral.Interval(es3fShaderDerivateTests.convertCeilFlushToZero(functionValueForward[c], minExponent, numVaryingSampleBits))
+				);
 
-				// /** @type {number} */
-				// var maxValueExp = Math.max(
-				// 		(new tcuFloat.deFloat(forwardComponent.lo())).exponent(),
-				// 		(new tcuFloat.deFloat(forwardComponent.hi())).exponent(),
-				// 		(new tcuFloat.deFloat(backwardComponent.lo())).exponent(),
-				// 		(new tcuFloat.deFloat(backwardComponent.hi())).exponent());
+				/** @type {tcuInterval.Interval} */ var backwardComponent = new tcuInteral.Interval(
+					new tcuInteral.Interval(es3fShaderDerivateTests.convertFloorFlushToZero(functionValueBackward[c], minExponent, numVaryingSampleBits)),
+					new tcuInteral.Interval(es3fShaderDerivateTests.convertCeilFlushToZero(functionValueBackward[c], minExponent, numVaryingSampleBits)));
+
+				/** @type {number} */
+				var maxValueExp = Math.max(
+						(new tcuFloat.deFloat().deFloatNumber(forwardComponent.lo())).exponent(),
+						(new tcuFloat.deFloat().deFloatNumber(forwardComponent.hi())).exponent(),
+						(new tcuFloat.deFloat().deFloatNumber(backwardComponent.lo())).exponent(),
+						(new tcuFloat.deFloat().deFloatNumber(backwardComponent.hi())).exponent());
 
 				// subtraction in nominator will likely cause a cancellation of the most
 				// significant bits. Apply error bounds.
-				// /** @type {tcuInterval.Interval} */ var nominator = (forwardComponent - backwardComponent);
-				// /** @type {number} */ var nominatorLoExp = (new tcuFloat.deFloat().deFloatNumber(nominator.lo())).exponent();
-				// /** @type {number} */ var nominatorHiExp = (new tcuFloat.deFloat().deFloatNumber(nominator.hi())).exponent();
-				// /** @type {number} */ var nominatorLoBitsLost = maxValueExp - nominatorLoExp;
-				// /** @type {number} */ var nominatorHiBitsLost = maxValueExp - nominatorHiExp;
-				// /** @type {number} */ var nominatorLoBits = Math.max(0, numBits - nominatorLoBitsLost);
-				// /** @type {number} */ var nominatorHiBits = Math.max(0, numBits - nominatorHiBitsLost);
+				/** @type {tcuInterval.Interval} */ var nominator = tcuInterval.Interval.operatorSub(forwardComponent, backwardComponent);
+				/** @type {number} */ var nominatorLoExp = (new tcuFloat.deFloat().deFloatNumber(nominator.lo())).exponent();
+				/** @type {number} */ var nominatorHiExp = (new tcuFloat.deFloat().deFloatNumber(nominator.hi())).exponent();
+				/** @type {number} */ var nominatorLoBitsLost = maxValueExp - nominatorLoExp;
+				/** @type {number} */ var nominatorHiBitsLost = maxValueExp - nominatorHiExp;
+				/** @type {number} */ var nominatorLoBits = Math.max(0, numBits - nominatorLoBitsLost);
+				/** @type {number} */ var nominatorHiBits = Math.max(0, numBits - nominatorHiBitsLost);
 
-				// /** @type {tcuInterval.Interval} */ var nominatorRange (convertFloorFlushToZero(nominator.lo(), minExponent, nominatorLoBits),
-				// 											 convertCeilFlushToZero(nominator.hi(), minExponent, nominatorHiBits));
+				/** @type {tcuInterval.Interval} */ var nominatorRange = new tcuInterval.Interval(
+					new tcuInterval.Interval(es3fShaderDerivateTests.convertFloorFlushToZero(nominator.lo(), minExponent, nominatorLoBits)),
+					new tcuInterval.Interval(es3fShaderDerivateTests.convertCeilFlushToZero(nominator.hi(), minExponent, nominatorHiBits)));
 				//
-				// /** @type {tcuInterval.Interval} */ var divisionRange = nominatorRange / 3.0f; // legal sample area is anywhere within this and neighboring pixels (i.e. size = 3)
-				// /** @type {tcuInterval.Interval} */ var divisionResultRange (convertFloorFlushToZero(addErrorUlp(divisionRange.lo(), -divisionErrorUlps, numBits), minExponent, numBits),
-				// 											 convertCeilFlushToZero(addErrorUlp(divisionRange.hi(), +divisionErrorUlps, numBits), minExponent, numBits));
-				// /** @type {tcuInterval.Interval} */ var finalResultRange (divisionResultRange.lo() - surfaceThreshold[c], divisionResultRange.hi() + surfaceThreshold[c]);
+				/** @type {tcuInterval.Interval} */ var divisionRange = tcuInterval.Interval.operatorDiv(nominatorRange, new tcuInterval.Interval(3.0)); // legal sample area is anywhere within this and neighboring pixels (i.e. size = 3)
+				/** @type {tcuInterval.Interval} */ var divisionResultRange = new tcuInterval.Interval(
+					new tcuInterval.Interval(es3fShaderDerivateTests.convertFloorFlushToZero(es3fShaderDerivateTests.addErrorUlp(divisionRange.lo(), -divisionErrorUlps, numBits), minExponent, numBits)),
+					new tcuInterval.Interval(es3fShaderDerivateTests.convertCeilFlushToZero(es3fShaderDerivateTests.addErrorUlp(divisionRange.hi(), divisionErrorUlps, numBits), minExponent, numBits)));
+				/** @type {tcuInterval.Interval} */ var finalResultRange = new tcuInterval.Interval(
+					new tcuInterval.Interval(divisionResultRange.lo() - surfaceThreshold[c]),
+					new tcuInterval.Interval(divisionResultRange.hi() + surfaceThreshold[c]));
 
-				// if (resultDerivative[c] >= finalResultRange.lo() && resultDerivative[c] <= finalResultRange.hi()) {
-				// 	// value ok
-				// }
-				// else {
-				// 	if (numFailedPixels < es3fShaderDerivateTests.MAX_FAILED_MESSAGES)
-				// 		bufferedLogToConsole("Error in pixel at " + x + ", " + y + " with component " + c + " (channel " + ("rgba"[c]) + ")\n" +
-				// 			"\tGot pixel value " + result.getPixelInt(x, y) + "\n" +
-				// 			"\t\tdFd" + ((derivateFunc === es3fShaderDerivateTests.DerivateFunc.DFDX) ? ('x') : ('y')) + " ~= " + resultDerivative[c] + "\n" +
-				// 			"\t\tdifference to a valid range: " +
-				// 			((resultDerivative[c] < finalResultRange.lo()) ? ("-") : ("+")) +
-				// 			((resultDerivative[c] < finalResultRange.lo()) ? (finalResultRange.lo() - resultDerivative[c]) : (resultDerivative[c] - finalResultRange.hi())) +
-				// 			"\n" +
-				// 			"\tDerivative value range:\n" +
-				// 			"\t\tMin: " + finalResultRange.lo() + "\n" +
-				// 			"\t\tMax: " + finalResultRange.hi() + "\n");
-				//
-				// 	++numFailedPixels;
-				// 	anyComponentFailed = true;
-				// }
+				if (resultDerivative[c] >= finalResultRange.lo() && resultDerivative[c] <= finalResultRange.hi()) {
+					// value ok
+				}
+				else {
+					if (numFailedPixels < es3fShaderDerivateTests.MAX_FAILED_MESSAGES)
+						bufferedLogToConsole('Error in pixel at ' + x + ', ' + y + ' with component ' + c + ' (channel ' + ('rgba'[c]) + ')\n' +
+							'\tGot pixel value ' + result.getPixelInt(x, y) + '\n' +
+							'\t\tdFd' + ((derivateFunc === es3fShaderDerivateTests.DerivateFunc.DFDX) ? 'x' : 'y') + ' ~= ' + resultDerivative[c] + '\n' +
+							'\t\tdifference to a valid range: ' +
+							((resultDerivative[c] < finalResultRange.lo()) ? '-' : '+') +
+							((resultDerivative[c] < finalResultRange.lo()) ? (finalResultRange.lo() - resultDerivative[c]) : (resultDerivative[c] - finalResultRange.hi())) +
+							'\n' +
+							'\tDerivative value range:\n' +
+							'\t\tMin: ' + finalResultRange.lo() + '\n' +
+							'\t\tMax: ' + finalResultRange.hi() + '\n');
+
+					++numFailedPixels;
+					anyComponentFailed = true;
+				}
 			}
 
 			if (anyComponentFailed)
@@ -555,10 +563,10 @@ goog.scope(function() {
 		}
 
 		if (numFailedPixels >= es3fShaderDerivateTests.MAX_FAILED_MESSAGES)
-			bufferedLogToConsole("...");
+			bufferedLogToConsole('...');
 
 		if (numFailedPixels > 0)
-			bufferedLogToConsole("FAIL: found " + numFailedPixels + " failed pixels");
+			bufferedLogToConsole('FAIL: found ' + numFailedPixels + ' failed pixels');
 
 		return numFailedPixels === 0;
 	};
@@ -615,8 +623,8 @@ goog.scope(function() {
 
 		/** @type {Object} */ vertexParams = {};
 
-		vertexParams["PRECISION"] = gluShaderUtil.getPrecisionName(precision);
-		vertexParams["DATATYPE"] = gluShaderUtil.getDataTypeName(coordType);
+		vertexParams['PRECISION'] = gluShaderUtil.getPrecisionName(precision);
+		vertexParams['DATATYPE'] = gluShaderUtil.getDataTypeName(coordType);
 
 		return tcuStringTemplate.specialize(vertexTmpl, vertexParams);
 	};
@@ -655,7 +663,7 @@ goog.scope(function() {
 			assertMsgOptions(false, 'Compile failed', false, true);
 
 		if (useFbo) {
-			bufferedLogToConsole("Rendering to FBO, format = " + /*glu::getPixelFormatStr(*/fboFormat/*)*/ + ", samples = " + this.m_numSamples);
+			bufferedLogToConsole('Rendering to FBO, format = ' + /*glu::getPixelFormatStr(*/fboFormat/*)*/ + ', samples = ' + this.m_numSamples);
 
 			fbo.gen();
 			rbo.gen();
@@ -670,19 +678,19 @@ goog.scope(function() {
 		else {
 			/** @type {tcuPixelFormat.PixelFormat} */ var pixelFormat = tcuPixelFormat.PixelFormatFromContext(gl);
 
-			bufferedLogToConsole("Rendering to default framebuffer\n" +
-				"\tColor depth: R=" + pixelFormat.redBits + ", G=" + pixelFormat.greenBits + ", B=" + pixelFormat.blueBits + ", A=" + pixelFormat.alphaBits);
+			bufferedLogToConsole('Rendering to default framebuffer\n' +
+				'\tColor depth: R=' + pixelFormat.redBits + ', G=' + pixelFormat.greenBits + ', B=' + pixelFormat.blueBits + ', A=' + pixelFormat.alphaBits);
 		}
 
-		bufferedLogToConsole("in: " + this.m_coordMin + " ' " + this.m_coordMax + "\n" +
-			"v_coord.x = in.x * x\n" +
-			"v_coord.y = in.y * y\n" +
-			"v_coord.z = in.z * (x+y)/2\n" +
-			"v_coord.w = in.w * (1 - (x+y)/2)\n" +
-			"\n" +
-			"u_scale: " + this.m_derivScale + ", u_bias: " + this.m_derivBias + " (displayed values have scale/bias removed)" +
-			"Viewport: " + viewportSize[0] + "x" + viewportSize[1] +
-			"gl.FRAGMENT_SHADER_DERIVATE_HINT: " + /*glu::getHintModeStr(*/this.m_hint/*)*/);
+		bufferedLogToConsole('in: ' + this.m_coordMin + ' ' + this.m_coordMax + '\n' +
+			'v_coord.x = in.x * x\n' +
+			'v_coord.y = in.y * y\n' +
+			'v_coord.z = in.z * (x+y)/2\n' +
+			'v_coord.w = in.w * (1 - (x+y)/2)\n' +
+			'\n' +
+			'u_scale: ' + this.m_derivScale + ', u_bias: ' + this.m_derivBias + ' (displayed values have scale/bias removed)' +
+			'Viewport: ' + viewportSize[0] + 'x' + viewportSize[1] +
+			'gl.FRAGMENT_SHADER_DERIVATE_HINT: ' + /*glu::getHintModeStr(*/this.m_hint/*)*/);
 			// TODO: glu::getHintModeStr()
 			//
 		// Draw
@@ -745,11 +753,11 @@ goog.scope(function() {
 		es3fShaderDerivateTests.setupRenderState(program.getProgram());
 
 		gl.hint(gl.FRAGMENT_SHADER_DERIVATIVE_HINT, this.m_hint);
-		// TODO GLU_EXPECT_NO_ERROR(gl.getError(), "Setup program state");
+		// TODO GLU_EXPECT_NO_ERROR(gl.getError(), 'Setup program state');
 
 		gl.viewport(viewportX, viewportY, viewportSize[0], viewportSize[1]);
 		gluDrawUtil.draw(gl, program.getProgram(), vertexArrays, gluDrawUtil.triangles(indices));
-		// TODO GLU_EXPECT_NO_ERROR(gl.getError(), "Draw");
+		// TODO GLU_EXPECT_NO_ERROR(gl.getError(), 'Draw');
 
 		// Read back results
 
@@ -769,7 +777,7 @@ goog.scope(function() {
 			// TODO TCU_CHECK(gl.checkFramebufferStatus(gl.FRAMEBUFFER) === gl.FRAMEBUFFER_COMPLETE);
 
 			gl.blitFramebuffer(0, 0, viewportSize[0], viewportSize[1], 0, 0, viewportSize[0], viewportSize[1], gl.COLOR_BUFFER_BIT, gl.NEAREST);
-			// TODO GLU_EXPECT_NO_ERROR(gl.getError(), "Resolve blit");
+			// TODO GLU_EXPECT_NO_ERROR(gl.getError(), 'Resolve blit');
 
 			gl.bindFramebuffer(gl.READ_FRAMEBUFFER, resFbo.get());
 		}
@@ -805,7 +813,7 @@ goog.scope(function() {
 				throw new Error('Surface Type not supported: ' + this.m_surfaceType);
 		}
 
-		// TODO GLU_EXPECT_NO_ERROR(gl.getError(), "Read pixels");
+		// TODO GLU_EXPECT_NO_ERROR(gl.getError(), 'Read pixels');
 
 		// Verify
 		/** @type {tcuSurface.Surface} */
@@ -815,14 +823,14 @@ goog.scope(function() {
 
 		/** @type {boolean} */ var isOk = this.verify(resultSurface.getAccess(), errorMask.getAccess());
 
-		tcuLogImage.logImage("Rendered", "Rendered image", resultSurface);
+		tcuLogImage.logImage('Rendered', 'Rendered image', resultSurface);
 
 		if (!isOk) {
-			tcuLogImage.logImage("ErrorMask", "Error mask", errorMask);
-			testFailedOptions("Fail", false);
+			tcuLogImage.logImage('ErrorMask', 'Error mask', errorMask);
+			testFailedOptions('Fail', false);
 		}
         else
-            testPassedOptions("Pass", true);
+            testPassedOptions('Pass', true);
 
 		return tcuTestCase.IterateResult.STOP;
 	};
@@ -947,23 +955,23 @@ goog.scope(function() {
 		/** @type {boolean} */ var packToInt = this.m_surfaceType === es3fShaderDerivateTests.SurfaceType.FLOAT_FBO;
 
 		/** @type {Object} */ var fragmentParams = {};
-		fragmentParams["OUTPUT_TYPE"] = gluShaderUtil.getDataTypeName(packToInt ? gluShaderUtil.DataType.UINT_VEC4 : gluShaderUtil.DataType.FLOAT_VEC4);
-		fragmentParams["OUTPUT_PREC"] = gluShaderUtil.getPrecisionName(packToInt ? gluShaderUtil.PRECISION_HIGHP : this.m_precision);
-		fragmentParams["PRECISION"] = gluShaderUtil.getPrecisionName(this.m_precision);
-		fragmentParams["DATATYPE"] = gluShaderUtil.getDataTypeName(this.m_dataType);
-		fragmentParams["FUNC"] = es3fShaderDerivateTests.getDerivateFuncName(this.m_func);
+		fragmentParams['OUTPUT_TYPE'] = gluShaderUtil.getDataTypeName(packToInt ? gluShaderUtil.DataType.UINT_VEC4 : gluShaderUtil.DataType.FLOAT_VEC4);
+		fragmentParams['OUTPUT_PREC'] = gluShaderUtil.getPrecisionName(packToInt ? gluShaderUtil.PRECISION_HIGHP : this.m_precision);
+		fragmentParams['PRECISION'] = gluShaderUtil.getPrecisionName(this.m_precision);
+		fragmentParams['DATATYPE'] = gluShaderUtil.getDataTypeName(this.m_dataType);
+		fragmentParams['FUNC'] = es3fShaderDerivateTests.getDerivateFuncName(this.m_func);
 
 		if (packToInt) {
-			fragmentParams["CAST_TO_OUTPUT"] = this.m_dataType === gluShaderUtil.DataType.FLOAT_VEC4 ? "floatBitsToUint(res)" :
-				this.m_dataType === gluShaderUtil.DataType.FLOAT_VEC3 ? "floatBitsToUint(vec4(res, 1.0))" :
-				this.m_dataType === gluShaderUtil.DataType.FLOAT_VEC2 ? "floatBitsToUint(vec4(res, 0.0, 1.0))" :
-				"floatBitsToUint(vec4(res, 0.0, 0.0, 1.0))";
+			fragmentParams['CAST_TO_OUTPUT'] = this.m_dataType === gluShaderUtil.DataType.FLOAT_VEC4 ? 'floatBitsToUint(res)' :
+				this.m_dataType === gluShaderUtil.DataType.FLOAT_VEC3 ? 'floatBitsToUint(vec4(res, 1.0))' :
+				this.m_dataType === gluShaderUtil.DataType.FLOAT_VEC2 ? 'floatBitsToUint(vec4(res, 0.0, 1.0))' :
+				'floatBitsToUint(vec4(res, 0.0, 0.0, 1.0))';
 		}
 		else {
-			fragmentParams["CAST_TO_OUTPUT"] = this.m_dataType === gluShaderUtil.DataType.FLOAT_VEC4 ? "res" :
-				this.m_dataType === gluShaderUtil.DataType.FLOAT_VEC3 ? "vec4(res, 1.0)" :
-				this.m_dataType === gluShaderUtil.DataType.FLOAT_VEC2 ? "vec4(res, 0.0, 1.0)" :
-				"vec4(res, 0.0, 0.0, 1.0)";
+			fragmentParams['CAST_TO_OUTPUT'] = this.m_dataType === gluShaderUtil.DataType.FLOAT_VEC4 ? 'res' :
+				this.m_dataType === gluShaderUtil.DataType.FLOAT_VEC3 ? 'vec4(res, 1.0)' :
+				this.m_dataType === gluShaderUtil.DataType.FLOAT_VEC2 ? 'vec4(res, 0.0, 1.0)' :
+				'vec4(res, 0.0, 0.0, 1.0)';
 		}
 
 		this.m_fragmentSrc = tcuStringTemplate.specialize(this.m_fragmentTmpl, fragmentParams);
@@ -1040,8 +1048,8 @@ goog.scope(function() {
 			/** @type {Array<number>} */ var opThreshold = es3fShaderDerivateTests.getDerivateThreshold(this.m_precision, deMath.multiply(this.m_coordMin * scale), deMath.multiply(this.m_coordMax, scale), reference);
 			/** @type {Array<number>} */ var threshold = deMath.max(surfaceThreshold, opThreshold);
 			// /** @type {number} */ var numComps = gluShaderUtil.getDataTypeScalarTypeAsDataType(this.m_dataType); // TODO: may remove
-			bufferedLogToConsole("Verifying result image.\n" +
-				"\tValid derivative is " + reference + " with threshold " + threshold);
+			bufferedLogToConsole('Verifying result image.\n' +
+				'\tValid derivative is ' + reference + ' with threshold ' + threshold);
 
 			// short circuit if result is strictly within the normal value error bounds.
 			// This improves performance significantly.
@@ -1056,8 +1064,8 @@ goog.scope(function() {
 			// some pixels exceed error bounds calculated for normal values. Verify that these
 			// potentially invalid pixels are in fact valid due to (for example) subnorm flushing.
 
-			bufferedLogToConsole("Initial verification failed, verifying image by calculating accurate error bounds for each result pixel.\n" +
-			    "\tVerifying each result derivative is within its range of legal result values.");
+			bufferedLogToConsole('Initial verification failed, verifying image by calculating accurate error bounds for each result pixel.\n' +
+			    '\tVerifying each result derivative is within its range of legal result values.');
 
 			/** @type {Array<number>} */ var viewportSize = this.getViewportSize();
 			/** @type {Array<number>} */ var valueRamp = (this.m_coordMax - this.m_coordMin);
@@ -1144,27 +1152,27 @@ goog.scope(function() {
 		/** @type {boolean} */ var packToInt = this.m_surfaceType === es3fShaderDerivateTests.SurfaceType.FLOAT_FBO;
 		/** @type {Object} */ var fragmentParams = {};
 
-		fragmentParams["OUTPUT_TYPE"] = gluShaderUtil.getDataTypeName(packToInt ? gluShaderUtil.DataType.UINT_VEC4 : gluShaderUtil.DataType.FLOAT_VEC4);
-		fragmentParams["OUTPUT_PREC"] = gluShaderUtil.getPrecisionName(packToInt ? gluShaderUtil.precision.PRECISION_HIGHP : this.precision);
-		fragmentParams["PRECISION"] = gluShaderUtil.getPrecisionName(this.m_precision);
-		fragmentParams["DATATYPE"] = gluShaderUtil.getDataTypeName(this.m_dataType);
-		fragmentParams["FUNC"] = es3fShaderDerivateTests.getDerivateFuncName(this.m_func);
-		fragmentParams["SWIZZLE"] = this.m_dataType === gluShaderUtil.DataType.FLOAT_VEC4 ? "" :
-			this.m_dataType === gluShaderUtil.DataType.FLOAT_VEC3 ? ".xyz" :
-			this.m_dataType === gluShaderUtil.DataType.FLOAT_VEC2 ? ".xy" :
-			".x";
+		fragmentParams['OUTPUT_TYPE'] = gluShaderUtil.getDataTypeName(packToInt ? gluShaderUtil.DataType.UINT_VEC4 : gluShaderUtil.DataType.FLOAT_VEC4);
+		fragmentParams['OUTPUT_PREC'] = gluShaderUtil.getPrecisionName(packToInt ? gluShaderUtil.precision.PRECISION_HIGHP : this.precision);
+		fragmentParams['PRECISION'] = gluShaderUtil.getPrecisionName(this.m_precision);
+		fragmentParams['DATATYPE'] = gluShaderUtil.getDataTypeName(this.m_dataType);
+		fragmentParams['FUNC'] = es3fShaderDerivateTests.getDerivateFuncName(this.m_func);
+		fragmentParams['SWIZZLE'] = this.m_dataType === gluShaderUtil.DataType.FLOAT_VEC4 ? '' :
+			this.m_dataType === gluShaderUtil.DataType.FLOAT_VEC3 ? '.xyz' :
+			this.m_dataType === gluShaderUtil.DataType.FLOAT_VEC2 ? '.xy' :
+			'.x';
 
 		if (packToInt) {
-			fragmentParams["CAST_TO_OUTPUT"] = this.m_dataType === gluShaderUtil.DataType.FLOAT_VEC4 ? "floatBitsToUint(res)" :
-				this.m_dataType === gluShaderUtil.DataType.FLOAT_VEC3 ? "floatBitsToUint(vec4(res, 1.0))" :
-				this.m_dataType === gluShaderUtil.DataType.FLOAT_VEC2 ? "floatBitsToUint(vec4(res, 0.0, 1.0))" :
-				"floatBitsToUint(vec4(res, 0.0, 0.0, 1.0))";
+			fragmentParams['CAST_TO_OUTPUT'] = this.m_dataType === gluShaderUtil.DataType.FLOAT_VEC4 ? 'floatBitsToUint(res)' :
+				this.m_dataType === gluShaderUtil.DataType.FLOAT_VEC3 ? 'floatBitsToUint(vec4(res, 1.0))' :
+				this.m_dataType === gluShaderUtil.DataType.FLOAT_VEC2 ? 'floatBitsToUint(vec4(res, 0.0, 1.0))' :
+				'floatBitsToUint(vec4(res, 0.0, 0.0, 1.0))';
 		}
 		else {
-			fragmentParams["CAST_TO_OUTPUT"] = this.m_dataType === gluShaderUtil.DataType.FLOAT_VEC4 ? "res" :
-				this.m_dataType === gluShaderUtil.DataType.FLOAT_VEC3 ? "vec4(res, 1.0)" :
-				this.m_dataType === gluShaderUtil.DataType.FLOAT_VEC2 ? "vec4(res, 0.0, 1.0)" :
-				"vec4(res, 0.0, 0.0, 1.0)";
+			fragmentParams['CAST_TO_OUTPUT'] = this.m_dataType === gluShaderUtil.DataType.FLOAT_VEC4 ? 'res' :
+				this.m_dataType === gluShaderUtil.DataType.FLOAT_VEC3 ? 'vec4(res, 1.0)' :
+				this.m_dataType === gluShaderUtil.DataType.FLOAT_VEC2 ? 'vec4(res, 0.0, 1.0)' :
+				'vec4(res, 0.0, 0.0, 1.0)';
 		}
 
 		this.m_fragmentSrc = tcuStringTemplate.specialize(fragmentTmpl, fragmentParams);
@@ -1265,7 +1273,7 @@ goog.scope(function() {
 		gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
 		gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
 
-		gl.uniform1i(gl.getUniformLocation(program, "u_sampler"), texUnit);
+		gl.uniform1i(gl.getUniformLocation(program, 'u_sampler'), texUnit);
 	};
 
 	/**
@@ -1276,7 +1284,7 @@ goog.scope(function() {
 	es3fShaderDerivateTests.TextureDerivateCase.prototype.verify = function(result, errorMask) {
 		// \note Edges are ignored in comparison
 		if (result.getWidth() < 2 || result.getHeight() < 2)
-			throw new Error("Too small viewport");
+			throw new Error('Too small viewport');
 
 		/** @type {tcuTexture.ConstPixelBufferAccess} */ var compareArea = tcuTextureUtil.getSubregion(result, 1, 1, result.getWidth() - 2, result.getHeight() - 2);
 		/** @type {tcuTexture.PixelBufferAccess} */ var maskArea = tcuTextureUtil.getSubregion(errorMask, 1, 1, errorMask.getWidth() - 2, errorMask.getHeight() - 2);
@@ -1296,22 +1304,22 @@ goog.scope(function() {
 			/** @type {Array<number>} */ var threshold = deMath.max(surfaceThreshold, opThreshold);
 			// /** @type {number} */ var numComps = gluShaderUtil.getDataTypeScalarTypeAsDataType(this.m_dataType); // TODO: we may be able to remove this line
 
-			bufferedLogToConsole("Verifying result image.\n"+
-			    "\tValid derivative is " + reference + " with threshold " + threshold);
+			bufferedLogToConsole('Verifying result image.\n'+
+			    '\tValid derivative is ' + reference + ' with threshold ' + threshold);
 
 			// short circuit if result is strictly within the normal value error bounds.
 			// This improves performance significantly.
 			if (verifyConstantDerivate(compareArea, maskArea, this.m_dataType,
 				reference, threshold, this.m_derivScale, this.m_derivBias,
 				es3fShaderDerivateTests.VerificationLogging.LOG_NOTHING)) {
-					bufferedLogToConsole("No incorrect derivatives found, result valid.");
+					bufferedLogToConsole('No incorrect derivatives found, result valid.');
 					return true;
 			}
 			// some pixels exceed error bounds calculated for normal values. Verify that these
 			// potentially invalid pixels are in fact valid due to (for example) subnorm flushing.
 
-			bufferedLogToConsole("Initial verification failed, verifying image by calculating accurate error bounds for each result pixel.\n" +
-			    "\tVerifying each result derivative is within its range of legal result values.");
+			bufferedLogToConsole('Initial verification failed, verifying image by calculating accurate error bounds for each result pixel.\n' +
+			    '\tVerifying each result derivative is within its range of legal result values.');
 
 			/** @type {Array<number>} */ var valueRamp = deMath.subtract(this.m_texValueMax, this.m_texValueMin);
 			/** @type {es3fShaderDerivateTests.Linear2DFunctionEvaluator} */ var function_;
@@ -1534,10 +1542,10 @@ goog.scope(function() {
 		};
 
 		/** @type {Array<FboConfig>} */ var s_fboConfigs = [
-			new FboConfig("fbo", es3fShaderDerivateTests.SurfaceType.DEFAULT_FRAMEBUFFER, 0),
-			new FboConfig("fbo_msaa2", es3fShaderDerivateTests.SurfaceType.UNORM_FBO, 2),
-			new FboConfig("fbo_msaa4", es3fShaderDerivateTests.SurfaceType.UNORM_FBO, 4),
-			new FboConfig("fbo_float", es3fShaderDerivateTests.SurfaceType.FLOAT_FBO, 0)
+			new FboConfig('fbo', es3fShaderDerivateTests.SurfaceType.DEFAULT_FRAMEBUFFER, 0),
+			new FboConfig('fbo_msaa2', es3fShaderDerivateTests.SurfaceType.UNORM_FBO, 2),
+			new FboConfig('fbo_msaa4', es3fShaderDerivateTests.SurfaceType.UNORM_FBO, 4),
+			new FboConfig('fbo_float', es3fShaderDerivateTests.SurfaceType.FLOAT_FBO, 0)
 		];
 
 		/**
@@ -1552,8 +1560,8 @@ goog.scope(function() {
 		};
 
 		/** @type {Array<Hint>} */ var s_hints = [
-			new Hint("fastest",	gl.FASTEST),
-			new Hint("nicest", gl.NICEST)
+			new Hint('fastest',	gl.FASTEST),
+			new Hint('nicest', gl.NICEST)
 		];
 
 		/**
@@ -1570,9 +1578,9 @@ goog.scope(function() {
 		};
 
 		/** @type {Array<HintFboConfig>} */ var s_hintFboConfigs = [
-			new HintFboConfig("default", es3fShaderDerivateTests.SurfaceType.DEFAULT_FRAMEBUFFER, 0),
-			new HintFboConfig("fbo_msaa4", es3fShaderDerivateTests.SurfaceType.UNORM_FBO, 4),
-			new HintFboConfig("fbo_float", es3fShaderDerivateTests.SurfaceType.FLOAT_FBO, 0)
+			new HintFboConfig('default', es3fShaderDerivateTests.SurfaceType.DEFAULT_FRAMEBUFFER, 0),
+			new HintFboConfig('fbo_msaa4', es3fShaderDerivateTests.SurfaceType.UNORM_FBO, 4),
+			new HintFboConfig('fbo_float', es3fShaderDerivateTests.SurfaceType.FLOAT_FBO, 0)
 		];
 
 		/**
@@ -1591,10 +1599,10 @@ goog.scope(function() {
 		};
 
 		/** @type {Array<TextureConfig>} */ var s_textureConfigs = [
-			new TextureConfig("basic", es3fShaderDerivateTests.SurfaceType.DEFAULT_FRAMEBUFFER, 0, gl.DONT_CARE),
-			new TextureConfig("msaa4", es3fShaderDerivateTests.SurfaceType.UNORM_FBO, 4, gl.DONT_CARE),
-			new TextureConfig("float_fastest", es3fShaderDerivateTests.SurfaceType.FLOAT_FBO, 0, gl.FASTEST),
-			new TextureConfig("float_nicest", es3fShaderDerivateTests.SurfaceType.FLOAT_FBO, 0, gl.NICEST)
+			new TextureConfig('basic', es3fShaderDerivateTests.SurfaceType.DEFAULT_FRAMEBUFFER, 0, gl.DONT_CARE),
+			new TextureConfig('msaa4', es3fShaderDerivateTests.SurfaceType.UNORM_FBO, 4, gl.DONT_CARE),
+			new TextureConfig('float_fastest', es3fShaderDerivateTests.SurfaceType.FLOAT_FBO, 0, gl.FASTEST),
+			new TextureConfig('float_nicest', es3fShaderDerivateTests.SurfaceType.FLOAT_FBO, 0, gl.NICEST)
 		];
 
 		/** @type {gluShader;Util.DataType} */ var dataType;
@@ -1612,12 +1620,12 @@ goog.scope(function() {
 		    testGroup.addChild(functionGroup);
 
 		    // .constant - no precision variants, checks that derivate of constant arguments is 0
-		    /** @type {tcuTestCase.DeqpTest} */ var constantGroup = tcuTestCase.newTest("constant", "Derivate of constant argument");
+		    /** @type {tcuTestCase.DeqpTest} */ var constantGroup = tcuTestCase.newTest('constant', 'Derivate of constant argument');
 		    functionGroup.addChild(constantGroup);
 
 		    for (var vecSize = 1; vecSize <= 4; vecSize++) {
 		        dataType = vecSize > 1 ? gluShaderUtil.getDataTypeFloatVec(vecSize) : gluShaderUtil.DataType.FLOAT;
-		        constantGroup.addChild(new ConstantDerivateCase(gluShaderUtil.getDataTypeName(dataType), "", function_, dataType));
+		        constantGroup.addChild(new ConstantDerivateCase(gluShaderUtil.getDataTypeName(dataType), '', function_, dataType));
 		    }
 
 		    // Cases based on LinearDerivateCase
@@ -1637,15 +1645,15 @@ goog.scope(function() {
 		            if (caseNdx !== 0 && precision === gluShaderUtil.precision.PRECISION_LOWP)
 		                continue; // Skip as lowp doesn't actually produce any bits when rendered to default FB.
 
-		            caseName = gluShaderUtil.getDataTypeName(dataType) + "_" + gluShaderUtil.getPrecisionName(precision);
+		            caseName = gluShaderUtil.getDataTypeName(dataType) + '_' + gluShaderUtil.getPrecisionName(precision);
 
-		            linearCaseGroup.addChild(new es3fShaderDerivateTests.LinearDerivateCase(caseName, "", function_, dataType, precision, hint, surfaceType, numSamples, source));
+		            linearCaseGroup.addChild(new es3fShaderDerivateTests.LinearDerivateCase(caseName, '', function_, dataType, precision, hint, surfaceType, numSamples, source));
 		        }
 		    }
 
 		    // Fbo cases
 		    for (var caseNdx = 0; caseNdx < s_fboConfigs.length; caseNdx++) {
-		        /** @type {tcuTestCase.DeqpTest} */ varfboGroup = tcuTestCase.newTest(s_fboConfigs[caseNdx].name, "Derivate usage when rendering into FBO");
+		        /** @type {tcuTestCase.DeqpTest} */ varfboGroup = tcuTestCase.newTest(s_fboConfigs[caseNdx].name, 'Derivate usage when rendering into FBO');
 		        source = s_linearDerivateCases[0].source; // use source from .linear group
 		        surfaceType = s_fboConfigs[caseNdx].surfaceType;
 		        numSamples = s_fboConfigs[caseNdx].numSamples;
@@ -1660,21 +1668,21 @@ goog.scope(function() {
 		            if (surfaceType !== es3fShaderDerivateTests.SurfaceType.FLOAT_FBO && precision === gluShaderUtil.precision.PRECISION_LOWP)
 		                continue; // Skip as lowp doesn't actually produce any bits when rendered to U8 RT.
 
-		            caseName = gluShaderUtil.getDataTypeName(dataType) + "_" + gluShaderUtil.getPrecisionName(precision);
+		            caseName = gluShaderUtil.getDataTypeName(dataType) + '_' + gluShaderUtil.getPrecisionName(precision);
 
-		            fboGroup.addChild(new es3fShaderDerivateTests.LinearDerivateCase(caseName, "", function_, dataType, precision, hint, surfaceType, numSamples, source));
+		            fboGroup.addChild(new es3fShaderDerivateTests.LinearDerivateCase(caseName, '', function_, dataType, precision, hint, surfaceType, numSamples, source));
 		        }
 		    }
 
 		    // .fastest, .nicest
 		    for (var hintCaseNdx = 0; hintCaseNdx < s_hints.length; hintCaseNdx++) {
-		        /** @type {tcuTestCase.DeqpTest} */ var hintGroup = tcuTestCase.newTest(s_hints[hintCaseNdx].name, "Shader derivate hints");
+		        /** @type {tcuTestCase.DeqpTest} */ var hintGroup = tcuTestCase.newTest(s_hints[hintCaseNdx].name, 'Shader derivate hints');
 		        source = s_linearDerivateCases[0].source; // use source from .linear group
 		        hint = s_hints[hintCaseNdx].hint;
 		        functionGroup.addChild(hintGroup);
 
 		        for (var fboCaseNdx = 0; fboCaseNdx < s_hintFboConfigs.length; fboCaseNdx++) {
-		            /** @type {tcuTestCase.DeqpTest} */ var fboGroup = tcuTestCase.newTest(s_hintFboConfigs[fboCaseNdx].name, "");
+		            /** @type {tcuTestCase.DeqpTest} */ var fboGroup = tcuTestCase.newTest(s_hintFboConfigs[fboCaseNdx].name, '');
 		            surfaceType = s_hintFboConfigs[fboCaseNdx].surfaceType;
 		            numSamples = s_hintFboConfigs[fboCaseNdx].numSamples;
 		            hintGroup.addChild(fboGroup);
@@ -1687,19 +1695,19 @@ goog.scope(function() {
 		                if (surfaceType !== es3fShaderDerivateTests.SurfaceType.FLOAT_FBO && precision === gluShaderUtil.precision.PRECISION_LOWP)
 		                    continue; // Skip as lowp doesn't actually produce any bits when rendered to U8 RT.
 
-		                caseName = gluShaderUtil.getDataTypeName(dataType) + "_" + gluShaderUtil.getPrecisionName(precision);
+		                caseName = gluShaderUtil.getDataTypeName(dataType) + '_' + gluShaderUtil.getPrecisionName(precision);
 
-		                fboGroup.addChild(new es3fShaderDerivateTests.es3fShaderDerivateTests.LinearDerivateCase(caseName, "", function_, dataType, precision, hint, surfaceType, numSamples, source));
+		                fboGroup.addChild(new es3fShaderDerivateTests.es3fShaderDerivateTests.LinearDerivateCase(caseName, '', function_, dataType, precision, hint, surfaceType, numSamples, source));
 		            }
 		        }
 		    }
 
 		    // .texture
-		    /** @type {tcuTestCase.DeqpTest} */ var textureGroup = tcuTestCase.newTest("texture", "Derivate of texture lookup result");
+		    /** @type {tcuTestCase.DeqpTest} */ var textureGroup = tcuTestCase.newTest('texture', 'Derivate of texture lookup result');
 		    functionGroup.addChild(textureGroup);
 
 		    for (var texCaseNdx = 0; texCaseNdx < s_textureConfigs.length; texCaseNdx++) {
-		        /** @type {tcuTestCase.DeqpTest} */ var caseGroup = tcuTestCase.newTest(s_textureConfigs[texCaseNdx].name, "");
+		        /** @type {tcuTestCase.DeqpTest} */ var caseGroup = tcuTestCase.newTest(s_textureConfigs[texCaseNdx].name, '');
 		        surfaceType = s_textureConfigs[texCaseNdx].surfaceType;
 		        numSamples = s_textureConfigs[texCaseNdx].numSamples;
 		        hint = s_textureConfigs[texCaseNdx].hint;
@@ -1713,9 +1721,9 @@ goog.scope(function() {
 		            if (surfaceType !== es3fShaderDerivateTests.SurfaceType.FLOAT_FBO && precision === gluShaderUtil.precision.PRECISION_LOWP)
 		                continue; // Skip as lowp doesn't actually produce any bits when rendered to U8 RT.
 
-		            caseName = gluShaderUtil.getDataTypeName(dataType) + "_" + gluShaderUtil.getPrecisionName(precision);
+		            caseName = gluShaderUtil.getDataTypeName(dataType) + '_' + gluShaderUtil.getPrecisionName(precision);
 
-		            caseGroup.addChild(new es3fShaderDerivateTests.TextureDerivateCase(caseName, "", function_, dataType, precision, hint, surfaceType, numSamples));
+		            caseGroup.addChild(new es3fShaderDerivateTests.TextureDerivateCase(caseName, '', function_, dataType, precision, hint, surfaceType, numSamples));
 		        }
 		    }
 		}
