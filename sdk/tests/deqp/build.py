@@ -83,7 +83,8 @@ targets = {
     'shaderloop' : 'functional.gles3.es3fShaderLoopTests',
     'shaderstruct' : 'functional.gles3.es3fShaderStructTests',
     'shaderswitch' : 'functional.gles3.es3fShaderSwitchTests',
-	'fborender' : 'functional.gles3.es3fFboRenderTest'
+	'fborender' : 'functional.gles3.es3fFboRenderTest',
+	'builtinprecision' : 'functional.gles3.es3fBuiltinPrecisionTests'
 }
 
 total_errors = 0
