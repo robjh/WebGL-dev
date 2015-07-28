@@ -177,7 +177,7 @@ goog.scope(function() {
 	};
 
 	/**
-	 * @param  {gluShaderUtil.DataType} type
+	 * @param  {?gluShaderUtil.DataType} type
 	 * @return {Array<boolean>}
 	 */
 	es3fShaderDerivateTests.getDerivateMask = function(type) {
@@ -227,7 +227,7 @@ goog.scope(function() {
 	};
 
 	/**
-  	 * @param  {gluShaderUtil.precision} precision
+  	 * @param  {?gluShaderUtil.precision} precision
 	 * @return {number}
 	 */
 	es3fShaderDerivateTests.getNumMantissaBits = function(precision) {
@@ -241,7 +241,7 @@ goog.scope(function() {
 	};
 
 	/**
-	 * @param  {gluShaderUtil.precision} precision
+	 * @param  {?gluShaderUtil.precision} precision
 	 * @return {number}
 	 */
 	es3fShaderDerivateTests.getMinExponent = function(precision) {
@@ -342,7 +342,7 @@ goog.scope(function() {
 	};
 
 	/**
-	 * @param  {gluShaderUtil.precision} precision
+	 * @param  {?gluShaderUtil.precision} precision
 	 * @param  {Array<number>} valueMin
 	 * @param  {Array<number>} valueMax
 	 * @param  {Array<number>} expectedDerivate
@@ -388,7 +388,7 @@ goog.scope(function() {
     /**
 	 * @param  {tcuTexture.ConstPixelBufferAccess} result
 	 * @param  {tcuTexture.PixelBufferAccess} errorMask
-	 * @param  {gluShaderUtil.DataType} dataType
+	 * @param  {?gluShaderUtil.DataType} dataType
 	 * @param  {Array<number>} reference
 	 * @param  {Array<number>} threshold
 	 * @param  {Array<number>} scale
@@ -455,8 +455,8 @@ goog.scope(function() {
 	/**
 	 * @param {tcuTexture.ConstPixelBufferAccess} result
 	 * @param {tcuTexture.PixelBufferAccess} errorMask
-	 * @param {gluShaderUtil.DataType} dataType
-	 * @param {gluShaderUtil.precision} precision
+	 * @param {?gluShaderUtil.DataType} dataType
+	 * @param {?gluShaderUtil.precision} precision
 	 * @param {Array<number>} derivScale
 	 * @param {Array<number>} derivBias
 	 * @param {Array<number>} surfaceThreshold
@@ -614,11 +614,13 @@ goog.scope(function() {
 	es3fShaderDerivateTests.TriangleDerivateCase.prototype.constructor = es3fShaderDerivateTests.TriangleDerivateCase;
 
 	es3fShaderDerivateTests.TriangleDerivateCase.prototype.deinit = function() {};
-	es3fShaderDerivateTests.TriangleDerivateCase.prototype.setupRenderState = function() {};
+
+	/** @param {WebGLProgram} program */
+	es3fShaderDerivateTests.TriangleDerivateCase.prototype.setupRenderState = function(program) {};
 
 	/**
-	 * @param {gluShaderUtil.DataType} coordType
-	 * @param {gluShaderUtil.precision} precision
+	 * @param {?gluShaderUtil.DataType} coordType
+	 * @param {?gluShaderUtil.precision} precision
 	 * @return {string}
 	 */
 	es3fShaderDerivateTests.genVertexSource = function(coordType, precision) {
@@ -760,7 +762,7 @@ goog.scope(function() {
 				break;
 
 			default:
-				throw new Error('Data Type not supported: ' + this.dataType);
+				throw new Error('Data Type not supported: ' + this.m_dataType);
 		}
 
 		glsShaderRenderCase.setupDefaultUniforms(program.getProgram());
@@ -831,7 +833,7 @@ goog.scope(function() {
 
 		// Verify
 		/** @type {tcuSurface.Surface} */
-		var errorMask = new tcuSurface.Surface(result.getWidth(), result.getHeight());
+		var errorMask = new tcuSurface.Surface(resultSurface.getWidth(), resultSurface.getHeight());
 
 		errorMask.getAccess().clear(tcuRGBA.RGBA.green.toVec());
 
@@ -1169,7 +1171,7 @@ goog.scope(function() {
 		/** @type {Object} */ var fragmentParams = {};
 		/** @type {Array<number>} */ var viewportSize;
 		fragmentParams['OUTPUT_TYPE'] = gluShaderUtil.getDataTypeName(packToInt ? gluShaderUtil.DataType.UINT_VEC4 : gluShaderUtil.DataType.FLOAT_VEC4);
-		fragmentParams['OUTPUT_PREC'] = gluShaderUtil.getPrecisionName(packToInt ? gluShaderUtil.precision.PRECISION_HIGHP : this.precision);
+		fragmentParams['OUTPUT_PREC'] = gluShaderUtil.getPrecisionName(packToInt ? gluShaderUtil.precision.PRECISION_HIGHP : this.m_precision);
 		fragmentParams['PRECISION'] = gluShaderUtil.getPrecisionName(this.m_precision);
 		fragmentParams['DATATYPE'] = gluShaderUtil.getDataTypeName(this.m_dataType);
 		fragmentParams['FUNC'] = es3fShaderDerivateTests.getDerivateFuncName(this.m_func);
@@ -1221,7 +1223,7 @@ goog.scope(function() {
 		// Lowp and mediump cases use RGBA16F format, while highp uses RGBA32F.
 		viewportSize = this.getViewportSize();
 		assertMsgOptions(!this.m_texture, 'Texture not null', false, true);
-		this.m_texture = new gluTexture.Texture2D(gl, this.m_precision === gluShaderUtil.precision.PRECISION_HIGHP ? gl.RGBA32F : gl.RGBA16F, viewportSize[0], viewportSize[1]);
+		this.m_texture = gluTexture.texture2DFromFormat(gl, this.m_precision === gluShaderUtil.precision.PRECISION_HIGHP ? gl.RGBA32F : gl.RGBA16F, viewportSize[0], viewportSize[1]);
 		this.m_texture.getRefTexture().allocLevel(0);
 
 		// Texture coordinates
