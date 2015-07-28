@@ -84,6 +84,8 @@ targets = {
     'shaderstruct' : 'functional.gles3.es3fShaderStructTests',
     'shaderswitch' : 'functional.gles3.es3fShaderSwitchTests',
     'fborender' : 'functional.gles3.es3fFboRenderTest',
+    'shaderderivate' : 'functional.gles3.es3fShaderDerivateTests',
+    'builtinprecision' : 'functional.gles3.es3fBuiltinPrecisionTests',
     'texturefilter' : 'functional.gles3.es3fTextureFilteringTests'
 }
 
