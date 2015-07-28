@@ -182,11 +182,11 @@ gluShaderUtil.DataType = {
  */
 gluShaderUtil.ShaderType = {
     VERTEX: 0,
-	FRAGMENT: 1,
-	GEOMETRY: 2,
-	TESSELLATION_CONTROL: 3,
-	TESSELLATION_EVALUATION: 4,
-	COMPUTE: 5
+    FRAGMENT: 1,
+    GEOMETRY: 2,
+    TESSELLATION_CONTROL: 3,
+    TESSELLATION_EVALUATION: 4,
+    COMPUTE: 5
 };
 
 /**
@@ -772,21 +772,21 @@ gluShaderUtil.getDataTypeFromGLType = function(glType) {
 
 // ShaderType
 /**
- * @param  {gluShaderUtil.ShaderType} shaderType
+ * @param {gluShaderUtil.ShaderType} shaderType
  * @return {string}
  */
 gluShaderUtil.getShaderTypeName = function(shaderType) {
-	/** @type {Array<string>} */ var s_names = [
-		"vertex",
-		"fragment",
-		"geometry",
-		"tess_control",
-		"tess_eval",
-		"compute"
-	];
+    /** @type {Array<string>} */ var s_names = [
+        'vertex',
+        'fragment',
+        'geometry',
+        'tess_control',
+        'tess_eval',
+        'compute'
+    ];
 
-	assertMsgOptions(deMath.deInBounds32(shaderType, 0, s_names.length), 'shaderType out of bouds.', false, true);
-	return s_names[shaderType];
-}
+    assertMsgOptions(deMath.deInBounds32(shaderType, 0, s_names.length), 'shaderType out of bouds.', false, true);
+    return s_names[shaderType];
+};
 
 });

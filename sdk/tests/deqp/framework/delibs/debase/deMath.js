@@ -184,7 +184,7 @@ deMath.scale = function(a, b) {
  * @param {number} b
  * @return {Array<number>} Result array
  */
-deMath.addScalar= function(a, b) {
+deMath.addScalar = function(a, b) {
     if (!Array.isArray(a))
         throw new Error('First argument must be an array.');
     if (typeof b !== 'number')

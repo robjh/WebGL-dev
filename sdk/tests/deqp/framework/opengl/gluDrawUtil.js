@@ -406,11 +406,11 @@ gluDrawUtil.bindingPointFromName = function(name, location) {
 };
 
 /**
- * @param  {string} name
- * @param  {number} numComponents
- * @param  {number} numElements
- * @param  {number} stride
- * @param  {Array<number>} data
+ * @param {string} name
+ * @param {number} numComponents
+ * @param {number} numElements
+ * @param {number} stride
+ * @param {Array<number>} data
  * @return {gluDrawUtil.VertexArrayBinding}
  */
 gluDrawUtil.newFloatVertexArrayBinding = function(name, numComponents, numElements, stride, data) {
