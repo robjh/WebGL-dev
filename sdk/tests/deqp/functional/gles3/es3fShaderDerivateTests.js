@@ -1223,7 +1223,7 @@ goog.scope(function() {
 		// Lowp and mediump cases use RGBA16F format, while highp uses RGBA32F.
 		viewportSize = this.getViewportSize();
 		assertMsgOptions(!this.m_texture, 'Texture not null', false, true);
-		this.m_texture = gluTexture.texture2DFromFormat(gl, this.m_precision === gluShaderUtil.precision.PRECISION_HIGHP ? gl.RGBA32F : gl.RGBA16F, viewportSize[0], viewportSize[1]);
+		this.m_texture = gluTexture.texture2DFromInternalFormat(gl, this.m_precision === gluShaderUtil.precision.PRECISION_HIGHP ? gl.RGBA32F : gl.RGBA16F, viewportSize[0], viewportSize[1]);
 		this.m_texture.getRefTexture().allocLevel(0);
 
 		// Texture coordinates
