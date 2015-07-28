@@ -22,9 +22,11 @@
 goog.provide('functional.gles3.es3fShaderDerivateTests');
 goog.require('framework.delibs.debase.deMath');
 goog.require('framework.delibs.debase.deRandom');
+goog.require('framework.delibs.debase.deString');
 goog.require('framework.opengl.gluDrawUtil');
 goog.require('framework.opengl.gluShaderProgram');
 goog.require('framework.opengl.gluShaderUtil');
+goog.require('framework.opengl.gluTexture');
 goog.require('framework.common.tcuInterval');
 goog.require('framework.common.tcuFloat');
 goog.require('framework.common.tcuLogImage');
@@ -34,14 +36,19 @@ goog.require('framework.common.tcuRGBA');
 goog.require('framework.common.tcuStringTemplate');
 goog.require('framework.common.tcuSurface');
 goog.require('framework.common.tcuTexture');
+goog.require('framework.common.tcuTextureUtil');
+goog.require('framework.common.tcuTestCase');
+goog.require('modules.shared.glsShaderRenderCase');
 
 goog.scope(function() {
 	var es3fShaderDerivateTests = functional.gles3.es3fShaderDerivateTests;
 	var deMath = framework.delibs.debase.deMath;
 	var deRandom = framework.delibs.debase.deRandom;
+	var deString = framework.delibs.debase.deString;
 	var gluDrawUtil = framework.opengl.gluDrawUtil;
 	var gluShaderProgram = framework.opengl.gluShaderProgram;
 	var gluShaderUtil = framework.opengl.gluShaderUtil;
+	var gluTexture = framework.opengl.gluTexture;
 	var tcuInterval = framework.common.tcuInterval;
 	var tcuFloat = framework.common.tcuFloat;
 	var tcuLogImage = framework.common.tcuLogImage;
@@ -51,6 +58,9 @@ goog.scope(function() {
 	var tcuStringTemplate = framework.common.tcuStringTemplate;
 	var tcuSurface = framework.common.tcuSurface;
 	var tcuTexture = framework.common.tcuTexture;
+	var tcuTextureUtil = framework.common.tcuTextureUtil;
+	var tcuTestCase = framework.common.tcuTestCase;
+	var glsShaderRenderCase = modules.shared.glsShaderRenderCase;
 
 	/** @const {number} */ es3fShaderDerivateTests.VIEWPORT_WIDTH = 167;
 	/** @const {number} */ es3fShaderDerivateTests.VIEWPORT_HEIGHT = 103;
@@ -499,14 +509,14 @@ goog.scope(function() {
 			// check components separately
 			for (var c = 0; c < numComponents; ++c) {
 				// interpolation value range
-				/** @type {tcuInterval.Interval} */ var forwardComponent = new tcuInteral.Interval(
-					new tcuInteral.Interval(es3fShaderDerivateTests.convertFloorFlushToZero(functionValueForward[c], minExponent, numVaryingSampleBits)),
-					new tcuInteral.Interval(es3fShaderDerivateTests.convertCeilFlushToZero(functionValueForward[c], minExponent, numVaryingSampleBits))
+				/** @type {tcuInterval.Interval} */ var forwardComponent = tcuInterval.withIntervals(
+					new tcuInterval.Interval(es3fShaderDerivateTests.convertFloorFlushToZero(functionValueForward[c], minExponent, numVaryingSampleBits)),
+					new tcuInterval.Interval(es3fShaderDerivateTests.convertCeilFlushToZero(functionValueForward[c], minExponent, numVaryingSampleBits))
 				);
 
-				/** @type {tcuInterval.Interval} */ var backwardComponent = new tcuInteral.Interval(
-					new tcuInteral.Interval(es3fShaderDerivateTests.convertFloorFlushToZero(functionValueBackward[c], minExponent, numVaryingSampleBits)),
-					new tcuInteral.Interval(es3fShaderDerivateTests.convertCeilFlushToZero(functionValueBackward[c], minExponent, numVaryingSampleBits)));
+				/** @type {tcuInterval.Interval} */ var backwardComponent = tcuInterval.withIntervals(
+					new tcuInterval.Interval(es3fShaderDerivateTests.convertFloorFlushToZero(functionValueBackward[c], minExponent, numVaryingSampleBits)),
+					new tcuInterval.Interval(es3fShaderDerivateTests.convertCeilFlushToZero(functionValueBackward[c], minExponent, numVaryingSampleBits)));
 
 				/** @type {number} */
 				var maxValueExp = Math.max(
@@ -525,15 +535,15 @@ goog.scope(function() {
 				/** @type {number} */ var nominatorLoBits = Math.max(0, numBits - nominatorLoBitsLost);
 				/** @type {number} */ var nominatorHiBits = Math.max(0, numBits - nominatorHiBitsLost);
 
-				/** @type {tcuInterval.Interval} */ var nominatorRange = new tcuInterval.Interval(
+				/** @type {tcuInterval.Interval} */ var nominatorRange = tcuInterval.withIntervals(
 					new tcuInterval.Interval(es3fShaderDerivateTests.convertFloorFlushToZero(nominator.lo(), minExponent, nominatorLoBits)),
 					new tcuInterval.Interval(es3fShaderDerivateTests.convertCeilFlushToZero(nominator.hi(), minExponent, nominatorHiBits)));
 				//
 				/** @type {tcuInterval.Interval} */ var divisionRange = tcuInterval.Interval.operatorDiv(nominatorRange, new tcuInterval.Interval(3.0)); // legal sample area is anywhere within this and neighboring pixels (i.e. size = 3)
-				/** @type {tcuInterval.Interval} */ var divisionResultRange = new tcuInterval.Interval(
+				/** @type {tcuInterval.Interval} */ var divisionResultRange = tcuInterval.withIntervals(
 					new tcuInterval.Interval(es3fShaderDerivateTests.convertFloorFlushToZero(es3fShaderDerivateTests.addErrorUlp(divisionRange.lo(), -divisionErrorUlps, numBits), minExponent, numBits)),
 					new tcuInterval.Interval(es3fShaderDerivateTests.convertCeilFlushToZero(es3fShaderDerivateTests.addErrorUlp(divisionRange.hi(), divisionErrorUlps, numBits), minExponent, numBits)));
-				/** @type {tcuInterval.Interval} */ var finalResultRange = new tcuInterval.Interval(
+				/** @type {tcuInterval.Interval} */ var finalResultRange = tcuInterval.withIntervals(
 					new tcuInterval.Interval(divisionResultRange.lo() - surfaceThreshold[c]),
 					new tcuInterval.Interval(divisionResultRange.hi() + surfaceThreshold[c]));
 
@@ -573,13 +583,13 @@ goog.scope(function() {
 
 	/**
 	 * @constructor
-	 * @extends {tes3TestCase} // TODO: tes3TestCase?
+	 * @extends {tcuTestCase.DeqpTest} // TODO: tes3TestCase?
 	 * @param {string} name
 	 * @param {string} description
 	 */
 	es3fShaderDerivateTests.TriangleDerivateCase = function(name, description) {
 		// TODO:
-		// tes3TestCase.TestCase.call(this, name, description);
+		tcuTestCase.DeqpTest.call(this, name, description);
 		/** @type {?gluShaderUtil.DataType} */ this.m_dataType = null;
 		/** @type {?gluShaderUtil.precision} */ this.m_precision = null;
 
@@ -597,10 +607,14 @@ goog.scope(function() {
 		/** @type {number} */ this.m_numSamples = 0;
 		/** @type {number} */ this.m_hint = gl.DONT_CARE;
 
-		assertMsgOptions(this.m_surfaceType !== es3fShaderDerivateTests.SurfaceType.DEFAULT_FRAMEBUFFER || this.m_numSamples === 0, '');
+		assertMsgOptions(this.m_surfaceType !== es3fShaderDerivateTests.SurfaceType.DEFAULT_FRAMEBUFFER || this.m_numSamples === 0, 'Did not expect surfaceType = DEFAULT_FRAMEBUFFER or numSamples = 0', false, true);
 	};
 
+	es3fShaderDerivateTests.TriangleDerivateCase.prototype = Object.create(tcuTestCase.DeqpTest.prototype);
+	es3fShaderDerivateTests.TriangleDerivateCase.prototype.constructor = es3fShaderDerivateTests.TriangleDerivateCase;
+
 	es3fShaderDerivateTests.TriangleDerivateCase.prototype.deinit = function() {};
+	es3fShaderDerivateTests.TriangleDerivateCase.prototype.setupRenderState = function() {};
 
 	/**
 	 * @param {gluShaderUtil.DataType} coordType
@@ -610,7 +624,7 @@ goog.scope(function() {
 	es3fShaderDerivateTests.genVertexSource = function(coordType, precision) {
 		assertMsgOptions(gluShaderUtil.isDataTypeFloatOrVec(coordType), 'Coord Type not supported', false, true);
 
-		/** @type {string} */ vertexTmpl = '' +
+		/** @type {string} */ var vertexTmpl = '' +
 			'#version 300 es\n' +
 			'in highp vec4 a_position;\n' +
 			'in ${PRECISION} ${DATATYPE} a_coord;\n' +
@@ -621,7 +635,7 @@ goog.scope(function() {
 			'	v_coord = a_coord;\n' +
 			'}\n';
 
-		/** @type {Object} */ vertexParams = {};
+		/** @type {Object} */ var vertexParams = {};
 
 		vertexParams['PRECISION'] = gluShaderUtil.getPrecisionName(precision);
 		vertexParams['DATATYPE'] = gluShaderUtil.getDataTypeName(coordType);
@@ -650,14 +664,14 @@ goog.scope(function() {
 		/** @type {deRandom.Random} */ var rnd = new deRandom.Random(deString.deStringHash(this.name) ^ 0xbbc24);
 		/** @type {boolean} */ var useFbo = this.m_surfaceType != es3fShaderDerivateTests.SurfaceType.DEFAULT_FRAMEBUFFER;
 		/** @type {number} */ var fboFormat = this.m_surfaceType === es3fShaderDerivateTests.SurfaceType.FLOAT_FBO ? gl.RGBA32UI : gl.RGBA8;
-		/** @type {Array<number>} */ var viewportSize = es3fShaderDerivateTests.getViewportSize();
+		/** @type {Array<number>} */ var viewportSize = this.getViewportSize();
 		/** @type {number} */ var viewportX = useFbo ? 0 : rnd.getInt(0, gl.drawingBufferWidth - viewportSize[0]);
 		/** @type {number} */ var viewportY = useFbo ? 0 : rnd.getInt(0, gl.drawingBufferHeight - viewportSize[1]);
 		/** @type {es3fShaderDerivateTests.AutoFbo} */ var fbo = new es3fShaderDerivateTests.AutoFbo(gl);
 		/** @type {es3fShaderDerivateTests.AutoRbo} */ var rbo = new es3fShaderDerivateTests.AutoRbo(gl);
 		/** @type {tcuTexture.TextureLevel} */ var result;
 
-		bufferedLogToConsole(program);
+		bufferedLogToConsole(program.getProgramInfo().infoLog);
 
 		if (!program.isOk())
 			assertMsgOptions(false, 'Compile failed', false, true);
@@ -721,8 +735,8 @@ goog.scope(function() {
 
 		gl.useProgram(program.getProgram());
 
-		/** @type {number} */ var scaleLoc = gl.getUniformLocation(program.getProgram(), 'u_scale');
-		/** @type {number} */ var biasLoc = gl.getUniformLocation(program.getProgram(), 'u_bias');
+		/** @type {WebGLUniformLocation} */ var scaleLoc = gl.getUniformLocation(program.getProgram(), 'u_scale');
+		/** @type {WebGLUniformLocation} */ var biasLoc = gl.getUniformLocation(program.getProgram(), 'u_bias');
 
 		switch (this.m_dataType) {
 			case gluShaderUtil.DataType.FLOAT:
@@ -731,18 +745,18 @@ goog.scope(function() {
 				break;
 
 			case gluShaderUtil.DataType.FLOAT_VEC2:
-				gl.uniform2fv(scaleLoc, 1, this.m_derivScale);
-				gl.uniform2fv(biasLoc, 1, this.m_derivBias);
+				gl.uniform2fv(scaleLoc, this.m_derivScale);
+				gl.uniform2fv(biasLoc, this.m_derivBias);
 				break;
 
 			case gluShaderUtil.DataType.FLOAT_VEC3:
-				gl.uniform3fv(scaleLoc, 1, this.m_derivScale);
-				gl.uniform3fv(biasLoc, 1, this.m_derivBias);
+				gl.uniform3fv(scaleLoc, this.m_derivScale);
+				gl.uniform3fv(biasLoc, this.m_derivBias);
 				break;
 
 			case gluShaderUtil.DataType.FLOAT_VEC4:
-				gl.uniform4fv(scaleLoc, 1, this.m_derivScale);
-				gl.uniform4fv(biasLoc, 1, this.m_derivBias);
+				gl.uniform4fv(scaleLoc, this.m_derivScale);
+				gl.uniform4fv(biasLoc, this.m_derivBias);
 				break;
 
 			default:
@@ -750,7 +764,7 @@ goog.scope(function() {
 		}
 
 		glsShaderRenderCase.setupDefaultUniforms(program.getProgram());
-		es3fShaderDerivateTests.setupRenderState(program.getProgram());
+		this.setupRenderState(program.getProgram());
 
 		gl.hint(gl.FRAGMENT_SHADER_DERIVATIVE_HINT, this.m_hint);
 		// TODO GLU_EXPECT_NO_ERROR(gl.getError(), 'Setup program state');
@@ -763,7 +777,7 @@ goog.scope(function() {
 
 		/** @type {boolean} */ var isMSAA = useFbo && this.m_numSamples > 0;
 		/** @type {es3fShaderDerivateTests.AutoFbo} */ var resFbo = new es3fShaderDerivateTests.AutoFbo(gl);
-		/** @type {es3fShaderDerivateTests.AutoRbo} */ var resRbo = new es3fShaderDerivateTests.AutoFbo(gl);
+		/** @type {es3fShaderDerivateTests.AutoRbo} */ var resRbo = new es3fShaderDerivateTests.AutoRbo(gl);
 
 		// Resolve if necessary
 		if (isMSAA) {
@@ -819,14 +833,14 @@ goog.scope(function() {
 		/** @type {tcuSurface.Surface} */
 		var errorMask = new tcuSurface.Surface(result.getWidth(), result.getHeight());
 
-		errorMask.getAccess().clear(tcuRGBA.green.toVec());
+		errorMask.getAccess().clear(tcuRGBA.RGBA.green.toVec());
 
 		/** @type {boolean} */ var isOk = this.verify(resultSurface.getAccess(), errorMask.getAccess());
 
-		tcuLogImage.logImage('Rendered', 'Rendered image', resultSurface);
+		tcuLogImage.logImage('Rendered', 'Rendered image', resultSurface.getAccess());
 
 		if (!isOk) {
-			tcuLogImage.logImage('ErrorMask', 'Error mask', errorMask);
+			tcuLogImage.logImage('ErrorMask', 'Error mask', errorMask.getAccess());
 			testFailedOptions('Fail', false);
 		}
         else
@@ -891,7 +905,7 @@ goog.scope(function() {
 		/** @type {Object} */ var fragmentParams = {};
 		fragmentParams['PRECISION'] = gluShaderUtil.getPrecisionName(this.m_precision);
 		fragmentParams['DATATYPE'] = gluShaderUtil.getDataTypeName(this.m_dataType);
-		fragmentParams['FUNC'] = getDerivateFuncName(this.m_func);
+		fragmentParams['FUNC'] = es3fShaderDerivateTests.getDerivateFuncName(this.m_func);
 		fragmentParams['VALUE'] = this.m_dataType === gluShaderUtil.DataType.FLOAT_VEC4 ? 'vec4(1.0, 7.2, -1e5, 0.0)' :
 			this.m_dataType === gluShaderUtil.DataType.FLOAT_VEC3 ? 'vec3(1e2, 8.0, 0.01)' :
 			this.m_dataType === gluShaderUtil.DataType.FLOAT_VEC2 ? 'vec2(-0.0, 2.7)' :
@@ -956,7 +970,7 @@ goog.scope(function() {
 
 		/** @type {Object} */ var fragmentParams = {};
 		fragmentParams['OUTPUT_TYPE'] = gluShaderUtil.getDataTypeName(packToInt ? gluShaderUtil.DataType.UINT_VEC4 : gluShaderUtil.DataType.FLOAT_VEC4);
-		fragmentParams['OUTPUT_PREC'] = gluShaderUtil.getPrecisionName(packToInt ? gluShaderUtil.PRECISION_HIGHP : this.m_precision);
+		fragmentParams['OUTPUT_PREC'] = gluShaderUtil.getPrecisionName(packToInt ? gluShaderUtil.precision.PRECISION_HIGHP : this.m_precision);
 		fragmentParams['PRECISION'] = gluShaderUtil.getPrecisionName(this.m_precision);
 		fragmentParams['DATATYPE'] = gluShaderUtil.getDataTypeName(this.m_dataType);
 		fragmentParams['FUNC'] = es3fShaderDerivateTests.getDerivateFuncName(this.m_func);
@@ -977,17 +991,17 @@ goog.scope(function() {
 		this.m_fragmentSrc = tcuStringTemplate.specialize(this.m_fragmentTmpl, fragmentParams);
 
 		switch (this.m_precision) {
-			case gluShaderUtil.precision.HIGHP:
+			case gluShaderUtil.precision.PRECISION_HIGHP:
 				this.m_coordMin = [-97., 0.2, 71., 74.];
 				this.m_coordMax = [-13.2, -77., 44., 76.];
 				break;
 
-			case gluShaderUtil.precision.MEDIUMP:
+			case gluShaderUtil.precision.PRECISION_MEDIUMP:
 				this.m_coordMin = [-37.0, 47., -7., 0.0];
 				this.m_coordMax = [-1.0, 12., 7., 19.];
 				break;
 
-			case gluShaderUtil.precision.LOWP:
+			case gluShaderUtil.precision.PRECISION_LOWP:
 				this.m_coordMin = [0.0, -1.0, 0.0, 1.0];
 				this.m_coordMax = [1.0, 1.0, -1.0, -1.0];
 				break;
@@ -1039,14 +1053,16 @@ goog.scope(function() {
 
 		/** @type {number} */ var w;
 		/** @type {number} */ var h;
+		/** @type {Array<number>} */ var reference;
+		/** @type {Array<number>} */ var threshold;
 
 		if (this.m_func === es3fShaderDerivateTests.DerivateFunc.DFDX || this.m_func === es3fShaderDerivateTests.DerivateFunc.DFDY) {
 			/** @type {boolean} */ var isX = this.m_func === es3fShaderDerivateTests.DerivateFunc.DFDX;
 			/** @type {number} */ var div = isX ? result.getWidth() : result.getHeight();
 			/** @type {Array<number>} */ var scale = isX ? xScale : yScale;
-			/** @type {Array<number>} */ var reference = deMath.multiply(deMath.divide(deMath.subtract(this.m_coordMax, this.m_coordMin), div), scale);
-			/** @type {Array<number>} */ var opThreshold = es3fShaderDerivateTests.getDerivateThreshold(this.m_precision, deMath.multiply(this.m_coordMin * scale), deMath.multiply(this.m_coordMax, scale), reference);
-			/** @type {Array<number>} */ var threshold = deMath.max(surfaceThreshold, opThreshold);
+			reference = deMath.multiply(deMath.scale(deMath.subtract(this.m_coordMax, this.m_coordMin), 1/div), scale);
+			/** @type {Array<number>} */ var opThreshold = es3fShaderDerivateTests.getDerivateThreshold(this.m_precision, deMath.multiply(this.m_coordMin, scale), deMath.multiply(this.m_coordMax, scale), reference);
+			threshold = deMath.max(surfaceThreshold, opThreshold);
 			// /** @type {number} */ var numComps = gluShaderUtil.getDataTypeScalarTypeAsDataType(this.m_dataType); // TODO: may remove
 			bufferedLogToConsole('Verifying result image.\n' +
 				'\tValid derivative is ' + reference + ' with threshold ' + threshold);
@@ -1068,15 +1084,15 @@ goog.scope(function() {
 			    '\tVerifying each result derivative is within its range of legal result values.');
 
 			/** @type {Array<number>} */ var viewportSize = this.getViewportSize();
-			/** @type {Array<number>} */ var valueRamp = (this.m_coordMax - this.m_coordMin);
+			/** @type {Array<number>} */ var valueRamp = deMath.subtract(this.m_coordMax, this.m_coordMin);
 			/** @type {es3fShaderDerivateTests.Linear2DFunctionEvaluator} */ var function_;
 			w = viewportSize[0];
 			h = viewportSize[1];
 
-			function_.matrix.setRow(0, [deMath.scale(valueRamp[0], 1 / w), 0.0, this.m_coordMin[0]]);
-			function_.matrix.setRow(1, [0.0, deMath.scale(valueRamp[1], 1 / h), this.m_coordMin[1]]);
-			function_.matrix.setRow(2, deMath.scale([deMath.scale(valueRamp[2], 1 / w), deMath.scale(valueRamp[2], 1 / h), this.m_coordMin[2] + this.m_coordMin[2]], 1 / 2.0));
-			function_.matrix.setRow(3, deMath.scale([deMath.scale(-valueRamp[3], 1 / w), deMath.scale(-valueRamp[3], 1 / h), this.m_coordMax[3] + this.m_coordMax[3]], 1 / 2.0));
+			function_.matrix.setRow(0, [valueRamp[0] / w, 0.0, this.m_coordMin[0]]);
+			function_.matrix.setRow(1, [0.0, valueRamp[1] / h, this.m_coordMin[1]]);
+			function_.matrix.setRow(2, deMath.scale([valueRamp[2] / w, valueRamp[2] / h, this.m_coordMin[2] + this.m_coordMin[2]], 1 / 2.0));
+			function_.matrix.setRow(3, deMath.scale([-valueRamp[3] / w, -valueRamp[3] / h, this.m_coordMax[3] + this.m_coordMax[3]], 1 / 2.0));
 
 			return es3fShaderDerivateTests.reverifyConstantDerivateWithFlushRelaxations(
 				result, errorMask, this.m_dataType, this.m_precision, this.m_derivScale,
@@ -1087,12 +1103,12 @@ goog.scope(function() {
 			w = result.getWidth();
 			h = result.getHeight();
 
-			/** @type {Array<number>} */ var dx = deMath.multiply(deMath.scale(deMath.subtract(this.m_coordMax - this.m_coordMin),  1 / w), xScale);
-			/** @type {Array<number>} */ var dy = deMath.multiply(deMath.scale(deMath.subtract(this.m_coordMax - this.m_coordMin),  1 / h), yScale);
-			/** @type {Array<number>} */ var reference = deMath.add(deMath.abs(dx), deMath.abs(dy));
+			/** @type {Array<number>} */ var dx = deMath.multiply(deMath.scale(deMath.subtract(this.m_coordMax, this.m_coordMin),  1 / w), xScale);
+			/** @type {Array<number>} */ var dy = deMath.multiply(deMath.scale(deMath.subtract(this.m_coordMax, this.m_coordMin),  1 / h), yScale);
+			reference = deMath.add(deMath.abs(dx), deMath.abs(dy));
 			/** @type {Array<number>} */ var dxThreshold = es3fShaderDerivateTests.getDerivateThreshold(this.m_precision, deMath.multiply(this.m_coordMin, xScale), deMath.multiply(this.m_coordMax, xScale), dx);
 			/** @type {Array<number>} */ var dyThreshold = es3fShaderDerivateTests.getDerivateThreshold(this.m_precision, deMath.multiply(this.m_coordMin, yScale), deMath.multiply(this.m_coordMax, yScale), dy);
-			/** @type {Array<number>} */ var threshold = deMath.max(surfaceThreshold, deMath.max(dxThreshold, dyThreshold));
+			threshold = deMath.max(surfaceThreshold, deMath.max(dxThreshold, dyThreshold));
 
 			return es3fShaderDerivateTests.verifyConstantDerivate(result, errorMask, this.m_dataType,
 										  reference, threshold, this.m_derivScale, this.m_derivBias);
@@ -1151,7 +1167,7 @@ goog.scope(function() {
 
 		/** @type {boolean} */ var packToInt = this.m_surfaceType === es3fShaderDerivateTests.SurfaceType.FLOAT_FBO;
 		/** @type {Object} */ var fragmentParams = {};
-
+		/** @type {Array<number>} */ var viewportSize;
 		fragmentParams['OUTPUT_TYPE'] = gluShaderUtil.getDataTypeName(packToInt ? gluShaderUtil.DataType.UINT_VEC4 : gluShaderUtil.DataType.FLOAT_VEC4);
 		fragmentParams['OUTPUT_PREC'] = gluShaderUtil.getPrecisionName(packToInt ? gluShaderUtil.precision.PRECISION_HIGHP : this.precision);
 		fragmentParams['PRECISION'] = gluShaderUtil.getPrecisionName(this.m_precision);
@@ -1203,7 +1219,7 @@ goog.scope(function() {
 		}
 
 		// Lowp and mediump cases use RGBA16F format, while highp uses RGBA32F.
-		/** @type {Array<number>} */ var viewportSize = getViewportSize();
+		viewportSize = this.getViewportSize();
 		assertMsgOptions(!this.m_texture, 'Texture not null', false, true);
 		this.m_texture = new gluTexture.Texture2D(gl, this.m_precision === gluShaderUtil.precision.PRECISION_HIGHP ? gl.RGBA32F : gl.RGBA16F, viewportSize[0], viewportSize[1]);
 		this.m_texture.getRefTexture().allocLevel(0);
@@ -1220,7 +1236,7 @@ goog.scope(function() {
 				/** @type {number} */ var yf = (y + 0.5) / level0.getHeight();
 				/** @type {Array<number>} */ var s = [xf, yf, (xf + yf) / 2.0, 1.0 - (xf + yf) / 2.0];
 
-				level0.setPixel(deMath.add(this.m_texValueMin + deMath.multiply(deMath.subtract(this.m_texValueMax, this.m_texValueMin), s)), x, y);
+				level0.setPixel(deMath.add(this.m_texValueMin, deMath.multiply(deMath.subtract(this.m_texValueMax, this.m_texValueMin), s)), x, y);
 			}
 		}
 
@@ -1233,7 +1249,7 @@ goog.scope(function() {
 		}
 		else {
 			// Compute scale - bias that normalizes to 0..1 range.
-			/** @type {Array<number>} */ var viewportSize = this.getViewportSize();
+			viewportSize = this.getViewportSize();
 			/** @type {number} */ var w = viewportSize[0];
 			/** @type {number} */ var h = viewportSize[1];
 			/** @type {Array<number>} */ var dx = deMath.divide(deMath.subtract(this.m_texValueMax, this.m_texValueMin), [w, w, w * 0.5, -w * 0.5]);
@@ -1249,7 +1265,7 @@ goog.scope(function() {
 					break;
 
 				case es3fShaderDerivateTests.DerivateFunc.FWIDTH:
-					this.m_derivScale = deMath.divide([0.5, 0.5, 0.5, 0.5], (deMath.abs(dx) + deMath.abs(dy)));
+					this.m_derivScale = deMath.divide([0.5, 0.5, 0.5, 0.5], deMath.add(deMath.abs(dx), deMath.abs(dy)));
 					break;
 
 				default:
@@ -1286,22 +1302,23 @@ goog.scope(function() {
 		if (result.getWidth() < 2 || result.getHeight() < 2)
 			throw new Error('Too small viewport');
 
-		/** @type {tcuTexture.ConstPixelBufferAccess} */ var compareArea = tcuTextureUtil.getSubregion(result, 1, 1, result.getWidth() - 2, result.getHeight() - 2);
-		/** @type {tcuTexture.PixelBufferAccess} */ var maskArea = tcuTextureUtil.getSubregion(errorMask, 1, 1, errorMask.getWidth() - 2, errorMask.getHeight() - 2);
+		/** @type {tcuTexture.ConstPixelBufferAccess} */ var compareArea = tcuTextureUtil.getSubregion(result, 1, 1, 0, result.getWidth() - 2, result.getHeight() - 2, 1);
+		/** @type {tcuTexture.PixelBufferAccess} */ var maskArea = tcuTextureUtil.getSubregion(errorMask, 1, 1, 0, errorMask.getWidth() - 2, errorMask.getHeight() - 2, 1);
 		/** @type {Array<number>} */ var xScale = [1.0, 0.0, 0.5, -0.5];
 		/** @type {Array<number>} */ var yScale = [0.0, 1.0, 0.5, -0.5];
 		/** @type {number} */ var w = result.getWidth();
 		/** @type {number} */ var h = result.getHeight();
 
 		/** @type {Array<number>} */ var surfaceThreshold = deMath.divide(this.getSurfaceThreshold(), deMath.abs(this.m_derivScale));
-
+		/** @type {Array<number>} */ var reference;
+		/** @type {Array<number>} */ var threshold;
 		if (this.m_func == es3fShaderDerivateTests.DerivateFunc.DFDX || this.m_func == es3fShaderDerivateTests.DerivateFunc.DFDY) {
 			/** @type {boolean} */ var isX = this.m_func == es3fShaderDerivateTests.DerivateFunc.DFDX;
 			/** @type {number} */ var div = isX ? w : h;
 			/** @type {Array<number>} */ var scale = isX ? xScale : yScale;
-			/** @type {Array<number>} */ var reference = deMath.multiply(deMath.scale(deMath.subtract(this.m_texValueMax, this.m_texValueMin), 1 / div), scale);
-			/** @type {Array<number>} */ var opThreshold = es3fShaderDerivateTests.getDerivateThreshold(this.m_precision, this.m_texValueMin*scale, this.m_texValueMax*scale, reference);
-			/** @type {Array<number>} */ var threshold = deMath.max(surfaceThreshold, opThreshold);
+			reference = deMath.multiply(deMath.scale(deMath.subtract(this.m_texValueMax, this.m_texValueMin), 1 / div), scale);
+			/** @type {Array<number>} */ var opThreshold = es3fShaderDerivateTests.getDerivateThreshold(this.m_precision, deMath.multiply(this.m_texValueMin, scale), deMath.multiply(this.m_texValueMax, scale), reference);
+			threshold = deMath.max(surfaceThreshold, opThreshold);
 			// /** @type {number} */ var numComps = gluShaderUtil.getDataTypeScalarTypeAsDataType(this.m_dataType); // TODO: we may be able to remove this line
 
 			bufferedLogToConsole('Verifying result image.\n'+
@@ -1309,7 +1326,7 @@ goog.scope(function() {
 
 			// short circuit if result is strictly within the normal value error bounds.
 			// This improves performance significantly.
-			if (verifyConstantDerivate(compareArea, maskArea, this.m_dataType,
+			if (es3fShaderDerivateTests.verifyConstantDerivate(compareArea, maskArea, this.m_dataType,
 				reference, threshold, this.m_derivScale, this.m_derivBias,
 				es3fShaderDerivateTests.VerificationLogging.LOG_NOTHING)) {
 					bufferedLogToConsole('No incorrect derivatives found, result valid.');
@@ -1329,19 +1346,19 @@ goog.scope(function() {
 			function_.matrix.setRow(2, deMath.scale([valueRamp[2] / w, valueRamp[2] / h, this.m_texValueMin[2] + this.m_texValueMin[2]], 1 / 2.0));
 			function_.matrix.setRow(3, deMath.scale([-valueRamp[3] / w, -valueRamp[3] / h, this.m_texValueMax[3] + this.m_texValueMax[3]], 1 / 2.0));
 
-			return reverifyConstantDerivateWithFlushRelaxations(compareArea, maskArea, this.m_dataType, this.m_precision,
+			return es3fShaderDerivateTests.reverifyConstantDerivateWithFlushRelaxations(compareArea, maskArea, this.m_dataType, this.m_precision,
 				this.m_derivScale, this.m_derivBias, surfaceThreshold, this.m_func, function_);
 		}
 		else {
-			DE_ASSERT(this.m_func == es3fShaderDerivateTests.DerivateFunc.FWIDTH);
+			assertMsgOptions(this.m_func == es3fShaderDerivateTests.DerivateFunc.FWIDTH, 'Expected Derivate Function FWIDTH', false, true);
 			/** @type {Array<number>} */ var dx = deMath.multiply(deMath.scale(deMath.subtract(this.m_texValueMax, this.m_texValueMin), 1 / w), xScale);
 			/** @type {Array<number>} */ var dy = deMath.multiply(deMath.scale(deMath.subtract(this.m_texValueMax, this.m_texValueMin), 1 / h), yScale);
-			/** @type {Array<number>} */ var reference = deMath.add(deMath.abs(dx), deMath.abs(dy));
+			reference = deMath.add(deMath.abs(dx), deMath.abs(dy));
 			/** @type {Array<number>} */ var dxThreshold = es3fShaderDerivateTests.getDerivateThreshold(this.m_precision, deMath.multiply(this.m_texValueMin, xScale), deMath.multiply(this.m_texValueMax, xScale), dx);
 			/** @type {Array<number>} */ var dyThreshold = es3fShaderDerivateTests.getDerivateThreshold(this.m_precision, deMath.multiply(this.m_texValueMin, yScale), deMath.multiply(this.m_texValueMax, yScale), dy);
-			/** @type {Array<number>} */ var threshold	= deMath.max(surfaceThreshold, deMath.max(dxThreshold, dyThreshold));
+			threshold	= deMath.max(surfaceThreshold, deMath.max(dxThreshold, dyThreshold));
 
-			return verifyConstantDerivate(this.m_testCtx.getLog(), compareArea, maskArea, this.m_dataType,
+			return es3fShaderDerivateTests.verifyConstantDerivate(compareArea, maskArea, this.m_dataType,
 				reference, threshold, this.m_derivScale, this.m_derivBias);
 		};
 	};
@@ -1351,11 +1368,11 @@ goog.scope(function() {
 	 * @extends {tcuTestCase.DeqpTest}
 	 */
 	es3fShaderDerivateTests.ShaderDerivateTests = function() {
-		tcuTestCase.DeqpTest(this, 'derivate', 'Derivate Function Tests');
+		tcuTestCase.DeqpTest.call(this, 'derivate', 'Derivate Function Tests');
 	};
 
 	es3fShaderDerivateTests.ShaderDerivateTests.prototype = Object.create(tcuTestCase.DeqpTest.prototype);
-	es3fShaderDerivateTests.ShaderDerivateTests.prototype.constructor = es3f;ShaderDerivateTests.ShaderDerivateTests
+	es3fShaderDerivateTests.ShaderDerivateTests.prototype.constructor = es3fShaderDerivateTests.ShaderDerivateTests
 
 	/**
 	 * @struct
@@ -1605,18 +1622,19 @@ goog.scope(function() {
 			new TextureConfig('float_nicest', es3fShaderDerivateTests.SurfaceType.FLOAT_FBO, 0, gl.NICEST)
 		];
 
-		/** @type {gluShader;Util.DataType} */ var dataType;
+		/** @type {gluShaderUtil.DataType} */ var dataType;
 		/** @type {string} */ var source;
 		/** @type {gluShaderUtil.precision} */ var precision;
 		/** @type {es3fShaderDerivateTests.SurfaceType} */ var surfaceType;
-		/** @type {number} */ var numSamples
-		/** @type {number} */ var hint
-		/** @type {string} */ var caseName
+		/** @type {number} */ var numSamples;
+		/** @type {number} */ var hint;
+		/** @type {string} */ var caseName;
+		/** @type {tcuTestCase.DeqpTest} */ var fboGroup;
 
 		// .dfdx, .dfdy, .fwidth
 		for (var funcNdx in es3fShaderDerivateTests.DerivateFunc) {
 		    /** @type {es3fShaderDerivateTests.DerivateFunc} */ var function_ = es3fShaderDerivateTests.DerivateFunc[funcNdx];
-		    /** @type {tcuTestCase.DeqpTest} */ var functionGroup = tcuTestCase.newTest(s3fShaderDerivateTests.getDerivateFuncCaseName(function_), s3fShaderDerivateTests.getDerivateFuncName(function_));
+		    /** @type {tcuTestCase.DeqpTest} */ var functionGroup = tcuTestCase.newTest(es3fShaderDerivateTests.getDerivateFuncCaseName(function_), es3fShaderDerivateTests.getDerivateFuncName(function_));
 		    testGroup.addChild(functionGroup);
 
 		    // .constant - no precision variants, checks that derivate of constant arguments is 0
@@ -1625,7 +1643,7 @@ goog.scope(function() {
 
 		    for (var vecSize = 1; vecSize <= 4; vecSize++) {
 		        dataType = vecSize > 1 ? gluShaderUtil.getDataTypeFloatVec(vecSize) : gluShaderUtil.DataType.FLOAT;
-		        constantGroup.addChild(new ConstantDerivateCase(gluShaderUtil.getDataTypeName(dataType), '', function_, dataType));
+		        constantGroup.addChild(new es3fShaderDerivateTests.ConstantDerivateCase(gluShaderUtil.getDataTypeName(dataType), '', function_, dataType));
 		    }
 
 		    // Cases based on LinearDerivateCase
@@ -1653,7 +1671,7 @@ goog.scope(function() {
 
 		    // Fbo cases
 		    for (var caseNdx = 0; caseNdx < s_fboConfigs.length; caseNdx++) {
-		        /** @type {tcuTestCase.DeqpTest} */ varfboGroup = tcuTestCase.newTest(s_fboConfigs[caseNdx].name, 'Derivate usage when rendering into FBO');
+		        fboGroup = tcuTestCase.newTest(s_fboConfigs[caseNdx].name, 'Derivate usage when rendering into FBO');
 		        source = s_linearDerivateCases[0].source; // use source from .linear group
 		        surfaceType = s_fboConfigs[caseNdx].surfaceType;
 		        numSamples = s_fboConfigs[caseNdx].numSamples;
@@ -1682,7 +1700,7 @@ goog.scope(function() {
 		        functionGroup.addChild(hintGroup);
 
 		        for (var fboCaseNdx = 0; fboCaseNdx < s_hintFboConfigs.length; fboCaseNdx++) {
-		            /** @type {tcuTestCase.DeqpTest} */ var fboGroup = tcuTestCase.newTest(s_hintFboConfigs[fboCaseNdx].name, '');
+		            fboGroup = tcuTestCase.newTest(s_hintFboConfigs[fboCaseNdx].name, '');
 		            surfaceType = s_hintFboConfigs[fboCaseNdx].surfaceType;
 		            numSamples = s_hintFboConfigs[fboCaseNdx].numSamples;
 		            hintGroup.addChild(fboGroup);
@@ -1697,7 +1715,7 @@ goog.scope(function() {
 
 		                caseName = gluShaderUtil.getDataTypeName(dataType) + '_' + gluShaderUtil.getPrecisionName(precision);
 
-		                fboGroup.addChild(new es3fShaderDerivateTests.es3fShaderDerivateTests.LinearDerivateCase(caseName, '', function_, dataType, precision, hint, surfaceType, numSamples, source));
+		                fboGroup.addChild(new es3fShaderDerivateTests.LinearDerivateCase(caseName, '', function_, dataType, precision, hint, surfaceType, numSamples, source));
 		            }
 		        }
 		    }
