@@ -174,7 +174,7 @@ goog.scope(function() {
      */
     es3fTextureFilteringTests.Texture2DFilteringCase.prototype.init =
     function() {
-        try{
+        try {
             if (this.m_filenames.length > 0) {
                 this.m_textures.push(
                     0
@@ -182,7 +182,7 @@ goog.scope(function() {
                     m_testCtx.getArchive(), (int)m_filenames.size(),
                     m_filenames)*/
                 );
-            } else{
+            } else {
                 // Create 2 textures.
                 for (var ndx = 0; ndx < 2; ndx++)
                     this.m_textures.push(
@@ -197,10 +197,10 @@ goog.scope(function() {
                     Math.max(this.m_width, this.m_height)
                 ) + 1 : 1;
 
-                /** @type {tcuTextureUtil.TextureFormatInfo} */ var fmtInfo =
-                    tcuTextureUtil.getTextureFormatInfo(
-                        this.m_textures[0].getRefTexture().getFormat()
-                    );
+                /** @type {tcuTextureUtil.TextureFormatInfo} */
+                var fmtInfo = tcuTextureUtil.getTextureFormatInfo(
+                    this.m_textures[0].getRefTexture().getFormat()
+                );
                 /** @type {Array<number>} */ var cBias = fmtInfo.valueMin;
                 /** @type {Array<number>} */
                 var cScale = deMath.subtract(
@@ -269,10 +269,10 @@ goog.scope(function() {
             ];
 
             var viewportW = Math.min(
-                TEX2D_VIEWPORT_WIDTH, 0 /** TODO: gl.getRenderTarget().getWidth() */
+                TEX2D_VIEWPORT_WIDTH, gl.canvas.width
             );
             var viewportH = Math.min(
-                TEX2D_VIEWPORT_HEIGHT, 0 /** TODO: gl.getRenderTarget().getHeight() */
+                TEX2D_VIEWPORT_HEIGHT, gl.canvas.height
             );
 
             for (var caseNdx = 0; caseNdx < cases.length; caseNdx++) {
@@ -307,16 +307,14 @@ goog.scope(function() {
     };
 
     /**
-     * deinit TODO:
+     * deinit
      */
     es3fTextureFilteringTests.Texture2DFilteringCase.prototype.deinit =
     function() {
-        /*for (var i = 0; i < this.m_textures.length; i++)
-
-        this.m_textures.clear();
-
-        this.m_renderer.clear();
-        this.m_cases.clear();*/
+        while (this.m_textures.length > 0) {
+            gl.deleteTexture(this.m_textures[0].getGLTexture());
+            this.m_textures.splice(0, 1);
+        }
     };
 
     /**
@@ -380,7 +378,7 @@ goog.scope(function() {
 
         gl.viewport(viewport.x, viewport.y, viewport.width, viewport.height);
 
-        //TODO: m_renderer.renderQuad(0, &texCoord[0], refParams);
+        this.m_renderer.renderQuad(0, texCoord, refParams);
         rendered.readViewport(
             gl, [viewport.x, viewport.y, viewport.width, viewport.height]
         );
@@ -543,7 +541,7 @@ goog.scope(function() {
      */
     es3fTextureFilteringTests.TextureCubeFilteringCase.prototype.init =
     function() {
-        try{
+        try {
             if (this.m_filenames.length > 0) {
                 //TODO:
                 /*this.m_textures.push(gluTexture.TextureCube.create(
@@ -551,7 +549,7 @@ goog.scope(function() {
                     this.m_testCtx.getArchive(), this.m_filenames.length / 6,
                     this.m_filenames
                 ));*/
-            } else{
+            } else {
                 assertMsgOptions(
                     this.m_width == this.m_height, 'Texture has to be squared',
                     false, true
@@ -596,8 +594,7 @@ goog.scope(function() {
                 ];
                 for (var face = 0;
                     face < Object.keys(tcuTexture.CubeFace).length;
-                    face++;
-                ) {
+                    face++) {
                     for (var levelNdx = 0; levelNdx < numLevels; levelNdx++) {
                         this.m_textures[0].getRefTexture().allocLevel(
                             face, levelNdx
@@ -619,8 +616,7 @@ goog.scope(function() {
                 // Fill second with grid texture.
                 for (var face = 0;
                     face < Object.keys(tcuTexture.CubeFace).length;
-                    face++;
-                ) {
+                    face++) {
                     for (var levelNdx = 0; levelNdx < numLevels; levelNdx++) {
                         var step = 0x00ffffff / (
                             numLevels * Object.keys(tcuTexture.CubeFace).length
@@ -687,7 +683,7 @@ goog.scope(function() {
                     TextureCubeFilteringCase.FilterCase(
                     tex1, [0.2, 0.2], [0.6, 0.5]
                 ));
-            } else{
+            } else {
                 // minification
                 if (gl.getParameter(gl.SAMPLES) == 0)
                     this.m_cases.push(
@@ -740,17 +736,14 @@ goog.scope(function() {
     };
 
     /**
-     * TODO:
      * deinit
      */
     es3fTextureFilteringTests.TextureCubeFilteringCase.prototype.deinit =
     function() {
-        /*for (var i = 0; i < this.m_textures.length; i++)
-            delete *i;
-        this.m_textures.clear();
-
-        this.m_renderer.clear();
-        this.m_cases.clear();*/
+        while (this.m_textures.length > 0) {
+            gl.deleteTexture(this.m_textures[0].getGLTexture());
+            this.m_textures.splice(0, 1);
+        }
     };
 
     /**
@@ -837,8 +830,7 @@ goog.scope(function() {
 
         for (var faceNdx = 0;
             faceNdx < Object.keys(tcuTexture.CubeFace).length;
-            faceNdx++;
-        ) {
+            faceNdx++) {
             /** @type {tcuTexture.CubeFace} */
             var face = /** @type {tcuTexture.CubeFace} */ (faceNdx);
             /** @type {tcuSurface.Surface} */
@@ -857,7 +849,7 @@ goog.scope(function() {
 
             // \todo Log texture coordinates.
 
-            //TODO: this.m_renderer.renderQuad(0, &texCoord[0], sampleParams);
+            this.m_renderer.renderQuad(0, texCoord, sampleParams);
 
             result.readViewport(
                 gl, [viewport.x, viewport.y, viewport.width, viewport.height]
@@ -999,7 +991,7 @@ goog.scope(function() {
      */
     es3fTextureFilteringTests.Texture2DArrayFilteringCase.prototype.init =
     function() {
-        try{
+        try {
             /** @type {tcuTexture.TextureFormat} */
             var texFmt = gluTextureUtil.mapGLInternalFormat(
                 this.m_internalFormat
@@ -1019,6 +1011,7 @@ goog.scope(function() {
                 this.m_internalFormat, this.m_width,
                 this.m_height, this.m_numLayers
             );
+
             this.m_gridTex = new gluTexture.Texture2DArray(
                 this.m_internalFormat, this.m_width,
                 this.m_height, this.m_numLayers
@@ -1039,11 +1032,9 @@ goog.scope(function() {
                 var levelBuf =
                     this.m_gradientTex.getRefTexture().getLevel(levelNdx);
 
-                for (
-                    var layerNdx = 0;
+                for (var layerNdx = 0;
                     layerNdx < this.m_numLayers;
-                    layerNdx++
-                ) {
+                    layerNdx++) {
                     var swz = levelSwz[layerNdx % levelSwz.length];
                     var gMin = deMath.add(deMath.multiply(deMath.swizzle(
                         [0.0, 0.0, 0.0, 1.0], [swz[0], swz[1], swz[2], swz[3]]
@@ -1071,8 +1062,7 @@ goog.scope(function() {
                 for (
                     var layerNdx = 0;
                     layerNdx < this.m_numLayers;
-                    layerNdx++;
-                ) {
+                    layerNdx++) {
                     var step = 0x00ffffff / (numLevels * this.m_numLayers - 1);
                     var rgb = step * (levelNdx + layerNdx * numLevels);
                     /** @type {number} */ var colorA = deMath.binaryOp(
@@ -1156,14 +1146,11 @@ goog.scope(function() {
      */
     es3fTextureFilteringTests.Texture2DArrayFilteringCase.prototype.deinit =
     function() {
-        /*TODO: delete this.m_gradientTex;
-        delete this.m_gridTex;
+        gl.deleteTexture(this.m_gradientTex.getGLTexture());
+        gl.deleteTexture(this.m_gridTex.getGLTexture());
 
-        this.m_gradientTex = DE_NULL;
-        this.m_gridTex = DE_NULL;
-
-        this.m_renderer.clear();
-        this.m_cases.clear();*/
+        this.m_gradientTex = null;
+        this.m_gridTex = null;
     };
 
     /**
@@ -1249,7 +1236,13 @@ goog.scope(function() {
         gl.texParameteri(gl.TEXTURE_2D_ARRAY, gl.TEXTURE_WRAP_T, this.m_wrapT);
 
         gl.viewport(viewport.x, viewport.y, viewport.width, viewport.height);
-        //TODO: this.m_renderer.renderQuad(0, (const float*)&texCoord[0], refParams);
+        this.m_renderer.renderQuad(
+            0, texCoord[0].
+            concat(texCoord[1]).
+            concat(texCoord[2]).
+            concat(texCoord[3]),
+            refParams
+        );
         rendered.readViewport(
             gl, [viewport.x, viewport.y, viewport.width, viewport.height]
         );
@@ -1387,7 +1380,7 @@ goog.scope(function() {
      */
     es3fTextureFilteringTests.Texture3DFilteringCase.prototype.init = function(
     ) {
-        try{
+        try {
             /** @type {tcuTexture.TextureFormat} */
             var texFmt =
                 gluTextureUtil.mapGLInternalFormat(this.m_internalFormat);
@@ -1494,18 +1487,15 @@ goog.scope(function() {
     };
 
     /**
-     * TODO: deinit
+     * deinit
      */
     es3fTextureFilteringTests.Texture3DFilteringCase.prototype.deinit =
     function() {
-        /*delete this.m_gradientTex;
-        delete this.m_gridTex;
+        gl.deleteTexture(this.m_gradientTex.getGLTexture());
+        gl.deleteTexture(this.m_gridTex.getGLTexture());
 
-        this.m_gradientTex = DE_NULL;
-        this.m_gridTex = DE_NULL;
-
-        this.m_renderer.clear();
-        this.m_cases.clear();*/
+        this.m_gradientTex = null;
+        this.m_gridTex = null;
     };
 
     /**
@@ -1593,7 +1583,7 @@ goog.scope(function() {
         gl.texParameteri(gl.TEXTURE_3D, gl.TEXTURE_WRAP_R, this.m_wrapR);
 
         gl.viewport(viewport.x, viewport.y, viewport.width, viewport.height);
-        //TODO: this.m_renderer.renderQuad(0, (const float*)&texCoord[0], refParams);
+        this.m_renderer.renderQuad(0, texCoord, refParams);
         rendered.readViewport(
             gl, [viewport.x, viewport.y, viewport.width, viewport.height]
         );
@@ -1820,11 +1810,9 @@ goog.scope(function() {
 
         group2D.addChild(formatsGroup);
 
-        for (
-            var fmtNdx = 0;
+        for (var fmtNdx = 0;
             fmtNdx < filterableFormatsByType.length;
-            fmtNdx++
-        ) {
+            fmtNdx++) {
              for (var filterNdx = 0;
                 filterNdx < minFilterModes.length;
                 filterNdx++) {
@@ -1863,11 +1851,9 @@ goog.scope(function() {
         for (var i = 0; i <= 7; i++)
             filenames.push('data/etc1/photo_helsinki_mip_' + i + '.pkm');
 
-        for (
-            var filterNdx = 0;
+        for (var filterNdx = 0;
             filterNdx < minFilterModes.length;
-            filterNdx++
-        ) {
+            filterNdx++) {
             minFilter = minFilterModes[filterNdx].mode;
             filterName = minFilterModes[filterNdx].name;
             isMipmap = minFilter != gl.NEAREST &&
@@ -1926,11 +1912,9 @@ goog.scope(function() {
             for (var magFilterNdx = 0;
                 magFilterNdx < magFilterModes.length;
                 magFilterNdx++) {
-                for (
-                    var wrapSNdx = 0;
+                for (var wrapSNdx = 0;
                     wrapSNdx < wrapModes.length;
-                    wrapSNdx++
-                ) {
+                    wrapSNdx++) {
                     for (var wrapTNdx = 0;
                         wrapTNdx < wrapModes.length;
                         wrapTNdx++) {
@@ -1971,11 +1955,9 @@ goog.scope(function() {
             'formats', '2D Texture Formats'
         );
         groupCube.addChild(formatsGroup);
-        for (
-            var fmtNdx = 0;
+        for (var fmtNdx = 0;
             fmtNdx < filterableFormatsByType.length;
-            fmtNdx++
-        ) {
+            fmtNdx++) {
             for (var filterNdx = 0;
                 filterNdx < minFilterModes.length;
                 filterNdx++) {
@@ -2019,11 +2001,9 @@ goog.scope(function() {
                     '_mip_' + level + '.pkm'
                 );
 
-        for (
-            var filterNdx = 0;
+        for (var filterNdx = 0;
             filterNdx < minFilterModes.length;
-            filterNdx++
-        ) {
+            filterNdx++) {
             minFilter = minFilterModes[filterNdx].mode;
             filterName = minFilterModes[filterNdx].name;
             isMipmap = minFilter != gl.NEAREST && minFilter != gl.LINEAR;
@@ -2082,11 +2062,9 @@ goog.scope(function() {
             for (var magFilterNdx = 0;
                 magFilterNdx < magFilterModes.length;
                 magFilterNdx++) {
-                for (
-                    var wrapSNdx = 0;
+                for (var wrapSNdx = 0;
                     wrapSNdx < wrapModes.length;
-                    wrapSNdx++
-                ) {
+                    wrapSNdx++) {
                     for (var wrapTNdx = 0;
                         wrapTNdx < wrapModes.length;
                         wrapTNdx++) {
@@ -2146,11 +2124,9 @@ goog.scope(function() {
             'formats', '2D Array Texture Formats'
         );
         group2DArray.addChild(formatsGroup);
-        for (
-            var fmtNdx = 0;
+        for (var fmtNdx = 0;
             fmtNdx < filterableFormatsByType.length;
-            fmtNdx++
-        ) {
+            fmtNdx++) {
             for (var filterNdx = 0;
                 filterNdx < minFilterModes.length;
                 filterNdx++) {
@@ -2264,11 +2240,9 @@ goog.scope(function() {
         );
         group3D.addChild(formatsGroup);
         /** @type {number} */ var depth = 64;
-        for (
-            var fmtNdx = 0;
+        for (var fmtNdx = 0;
             fmtNdx < filterableFormatsByType.length;
-            fmtNdx++
-        ) {
+            fmtNdx++) {
             for (var filterNdx = 0;
                 filterNdx < minFilterModes.length;
                 filterNdx++) {
