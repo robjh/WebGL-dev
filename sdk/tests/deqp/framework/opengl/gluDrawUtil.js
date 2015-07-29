@@ -386,7 +386,7 @@ gluDrawUtil.VertexArrayPointer = function(componentType_, convert_, numComponent
 gluDrawUtil.BindingPoint = function(name, location, offset) {
     /** @type {string} */ this.name = name;
     /** @type {number} */ this.location = location;
-    /** @type {number} */ this.offset = offset;
+    /** @type {number} */ this.offset = offset || 0;
 };
 
 /**

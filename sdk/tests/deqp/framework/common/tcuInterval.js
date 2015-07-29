@@ -301,8 +301,8 @@
     tcuInterval.Interval.prototype.operatorNegative = function () {
         /** @type{tcuInterval.Interval} */ var temp = new tcuInterval.Interval();
         temp.m_hasNaN = this.m_hasNaN;
-        temp.m_lo = -this.m_lo;
-        temp.m_hi = -this.m_hi;
+        temp.m_lo = -this.m_hi;
+        temp.m_hi = -this.m_lo;
 		return temp;
     };
 

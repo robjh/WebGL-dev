@@ -82,6 +82,10 @@ goog.scope(function() {
         return this.matrix[y][x];
     };
 
+    tcuMatrix.Matrix.prototype.getColumn = function(y) {
+        return this.matrix[y];
+    };
+
     tcuMatrix.Matrix.prototype.isRangeValid = function(x, y) {
         if (!deMath.deInBounds32(x, 0, this.rows))
             throw new Error('Rows out of range');
@@ -154,6 +158,27 @@ goog.scope(function() {
         }
 
         return res;
+    };
+
+    tcuMatrix.Matrix.prototype.toString = function() {
+        var str = 'mat' + this.cols;
+        if (this.rows !== this.cols)
+            str += 'x' + this.rows;
+        str += '(';
+        for (var col = 0; col < this.cols; col++) {
+            str += '[';
+            for (var row = 0; row < this.rows; row++) {
+                str += this.matrix[col][row];
+                if (row != this.rows - 1)
+                    str += ', ';            
+            }
+            str += ']';
+
+            if (col != this.cols - 1)
+                str += ', ';
+        }
+        str += ')';
+        return str;
     };
 
     /**

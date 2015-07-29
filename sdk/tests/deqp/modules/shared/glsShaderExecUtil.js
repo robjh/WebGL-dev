@@ -521,19 +521,15 @@ VertexProcessorExecutor::VertexProcessorExecutor (const glu::RenderContext& rend
     };
 
     /**
-     * Extract column 'col' from input
-     * @param {Array<tcuMatrix.Matrix>} input
-     * @param {number} col
+     * @param {Array<number>} ptr
+     * @param {number} colNdx
+     * @param {number} size Column size
      * @return {Array<number>}
      */
-    glsShaderExecUtil.getColumn = function(input, col) {
-      var output = [];
-      for (var i = 0; i < input.length; i++) {
-        var matrix = input[i];
-        for (var row = 0; row < matrix.rows; row++)
-          output.push(matrix.get(row, col));
-      }
-      return output;
+    glsShaderExecUtil.getColumn = function(ptr, colNdx, size) {
+        var begin = colNdx * size;
+        var end = (colNdx + 1) * size;
+        return ptr.slice(begin, end);
     };
 
     /**
@@ -570,9 +566,13 @@ VertexProcessorExecutor::VertexProcessorExecutor (const glu::RenderContext& rend
     			/** @type{number} */ var numCols	= gluShaderUtil.getDataTypeMatrixNumColumns(basicType);
     			/** @type{number} */ var stride	= numRows * numCols * 4;//sizeof(float);
 
-    			for (var colNdx = 0; colNdx < numCols; ++colNdx) {
-            vertexArrays.push(gluDrawUtil.newFloatColumnVertexArrayBinding(symbol.name, colNdx, numRows, numValues, stride, glsShaderExecUtil.getColumn(ptr, colNdx)));
-          }
+    			for (var colNdx = 0; colNdx < numCols; ++colNdx)
+                    vertexArrays.push(gluDrawUtil.newFloatColumnVertexArrayBinding(symbol.name,
+                                            colNdx,
+                                            numRows,
+                                            numValues,
+                                            stride,
+                                            glsShaderExecUtil.getColumn(ptr, colNdx, numRows * numValues)));
     		}
     		else
     			DE_ASSERT(false);
@@ -753,17 +753,22 @@ glsShaderExecUtil.FragmentShaderExecutor.prototype.execute = function(numValues,
    //   vertexArrays.push(glu::va::Int32(attribName, vecSize, numValues, 0, (const deInt32*)ptr));
    // else if (gluShaderUtil.isDataTypeUintOrUVec(basicType))
    //   vertexArrays.push(glu::va::Uint32(attribName, vecSize, numValues, 0, (const deUint32*)ptr));
-   // else if (gluShaderUtil.isDataTypeMatrix(basicType))
-   // {
-   //   int   numRows = gluShaderUtil.getDataTypeMatrixNumRows(basicType);
-   //   int   numCols = gluShaderUtil.getDataTypeMatrixNumColumns(basicType);
-   //   int   stride  = numRows * numCols * sizeof(float);
+   else if (gluShaderUtil.isDataTypeMatrix(basicType))
+   {
+        var numRows = gluShaderUtil.getDataTypeMatrixNumRows(basicType);
+        var numCols = gluShaderUtil.getDataTypeMatrixNumColumns(basicType);
+        var stride  = numRows * numCols * 4;
 
-   //   for (int colNdx = 0; colNdx < numCols; ++colNdx)
-   //     vertexArrays.push(glu::va::Float(attribName, colNdx, numRows, numValues, stride, ((const float*)ptr) + colNdx * numRows));
-   // }
+        for (var colNdx = 0; colNdx < numCols; ++colNdx)
+            vertexArrays.push(gluDrawUtil.newFloatColumnVertexArrayBinding(attribName,
+                                    colNdx,
+                                    numRows,
+                                    numValues,
+                                    stride,
+                                    glsShaderExecUtil.getColumn(ptr, colNdx, numRows * numValues)));
+   }
    else
-     DE_ASSERT(false);
+        DE_ASSERT(false);
  }
 
  // Construct framebuffer.
