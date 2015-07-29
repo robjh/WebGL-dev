@@ -120,30 +120,7 @@ goog.scope(function() {
         );
         this.m_caseNdx = 0;
         /** @type {Array<gluTexture.Texture2D>} */ this.m_textures = [];
-        /** @type {Array<string>} */ this.m_filenames = [];
         this.m_cases = [];
-    };
-
-    /**
-     * @param {string} name
-     * @param {string} desc
-     * @param {number} minFilter
-     * @param {number} magFilter
-     * @param {number} wrapS
-     * @param {number} wrapT
-     * @param {Array<string>} filenames
-     * @return {es3fTextureFilteringTests.Texture2DFilteringCase}
-     */
-    es3fTextureFilteringTests.newTexture2DFilteringCaseFromFiles = function(
-        name, desc, minFilter, magFilter, wrapS, wrapT, filenames
-    ) {
-        var t2dcase = new es3fTextureFilteringTests.Texture2DFilteringCase(
-            name, desc, minFilter, magFilter, wrapS, wrapT, gl.NONE, 0, 0
-        );
-
-        t2dcase.m_filenames = filenames;
-
-        return t2dcase;
     };
 
     es3fTextureFilteringTests.Texture2DFilteringCase.prototype =
@@ -175,84 +152,75 @@ goog.scope(function() {
     es3fTextureFilteringTests.Texture2DFilteringCase.prototype.init =
     function() {
         try {
-            if (this.m_filenames.length > 0) {
+            // Create 2 textures.
+            for (var ndx = 0; ndx < 2; ndx++)
                 this.m_textures.push(
-                    0
-                    /* TODO: gluTexture.Texture2D.create(
-                    m_testCtx.getArchive(), (int)m_filenames.size(),
-                    m_filenames)*/
-                );
-            } else {
-                // Create 2 textures.
-                for (var ndx = 0; ndx < 2; ndx++)
-                    this.m_textures.push(
-                        gluTexture.texture2DFromInternalFormat(
-                            gl, this.m_internalFormat,
-                            this.m_width, this.m_height
-                        )
-                    );
-
-                var mipmaps = true;
-                var numLevels = mipmaps ? deMath.logToFloor(
-                    Math.max(this.m_width, this.m_height)
-                ) + 1 : 1;
-
-                /** @type {tcuTextureUtil.TextureFormatInfo} */
-                var fmtInfo = tcuTextureUtil.getTextureFormatInfo(
-                    this.m_textures[0].getRefTexture().getFormat()
-                );
-                /** @type {Array<number>} */ var cBias = fmtInfo.valueMin;
-                /** @type {Array<number>} */
-                var cScale = deMath.subtract(
-                    fmtInfo.valueMax, fmtInfo.valueMin
+                    gluTexture.texture2DFromInternalFormat(
+                        gl, this.m_internalFormat,
+                        this.m_width, this.m_height
+                    )
                 );
 
-                // Fill first gradient texture.
-                for (var levelNdx = 0; levelNdx < numLevels; levelNdx++) {
-                    /** @type {Array<number>} */ var gMin = deMath.add(
-                        deMath.multiply([0.0, 0.0, 0.0, 1.0], cScale), cBias
-                    );
-                    /** @type {Array<number>} */ var gMax = deMath.add(
-                        deMath.multiply([1.0, 1.0, 1.0, 0.0], cScale), cBias
-                    );
+            var mipmaps = true;
+            var numLevels = mipmaps ? deMath.logToFloor(
+                Math.max(this.m_width, this.m_height)
+            ) + 1 : 1;
 
-                    this.m_textures[0].getRefTexture().allocLevel(levelNdx);
-                    tcuTextureUtil.fillWithComponentGradients(
-                        this.m_textures[0].getRefTexture().getLevel(levelNdx),
-                        gMin, gMax
-                    );
-                }
+            /** @type {tcuTextureUtil.TextureFormatInfo} */
+            var fmtInfo = tcuTextureUtil.getTextureFormatInfo(
+                this.m_textures[0].getRefTexture().getFormat()
+            );
+            /** @type {Array<number>} */ var cBias = fmtInfo.valueMin;
+            /** @type {Array<number>} */
+            var cScale = deMath.subtract(
+                fmtInfo.valueMax, fmtInfo.valueMin
+            );
 
-                // Fill second with grid texture.
-                for (var levelNdx = 0; levelNdx < numLevels; levelNdx++) {
-                    /** @type {number} */ var step = 0x00ffffff / numLevels;
-                    /** @type {number} */ var rgb = step * levelNdx;
-                    /** @type {number} */ var colorA = deMath.binaryOp(
-                        0xff000000, rgb, deMath.BinaryOp.OR
-                    );
-                    /** @type {number} */ var colorB = deMath.binaryOp(
-                        0xff000000, deMath.binaryNot(rgb), deMath.BinaryOp.OR
-                    );
+            // Fill first gradient texture.
+            for (var levelNdx = 0; levelNdx < numLevels; levelNdx++) {
+                /** @type {Array<number>} */ var gMin = deMath.add(
+                    deMath.multiply([0.0, 0.0, 0.0, 1.0], cScale), cBias
+                );
+                /** @type {Array<number>} */ var gMax = deMath.add(
+                    deMath.multiply([1.0, 1.0, 1.0, 0.0], cScale), cBias
+                );
 
-                    this.m_textures[1].getRefTexture().allocLevel(levelNdx);
-                    tcuTextureUtil.fillWithGrid(
-                        this.m_textures[1].getRefTexture().getLevel(levelNdx),
-                        4,
-                        deMath.add(deMath.multiply(
-                            tcuRGBA.newRGBAFromValue(colorA).toVec(), cScale),
-                            cBias
-                        ),
-                        deMath.add(deMath.multiply(
-                            tcuRGBA.newRGBAFromValue(colorB).toVec(), cScale),
-                            cBias
-                        )
-                    );
-                }
-
-                // Upload.
-                for (var i = 0; i < this.m_textures.length; i++)
-                    this.m_textures[i].upload();
+                this.m_textures[0].getRefTexture().allocLevel(levelNdx);
+                tcuTextureUtil.fillWithComponentGradients(
+                    this.m_textures[0].getRefTexture().getLevel(levelNdx),
+                    gMin, gMax
+                );
             }
+
+            // Fill second with grid texture.
+            for (var levelNdx = 0; levelNdx < numLevels; levelNdx++) {
+                /** @type {number} */ var step = 0x00ffffff / numLevels;
+                /** @type {number} */ var rgb = step * levelNdx;
+                /** @type {number} */ var colorA = deMath.binaryOp(
+                    0xff000000, rgb, deMath.BinaryOp.OR
+                );
+                /** @type {number} */ var colorB = deMath.binaryOp(
+                    0xff000000, deMath.binaryNot(rgb), deMath.BinaryOp.OR
+                );
+
+                this.m_textures[1].getRefTexture().allocLevel(levelNdx);
+                tcuTextureUtil.fillWithGrid(
+                    this.m_textures[1].getRefTexture().getLevel(levelNdx),
+                    4,
+                    deMath.add(deMath.multiply(
+                        tcuRGBA.newRGBAFromValue(colorA).toVec(), cScale),
+                        cBias
+                    ),
+                    deMath.add(deMath.multiply(
+                        tcuRGBA.newRGBAFromValue(colorB).toVec(), cScale),
+                        cBias
+                    )
+                );
+            }
+
+            // Upload.
+            for (var i = 0; i < this.m_textures.length; i++)
+                this.m_textures[i].upload();
 
             // Compute cases.
 
@@ -485,7 +453,6 @@ goog.scope(function() {
             gluShaderUtil.precision.PRECISION_HIGHP
         );
         this.m_caseNdx = 0;
-        /** @type {Array<string>} */ this.m_filenames = [];
         /** @type {Array<gluTexture.TextureCube>} */ this.m_textures = [];
         /** @type {Array<es3fTextureFilteringTests.
          *      TextureCubeFilteringCase.FilterCase>}
@@ -507,30 +474,6 @@ goog.scope(function() {
         this.topRight = topRight_;
     };
 
-    /**
-     * @param {string} name
-     * @param {string} desc
-     * @param {number} minFilter
-     * @param {number} magFilter
-     * @param {number} wrapS
-     * @param {number} wrapT
-     * @param {boolean} onlySampleFaceInterior
-     * @param {Array<string>} filenames
-     * @return {es3fTextureFilteringTests.TextureCubeFilteringCase}
-     */
-    es3fTextureFilteringTests.newTextureCubeFilteringCaseFromFile = function(
-        name, desc, minFilter, magFilter, wrapS, wrapT, onlySampleFaceInterior,
-        filenames
-    ) {
-        var cubeCase = new es3fTextureFilteringTests.TextureCubeFilteringCase(
-            name, desc, minFilter, magFilter, wrapS, wrapT,
-            onlySampleFaceInterior, gl.NONE, 0, 0
-        );
-        cubeCase.m_filenames = filenames;
-
-        return cubeCase;
-    };
-
     es3fTextureFilteringTests.TextureCubeFilteringCase.prototype =
         Object.create(tcuTestCase.DeqpTest.prototype);
     es3fTextureFilteringTests.TextureCubeFilteringCase.prototype.constructor =
@@ -542,119 +485,110 @@ goog.scope(function() {
     es3fTextureFilteringTests.TextureCubeFilteringCase.prototype.init =
     function() {
         try {
-            if (this.m_filenames.length > 0) {
-                //TODO:
-                /*this.m_textures.push(gluTexture.TextureCube.create(
-                    this.m_renderCtx, this.m_renderCtxInfo,
-                    this.m_testCtx.getArchive(), this.m_filenames.length / 6,
-                    this.m_filenames
-                ));*/
-            } else {
-                assertMsgOptions(
-                    this.m_width == this.m_height, 'Texture has to be squared',
-                    false, true
-                );
-                for (var ndx = 0; ndx < 2; ndx++)
-                    this.m_textures.push(gluTexture.cubeFromInternalFormat(
-                        gl, this.m_internalFormat, this.m_width
-                    ));
+            assertMsgOptions(
+                this.m_width == this.m_height, 'Texture has to be squared',
+                false, true
+            );
+            for (var ndx = 0; ndx < 2; ndx++)
+                this.m_textures.push(gluTexture.cubeFromInternalFormat(
+                    gl, this.m_internalFormat, this.m_width
+                ));
 
-                var numLevels = deMath.logToFloor(
-                    Math.max(this.m_width, this.m_height)
-                ) + 1;
-                /** @type {tcuTextureUtil.TextureFormatInfo} */
-                var fmtInfo = tcuTextureUtil.getTextureFormatInfo(
-                    this.m_textures[0].getRefTexture().getFormat()
-                );
-                /** @type {Array<number>} */
-                var cBias = fmtInfo.valueMin;
-                /** @type {Array<number>} */
-                var cScale = deMath.subtract(
-                    fmtInfo.valueMax, fmtInfo.valueMin
-                );
+            var numLevels = deMath.logToFloor(
+                Math.max(this.m_width, this.m_height)
+            ) + 1;
+            /** @type {tcuTextureUtil.TextureFormatInfo} */
+            var fmtInfo = tcuTextureUtil.getTextureFormatInfo(
+                this.m_textures[0].getRefTexture().getFormat()
+            );
+            /** @type {Array<number>} */
+            var cBias = fmtInfo.valueMin;
+            /** @type {Array<number>} */
+            var cScale = deMath.subtract(
+                fmtInfo.valueMax, fmtInfo.valueMin
+            );
 
-                // Fill first with gradient texture.
-                /** @type {Array<Array<Array<number>>>}
-                 * (array of 4 component vectors)
-                 */
-                var gradients = [
-                    [ // negative x
-                        [0.0, 0.0, 0.0, 1.0], [1.0, 1.0, 1.0, 0.0]
-                    ], [ // positive x
-                        [0.5, 0.0, 0.0, 1.0], [1.0, 1.0, 1.0, 0.0]
-                    ], [ // negative y
-                        [0.0, 0.5, 0.0, 1.0], [1.0, 1.0, 1.0, 0.0]
-                    ], [ // positive y
-                        [0.0, 0.0, 0.5, 1.0], [1.0, 1.0, 1.0, 0.0]
-                    ], [ // negative z
-                        [0.0, 0.0, 0.0, 0.5], [1.0, 1.0, 1.0, 1.0]
-                    ], [ // positive z
-                        [0.5, 0.5, 0.5, 1.0], [1.0, 1.0, 1.0, 0.0]
-                    ]
-                ];
-                for (var face = 0;
-                    face < Object.keys(tcuTexture.CubeFace).length;
-                    face++) {
-                    for (var levelNdx = 0; levelNdx < numLevels; levelNdx++) {
-                        this.m_textures[0].getRefTexture().allocLevel(
-                            face, levelNdx
-                        );
-                        tcuTextureUtil.fillWithComponentGradients(
-                            this.m_textures[0].getRefTexture().getLevelFace(
-                                levelNdx, face
-                            ),
-                            deMath.add(deMath.multiply(
-                                gradients[face][0], cScale
-                            ), cBias),
-                            deMath.add(deMath.multiply(
-                                gradients[face][1], cScale
-                            ), cBias)
-                        );
-                    }
+            // Fill first with gradient texture.
+            /** @type {Array<Array<Array<number>>>}
+             * (array of 4 component vectors)
+             */
+            var gradients = [
+                [ // negative x
+                    [0.0, 0.0, 0.0, 1.0], [1.0, 1.0, 1.0, 0.0]
+                ], [ // positive x
+                    [0.5, 0.0, 0.0, 1.0], [1.0, 1.0, 1.0, 0.0]
+                ], [ // negative y
+                    [0.0, 0.5, 0.0, 1.0], [1.0, 1.0, 1.0, 0.0]
+                ], [ // positive y
+                    [0.0, 0.0, 0.5, 1.0], [1.0, 1.0, 1.0, 0.0]
+                ], [ // negative z
+                    [0.0, 0.0, 0.0, 0.5], [1.0, 1.0, 1.0, 1.0]
+                ], [ // positive z
+                    [0.5, 0.5, 0.5, 1.0], [1.0, 1.0, 1.0, 0.0]
+                ]
+            ];
+            for (var face = 0;
+                face < Object.keys(tcuTexture.CubeFace).length;
+                face++) {
+                for (var levelNdx = 0; levelNdx < numLevels; levelNdx++) {
+                    this.m_textures[0].getRefTexture().allocLevel(
+                        face, levelNdx
+                    );
+                    tcuTextureUtil.fillWithComponentGradients(
+                        this.m_textures[0].getRefTexture().getLevelFace(
+                            levelNdx, face
+                        ),
+                        deMath.add(deMath.multiply(
+                            gradients[face][0], cScale
+                        ), cBias),
+                        deMath.add(deMath.multiply(
+                            gradients[face][1], cScale
+                        ), cBias)
+                    );
                 }
-
-                // Fill second with grid texture.
-                for (var face = 0;
-                    face < Object.keys(tcuTexture.CubeFace).length;
-                    face++) {
-                    for (var levelNdx = 0; levelNdx < numLevels; levelNdx++) {
-                        var step = 0x00ffffff / (
-                            numLevels * Object.keys(tcuTexture.CubeFace).length
-                        );
-                        var rgb = step * levelNdx * face;
-                        /** @type {number} */ var colorA = deMath.binaryOp(
-                            0xff000000, rgb, deMath.BinaryOp.OR
-                        );
-                        /** @type {number} */ var colorB = deMath.binaryOp(
-                            0xff000000, deMath.binaryNot(rgb),
-                            deMath.BinaryOp.OR
-                        );
-
-                        this.m_textures[1].getRefTexture().allocLevel(
-                            face, levelNdx
-                        );
-                        tcuTextureUtil.fillWithGrid(
-                            this.m_textures[1].getRefTexture().getLevelFace(
-                                levelNdx, face
-                            ), 4, deMath.add(
-                                deMath.multiply(
-                                    tcuRGBA.newRGBAFromValue(colorA).toVec(),
-                                    cScale
-                                ), cBias
-                            ), deMath.add(
-                                deMath.multiply(
-                                    tcuRGBA.newRGBAFromValue(colorB).toVec(),
-                                    cScale
-                                ), cBias
-                            )
-                        );
-                    }
-                }
-
-                // Upload.
-                for (var i = 0; i < this.m_textures.length; i++)
-                    this.m_textures[i].upload();
             }
+
+            // Fill second with grid texture.
+            for (var face = 0;
+                face < Object.keys(tcuTexture.CubeFace).length;
+                face++) {
+                for (var levelNdx = 0; levelNdx < numLevels; levelNdx++) {
+                    var step = 0x00ffffff / (
+                        numLevels * Object.keys(tcuTexture.CubeFace).length
+                    );
+                    var rgb = step * levelNdx * face;
+                    /** @type {number} */ var colorA = deMath.binaryOp(
+                        0xff000000, rgb, deMath.BinaryOp.OR
+                    );
+                    /** @type {number} */ var colorB = deMath.binaryOp(
+                        0xff000000, deMath.binaryNot(rgb),
+                        deMath.BinaryOp.OR
+                    );
+
+                    this.m_textures[1].getRefTexture().allocLevel(
+                        face, levelNdx
+                    );
+                    tcuTextureUtil.fillWithGrid(
+                        this.m_textures[1].getRefTexture().getLevelFace(
+                            levelNdx, face
+                        ), 4, deMath.add(
+                            deMath.multiply(
+                                tcuRGBA.newRGBAFromValue(colorA).toVec(),
+                                cScale
+                            ), cBias
+                        ), deMath.add(
+                            deMath.multiply(
+                                tcuRGBA.newRGBAFromValue(colorB).toVec(),
+                                cScale
+                            ), cBias
+                        )
+                    );
+                }
+            }
+
+            // Upload.
+            for (var i = 0; i < this.m_textures.length; i++)
+                this.m_textures[i].upload();
 
             // Compute cases
             /** @type {gluTexture.TextureCube} */
@@ -886,7 +820,7 @@ goog.scope(function() {
             lookupPrecision.colorMask =
                 glsTextureTestUtil.getCompareMask(pixelFormat);
 
-            var isHighQuality = glsTextureTestUtil.verifyTexture2DResult(
+            var isHighQuality = glsTextureTestUtil.verifyTextureCubeResult(
                 result.getAccess(), curCase.texture.getRefTexture(),
                 texCoord, sampleParams, lookupPrecision, lodPrecision,
                 pixelFormat
@@ -901,7 +835,7 @@ goog.scope(function() {
                  'precision requirements failed, trying with lower ' +
                  'requirements.');
 
-                var isOk = glsTextureTestUtil.verifyTexture2DResult(
+                var isOk = glsTextureTestUtil.verifyTextureCubeResult(
                     result.getAccess(), curCase.texture.getRefTexture(),
                     texCoord, sampleParams, lookupPrecision, lodPrecision,
                     pixelFormat
@@ -1007,12 +941,14 @@ goog.scope(function() {
             ) + 1;
 
             // Create textures.
-            this.m_gradientTex = new gluTexture.Texture2DArray(
+            this.m_gradientTex = gluTexture.texture2DArrayFromInternalFormat(
+                gl,
                 this.m_internalFormat, this.m_width,
                 this.m_height, this.m_numLayers
             );
 
-            this.m_gridTex = new gluTexture.Texture2DArray(
+            this.m_gridTex = gluTexture.texture2DArrayFromInternalFormat(
+                gl,
                 this.m_internalFormat, this.m_width,
                 this.m_height, this.m_numLayers
             );
@@ -1146,8 +1082,10 @@ goog.scope(function() {
      */
     es3fTextureFilteringTests.Texture2DArrayFilteringCase.prototype.deinit =
     function() {
-        gl.deleteTexture(this.m_gradientTex.getGLTexture());
-        gl.deleteTexture(this.m_gridTex.getGLTexture());
+        if (this.m_gradientTex)
+            gl.deleteTexture(this.m_gradientTex.getGLTexture());
+        if(this.m_gridTex)
+            gl.deleteTexture(this.m_gridTex.getGLTexture());
 
         this.m_gradientTex = null;
         this.m_gridTex = null;
@@ -1491,8 +1429,10 @@ goog.scope(function() {
      */
     es3fTextureFilteringTests.Texture3DFilteringCase.prototype.deinit =
     function() {
-        gl.deleteTexture(this.m_gradientTex.getGLTexture());
-        gl.deleteTexture(this.m_gridTex.getGLTexture());
+        if (this.m_gradientTex)
+            gl.deleteTexture(this.m_gradientTex.getGLTexture());
+        if (this.m_gridTex)
+            gl.deleteTexture(this.m_gridTex.getGLTexture());
 
         this.m_gradientTex = null;
         this.m_gridTex = null;
@@ -1813,7 +1753,7 @@ goog.scope(function() {
         for (var fmtNdx = 0;
             fmtNdx < filterableFormatsByType.length;
             fmtNdx++) {
-             for (var filterNdx = 0;
+            for (var filterNdx = 0;
                 filterNdx < minFilterModes.length;
                 filterNdx++) {
                  /** @type {number} */
@@ -1843,31 +1783,7 @@ goog.scope(function() {
                          format, width, height
                     )
                 );
-             }
-         }
-
-         // ETC1 format.
-        /** @type {Array<string>} */ var filenames;
-        for (var i = 0; i <= 7; i++)
-            filenames.push('data/etc1/photo_helsinki_mip_' + i + '.pkm');
-
-        for (var filterNdx = 0;
-            filterNdx < minFilterModes.length;
-            filterNdx++) {
-            minFilter = minFilterModes[filterNdx].mode;
-            filterName = minFilterModes[filterNdx].name;
-            isMipmap = minFilter != gl.NEAREST &&
-                minFilter != gl.LINEAR;
-            magFilter = isMipmap ? gl.LINEAR : minFilter;
-            name = 'etc1_rgb8_' + filterName;
-            wrapS = gl.REPEAT;
-            wrapT = gl.REPEAT;
-
-            formatsGroup.addChild(
-                es3fTextureFilteringTests.newTexture2DFilteringCaseFromFiles(
-                    name, '', minFilter, magFilter, wrapS, wrapT, filenames
-                )
-            );
+            }
         }
 
         // Sizes.
@@ -1982,43 +1898,6 @@ goog.scope(function() {
                     )
                 );
             }
-        }
-
-        // ETC1 format.
-
-        var faceExt = [
-            'neg_x', 'pos_x', 'neg_y', 'pos_y', 'neg_z', 'pos_z'
-        ];
-
-        var numLevels = 7;
-        filenames = [];
-        for (var level = 0; level < numLevels; level++)
-            for (var face = 0;
-                face < Object.keys(tcuTexture.CubeFace).length;
-                face++)
-                filenames.push(
-                    'data/etc1/skybox_' + faceExt[face] +
-                    '_mip_' + level + '.pkm'
-                );
-
-        for (var filterNdx = 0;
-            filterNdx < minFilterModes.length;
-            filterNdx++) {
-            minFilter = minFilterModes[filterNdx].mode;
-            filterName = minFilterModes[filterNdx].name;
-            isMipmap = minFilter != gl.NEAREST && minFilter != gl.LINEAR;
-            magFilter = isMipmap ? gl.LINEAR : minFilter;
-            name = 'etc1_rgb8_' + filterName;
-            wrapS = gl.REPEAT;
-            wrapT = gl.REPEAT;
-
-            formatsGroup.addChild(
-                es3fTextureFilteringTests.newTextureCubeFilteringCaseFromFile(
-                    name, '', minFilter, magFilter,
-                    wrapS, wrapT, false /* always sample exterior as well */,
-                    filenames
-                )
-            );
         }
 
         // Sizes.

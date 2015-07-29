@@ -2881,6 +2881,12 @@ tcuTexture.Texture2DArray.prototype.constructor = tcuTexture.Texture2DArray;
 /** @return {tcuTexture.Texture2DArrayView} */
 tcuTexture.Texture2DArray.prototype.getView = function() { return this.m_view; };
 
+/** @return {number} */
+tcuTexture.Texture2DArray.prototype.getWidth = function() { return this.m_width; };
+
+/** @return {number} */
+tcuTexture.Texture2DArray.prototype.getHeight = function() { return this.m_height; };
+
 /**
  * @param {number} levelNdx
  */

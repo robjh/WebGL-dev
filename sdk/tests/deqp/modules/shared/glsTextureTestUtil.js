@@ -1818,7 +1818,7 @@ glsTextureTestUtil.verifyTextureCubeResult = function(
     /** @type {number} */ var numFailedPixels = 0;
 
     assertMsgOptions(
-        glsTextureTestUtil.getCompareMask(pixelFormat) == lookupPrec.colorMask,
+        deMath.equal(glsTextureTestUtil.getCompareMask(pixelFormat), lookupPrec.colorMask),
         'Compare color masks do not match', false, true
     );
 
