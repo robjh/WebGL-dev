@@ -331,7 +331,7 @@ gluShaderUtil.getDataTypeScalarType = function(dataType) {
 
 /**
  * Returns type of scalar
- * @param {gluShaderUtil.DataType} dataType shader
+ * @param {?gluShaderUtil.DataType} dataType shader
  * @return {gluShaderUtil.DataType} type of scalar type
  */
 gluShaderUtil.getDataTypeScalarTypeAsDataType = function(dataType) {
@@ -470,7 +470,7 @@ gluShaderUtil.getDataTypeScalarSize = function(dataType) {
 
 /**
  * Checks if dataType is float or vector
- * @param {gluShaderUtil.DataType} dataType shader
+ * @param {?gluShaderUtil.DataType} dataType shader
  * @return {boolean} Is dataType float or vector
  */
 gluShaderUtil.isDataTypeFloatOrVec = function(dataType) {
@@ -675,7 +675,7 @@ gluShaderUtil.getDataTypeNumComponents = function(dataType)
 
 /**
  * Returns name of the dataType
- * @param {gluShaderUtil.DataType} dataType shader
+ * @param {?gluShaderUtil.DataType} dataType shader
  * @return {string} dataType name
  */
 gluShaderUtil.getDataTypeName = function(dataType) {

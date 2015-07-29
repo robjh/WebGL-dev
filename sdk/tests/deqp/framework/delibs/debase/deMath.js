@@ -130,6 +130,22 @@ deMath.swizzle = function(a, indices) {
 };
 
 /**
+ * Shift left elements of array a by elements of array b
+ * dst[n] a[n] << b[n]
+ * @param {goog.NumberArray} a
+ * @param {goog.NumberArray} b
+ * @return {Array<number>} Result array
+ */
+deMath.arrayShiftLeft = function(a, b) {
+    if (a.length != b.length)
+        throw new Error('Arrays must have the same size');
+    var dst = [];
+    for (var i = 0; i < a.length; i++)
+        dst.push(a[i] << b[i]);
+    return dst;
+};
+
+/**
  * Multiply two vectors, element by element
  * @param {goog.NumberArray} a
  * @param {goog.NumberArray} b
