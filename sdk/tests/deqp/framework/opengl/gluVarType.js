@@ -558,7 +558,22 @@ goog.scope(function() {
             case 3: return gluVarType.newTypeBasic(gluShaderUtil.DataType.FLOAT_VEC3, precision);
             case 2: return gluVarType.newTypeBasic(gluShaderUtil.DataType.FLOAT_VEC2, precision);
         }
-        return gluVarType.newTypeBasic(gluShaderUtil.DataType.FLOAT, precision);
+        switch (T) {
+            case 'float' : return gluVarType.newTypeBasic(gluShaderUtil.DataType.FLOAT, precision);
+            case 'vec4': return gluVarType.newTypeBasic(gluShaderUtil.DataType.FLOAT_VEC4, precision);
+            case 'vec3': return gluVarType.newTypeBasic(gluShaderUtil.DataType.FLOAT_VEC3, precision);
+            case 'vec2': return gluVarType.newTypeBasic(gluShaderUtil.DataType.FLOAT_VEC2, precision);
+            case 'mat2': return gluVarType.newTypeBasic(gluShaderUtil.DataType.FLOAT_MAT2, precision);
+            case 'mat2x3': return gluVarType.newTypeBasic(gluShaderUtil.DataType.FLOAT_MAT2X3, precision);
+            case 'mat2x4': return gluVarType.newTypeBasic(gluShaderUtil.DataType.FLOAT_MAT2X4, precision);
+            case 'mat3x2': return gluVarType.newTypeBasic(gluShaderUtil.DataType.FLOAT_MAT3X2, precision);
+            case 'mat3': return gluVarType.newTypeBasic(gluShaderUtil.DataType.FLOAT_MAT3, precision);
+            case 'mat3x4': return gluVarType.newTypeBasic(gluShaderUtil.DataType.FLOAT_MAT3X4, precision);
+            case 'mat4x2': return gluVarType.newTypeBasic(gluShaderUtil.DataType.FLOAT_MAT4X2, precision);
+            case 'mat4x3': return gluVarType.newTypeBasic(gluShaderUtil.DataType.FLOAT_MAT4X3, precision);
+            case 'mat4': return gluVarType.newTypeBasic(gluShaderUtil.DataType.FLOAT_MAT4, precision);
+        }
+        throw new Error('Invalid input type ' + T + ' or size ' + size);
     };
 
     /**

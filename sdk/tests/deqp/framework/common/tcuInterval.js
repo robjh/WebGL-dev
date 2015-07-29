@@ -620,5 +620,8 @@ tcuInterval.applyMonotone2 = function(arg0, arg1, body) {
 // 							 const Interval&		arg0,
 // 							 const Interval&		arg1);
 
-
+/** @const */ tcuInterval.POSITIVE_INFINITY = new tcuInterval.Interval(Infinity);
+/** @const */ tcuInterval.NEGATIVE_INFINITY = new tcuInterval.Interval(-Infinity);
+/** @const */ tcuInterval.ZERO = new tcuInterval.Interval(0);
+/** @const */ tcuInterval.NAN = new tcuInterval.Interval(NaN);
 });

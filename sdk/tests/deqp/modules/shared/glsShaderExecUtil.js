@@ -28,7 +28,7 @@ goog.require('framework.opengl.gluShaderProgram');
 goog.require('framework.opengl.gluDrawUtil');
 goog.require('framework.opengl.gluTextureUtil');
 goog.require('framework.common.tcuTexture');
-
+goog.require('framework.common.tcuMatrix');
 
 
 goog.scope(function() {
@@ -40,6 +40,7 @@ goog.scope(function() {
     var gluDrawUtil = framework.opengl.gluDrawUtil;
     var gluTextureUtil = framework.opengl.gluTextureUtil;
     var tcuTexture = framework.common.tcuTexture;
+    var tcuMatrix = framework.common.tcuMatrix;
 
     var DE_ASSERT = function(x) {
         if (!x)
@@ -394,6 +395,8 @@ goog.scope(function() {
     	}
 
     	// Operation - indented to correct level.
+      // TODO: Add indenting
+      src += shaderSpec.source.print();
     	// {
     	// 	std::istringstream	opSrc	(shaderSpec.source);
     	// 	/** @type{number} */ var line;
@@ -518,6 +521,22 @@ VertexProcessorExecutor::VertexProcessorExecutor (const glu::RenderContext& rend
     };
 
     /**
+     * Extract column 'col' from input
+     * @param {Array<tcuMatrix.Matrix>} input
+     * @param {number} col
+     * @return {Array<number>}
+     */
+    glsShaderExecUtil.getColumn = function(input, col) {
+      var output = [];
+      for (var i = 0; i < input.length; i++) {
+        var matrix = input[i];
+        for (var row = 0; row < matrix.rows; row++)
+          output.push(matrix.get(row, col));
+      }
+      return output;
+    };
+
+    /**
      * template<typename Iterator>
      * @param{number} numValues
      * @param{Array<number>} inputs
@@ -551,8 +570,9 @@ VertexProcessorExecutor::VertexProcessorExecutor (const glu::RenderContext& rend
     			/** @type{number} */ var numCols	= gluShaderUtil.getDataTypeMatrixNumColumns(basicType);
     			/** @type{number} */ var stride	= numRows * numCols * 4;//sizeof(float);
 
-    			for (var colNdx = 0; colNdx < numCols; ++colNdx)
-    				vertexArrays.push(0);//glu::va::Float(symbol.name, colNdx, numRows, numValues, stride, ((const float*)ptr) + colNdx * numRows));
+    			for (var colNdx = 0; colNdx < numCols; ++colNdx) {
+            vertexArrays.push(gluDrawUtil.newFloatColumnVertexArrayBinding(symbol.name, colNdx, numRows, numValues, stride, glsShaderExecUtil.getColumn(ptr, colNdx)));
+          }
     		}
     		else
     			DE_ASSERT(false);
