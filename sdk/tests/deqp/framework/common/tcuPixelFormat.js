@@ -66,4 +66,14 @@ tcuPixelFormat.PixelFormat.prototype.equals = function(r, g, b, a) {
             this.alphaBits === a;
 };
 
+/**
+ * @return {Array<number>}
+ */
+tcuPixelFormat.PixelFormat.prototype.getColorThreshold = function() {
+    return [1 << (8 - this.redBits),
+			1 << (8 - this.greenBits),
+			1 << (8 - this.blueBits),
+			(this.alphaBits > 0) ? (1 << (8 - this.alphaBits)) : 0];
+};
+
 });
