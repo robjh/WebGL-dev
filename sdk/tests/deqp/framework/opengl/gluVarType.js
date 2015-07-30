@@ -724,6 +724,11 @@ goog.scope(function() {
 
     /**
      * @constructor
+     * @param {number=} location
+     * @param {number=} binding
+     * @param {number=} offset
+     * @param {gluVarType.FormatLayout=} format
+     * @param {gluVarType.MatrixOrder=} matrixOrder
      */
     gluVarType.Layout = function(location, binding, offset, format, matrixOrder) {
         this.location = location;

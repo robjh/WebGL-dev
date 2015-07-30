@@ -73,7 +73,7 @@ goog.scope(function() {
     	/** @type{Array<glsShaderExecUtil.Symbol>} */ this.inputs;
     	/** @type{Array<glsShaderExecUtil.Symbol>} */ this.outputs;
     	/** @type{string} */ this.globalDeclarations; //!< These are placed into global scope. Can contain uniform declarations for example.
-    	/** @type{string} */ this.source; //!< Source snippet to be executed.
+    	/** @type{*} */ this.source; //!< Source snippet to be executed.
     };
 
     /**
@@ -109,7 +109,7 @@ goog.scope(function() {
 
     /**
      * @param{number} numValues
-     * @param{Array<number>} inputs
+     * @param{Array<Array<number>>} inputs
      * @return{Array<goog.TypedArray>} outputs
      */
     glsShaderExecUtil.ShaderExecutor.prototype.execute = function(numValues, inputs) {
@@ -181,7 +181,7 @@ goog.scope(function() {
 
     	//Operation - indented to correct level.
         // TODO: Add indenting
-        src += shaderSpec.source.print();
+        src += shaderSpec.source;
 
     	// Assignments to outputs.
     	for (var i = 0; i < shaderSpec.outputs.length; i++)	{
@@ -202,8 +202,8 @@ goog.scope(function() {
     /**
      * @return{string}
      */
-    glsShaderExecUtil.generateEmptyFragmentSource = function (/*glu::GLSLVersion version*/) {
-    	/** @type{boolean} */ var customOut = true; //glu::glslVersionUsesInOutQualifiers(version);
+    glsShaderExecUtil.generateEmptyFragmentSource = function () {
+    	/** @type{boolean} */ var customOut = true;
     	/** @type{string} */ var src;
 
     	src = '#version 300 es\n';
@@ -257,7 +257,13 @@ goog.scope(function() {
      * @return{string}
      */
     glsShaderExecUtil.generateFragmentShader = function(shaderSpec, useIntOutputs, outLocationMap) {
-    	// DE_ASSERT(glu::glslVersionUsesInOutQualifiers(shaderSpec.version));
+        /** @type{number} */ var vecSize;
+        /** @type{number} */ var numVecs;
+        /** @type{gluShaderUtil.DataType} */ var intBasicType;
+        /** @type{gluShaderUtil.DataType} */ var uintBasicType;
+        /** @type{gluVarType.VarType} */ var uintType;
+        /** @type{gluVarType.VarType} */ var intType;
+
 
     	/** @type{string} */ var src;
     	src = "#version 300 es\n";
@@ -277,24 +283,24 @@ goog.scope(function() {
     		DE_ASSERT(output.varType.isBasicType());
 
     		if (useIntOutputs && gluShaderUtil.isDataTypeFloatOrVec(output.varType.getBasicType()))	{
-    			/** @type{number} */ var vecSize = gluShaderUtil.getDataTypeScalarSize(output.varType.getBasicType());
-    			/** @type{gluShaderUtil.DataType} */ var uintBasicType	= vecSize > 1 ? gluShaderUtil.getDataTypeVector(gluShaderUtil.DataType.UINT,vecSize) : gluShaderUtil.DataType.UINT;
-    			/** @type{gluVarType.VarType} */ var uintType = gluVarType.newTypeBasic(uintBasicType, gluShaderUtil.precision.PRECISION_HIGHP);
+    			vecSize = gluShaderUtil.getDataTypeScalarSize(output.varType.getBasicType());
+    			uintBasicType	= vecSize > 1 ? gluShaderUtil.getDataTypeVector(gluShaderUtil.DataType.UINT,vecSize) : gluShaderUtil.DataType.UINT;
+    			uintType = gluVarType.newTypeBasic(uintBasicType, gluShaderUtil.precision.PRECISION_HIGHP);
 
     			decl.varType = uintType;
     			src += (decl + ';\n');
     		} else if (gluShaderUtil.isDataTypeBoolOrBVec(output.varType.getBasicType())) {
-    			/** @type{number} */ var vecSize = gluShaderUtil.getDataTypeScalarSize(output.varType.getBasicType());
-    			/** @type{gluShaderUtil.DataType} */ var intBasicType = vecSize > 1 ? gluShaderUtil.getDataTypeVector(gluShaderUtil.DataType.INT, vecSize) : gluShaderUtil.DataType.INT;
-    			/** @type{gluVarType.VarType} */ var intType = gluVarType.newTypeBasic(intBasicType, gluShaderUtil.precision.PRECISION_HIGHP);
+    			vecSize = gluShaderUtil.getDataTypeScalarSize(output.varType.getBasicType());
+    			intBasicType = vecSize > 1 ? gluShaderUtil.getDataTypeVector(gluShaderUtil.DataType.INT, vecSize) : gluShaderUtil.DataType.INT;
+    			intType = gluVarType.newTypeBasic(intBasicType, gluShaderUtil.precision.PRECISION_HIGHP);
 
     			decl.varType = intType;
     			src += (decl + ';\n');
     		} else if (gluShaderUtil.isDataTypeMatrix(output.varType.getBasicType())) {
-    			/** @type{number} */ var vecSize = gluShaderUtil.getDataTypeMatrixNumRows(output.varType.getBasicType());
-    			/** @type{number} */ var numVecs = gluShaderUtil.getDataTypeMatrixNumColumns(output.varType.getBasicType());
-    			/** @type{gluShaderUtil.DataType} */ var uintBasicType	= gluShaderUtil.getDataTypeVector(gluShaderUtil.DataType.UINT,vecSize);
-    			/** @type{gluVarType.VarType} */ var uintType = gluVarType.newTypeBasic(uintBasicType, gluShaderUtil.precision.PRECISION_HIGHP);
+    			vecSize = gluShaderUtil.getDataTypeMatrixNumRows(output.varType.getBasicType());
+    			numVecs = gluShaderUtil.getDataTypeMatrixNumColumns(output.varType.getBasicType());
+    			uintBasicType	= gluShaderUtil.getDataTypeVector(gluShaderUtil.DataType.UINT,vecSize);
+    			uintType = gluVarType.newTypeBasic(uintBasicType, gluShaderUtil.precision.PRECISION_HIGHP);
 
     			decl.varType = uintType;
     			for (var vecNdx = 0; vecNdx < numVecs; ++vecNdx) {
@@ -318,7 +324,7 @@ goog.scope(function() {
 
     	// Operation - indented to correct level.
       // TODO: Add indenting
-      src += shaderSpec.source.print();
+      src += shaderSpec.source;
     	// {
     	// 	std::istringstream	opSrc	(shaderSpec.source);
     	// 	/** @type{number} */ var line;
@@ -331,7 +337,7 @@ goog.scope(function() {
     		if (useIntOutputs && gluShaderUtil.isDataTypeFloatOrVec(shaderSpec.outputs[i].varType.getBasicType()))
     			src += ('	o_' + shaderSpec.outputs[i].name + ' = floatBitsToUint(' + shaderSpec.outputs[i].name + ');\n');
     		else if (gluShaderUtil.isDataTypeMatrix(shaderSpec.outputs[i].varType.getBasicType())) {
-    			/** @type{number} */ var numVecs = gluShaderUtil.getDataTypeMatrixNumColumns(shaderSpec.outputs[i].varType.getBasicType());
+    			numVecs = gluShaderUtil.getDataTypeMatrixNumColumns(shaderSpec.outputs[i].varType.getBasicType());
 
     			for (var vecNdx = 0; vecNdx < numVecs; ++vecNdx)
     				if (useIntOutputs)
@@ -339,10 +345,10 @@ goog.scope(function() {
     				else
     					src += ('\to_' + shaderSpec.outputs[i].name + '_' + vecNdx + ' = ' + shaderSpec.outputs[i].name + '[' + vecNdx + '];\n');
     		} else if (gluShaderUtil.isDataTypeBoolOrBVec(shaderSpec.outputs[i].varType.getBasicType())) {
-    			/** @type{number} */ var vecSize = gluShaderUtil.getDataTypeScalarSize(shaderSpec.outputs[i].varType.getBasicType());
-    			/** @type{gluShaderUtil.DataType} */ var intBaseType = vecSize > 1 ? gluShaderUtil.getDataTypeVector(gluShaderUtil.DataType.INT, vecSize) : gluShaderUtil.DataType.INT;
+    			vecSize = gluShaderUtil.getDataTypeScalarSize(shaderSpec.outputs[i].varType.getBasicType());
+    			intBasicType = vecSize > 1 ? gluShaderUtil.getDataTypeVector(gluShaderUtil.DataType.INT, vecSize) : gluShaderUtil.DataType.INT;
 
-    			src += ('\to_' + shaderSpec.outputs[i].name + ' = ' + gluShaderUtil.getDataTypeName(intBaseType) + '(' + shaderSpec.outputs[i].name + ');\n');
+    			src += ('\to_' + shaderSpec.outputs[i].name + ' = ' + gluShaderUtil.getDataTypeName(intBasicType) + '(' + shaderSpec.outputs[i].name + ');\n');
     		}
     	}
 
@@ -352,11 +358,14 @@ goog.scope(function() {
     };
 
     /**
-     * @param {Array<string>} array
+     * @param {Array<glsShaderExecUtil.Symbol>} outputs
      * @return {gluShaderProgram.TransformFeedbackVaryings}
      */
     glsShaderExecUtil.getTFVaryings = function(outputs) {
-        return new gluShaderProgram.TransformFeedbackVaryings(outputs);
+        var names = [];
+        for (var i = 0; i < outputs.length; i++)
+            names.push(outputs[i].name);
+        return new gluShaderProgram.TransformFeedbackVaryings(names);
     };
 
     // VertexProcessorExecutor (base class for vertex and geometry executors)
@@ -414,15 +423,10 @@ goog.scope(function() {
         return ptr.slice(begin, end);
     };
 
-    /**
-     * @param{number} numValues
-     * @param{Array<number>} inputs
-     * @return{Array<goog.TypedArray>} outputs
-     */
     glsShaderExecUtil.VertexProcessorExecutor.prototype.execute = function(numValues, inputs) {
-      var outputs = [];
-    	// const glw::Functions&					gl					= m_renderCtx.getFunctions();
-    	/** @type{boolean} */ var useTFObject			= true; //isContextTypeES(m_renderCtx.getType()) || (isContextTypeGLCore(m_renderCtx.getType()) && m_renderCtx.getType().getMajorVersion() >= 4);
+        /** @type{glsShaderExecUtil.Symbol} */ var      symbol;
+        var outputs = [];
+    	/** @type{boolean} */ var useTFObject			= true;
     	/** @type{Array<gluDrawUtil.VertexArrayBinding>} */ var vertexArrays = [];
     	var transformFeedback = gl.createTransformFeedback();
     	var outputBuffer = gl.createBuffer();
@@ -431,7 +435,7 @@ goog.scope(function() {
 
     	// Setup inputs.
     	for (var inputNdx = 0; inputNdx < this.m_inputs.length; inputNdx++) {
-    		/** @type{glsShaderExecUtil.Symbol} */ var		symbol		= this.m_inputs[inputNdx];
+    		symbol		= this.m_inputs[inputNdx];
     		/*const void* */var ptr = inputs[inputNdx];
     		/** @type{gluShaderUtil.DataType} */ var basicType	= symbol.varType.getBasicType();
     		/** @type{number} */ var vecSize = gluShaderUtil.getDataTypeScalarSize(basicType);
@@ -479,12 +483,11 @@ goog.scope(function() {
     	// Read back data.
         var result = new ArrayBuffer(outputBufferStride*numValues);
         gl.getBufferSubData(gl.TRANSFORM_FEEDBACK_BUFFER, 0, result);
-		  // const void*	srcPtr		= gl.mapBufferRange(gl.TRANSFORM_FEEDBACK_BUFFER, 0, outputBufferStride*numValues, gl.MAP_READ_BIT);
 		  /** @type{number} */ var curOffset	= 0; // Offset in buffer in bytes.
 
 
   		for (var outputNdx = 0; outputNdx < this.m_outputs.length; outputNdx++) {
-  			/** @type{glsShaderExecUtil.Symbol} */ var		symbol		= this.m_outputs[outputNdx];
+  			symbol		= this.m_outputs[outputNdx];
   			/** @type{number} */ var scalarSize	= symbol.varType.getScalarSize();
               /*void* */var               dstPtr      = new Uint8Array(scalarSize * numValues * 4);
 
@@ -514,7 +517,7 @@ goog.scope(function() {
  */
 glsShaderExecUtil.VertexShaderExecutor = function(shaderSpec) {
     var sources = gluShaderProgram.makeVtxFragSources(glsShaderExecUtil.generateVertexShader(shaderSpec),
-                    glsShaderExecUtil.generateEmptyFragmentSource(shaderSpec.version));
+                    glsShaderExecUtil.generateEmptyFragmentSource());
     glsShaderExecUtil.VertexProcessorExecutor.call(this, shaderSpec, sources);
 };
 
@@ -581,14 +584,9 @@ glsShaderExecUtil.getRenderbufferFormatForOutput = function(outputType, useIntOu
   return new tcuTexture.TextureFormat(channelOrderMap[numComps-1], channelType);
 };
 
-/**
- * template<typename Iterator>
- * @param{number} numValues
- * @param{Array<number>} inputs
- * @return{Array<goog.TypedArray>} outputs
- */
 glsShaderExecUtil.FragmentShaderExecutor.prototype.execute = function(numValues, inputs) {
  /** @type {boolean} */ var useIntOutputs   = true;
+ /** @type{glsShaderExecUtil.Symbol} */ var        symbol;
  var outputs = [];
  /** @type{number} */ var            maxRenderbufferSize = /** @type {number} */ (gl.getParameter(gl.MAX_RENDERBUFFER_SIZE));
  /** @type{number} */ var            framebufferW    = Math.min(maxRenderbufferSize, numValues);
@@ -621,7 +619,7 @@ glsShaderExecUtil.FragmentShaderExecutor.prototype.execute = function(numValues,
 
  for (var inputNdx = 0; inputNdx < this.m_inputs.length; inputNdx++)
  {
-   /** @type{glsShaderExecUtil.Symbol} */ var    symbol    = this.m_inputs[inputNdx];
+   symbol    = this.m_inputs[inputNdx];
    var attribName  = "a_" + symbol.name;
    var ptr     = inputs[inputNdx];
    /** @type{gluShaderUtil.DataType} */ var basicType  = symbol.varType.getBasicType();
@@ -657,9 +655,9 @@ glsShaderExecUtil.FragmentShaderExecutor.prototype.execute = function(numValues,
 
  for (var outNdx = 0; outNdx < this.m_outLocationSymbols.length; ++outNdx)
  {
-   /** @type{glsShaderExecUtil.Symbol} */ var  output      = this.m_outLocationSymbols[outNdx];
+   symbol = this.m_outLocationSymbols[outNdx];
    var  renderbuffer  = renderbuffers[outNdx];
-   var  format      = gluTextureUtil.getInternalFormat(glsShaderExecUtil.getRenderbufferFormatForOutput(output.varType, useIntOutputs));
+   var  format      = gluTextureUtil.getInternalFormat(glsShaderExecUtil.getRenderbufferFormatForOutput(symbol.varType, useIntOutputs));
 
    gl.bindRenderbuffer(gl.RENDERBUFFER, renderbuffer);
    gl.renderbufferStorage(gl.RENDERBUFFER, format, framebufferW, framebufferH);
@@ -684,14 +682,14 @@ glsShaderExecUtil.FragmentShaderExecutor.prototype.execute = function(numValues,
 
    for (var outNdx = 0; outNdx < this.m_outputs.length; ++outNdx)
    {
-     /** @type{glsShaderExecUtil.Symbol} */ var        output      = this.m_outputs[outNdx];
-     /** @type{number} */ var          outSize     = output.varType.getScalarSize();
-     /** @type{number} */ var          outVecSize    = gluShaderUtil.getDataTypeNumComponents(output.varType.getBasicType());
-     /** @type{number} */ var          outNumLocs    = gluShaderUtil.getDataTypeNumLocations(output.varType.getBasicType());
-     var format      = glsShaderExecUtil.getRenderbufferFormatForOutput(output.varType, useIntOutputs);
+     symbol      = this.m_outputs[outNdx];
+     /** @type{number} */ var          outSize     = symbol.varType.getScalarSize();
+     /** @type{number} */ var          outVecSize    = gluShaderUtil.getDataTypeNumComponents(symbol.varType.getBasicType());
+     /** @type{number} */ var          outNumLocs    = gluShaderUtil.getDataTypeNumLocations(symbol.varType.getBasicType());
+     var format      = glsShaderExecUtil.getRenderbufferFormatForOutput(symbol.varType, useIntOutputs);
      var readFormat  = new tcuTexture.TextureFormat(tcuTexture.ChannelOrder.RGBA, format.type);
      var transferFormat = gluTextureUtil.getTransferFormat(readFormat);
-     /** @type{number} */ var          outLocation   =this.m_outLocationMap[output.name];
+     /** @type{number} */ var          outLocation   =this.m_outLocationMap[symbol.name];
      var  tmpBuf = new tcuTexture.TextureLevel(readFormat, framebufferW, framebufferH);
 
      for (var locNdx = 0; locNdx < outNumLocs; ++locNdx)
