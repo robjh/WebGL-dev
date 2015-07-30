@@ -164,6 +164,17 @@
     };
 
     /**
+     * @param {number} a
+     * @param {number} b
+     * @return{tcuInterval.Interval}
+     */
+    tcuInterval.withNumbers = function(a, b) {
+        var x = new tcuInterval.Interval(a);
+        var y =  new tcuInterval.Interval(b);
+        return tcuInterval.withIntervals(x, y);
+    };
+
+    /**
      * @param {boolean} hasNaN_
      * @param {number} lo_
      * @param {number} hi_
@@ -262,8 +273,8 @@
     tcuInterval.Interval.prototype.operatorAndBinary = function (other) {
         /** @type{tcuInterval.Interval} */ var temp = new tcuInterval.Interval();
         temp.m_hasNaN = this.m_hasNaN && other.m_hasNaN;
-        temp.m_lo = Math.min(this.m_lo, other.m_lo);
-        temp.m_hi = Math.max(this.m_hi, other.m_hi);
+        temp.m_lo = Math.max(this.m_lo, other.m_lo);
+        temp.m_hi = Math.min(this.m_hi, other.m_hi);
 		return temp;
 	};
 

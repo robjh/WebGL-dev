@@ -100,7 +100,7 @@
       * @return{number}
       */
      tcuFloatFormat.FloatFormat.prototype.getMaxExp = function () {
-     	return this.m_minExp;
+     	return this.m_maxExp;
      };
 
      /**

@@ -67,7 +67,7 @@ glsBuiltinPrecisionTests.Intervals;
 /** @typedef {(number|Array<number>|tcuMatrix.Matrix)} */
 glsBuiltinPrecisionTests.Value;
 
-/** @typedef {(!glsBuiltinPrecisionTests.Signature|string)} */
+/** @typedef {(string)} */
 glsBuiltinPrecisionTests.Typename;
 
 
@@ -325,7 +325,8 @@ glsBuiltinPrecisionTests.Typename;
                 return new glsBuiltinPrecisionTests.TraitsFloat();
             case 'int' :  return new glsBuiltinPrecisionTests.TraitsInt();
             case 'void' :  return new glsBuiltinPrecisionTests.TraitsVoid();
-            default: return null;
+            default:
+                throw new Error('Invalid typename:' + typename);
         }
     };
 
@@ -972,13 +973,28 @@ glsBuiltinPrecisionTests.Typename;
      */
     glsBuiltinPrecisionTests.Void = function(t) {
         glsBuiltinPrecisionTests.Variable.call(this, 'void');
-        this.isVoid = true;
     };
 
     setParentClass(glsBuiltinPrecisionTests.Void, glsBuiltinPrecisionTests.Variable);
 
     glsBuiltinPrecisionTests.Void.prototype.doEvaluate = function(ctx) {
         return undefined;
+    };
+
+    /**
+     * @constructor
+     * @extends {glsBuiltinPrecisionTests.Variable}
+     * @param{number} value
+     */
+    glsBuiltinPrecisionTests.Constant = function(value) {
+        glsBuiltinPrecisionTests.Variable.call(this, 'float');
+        this.m_value = value;
+    };
+
+    setParentClass(glsBuiltinPrecisionTests.Constant, glsBuiltinPrecisionTests.Variable);
+
+    glsBuiltinPrecisionTests.Constant.prototype.doEvaluate = function(ctx) {
+        return new tcuInterval.Interval(this.m_value);
     };
 
 
@@ -1536,7 +1552,7 @@ glsBuiltinPrecisionTests.Typename;
      */
     glsBuiltinPrecisionTests.FloatFunc2.prototype.applyPoint = function(ctx, x, y) {
 		/** @type{number} */ var exact	= this.applyExact(x, y);
-		/** @type{tcuInterval.Interval} */ var prec	= this.precision(ctx, exact, x, y);
+		/** @type{tcuInterval.Interval} */ var prec	= new tcuInterval.Interval(this.precision(ctx, exact, x, y));
 
         var a = new tcuInterval.Interval(exact);
         var b = tcuInterval.withIntervals(prec.operatorNegative(), prec);
@@ -1564,10 +1580,10 @@ glsBuiltinPrecisionTests.Typename;
      * @param{number} ret
      * @param{number} x
      * @param{number} y
-     * @return{tcuInterval.Interval}
+     * @return{number}
      */
     glsBuiltinPrecisionTests.FloatFunc2.prototype.precision = function(ctx, ret, x,	y) {
-        return new tcuInterval.Interval();
+        return Infinity;
     };
 
     /**
@@ -1647,10 +1663,10 @@ glsBuiltinPrecisionTests.Typename;
      * @param{number} x
      * @param{number} y
      * @param{number} z
-     * @return{tcuInterval.Interval}
+     * @return{number}
      */
     glsBuiltinPrecisionTests.InfixOperator.prototype.precision = function(ctx, x, y, z)	{
-		return new tcuInterval.Interval(0);
+		return 0;
 	};
 
  //    /**
@@ -1937,6 +1953,80 @@ glsBuiltinPrecisionTests.Typename;
             return new tcuInterval.Interval(NaN);
 
         return new tcuInterval.Interval(); // empty interval, i.e. no extrema
+    };
+
+    /**
+     * @constructor
+     * @extends{glsBuiltinPrecisionTests.InfixOperator}
+     */
+    glsBuiltinPrecisionTests.Div = function() {
+        glsBuiltinPrecisionTests.InfixOperator.call(this);
+    };
+
+    glsBuiltinPrecisionTests.Div.prototype = Object.create(glsBuiltinPrecisionTests.InfixOperator.prototype);
+    glsBuiltinPrecisionTests.Div.prototype.constructor = glsBuiltinPrecisionTests.Div;
+
+    /**
+     * @returns{string}
+     */
+    glsBuiltinPrecisionTests.Div.prototype.getName = function() {
+        return 'div';
+    };
+
+    /**
+     * @returns{string}
+     */
+    glsBuiltinPrecisionTests.Div.prototype.getSymbol = function()   {
+        return '/';
+    };
+
+    /**
+     * @param{glsBuiltinPrecisionTests.EvalContext} ctx
+     * @param{tcuInterval.Interval} nom
+     * @param{tcuInterval.Interval} den
+     * @return{tcuInterval.Interval}
+     */
+    glsBuiltinPrecisionTests.Div.prototype.innerExtrema = function(ctx, nom, den) {
+        var ret = new tcuInterval.Interval();
+        if (den.contains(tcuInterval.ZERO)) {
+            if (nom.contains(tcuInterval.ZERO))
+                ret.operatorOrAssignBinary(tcuInterval.NAN);
+            if (nom.lo() < 0 || nom.hi() > 0.0)
+                ret.operatorOrAssignBinary(tcuInterval.unbounded());
+        }
+
+        return ret;
+    };
+
+    glsBuiltinPrecisionTests.Div.prototype.precision =   function(ctx, ret, nom, den)
+    {
+        var fmt     = ctx.format;
+
+        // \todo [2014-03-05 lauri] Check that the limits in GLSL 3.10 are actually correct.
+        // For now, we assume that division's precision is 2.5 ULP when the value is within
+        // [2^MINEXP, 2^MAXEXP-1]
+
+        if (den === 0)
+            return 0; // Result must be exactly inf
+        else if (deMath.deInBounds32(Math.abs(den),
+                              deMath.deLdExp(1, fmt.getMinExp()),
+                              deMath.deLdExp(1, fmt.getMaxExp() - 1)))
+            return fmt.ulp(ret, 2.5);
+        else
+            return Infinity; // Can be any number, but must be a number.
+    };
+
+    /**
+     * @param{number} x
+     * @param{number} y
+     * @returns{number}
+     */
+    glsBuiltinPrecisionTests.Div.prototype.applyExact = function(x, y) {
+        return x / y;
+    };
+
+    glsBuiltinPrecisionTests.Div.prototype.applyPoint = function(ctx, x, y) {
+        return glsBuiltinPrecisionTests.FloatFunc2.prototype.applyPoint.call(this, ctx, x, y);
     };
 
     /**
@@ -2595,15 +2685,6 @@ glsBuiltinPrecisionTests.Typename;
             throw new Error('Invalid input');
         };
 
-    	// using namespace ShaderExecUtil;
-        //
-    	// typedef typename 	In::In0		In0;
-    	// typedef typename 	In::In1		In1;
-    	// typedef typename 	In::In2		In2;
-    	// typedef typename 	In::In3		In3;
-    	// typedef typename 	Out::Out0	Out0;
-    	// typedef typename 	Out::Out1	Out1;
-
     	/** @type{tcuFloatFormat.FloatFormat} */ var fmt = this.getFormat();
     	/** @type{number} */ var inCount = glsBuiltinPrecisionTests.numInputs(this.In);
     	/** @type{number} */ var outCount = glsBuiltinPrecisionTests.numOutputs(this.Out);
@@ -2749,7 +2830,7 @@ glsBuiltinPrecisionTests.Typename;
     		if (!result && numErrors <= maxMsgs) {
     			/** @type{string} */ var builder = '';
 
-    			builder += (result ? 'Passed' : 'Failed') + '\n' + msg + '\n sample:\n';
+    			builder += (result ? 'Passed' : 'Failed') + '\n' + msg + '\n sample:\n' + valueNdx;
 
     			if (inCount > 0) {
     				builder += '\t' + variables.in0.getName() + ' = '
@@ -3654,6 +3735,243 @@ glsBuiltinPrecisionTests.Typename;
         }
     };
 
+    // /**
+    //  * @constructor
+    //  * @extends {glsBuiltinPrecisionTests.DerivedFunc}
+    //  */
+    // glsBuiltinPrecisionTests.MyFunction = function() {
+    //     var sig = new glsBuiltinPrecisionTests.Signature();        
+    //     glsBuiltinPrecisionTests.DerivedFunc.call(this, sig);
+    // };
+
+    // setParentClass(glsBuiltinPrecisionTests.MyFunction, glsBuiltinPrecisionTests.DerivedFunc);
+
+    // glsBuiltinPrecisionTests.MyFunction.prototype.getName = function() {
+    //     return 'MyFunction';
+    // };
+
+    // glsBuiltinPrecisionTests.MyFunction.prototype.doExpand = function(ctx, args) {
+    // };
+
+
+    /**
+     * @constructor
+     * @extends {glsBuiltinPrecisionTests.DerivedFunc}
+     */
+    glsBuiltinPrecisionTests.Radians = function() {
+        var sig = new glsBuiltinPrecisionTests.Signature('float', 'float');        
+        glsBuiltinPrecisionTests.DerivedFunc.call(this, sig);
+    };
+
+    setParentClass(glsBuiltinPrecisionTests.Radians, glsBuiltinPrecisionTests.DerivedFunc);
+
+    glsBuiltinPrecisionTests.Radians.prototype.getName = function() {
+        return 'radians';
+    };
+
+    glsBuiltinPrecisionTests.Radians.prototype.doExpand = function(ctx, args) {
+        var val = new glsBuiltinPrecisionTests.Constant(Math.PI / 180);
+        return new glsBuiltinPrecisionTests.Apply('float',
+                                                  new glsBuiltinPrecisionTests.Div(),
+                                                  val,
+                                                  args.a);
+
+    };
+
+    /**
+     * @constructor
+     * @extends {glsBuiltinPrecisionTests.DerivedFunc}
+     */
+    glsBuiltinPrecisionTests.Degrees = function() {
+        var sig = new glsBuiltinPrecisionTests.Signature('float', 'float');        
+        glsBuiltinPrecisionTests.DerivedFunc.call(this, sig);
+    };
+
+    setParentClass(glsBuiltinPrecisionTests.Degrees, glsBuiltinPrecisionTests.DerivedFunc);
+
+    glsBuiltinPrecisionTests.Degrees.prototype.getName = function() {
+        return 'degrees';
+    };
+
+    glsBuiltinPrecisionTests.Degrees.prototype.doExpand = function(ctx, args) {
+        var val = new glsBuiltinPrecisionTests.Constant(180 / Math.PI);
+        return new glsBuiltinPrecisionTests.Apply('float',
+                                                  new glsBuiltinPrecisionTests.Div(),
+                                                  val,
+                                                  args.a);
+
+    };
+
+    /**
+     * @constructor
+     * @extends {glsBuiltinPrecisionTests.CFloatFunc1}
+     */
+    glsBuiltinPrecisionTests.TrigFunc = function(name, func, loEx, hiEx) {
+        glsBuiltinPrecisionTests.CFloatFunc1.call(this, name, func);
+        this.m_loExtremum = loEx;
+        this.m_hiExtremum = hiEx;
+    };
+
+    setParentClass(glsBuiltinPrecisionTests.TrigFunc, glsBuiltinPrecisionTests.CFloatFunc1);
+
+    glsBuiltinPrecisionTests.TrigFunc.prototype.innerExtrema = function(ctx, angle) {
+        var lo      = angle.lo();
+        var hi      = angle.hi();
+        var loSlope = this.doGetSlope(lo);
+        var hiSlope = this.doGetSlope(hi);
+
+        // Detect the high and low values the function can take between the
+        // interval endpoints.
+        if (angle.length() >= 2.0 * Math.PI * Math.PI)
+        {
+            // The interval is longer than a full cycle, so it must get all possible values.
+            return this.m_hiExtremum.operatorOrBinary(this.m_loExtremum);
+        }
+        else if (loSlope == 1 && hiSlope == -1)
+        {
+            // The slope can change from positive to negative only at the maximum value.
+            return this.m_hiExtremum;
+        }
+        else if (loSlope == -1 && hiSlope == 1)
+        {
+            // The slope can change from negative to positive only at the maximum value.
+            return this.m_loExtremum;
+        }
+        else if (loSlope == hiSlope &&
+                 deMath.deSign(this.applyExact(hi) - this.applyExact(lo)) * loSlope == -1)
+        {
+            // The slope has changed twice between the endpoints, so both extrema are included.
+            return this.m_hiExtremum.operatorOrBinary(this.m_loExtremum);
+        }
+
+        return new tcuInterval.Interval();
+    };
+
+    glsBuiltinPrecisionTests.TrigFunc.prototype.getCodomain = function() {
+        // Ensure that result is always within [-1, 1], or NaN (for +-inf)
+        var v = tcuInterval.withIntervals(new tcuInterval.Interval(-1), new tcuInterval.Interval(1));
+        return v.operatorOrBinary(tcuInterval.NAN);
+    };
+
+    glsBuiltinPrecisionTests.TrigFunc.prototype.precision = function(ctx, ret, arg)
+    {
+        if (ctx.floatPrecision == gluShaderUtil.precision.PRECISION_HIGHP)
+        {
+            // Use precision from OpenCL fast relaxed math
+            if (-Math.PI * Math.PI <= arg && arg <= Math.PI * Math.PI)
+            {
+                return deMath.deLdExp(1.0, -11);
+            }
+            else
+            {
+                // "larger otherwise", let's pick |x| * 2^-12 , which is slightly over
+                // 2^-11 at x == pi.
+                return deMath.deLdExp(Math.abs(arg), -12);
+            }
+        }
+        else
+        {
+            // from OpenCL half-float extension specification
+            return ctx.format.ulp(ret, 2.0);
+        }
+    };
+
+    /**
+     * @param {number} angle
+     * @return number
+     */
+    glsBuiltinPrecisionTests.TrigFunc.prototype.doGetSlope = function(angle) {
+        throw new Error('Virtual function. Please override.');
+    };
+
+    /**
+     * @constructor
+     * @extends {glsBuiltinPrecisionTests.TrigFunc}
+     */
+    glsBuiltinPrecisionTests.Sin = function() {
+        glsBuiltinPrecisionTests.TrigFunc.call(this, 'sin', Math.sin, new tcuInterval.Interval(-1), new tcuInterval.Interval(1));
+    };
+
+    setParentClass(glsBuiltinPrecisionTests.Sin, glsBuiltinPrecisionTests.TrigFunc);
+
+    glsBuiltinPrecisionTests.Sin.prototype.doGetSlope = function(angle) {
+        return deMath.deSign(Math.cos(angle));
+    };
+
+
+    /**
+     * @constructor
+     * @extends {glsBuiltinPrecisionTests.TrigFunc}
+     */
+    glsBuiltinPrecisionTests.Cos = function() {
+        glsBuiltinPrecisionTests.TrigFunc.call(this, 'Cos', Math.cos, new tcuInterval.Interval(-1), new tcuInterval.Interval(1));
+    };
+
+    setParentClass(glsBuiltinPrecisionTests.Cos, glsBuiltinPrecisionTests.TrigFunc);
+
+    glsBuiltinPrecisionTests.Cos.prototype.doGetSlope = function(angle) {
+        return -deMath.deSign(Math.sin(angle));
+    };
+
+    /**
+     * @constructor
+     * @extends {glsBuiltinPrecisionTests.DerivedFunc}
+     */
+    glsBuiltinPrecisionTests.Tan = function() {
+        var sig = new glsBuiltinPrecisionTests.Signature('float', 'float');
+        glsBuiltinPrecisionTests.DerivedFunc.call(this, sig);
+    };
+
+    setParentClass(glsBuiltinPrecisionTests.Tan, glsBuiltinPrecisionTests.DerivedFunc);
+
+    glsBuiltinPrecisionTests.Tan.prototype.getName = function() {
+        return 'tan';
+    };
+
+    glsBuiltinPrecisionTests.Tan.prototype.doExpand = function(ctx, args) {
+        //  sin(x) * (constant(1.0f) / cos(x)
+        var x = args.a;
+        var sin = new glsBuiltinPrecisionTests.Apply('float', new glsBuiltinPrecisionTests.Sin(), x);
+        var cos = new glsBuiltinPrecisionTests.Apply('float', new glsBuiltinPrecisionTests.Cos(), x);
+        var expr = new glsBuiltinPrecisionTests.Apply('float', new glsBuiltinPrecisionTests.Div(),
+                                                      new glsBuiltinPrecisionTests.Constant(1),
+                                                      cos);
+
+        expr =  new glsBuiltinPrecisionTests.Apply('float', new glsBuiltinPrecisionTests.Mul(),
+                                                    sin,
+                                                    expr);
+        return expr;
+    };
+
+    /**
+     * @constructor
+     * @extends {glsBuiltinPrecisionTests.CFloatFunc1}
+     */
+    glsBuiltinPrecisionTests.ArcTrigFunc = function(name, func, precisionULPs, domain, coddomain) {
+        glsBuiltinPrecisionTests.CFloatFunc1.call(this, name, func);
+        this.m_precision = precisionULPs;
+        this.m_domain = domain;
+        this.m_codomain = coddomain;
+    };
+
+    setParentClass(glsBuiltinPrecisionTests.ArcTrigFunc, glsBuiltinPrecisionTests.CFloatFunc1);
+
+    glsBuiltinPrecisionTests.ArcTrigFunc.prototype.precision = function(ctx, ret, x)
+    {
+        if (!this.m_domain.contains(new tcuInterval.Interval(x)))
+            return NaN;
+
+        if (ctx.floatPrecision == gluShaderUtil.precision.PRECISION_HIGHP)
+        {
+            // Use OpenCL's precision
+            return ctx.format.ulp(ret, this.m_precision);
+        }
+        else
+        {
+            // Use OpenCL half-float spec
+            return ctx.format.ulp(ret, 2.0);
+        }
+    };
 
     /**
      * @constructor
@@ -3766,14 +4084,14 @@ glsBuiltinPrecisionTests.Typename;
 
         glsBuiltinPrecisionTests.addScalarFactory(glsBuiltinPrecisionTests.Add, funcs);
 	    glsBuiltinPrecisionTests.addScalarFactory(glsBuiltinPrecisionTests.Sub, funcs);
-	// addScalarFactory<Mul>(*funcs);
-	// addScalarFactory<Div>(*funcs);
-    //
-	// addScalarFactory<Radians>(*funcs);
-	// addScalarFactory<Degrees>(*funcs);
-	// addScalarFactory<Sin>(*funcs);
-	// addScalarFactory<Cos>(*funcs);
-	// addScalarFactory<Tan>(*funcs);
+        glsBuiltinPrecisionTests.addScalarFactory(glsBuiltinPrecisionTests.Mul, funcs);
+        glsBuiltinPrecisionTests.addScalarFactory(glsBuiltinPrecisionTests.Div, funcs);
+
+        glsBuiltinPrecisionTests.addScalarFactory(glsBuiltinPrecisionTests.Radians, funcs);
+        glsBuiltinPrecisionTests.addScalarFactory(glsBuiltinPrecisionTests.Degrees, funcs);
+        glsBuiltinPrecisionTests.addScalarFactory(glsBuiltinPrecisionTests.Sin, funcs);
+        glsBuiltinPrecisionTests.addScalarFactory(glsBuiltinPrecisionTests.Cos, funcs);
+        glsBuiltinPrecisionTests.addScalarFactory(glsBuiltinPrecisionTests.Tan, funcs);
 	// addScalarFactory<ASin>(*funcs);
 	// addScalarFactory<ACos>(*funcs);
 	// addScalarFactory<ATan2>(*funcs, "atan2");
