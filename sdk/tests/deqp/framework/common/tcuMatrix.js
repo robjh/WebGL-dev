@@ -35,7 +35,7 @@ goog.scope(function() {
      * @constructor
      * @param {number} rows
      * @param {number} cols
-     * @param {number=} value
+     * @param {*=} value
      * Initialize to identity.
      */
     tcuMatrix.Matrix = function(rows, cols, value) {

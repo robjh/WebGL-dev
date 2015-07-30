@@ -120,26 +120,6 @@ glsBuiltinPrecisionTests.Typename;
     };
 
     /**
-     * @param {*} fmt
-     * @param {number} val
-     * @return {string}
-     */
-    var valueToString = function(fmt, val) {
-        //TODO: Change to use doPrintValue instead.
-        return val.toString();
-        //return val.doPrintValue(fmt, val);
-    };
-
-    /**
-     * @param {*} fmt
-     * @param {tcuInterval.Interval} ival
-     * @return {string}
-     */
-    var intervalToString = function(fmt, ival) {
-        return ival.toString();
-    };
-
-    /**
      * @constructor
      * @param{string=} R
      * @param{string=} P0
@@ -153,13 +133,6 @@ glsBuiltinPrecisionTests.Typename;
         this.Arg1 = P1 === undefined ? 'void' : P1;
         this.Arg2 = P2 === undefined ? 'void' : P2;
         this.Arg3 = P3 === undefined ? 'void' : P3;
-
-        this.IRet = glsBuiltinPrecisionTests.Traits.traitsFactory(R);
-        this.IArg0 = glsBuiltinPrecisionTests.Traits.traitsFactory(P0);
-        this.IArg1 = glsBuiltinPrecisionTests.Traits.traitsFactory(P1);
-        this.IArg2 = glsBuiltinPrecisionTests.Traits.traitsFactory(P2);
-        this.IArg3 = glsBuiltinPrecisionTests.Traits.traitsFactory(P3);
-
     };
 
     /** @typedef {Array<glsBuiltinPrecisionTests.FuncBase>} */
@@ -172,10 +145,10 @@ glsBuiltinPrecisionTests.Typename;
 
     /**
      * @constructor
-     * @param{glsBuiltinPrecisionTests.Intervals} A0
-     * @param{glsBuiltinPrecisionTests.Intervals} A1
-     * @param{glsBuiltinPrecisionTests.Intervals} A2
-     * @param{glsBuiltinPrecisionTests.Intervals} A3
+     * @param{(glsBuiltinPrecisionTests.Intervals|glsBuiltinPrecisionTests.Variable|string)=} A0
+     * @param{(glsBuiltinPrecisionTests.Intervals|glsBuiltinPrecisionTests.Variable|string)=} A1
+     * @param{(glsBuiltinPrecisionTests.Intervals|glsBuiltinPrecisionTests.Variable|string)=} A2
+     * @param{(glsBuiltinPrecisionTests.Intervals|glsBuiltinPrecisionTests.Variable|string)=} A3
      */
     glsBuiltinPrecisionTests.Tuple4 = function(A0, A1, A2, A3) {
         this.a = A0 === undefined ? new glsBuiltinPrecisionTests.Void() : A0;
@@ -224,10 +197,10 @@ glsBuiltinPrecisionTests.Typename;
     /**
      * template<typename In0_ = Void, typename In1_ = Void, typename In2_ = Void, typename In3_ = Void>
      * @constructor
-     * @param{*} In0_
-     * @param{*} In1_
-     * @param{*} In2_
-     * @param{*} In3_
+     * @param{glsBuiltinPrecisionTests.Typename} In0_
+     * @param{glsBuiltinPrecisionTests.Typename} In1_
+     * @param{glsBuiltinPrecisionTests.Typename} In2_
+     * @param{glsBuiltinPrecisionTests.Typename} In3_
      */
     glsBuiltinPrecisionTests.InTypes = function(In0_, In1_, In2_, In3_) {
         this.In0 = In0_ === undefined ? 'void' : In0_;
@@ -239,8 +212,8 @@ glsBuiltinPrecisionTests.Typename;
     /**
      * template<typename Out0_, typename Out1_ = Void>
      * @constructor
-     * @param{*} Out0_
-     * @param{*} Out1_
+     * @param{glsBuiltinPrecisionTests.Typename} Out0_
+     * @param{glsBuiltinPrecisionTests.Typename} Out1_
      */
     glsBuiltinPrecisionTests.OutTypes = function(Out0_, Out1_) {
         this.Out0 = Out0_ === undefined ? 'void' : Out0_;
@@ -263,11 +236,14 @@ glsBuiltinPrecisionTests.Typename;
     };
 
     /**
-     * @param{glsBuiltinPrecisionTests.Variable} variable
-     * @return{*}
+     * @param{*} variable
+     * @return{glsBuiltinPrecisionTests.Intervals}
      */
     glsBuiltinPrecisionTests.Environment.prototype.lookup = function(variable) {
-    	return this.m_map[variable.getName()];
+        if (variable instanceof glsBuiltinPrecisionTests.Variable)
+    	   return this.m_map[variable.getName()];
+
+        throw new Error('Invalid lookup input: ' + variable);
     };
 
     /**
@@ -275,7 +251,7 @@ glsBuiltinPrecisionTests.Typename;
      * @param{tcuFloatFormat.FloatFormat} format_
      * @param{gluShaderUtil.precision} floatPrecision_
      * @param{glsBuiltinPrecisionTests.Environment} env_
-     * @param{number?} callDepth_
+     * @param{number=} callDepth_
      */
     glsBuiltinPrecisionTests.EvalContext = function (format_, floatPrecision_, env_, callDepth_) {
 		this.format = format_;
@@ -287,7 +263,7 @@ glsBuiltinPrecisionTests.Typename;
     /**
      * @param{string} typename typename
      * @param{tcuFloatFormat.FloatFormat} fmt
-     * @param{glsBuiltinPrecisionTests.Value} value
+     * @param{glsBuiltinPrecisionTests.Intervals} value
      * @return{glsBuiltinPrecisionTests.Intervals}
      */
      glsBuiltinPrecisionTests.convert = function(typename, fmt, value) {
@@ -966,11 +942,11 @@ glsBuiltinPrecisionTests.Typename;
      * @constructor
      * @extends{glsBuiltinPrecisionTests.Expr}
      * @param{glsBuiltinPrecisionTests.Typename} typename
-     * @param{string} name
+     * @param{string=} name
      */
     glsBuiltinPrecisionTests.Variable = function(typename, name) {
         glsBuiltinPrecisionTests.Expr.call(this, typename);
-        this.m_name = name;
+        /** @type {string} */ this.m_name = name || '<undefined>';
     };
 
     setParentClass(glsBuiltinPrecisionTests.Variable, glsBuiltinPrecisionTests.Expr);
@@ -1000,14 +976,6 @@ glsBuiltinPrecisionTests.Typename;
     glsBuiltinPrecisionTests.Variable.prototype.doEvaluate = function(ctx) {
         return ctx.env.lookup(this);
 	};
-
-    /**
-     * @constructor
-     * @param{*} typename
-     */
-    glsBuiltinPrecisionTests.VariableP = function(typename) {
-        this.typename = typename;
-    };
 
     /**
      * @constructor
@@ -1271,11 +1239,6 @@ glsBuiltinPrecisionTests.Typename;
     	this.Arg1 = this.Sig.Arg1;
     	this.Arg2 = this.Sig.Arg2;
     	this.Arg3 = this.Sig.Arg3;
-    	this.IRet = this.Sig.IRet;
-    	this.IArg0 = this.Sig.IArg0;
-    	this.IArg1 = this.Sig.IArg1;
-    	this.IArg2 = this.Sig.IArg2;
-    	this.IArg3 = this.Sig.IArg3;
     };
 
     glsBuiltinPrecisionTests.Func.prototype = Object.create(glsBuiltinPrecisionTests.FuncBase.prototype);
@@ -1291,10 +1254,10 @@ glsBuiltinPrecisionTests.Typename;
 
     /**
      * @param{glsBuiltinPrecisionTests.EvalContext} ctx
-     * @param{glsBuiltinPrecisionTests.Intervals} Iarg0
-     * @param{glsBuiltinPrecisionTests.Intervals} Iarg1
-     * @param{glsBuiltinPrecisionTests.Intervals} Iarg2
-     * @param{glsBuiltinPrecisionTests.Intervals} Iarg3
+     * @param{glsBuiltinPrecisionTests.Intervals=} Iarg0
+     * @param{glsBuiltinPrecisionTests.Intervals=} Iarg1
+     * @param{glsBuiltinPrecisionTests.Intervals=} Iarg2
+     * @param{glsBuiltinPrecisionTests.Intervals=} Iarg3
      * @return{glsBuiltinPrecisionTests.Intervals}
      */
     glsBuiltinPrecisionTests.Func.prototype.applyFunction = function(ctx, Iarg0, Iarg1 ,Iarg2 ,Iarg3){
@@ -2031,8 +1994,8 @@ glsBuiltinPrecisionTests.Typename;
 
     /**
      * @constructor
-     * @extends {glsBuiltinPrecisionTests.CompWiseFunc}
-     * @param {*} F
+     * @extends {glsBuiltinPrecisionTests.CompMatFuncBase}
+     * @param {function(new:glsBuiltinPrecisionTests.Func)} F
      * @param {number} rows
      * @param {number} cols
      */
@@ -2052,7 +2015,7 @@ glsBuiltinPrecisionTests.Typename;
 
     /**
      * @constructor
-     * @param {glsBuiltinPrecisionTests.Mul}
+     * @extends {glsBuiltinPrecisionTests.Mul}
      */
     glsBuiltinPrecisionTests.ScalarMatrixCompMult = function() {
        glsBuiltinPrecisionTests.Mul.call(this);
@@ -2075,7 +2038,12 @@ glsBuiltinPrecisionTests.Typename;
         return glsBuiltinPrecisionTests.Func.prototype.doPrint.call(this, args);
     };
     
-
+    /**
+     * @constructor
+     * @extends {glsBuiltinPrecisionTests.CompMatFunc}
+     * @param {number} rows
+     * @param {number} cols
+     */
     glsBuiltinPrecisionTests.MatrixCompMult = function(rows, cols) {        
         glsBuiltinPrecisionTests.CompMatFunc.call(this, glsBuiltinPrecisionTests.ScalarMatrixCompMult, rows, cols);
     };
@@ -2120,12 +2088,12 @@ glsBuiltinPrecisionTests.Typename;
      * @param{*} Out
      */
      glsBuiltinPrecisionTests.Variables = function(In, Out) {
-    	this.in0 = new glsBuiltinPrecisionTests.VariableP(In.In0);
-        this.in1 = new glsBuiltinPrecisionTests.VariableP(In.In1);
-        this.in2 = new glsBuiltinPrecisionTests.VariableP(In.In2);
-        this.in3 = new glsBuiltinPrecisionTests.VariableP(In.In3);
-        this.out0 = new glsBuiltinPrecisionTests.VariableP(Out.Out0);
-        this.out1 = new glsBuiltinPrecisionTests.VariableP(Out.Out1);
+    	this.in0 = new glsBuiltinPrecisionTests.Variable(In.In0);
+        this.in1 = new glsBuiltinPrecisionTests.Variable(In.In1);
+        this.in2 = new glsBuiltinPrecisionTests.Variable(In.In2);
+        this.in3 = new glsBuiltinPrecisionTests.Variable(In.In3);
+        this.out0 = new glsBuiltinPrecisionTests.Variable(Out.Out0);
+        this.out1 = new glsBuiltinPrecisionTests.Variable(Out.Out1);
     };
 
 
@@ -2162,7 +2130,7 @@ glsBuiltinPrecisionTests.Typename;
     /**
      * template<typename F>
      * @constructor
-     * @param{*} F
+     * @param{function(new:glsBuiltinPrecisionTests.Func)} F
      * @return{glsBuiltinPrecisionTests.GenFuncs}
      */
     glsBuiltinPrecisionTests.makeVectorizedFuncs = function(F) {
@@ -2171,26 +2139,20 @@ glsBuiltinPrecisionTests.Typename;
                 new glsBuiltinPrecisionTests.VectorizedFunc(new F(), 2),
                 new glsBuiltinPrecisionTests.VectorizedFunc(new F(), 3),
                 new glsBuiltinPrecisionTests.VectorizedFunc(new F(), 4));
-
-        // <typename F::Sig>
-        // (instance<F>(),
-    	// instance<VectorizedFunc<F, 2> >(),
-    	// instance<VectorizedFunc<F, 3> >(),
-    	// instance<VectorizedFunc<F, 4> >());
     };
 
 
     /**
      * template <typename typename>
      * @constructor
-     * @param{*} typename
+     * @param{glsBuiltinPrecisionTests.Typename} typename
      */
     glsBuiltinPrecisionTests.Sampling = function(typename) {
         this.typename = typename;
     };
 
     /**
-     * @param{*} typename
+     * @param{glsBuiltinPrecisionTests.Typename} typename
      * @param {number=} size
      * @return {glsBuiltinPrecisionTests.Sampling}
      */
@@ -2218,37 +2180,36 @@ glsBuiltinPrecisionTests.Typename;
     };
 
     /**
-     * template <typename typename>
-     * @param{*} typename
-     * @param{FloatFormat} fmt
+     * @param{tcuFloatFormat.FloatFormat} fmt
      * @param{Array<*>} arr
      */
-    glsBuiltinPrecisionTests.Sampling.prototype.genFixeds = function(fmt, arr){};
+    glsBuiltinPrecisionTests.Sampling.prototype.genFixeds = function(fmt, arr){
+        throw new Error('Virtual function. Please override.');
+    };
 
     /**
      * template <typename typename>
-     * @param{*} typename
      * @param{tcuFloatFormat.FloatFormat} fmt
      * @param{gluShaderUtil.precision} precision
-     * @param{debase.deRandom} random
+     * @param{deRandom.Random} random
      * @return{*}
      */
-    glsBuiltinPrecisionTests.Sampling.prototype.genRandom = function(typename, fmt, precision, random){
-        return typename;
+    glsBuiltinPrecisionTests.Sampling.prototype.genRandom = function(fmt, precision, random){
+        return 0;
     };
 
     /**
      * @return{number}
      */
     glsBuiltinPrecisionTests.Sampling.prototype.getWeight = function() {
-        return 0.0;
+        return 0;
     };
 
     /**
      * template <>  :  public Sampling<Void>
      * @constructor
      * @extends{glsBuiltinPrecisionTests.Sampling}
-     * @param{typename} typename
+     * @param{glsBuiltinPrecisionTests.Typename} typename
      */
      glsBuiltinPrecisionTests.DefaultSamplingVoid = function(typename) {
          glsBuiltinPrecisionTests.Sampling.call(this, typename);
@@ -2270,7 +2231,7 @@ glsBuiltinPrecisionTests.Typename;
      * template <>  :  public Sampling<bool>
      * @constructor
      * @extends{glsBuiltinPrecisionTests.Sampling}
-     * @param{*} typename
+     * @param{glsBuiltinPrecisionTests.Typename} typename
      */
     glsBuiltinPrecisionTests.DefaultSamplingBool = function(typename) {
         glsBuiltinPrecisionTests.Sampling.call(this, typename);
@@ -2293,7 +2254,7 @@ glsBuiltinPrecisionTests.Typename;
      * template <>  :  public Sampling<int>
      * @constructor
      * @extends{glsBuiltinPrecisionTests.Sampling}
-     * @param{typename} typename
+     * @param{glsBuiltinPrecisionTests.Typename} typename
      */
     glsBuiltinPrecisionTests.DefaultSamplingInt = function(typename) {
         glsBuiltinPrecisionTests.Sampling.call(this, typename);
@@ -2302,35 +2263,19 @@ glsBuiltinPrecisionTests.Typename;
     glsBuiltinPrecisionTests.DefaultSamplingInt.prototype = Object.create(glsBuiltinPrecisionTests.Sampling.prototype);
     glsBuiltinPrecisionTests.DefaultSamplingInt.prototype.constructor = glsBuiltinPrecisionTests.DefaultSamplingInt;
 
-    /**
-     * template <>  :  public Sampling<int>
-     * @param{tcuFloatFormat.FloatFormat} fmt
-     * @param{gluShaderUtil.precision} prec
-     * @param{debase.deRandom} rnd
-     * @return{number}
-     */
     glsBuiltinPrecisionTests.DefaultSamplingInt.prototype.genRandom = function(fmt, prec, rnd) {
-		/** @type{number} */ var exp = rnd.getInt(0, getNumBits(prec)-2);
+		/** @type{number} */ var exp = rnd.getInt(0, this.getNumBits(prec)-2);
 		/** @type{number} */ var sign = rnd.getBool() ? -1 : 1;
 
 		return sign * rnd.getInt(0, 1 << exp);
 	};
 
-    /**
-     * template <>  :  public Sampling<int>
-     * @param{tcuFloatFormat.FloatFormat} fmt
-     * @param{Array<number>} dst
-     */
     glsBuiltinPrecisionTests.DefaultSamplingInt.prototype.genFixeds = function(fmt, dst) {
 		dst.push(0);
 		dst.push(-1);
 		dst.push(1);
 	};
 
-    /**
-     * template <>  :  public Sampling<int>
-     * @return{number}
-     */
     glsBuiltinPrecisionTests.DefaultSamplingInt.prototype.getWeight = function(){
         return 1.0;
     };
@@ -2346,8 +2291,7 @@ glsBuiltinPrecisionTests.Typename;
 			case gluShaderUtil.precision.PRECISION_MEDIUMP: return 16;
 			case gluShaderUtil.precision.PRECISION_HIGHP: return 32;
 			default:
-				DE_ASSERT(false);
-				return 0;
+                throw new Error('Invalid precision: ' + prec);
 		}
 	};
 
@@ -2355,7 +2299,7 @@ glsBuiltinPrecisionTests.Typename;
      * template <>  :  public Sampling<float>
      * @constructor
      * @extends{glsBuiltinPrecisionTests.Sampling}
-     * @param{typename} typename
+     * @param{glsBuiltinPrecisionTests.Typename} typename
      */
     glsBuiltinPrecisionTests.DefaultSamplingFloat = function(typename){
         glsBuiltinPrecisionTests.Sampling.call(this, typename);
@@ -2364,13 +2308,6 @@ glsBuiltinPrecisionTests.Typename;
     glsBuiltinPrecisionTests.DefaultSamplingFloat.prototype = Object.create(glsBuiltinPrecisionTests.Sampling.prototype);
     glsBuiltinPrecisionTests.DefaultSamplingFloat.prototype.constructor = glsBuiltinPrecisionTests.DefaultSamplingFloat;
 
-    /**
-     * Generate a random float from a reasonable general-purpose distribution.
-     * template <>  :  public Sampling<float>
-     * @param{tcuFloatFormat.FloatFormat} format
-     * @param{gluShaderUtil.precision} prec
-     * @param{deRandom.Random} rnd
-     */
     glsBuiltinPrecisionTests.DefaultSamplingFloat.prototype.genRandom = function(format, prec, rnd) {
     	/** type{number} */ var minExp			= format.getMinExp();
     	/** type{number} */ var maxExp			= format.getMaxExp();
@@ -2429,12 +2366,6 @@ glsBuiltinPrecisionTests.Typename;
     	return (rnd.getInt(0,3) == 0 ? -1.0 : 1.0) * (base + significand);
     };
 
-    /**
-     * Generate a standard set of floats that should always be tested.
-     * template <>  :  public Sampling<float>
-     * @param{tcuFloatFormat.FloatFormat} format
-     * @param{Array<number>} dst
-     */
     glsBuiltinPrecisionTests.DefaultSamplingFloat.prototype.genFixeds = function (format, dst) {
     	/** @type{number} */ var minExp			= format.getMinExp();
     	/** @type{number} */ var maxExp			= format.getMaxExp();
@@ -2479,7 +2410,7 @@ glsBuiltinPrecisionTests.Typename;
      * template <typename typename, int Size>
      * @constructor
      * @extends{glsBuiltinPrecisionTests.Sampling}
-     * @param{*} typename
+     * @param{glsBuiltinPrecisionTests.Typename} typename
      * @param{number} size
      */
     glsBuiltinPrecisionTests.DefaultSamplingVector = function(typename, size){
@@ -2490,12 +2421,6 @@ glsBuiltinPrecisionTests.Typename;
     glsBuiltinPrecisionTests.DefaultSamplingVector.prototype = Object.create(glsBuiltinPrecisionTests.Sampling.prototype);
     glsBuiltinPrecisionTests.DefaultSamplingVector.prototype.constructor = glsBuiltinPrecisionTests.DefaultSamplingVector;
 
-    /**
-     * @param{tcuFloatFormat.FloatFormat} fmt
-     * @param{gluShaderUtil.precision} prec
-     * @param{deRandom.Random} rnd
-     * @return{Array<*>}
-     */
     glsBuiltinPrecisionTests.DefaultSamplingVector.prototype.genRandom = function(fmt, prec, rnd) {
 		/** @type{Array<*>} */ var ret = [];
 
@@ -2505,10 +2430,6 @@ glsBuiltinPrecisionTests.Typename;
 		return ret;
 	};
 
-    /**
-     * @param{tcuFloatFormat.FloatFormat} fmt
-     * @param{Array<*>} dst
-     */
     glsBuiltinPrecisionTests.DefaultSamplingVector.prototype.genFixeds = function(fmt, dst) {
 		/** @type{Array<*>} */ var scalars = [];
 
@@ -2522,10 +2443,6 @@ glsBuiltinPrecisionTests.Typename;
         }
 	};
 
-    /**
-     * @param{tcuFloatFormat.FloatFormat} fmt
-     * @param{Array<*>} dst
-     */
     glsBuiltinPrecisionTests.DefaultSamplingVector.prototype.getWeight = function() {
 		return Math.pow(glsBuiltinPrecisionTests.SamplingFactory(this.typename).getWeight(), this.size);
 	};
@@ -2534,7 +2451,7 @@ glsBuiltinPrecisionTests.Typename;
      * template <typename typename, int Rows, int Columns>
      * @constructor
      * @extends{glsBuiltinPrecisionTests.Sampling}
-     * @param{*} typename
+     * @param{glsBuiltinPrecisionTests.Typename} typename
      * @param{number} rows
      * @param{number} cols
      */
@@ -2547,12 +2464,6 @@ glsBuiltinPrecisionTests.Typename;
     glsBuiltinPrecisionTests.DefaultSamplingMatrix.prototype = Object.create(glsBuiltinPrecisionTests.Sampling.prototype);
     glsBuiltinPrecisionTests.DefaultSamplingMatrix.prototype.constructor = glsBuiltinPrecisionTests.DefaultSamplingMatrix;
 
-    /**
-     * @param{tcuFloatFormat.FloatFormat} fmt
-     * @param{gluShaderUtil.precision} prec
-     * @param{deRandom.Random} rnd
-     * @return{tcuMatrix.Matrix}
-     */
     glsBuiltinPrecisionTests.DefaultSamplingMatrix.prototype.genRandom = function(fmt, prec, rnd) {
         /** @type{tcuMatrix.Matrix} */ var ret = new tcuMatrix.Matrix(this.rows, this.cols);
         var sampler = glsBuiltinPrecisionTests.SamplingFactory(this.typename);
@@ -2564,12 +2475,8 @@ glsBuiltinPrecisionTests.Typename;
     	return ret;
     };
 
-    /**
-     * @param{tcuFloatFormat.FloatFormat} fmt
-     * @param{Array<tcuMatrix.Matrix>} dst
-     */
     glsBuiltinPrecisionTests.DefaultSamplingMatrix.prototype.genFixeds = function(fmt, dst)	{
-		/** @type{Array<numbers>} */ var scalars = [];
+		/** @type{Array<number>} */ var scalars = [];
 
 		glsBuiltinPrecisionTests.SamplingFactory(this.typename).genFixeds(fmt, scalars);
 
@@ -2588,9 +2495,6 @@ glsBuiltinPrecisionTests.Typename;
 		}
 	};
 
-    /**
-     * @return{number}
-     */
     glsBuiltinPrecisionTests.DefaultSamplingMatrix.prototype.getWeight = function()	{
 		return Math.pow(glsBuiltinPrecisionTests.SamplingFactory(this.typename).getWeight(), this.rows * this.cols);
     };
@@ -2600,8 +2504,7 @@ glsBuiltinPrecisionTests.Typename;
      * template<typename In>
      * @constructor
      * @param {number=} size
-     * @extends{glsBuiltinPrecisionTests.Samplings}
-     * @param{In} In
+     * @param{glsBuiltinPrecisionTests.InTypes} In
      */
      glsBuiltinPrecisionTests.Samplings = function(In, size) {
         this.in0 = glsBuiltinPrecisionTests.SamplingFactory(In.In0, size);
@@ -2613,7 +2516,7 @@ glsBuiltinPrecisionTests.Typename;
 
     /**
      * template<typename In>
-     * @param{*} In
+     * @param{glsBuiltinPrecisionTests.InTypes} In
      * @param {number=} size
      * @constructor
      * @extends{glsBuiltinPrecisionTests.Samplings}
@@ -2633,20 +2536,12 @@ glsBuiltinPrecisionTests.Typename;
         /** @type{string} */ this.m_extension = extension === undefined ? '' : extension;
         /** @type{glsBuiltinPrecisionTests.Context} */ this.m_ctx	= context;
         /** @type{*} */ this.m_status;
-		/** @type{*} */ this.m_rnd	= new deRandom.Random(); //	(0xdeadbeefu + context.testContext.getCommandLine().getBaseSeed())
-		/** @type{*} */ this.m_extension = extension;
+		/** @type{deRandom.Random} */ this.m_rnd	= new deRandom.Random(1234); //	(0xdeadbeefu + context.testContext.getCommandLine().getBaseSeed())
         tcuTestCase.DeqpTest.call(this, name, extension);
     };
 
     glsBuiltinPrecisionTests.PrecisionCase.prototype = Object.create(tcuTestCase.DeqpTest.prototype);
     glsBuiltinPrecisionTests.PrecisionCase.prototype.constructor = glsBuiltinPrecisionTests.PrecisionCase;
-
-    /**
-     * @return{glsBuiltinPrecisionTests.RenderContext}
-     */
-    glsBuiltinPrecisionTests.PrecisionCase.prototype.getRenderContext = function() {
-        return this.m_ctx.renderContext;
-    };
 
     /**
      * @return{tcuFloatFormat.FloatFormat}
@@ -2661,10 +2556,10 @@ glsBuiltinPrecisionTests.Typename;
 
     /**
      * Return an output value extracted from flat array
-     * @param {good.NumberArray} output
+     * @param {goog.NumberArray} output
      * @param {number} index Index of the element to extract
      * @param {*} reference Reference for type informaion
-     * @return {number|Array<number>}
+     * @return {glsBuiltinPrecisionTests.Value}
      */ 
     glsBuiltinPrecisionTests.getOutput = function(output, index, reference) {
         if (reference instanceof Array) {
@@ -2771,7 +2666,7 @@ glsBuiltinPrecisionTests.Typename;
 		spec.globalDeclarations = "precision " + gluShaderUtil.getPrecisionName(this.m_ctx.precision) + " float;\n"
 
     	if (this.m_extension.length > 0)
-    		spec.globalDeclarations = '#extension ' + this.m_extension + ' : require\n';
+    		spec.globalDeclarations += '#extension ' + this.m_extension + ' : require\n';
 
     	spec.inputs = [];
 
@@ -2803,7 +2698,7 @@ glsBuiltinPrecisionTests.Typename;
 
 		// executor.log(log());
 		if (!executor.isOk())
-			TCU_FAIL("Shader compilation failed");
+			testFailed("Shader compilation failed");
 
 		executor.useProgram();
 		var outputArray = executor.execute(numValues, inputArr);
@@ -2818,12 +2713,12 @@ glsBuiltinPrecisionTests.Typename;
 
     	// Initialize environment with dummy values so we don't need to bind in inner loop.
 
-        /** @type{tcuInterval.Interval} */ var in0 = new tcuInterval.Interval();
-        /** @type{tcuInterval.Interval} */ var in1 = new tcuInterval.Interval();
-        /** @type{tcuInterval.Interval} */ var in2 = new tcuInterval.Interval();
-        /** @type{tcuInterval.Interval} */ var in3 = new tcuInterval.Interval();
-        /** @type{tcuInterval.Interval} */ var reference0 = new tcuInterval.Interval();
-        /** @type{tcuInterval.Interval} */ var reference1 = new tcuInterval.Interval();
+        var in0 = new tcuInterval.Interval();
+        var in1 = new tcuInterval.Interval();
+        var in2 = new tcuInterval.Interval();
+        var in3 = new tcuInterval.Interval();
+        var reference0 = new tcuInterval.Interval();
+        var reference1 = new tcuInterval.Interval();
 
 		env.bind(variables.in0, in0);
 		env.bind(variables.in1, in1);
@@ -2837,8 +2732,6 @@ glsBuiltinPrecisionTests.Typename;
     	for (var valueNdx = 0; valueNdx < numValues; valueNdx++) {
     		/** @type{boolean} */ var result = true;
             var msg = '';
-    		/** @type{tcuInterval.Interval} */ var reference0 = new tcuInterval.Interval();
-    		/** @type{tcuInterval.Interval} */ var reference1 = new tcuInterval.Interval();
 
     		var in0_ = glsBuiltinPrecisionTests.convert(this.Arg0, fmt, glsBuiltinPrecisionTests.round(this.Arg0, fmt, inputs.in0[valueNdx]));
     		var in1_ = glsBuiltinPrecisionTests.convert(this.Arg1, fmt, glsBuiltinPrecisionTests.round(this.Arg1, fmt, inputs.in1[valueNdx]));
@@ -2881,36 +2774,36 @@ glsBuiltinPrecisionTests.Typename;
 
     			if (inCount > 0) {
     				builder += '\t' + variables.in0.getName() + ' = '
-    						+ valueToString(highpFmt, inputs.in0[valueNdx]) + '\n';
+    						+ inputs.in0[valueNdx] + '\n';
     			}
 
     			if (inCount > 1) {
     				builder += '\t' + variables.in1.getName() + ' = '
-    						+ valueToString(highpFmt, inputs.in1[valueNdx]) + '\n';
+    						+ inputs.in1[valueNdx] + '\n';
     			}
 
     			if (inCount > 2) {
     				builder += '\t' + variables.in2.getName() + ' = '
-    						+ valueToString(highpFmt, inputs.in2[valueNdx]) + '\n';
+    						+ inputs.in2[valueNdx] + '\n';
     			}
 
     			if (inCount > 3) {
     				builder += '\t' + variables.in3.getName() + ' = '
-    						+ valueToString(highpFmt, inputs.in3[valueNdx]) + '\n';
+    						+ inputs.in3[valueNdx] + '\n';
     			}
 
     			if (outCount > 0) {
     				builder += '\t' + variables.out0.getName() + ' = '
-    						+ valueToString(highpFmt, outputs[0][valueNdx]) + '\n'
+    						+ outputs[0][valueNdx] + '\n'
     						+ '\tExpected range: '
-    						+ intervalToString(highpFmt, reference0) + '\n';
+    						+ reference0 + '\n';
     			}
 
     			if (outCount > 1) {
     				builder += '\t' + variables.out1.getName() + ' = '
-    						+ valueToString(highpFmt, outputs[1][valueNdx]) + '\n'
+    						+ outputs[1][valueNdx] + '\n'
     						+ '\tExpected range: '
-    						+ intervalToString(highpFmt, reference1) + '\n';
+    						+ reference1 + '\n';
     			}
 
     			bufferedLogToConsole(builder);
@@ -2931,7 +2824,6 @@ glsBuiltinPrecisionTests.Typename;
     /**
      * template <typename In, typename Out>
      * @param{glsBuiltinPrecisionTests.Variable} variable Variable<typename>
-     * @param{glsBuiltinPrecisionTests.Inputs} inputs Inputs<In>
      * @return{glsShaderExecUtil.Symbol}
      */
     glsBuiltinPrecisionTests.PrecisionCase.prototype.makeSymbol = function (variable) {
@@ -2991,8 +2883,8 @@ glsBuiltinPrecisionTests.Typename;
     };
 
     /**
-     * @param{Arrray<Array<number>>} mat1
-     * @param{Arrray<Array<number>>} mat2
+     * @param{Array<Array<number>>} mat1
+     * @param{Array<Array<number>>} mat2
      * @return{boolean}
      */
     glsBuiltinPrecisionTests.InputLessMatrix = function(mat1, mat2) {
@@ -3183,15 +3075,15 @@ glsBuiltinPrecisionTests.Typename;
     												this.m_ctx.numRandoms,
     												this.m_rnd));
 
-        var variables = new glsBuiltinPrecisionTests.Variables(this.In, this.Out, this.m_size);
+        var variables = new glsBuiltinPrecisionTests.Variables(this.In, this.Out);
     	// Variables<In, Out>	variables;
         //
-    	variables.out0	= new glsBuiltinPrecisionTests.Variable(this.Ret, "out0", this.m_size);
-    	variables.out1	= new glsBuiltinPrecisionTests.Variable(glsBuiltinPrecisionTests.Void, "out1", this.m_size);
-    	variables.in0	= new glsBuiltinPrecisionTests.Variable(this.Arg0, "in0", this.m_size);
-    	variables.in1	= new glsBuiltinPrecisionTests.Variable(this.Arg1, "in1", this.m_size);
-    	variables.in2	= new glsBuiltinPrecisionTests.Variable(this.Arg2, "in2", this.m_size);
-    	variables.in3	= new glsBuiltinPrecisionTests.Variable(this.Arg3, "in3", this.m_size);
+    	variables.out0	= new glsBuiltinPrecisionTests.Variable(this.Ret, "out0");
+    	variables.out1	= new glsBuiltinPrecisionTests.Variable(glsBuiltinPrecisionTests.Void, "out1");
+    	variables.in0	= new glsBuiltinPrecisionTests.Variable(this.Arg0, "in0");
+    	variables.in1	= new glsBuiltinPrecisionTests.Variable(this.Arg1, "in1");
+    	variables.in2	= new glsBuiltinPrecisionTests.Variable(this.Arg2, "in2");
+    	variables.in3	= new glsBuiltinPrecisionTests.Variable(this.Arg3, "in3");
         
 
 		var	expr	= glsBuiltinPrecisionTests.applyVar(this.m_func,
@@ -3206,10 +3098,10 @@ glsBuiltinPrecisionTests.Typename;
      * template <typename Sig>
      * return ExprP<typename Sig::Ret>
      * @param{glsBuiltinPrecisionTests.Func} func
-     * @param{glsBuiltinPrecisionTests.VariableP} arg0
-     * @param{glsBuiltinPrecisionTests.VariableP} arg1
-     * @param{glsBuiltinPrecisionTests.VariableP} arg2
-     * @param{glsBuiltinPrecisionTests.VariableP} arg3
+     * @param{glsBuiltinPrecisionTests.Variable} arg0
+     * @param{glsBuiltinPrecisionTests.Variable} arg1
+     * @param{glsBuiltinPrecisionTests.Variable} arg2
+     * @param{glsBuiltinPrecisionTests.Variable} arg3
      * @return{glsBuiltinPrecisionTests.ApplyVar}
      */
     glsBuiltinPrecisionTests.applyVar = function(func, arg0, arg1, arg2, arg3) {
@@ -3265,7 +3157,7 @@ glsBuiltinPrecisionTests.Typename;
 	};
 
     /**
-     * @return{glsBuiltinPrecisionTests.CaseFactories} fact
+     * @param{glsBuiltinPrecisionTests.CaseFactories} fact
      */
 	glsBuiltinPrecisionTests.BuiltinFuncs.prototype.addFactory = function(fact)	{
 		this.m_factories.push(fact);
@@ -3275,7 +3167,6 @@ glsBuiltinPrecisionTests.Typename;
      * template <typename Sig>
      * @param{glsBuiltinPrecisionTests.Context} context
      * @param{string} name
-     * @param{glsBuiltinPrecisionTests.Signature} Sig_
      * @param{glsBuiltinPrecisionTests.Func} func
      * @return{glsBuiltinPrecisionTests.PrecisionCase}
      */
@@ -3398,9 +3289,9 @@ glsBuiltinPrecisionTests.Typename;
 
    /**
      * @param{glsBuiltinPrecisionTests.Context} ctx
-     * @param {tcutestCase.DeqpTest} group
+     * @param {tcuTestCase.DeqpTest} group
      * @param {number} rows
-     * @param {number} cols;
+     * @param {number} cols
      */
     glsBuiltinPrecisionTests.MatrixFuncCaseFactory.prototype.addCase = function(ctx, group, rows, cols) {
         var name = glsBuiltinPrecisionTests.dataTypeNameOfMatrix('float', rows, cols);
@@ -3905,7 +3796,7 @@ glsBuiltinPrecisionTests.Typename;
 
     /**
      * template <typename F>
-     * @param {*} F typename
+     * @param {function(new:glsBuiltinPrecisionTests.Func)} F
      * @param {glsBuiltinPrecisionTests.BuiltinFuncs} funcs
      * @param {string=} name
      */
