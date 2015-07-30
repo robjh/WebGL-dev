@@ -398,7 +398,7 @@ goog.scope(function() {
 	 */
 	es3fShaderDerivateTests.verifyConstantDerivate = function(result, errorMask, dataType, reference, threshold, scale, bias, logPolicy) {
 		logPolicy = logPolicy === undefined ? es3fShaderDerivateTests.VerificationLogging.LOG_ALL : logPolicy;
-		// /** @type {number} */ var numComps = gluShaderUtil.getDataTypeScalarTypeAsDataType(dataType);// TODO: may remove
+		// /** @type {number} */ var numComps = gluShaderUtil.getDataTypeScalarTypeAsDataType(dataType); // we might not need this at all
 		/** @type {Array<boolean>} */ var mask = deMath.logicalNotBool(es3fShaderDerivateTests.getDerivateMask(dataType));
 		/** @type {number} */ var numFailedPixels = 0;
 
@@ -583,12 +583,11 @@ goog.scope(function() {
 
 	/**
 	 * @constructor
-	 * @extends {tcuTestCase.DeqpTest} // TODO: tes3TestCase?
+	 * @extends {tcuTestCase.DeqpTest}
 	 * @param {string} name
 	 * @param {string} description
 	 */
 	es3fShaderDerivateTests.TriangleDerivateCase = function(name, description) {
-		// TODO:
 		tcuTestCase.DeqpTest.call(this, name, description);
 		/** @type {?gluShaderUtil.DataType} */ this.m_dataType = null;
 		/** @type {?gluShaderUtil.precision} */ this.m_precision = null;
@@ -688,7 +687,6 @@ goog.scope(function() {
 			gl.renderbufferStorageMultisample(gl.RENDERBUFFER, this.m_numSamples, fboFormat, viewportSize[0], viewportSize[1]);
 			gl.bindFramebuffer(gl.FRAMEBUFFER, fbo.get());
 			gl.framebufferRenderbuffer(gl.FRAMEBUFFER, gl.COLOR_ATTACHMENT0, gl.RENDERBUFFER, rbo.get());
-			// TODO: line below this
 			//TCU_CHECK(gl.checkFramebufferStatus(gl.FRAMEBUFFER) === gl.FRAMEBUFFER_COMPLETE);
 		}
 		else {
@@ -769,11 +767,11 @@ goog.scope(function() {
 		this.setupRenderState(program.getProgram());
 
 		gl.hint(gl.FRAGMENT_SHADER_DERIVATIVE_HINT, this.m_hint);
-		// TODO GLU_EXPECT_NO_ERROR(gl.getError(), 'Setup program state');
+		// GLU_EXPECT_NO_ERROR(gl.getError(), 'Setup program state');
 
 		gl.viewport(viewportX, viewportY, viewportSize[0], viewportSize[1]);
 		gluDrawUtil.draw(gl, program.getProgram(), vertexArrays, gluDrawUtil.triangles(indices));
-		// TODO GLU_EXPECT_NO_ERROR(gl.getError(), 'Draw');
+		// GLU_EXPECT_NO_ERROR(gl.getError(), 'Draw');
 
 		// Read back results
 
@@ -790,10 +788,10 @@ goog.scope(function() {
 			gl.renderbufferStorageMultisample(gl.RENDERBUFFER, 0, fboFormat, viewportSize[0], viewportSize[1]);
 			gl.bindFramebuffer(gl.DRAW_FRAMEBUFFER, resFbo.get());
 			gl.framebufferRenderbuffer(gl.DRAW_FRAMEBUFFER, gl.COLOR_ATTACHMENT0, gl.RENDERBUFFER, resRbo.get());
-			// TODO TCU_CHECK(gl.checkFramebufferStatus(gl.FRAMEBUFFER) === gl.FRAMEBUFFER_COMPLETE);
+			// TCU_CHECK(gl.checkFramebufferStatus(gl.FRAMEBUFFER) === gl.FRAMEBUFFER_COMPLETE);
 
 			gl.blitFramebuffer(0, 0, viewportSize[0], viewportSize[1], 0, 0, viewportSize[0], viewportSize[1], gl.COLOR_BUFFER_BIT, gl.NEAREST);
-			// TODO GLU_EXPECT_NO_ERROR(gl.getError(), 'Resolve blit');
+			// GLU_EXPECT_NO_ERROR(gl.getError(), 'Resolve blit');
 
 			gl.bindFramebuffer(gl.READ_FRAMEBUFFER, resFbo.get());
 		}
@@ -829,7 +827,7 @@ goog.scope(function() {
 				throw new Error('Surface Type not supported: ' + this.m_surfaceType);
 		}
 
-		// TODO GLU_EXPECT_NO_ERROR(gl.getError(), 'Read pixels');
+		// GLU_EXPECT_NO_ERROR(gl.getError(), 'Read pixels');
 
 		// Verify
 		/** @type {tcuSurface.Surface} */
@@ -1065,7 +1063,7 @@ goog.scope(function() {
 			reference = deMath.multiply(deMath.scale(deMath.subtract(this.m_coordMax, this.m_coordMin), 1/div), scale);
 			/** @type {Array<number>} */ var opThreshold = es3fShaderDerivateTests.getDerivateThreshold(this.m_precision, deMath.multiply(this.m_coordMin, scale), deMath.multiply(this.m_coordMax, scale), reference);
 			threshold = deMath.max(surfaceThreshold, opThreshold);
-			// /** @type {number} */ var numComps = gluShaderUtil.getDataTypeScalarTypeAsDataType(this.m_dataType); // TODO: may remove
+			// /** @type {number} */ var numComps = gluShaderUtil.getDataTypeScalarTypeAsDataType(this.m_dataType); // we might not need this at all
 			bufferedLogToConsole('Verifying result image.\n' +
 				'\tValid derivative is ' + reference + ' with threshold ' + threshold);
 
@@ -1321,7 +1319,7 @@ goog.scope(function() {
 			reference = deMath.multiply(deMath.scale(deMath.subtract(this.m_texValueMax, this.m_texValueMin), 1 / div), scale);
 			/** @type {Array<number>} */ var opThreshold = es3fShaderDerivateTests.getDerivateThreshold(this.m_precision, deMath.multiply(this.m_texValueMin, scale), deMath.multiply(this.m_texValueMax, scale), reference);
 			threshold = deMath.max(surfaceThreshold, opThreshold);
-			// /** @type {number} */ var numComps = gluShaderUtil.getDataTypeScalarTypeAsDataType(this.m_dataType); // TODO: we may be able to remove this line
+			// /** @type {number} */ var numComps = gluShaderUtil.getDataTypeScalarTypeAsDataType(this.m_dataType); // we might not need this at all
 
 			bufferedLogToConsole('Verifying result image.\n'+
 			    '\tValid derivative is ' + reference + ' with threshold ' + threshold);

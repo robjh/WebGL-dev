@@ -82,6 +82,8 @@ gluDrawUtil.namedBindingsToProgramLocations = function(gl, program, inputArray, 
             //assert(binding.location >= 0);
             var location = gl.getAttribLocation(program, cur.name);
             if (location >= 0) {
+                if (cur.offset)
+                    location += cur.offset;
                 // Add binding.location as an offset to accomodate matrices.
                 outputArray.push(new gluDrawUtil.VertexArrayBinding(cur.type, location, cur.components, cur.elements, cur.data));
             }
@@ -387,10 +389,12 @@ gluDrawUtil.VertexArrayPointer = function(componentType_, convert_, numComponent
  * @constructor
  * @param {string} name
  * @param {number} location
+ * @param {number=} offset
  */
-gluDrawUtil.BindingPoint = function(name, location) {
+gluDrawUtil.BindingPoint = function(name, location, offset) {
     /** @type {string} */ this.name = name;
     /** @type {number} */ this.location = location;
+    /** @type {number} */ this.offset = offset || 0;
 };
 
 /**
@@ -425,6 +429,23 @@ gluDrawUtil.newFloatVertexArrayBinding = function(name, numComponents, numElemen
     var bindingPoint = gluDrawUtil.bindingPointFromName(name);
     var arrayPointer = new gluDrawUtil.VertexArrayPointer(gluDrawUtil.VertexComponentType.VTX_COMP_FLOAT,
         gluDrawUtil.VertexComponentConversion.VTX_COMP_CONVERT_NONE, numComponents, numElements, stride, data);
+    return gluDrawUtil.vabFromBindingPointAndArrayPointer(bindingPoint, arrayPointer);
+};
+
+/**
+ * @param  {string} name
+ * @param  {number} column
+ * @param  {number} rows
+ * @param  {number} numElements
+ * @param  {number} stride
+ * @param  {Array<number>} data
+ * @return {gluDrawUtil.VertexArrayBinding}
+ */
+gluDrawUtil.newFloatColumnVertexArrayBinding = function(name, column, rows, numElements, stride, data) {
+    var bindingPoint = gluDrawUtil.bindingPointFromName(name);
+    bindingPoint.offset = column;
+    var arrayPointer = new gluDrawUtil.VertexArrayPointer(gluDrawUtil.VertexComponentType.VTX_COMP_FLOAT,
+        gluDrawUtil.VertexComponentConversion.VTX_COMP_CONVERT_NONE, rows, numElements, stride, data);
     return gluDrawUtil.vabFromBindingPointAndArrayPointer(bindingPoint, arrayPointer);
 };
 

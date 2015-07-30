@@ -164,6 +164,17 @@
     };
 
     /**
+     * @param {number} a
+     * @param {number} b
+     * @return{tcuInterval.Interval}
+     */
+    tcuInterval.withNumbers = function(a, b) {
+        var x = new tcuInterval.Interval(a);
+        var y =  new tcuInterval.Interval(b);
+        return tcuInterval.withIntervals(x, y);
+    };
+
+    /**
      * @param {boolean} hasNaN_
      * @param {number} lo_
      * @param {number} hi_
@@ -262,8 +273,8 @@
     tcuInterval.Interval.prototype.operatorAndBinary = function (other) {
         /** @type{tcuInterval.Interval} */ var temp = new tcuInterval.Interval();
         temp.m_hasNaN = this.m_hasNaN && other.m_hasNaN;
-        temp.m_lo = Math.min(this.m_lo, other.m_lo);
-        temp.m_hi = Math.max(this.m_hi, other.m_hi);
+        temp.m_lo = Math.max(this.m_lo, other.m_lo);
+        temp.m_hi = Math.min(this.m_hi, other.m_hi);
 		return temp;
 	};
 
@@ -301,8 +312,8 @@
     tcuInterval.Interval.prototype.operatorNegative = function () {
         /** @type{tcuInterval.Interval} */ var temp = new tcuInterval.Interval();
         temp.m_hasNaN = this.m_hasNaN;
-        temp.m_lo = -this.m_lo;
-        temp.m_hi = -this.m_hi;
+        temp.m_lo = -this.m_hi;
+        temp.m_hi = -this.m_lo;
 		return temp;
     };
 
@@ -620,5 +631,8 @@ tcuInterval.applyMonotone2 = function(arg0, arg1, body) {
 // 							 const Interval&		arg0,
 // 							 const Interval&		arg1);
 
-
+/** @const */ tcuInterval.POSITIVE_INFINITY = new tcuInterval.Interval(Infinity);
+/** @const */ tcuInterval.NEGATIVE_INFINITY = new tcuInterval.Interval(-Infinity);
+/** @const */ tcuInterval.ZERO = new tcuInterval.Interval(0);
+/** @const */ tcuInterval.NAN = new tcuInterval.Interval(NaN);
 });
