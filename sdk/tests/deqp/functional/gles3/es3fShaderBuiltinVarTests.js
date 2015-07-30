@@ -100,7 +100,7 @@ goog.scope(function() {
 		shaderSpec.version = gluShaderUtil.GLSLVersion.V300_ES;
 		shaderSpec.source = "result = " + varName + ";\n";
 		shaderSpec.outputs.push(new glsShaderExecUtil.Symbol("result", gluVarType.newTypeBasic(gluShaderUtil.DataType.INT, gluShaderUtil.precision.PRECISION_HIGHP)));
-
+		debugger;
 		return glsShaderExecUtil.createExecutor(shaderType, shaderSpec);
 
 	};
@@ -833,13 +833,13 @@ goog.scope(function() {
 		/** @type {Array<BuiltinConstant>} */ var builtinConstants = [
 			// GLES 2.
 
-			new BuiltinConstant("max_vertex_attribs", "gl_MaxVertexAttribs", function() { return es3fShaderBuiltinVarTests.getInteger(gl.MAX_VERTEX_ATTRIBS); }),
-			new BuiltinConstant("max_vertex_uniform_vectors", "gl_MaxVertexUniformVectors", function() { return es3fShaderBuiltinVarTests.getInteger(gl.MAX_VERTEX_UNIFORM_VECTORS); }),
-			new BuiltinConstant("max_fragment_uniform_vectors", "gl_MaxFragmentUniformVectors", function() { return es3fShaderBuiltinVarTests.getInteger(gl.MAX_FRAGMENT_UNIFORM_VECTORS); }),
-			new BuiltinConstant("max_texture_image_units", "gl_MaxTextureImageUnits", function() { return es3fShaderBuiltinVarTests.getInteger(gl.MAX_TEXTURE_IMAGE_UNITS); }),
-			new BuiltinConstant("max_vertex_texture_image_units", "gl_MaxVertexTextureImageUnits", function() { return es3fShaderBuiltinVarTests.getInteger(gl.MAX_VERTEX_TEXTURE_IMAGE_UNITS); }),
-			new BuiltinConstant("max_combined_texture_image_units", "gl_MaxCombinedTextureImageUnits", function() { return es3fShaderBuiltinVarTests.getInteger(gl.MAX_COMBINED_TEXTURE_IMAGE_UNITS); }),
-			new BuiltinConstant("max_draw_buffers", "gl_MaxDrawBuffers", function() { return es3fShaderBuiltinVarTests.getInteger(gl.MAX_DRAW_BUFFERS); }),
+			// new BuiltinConstant("max_vertex_attribs", "gl_MaxVertexAttribs", function() { return es3fShaderBuiltinVarTests.getInteger(gl.MAX_VERTEX_ATTRIBS); }),
+			// new BuiltinConstant("max_vertex_uniform_vectors", "gl_MaxVertexUniformVectors", function() { return es3fShaderBuiltinVarTests.getInteger(gl.MAX_VERTEX_UNIFORM_VECTORS); }),
+			// new BuiltinConstant("max_fragment_uniform_vectors", "gl_MaxFragmentUniformVectors", function() { return es3fShaderBuiltinVarTests.getInteger(gl.MAX_FRAGMENT_UNIFORM_VECTORS); }),
+			// new BuiltinConstant("max_texture_image_units", "gl_MaxTextureImageUnits", function() { return es3fShaderBuiltinVarTests.getInteger(gl.MAX_TEXTURE_IMAGE_UNITS); }),
+			// new BuiltinConstant("max_vertex_texture_image_units", "gl_MaxVertexTextureImageUnits", function() { return es3fShaderBuiltinVarTests.getInteger(gl.MAX_VERTEX_TEXTURE_IMAGE_UNITS); }),
+			// new BuiltinConstant("max_combined_texture_image_units", "gl_MaxCombinedTextureImageUnits", function() { return es3fShaderBuiltinVarTests.getInteger(gl.MAX_COMBINED_TEXTURE_IMAGE_UNITS); }),
+			// new BuiltinConstant("max_draw_buffers", "gl_MaxDrawBuffers", function() { return es3fShaderBuiltinVarTests.getInteger(gl.MAX_DRAW_BUFFERS); }),
 
 			// GLES 3.
 

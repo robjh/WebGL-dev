@@ -680,7 +680,7 @@ goog.scope(function() {
     gluVarType.MatrixOrder = {
         MATRIXORDER_COLUMN_MAJOR: 0,
         MATRIXORDER_ROW_MAJOR: 1
-    };    
+    };
 
    /**
      * @param {gluVarType.MatrixOrder} qualifier
@@ -783,9 +783,10 @@ goog.scope(function() {
     };
 
     gluVarType.VariableDeclaration.prototype.toString = function() {
+        debugger;
         var str = '';
         if (typeof this.layout !== 'undefined')
-            str += this.layout + ' ';
+            str += this.layout.toString() + ' ';
 
         for (var bitNdx = 0; (1 << bitNdx) & gluVarType.MemoryAccessQualifier.MEMORYACCESSQUALIFIER_MASK; ++bitNdx)
             if (this.memoryAccessQualifierBits & (1 << bitNdx))
@@ -800,7 +801,7 @@ goog.scope(function() {
 
         str += gluVarType.declareVariable(this.varType, this.name);
 
-        return str;        
+        return str;
     };
 
 });
