@@ -100,7 +100,6 @@ goog.scope(function() {
 		shaderSpec.version = gluShaderUtil.GLSLVersion.V300_ES;
 		shaderSpec.source = "result = " + varName + ";\n";
 		shaderSpec.outputs.push(new glsShaderExecUtil.Symbol("result", gluVarType.newTypeBasic(gluShaderUtil.DataType.INT, gluShaderUtil.precision.PRECISION_HIGHP)));
-		debugger;
 		return glsShaderExecUtil.createExecutor(shaderType, shaderSpec);
 
 	};
@@ -621,7 +620,7 @@ goog.scope(function() {
 		/** @type {Array<number>} */ var indicesCW = [2, 1, 0, 3, 1, 2];
 
 		/** @type {gluDrawUtil.VertexArrayBinding} */ var posBinding = gluDrawUtil.newFloatVertexArrayBinding("a_position", 4, 4, 0, positions);
-		
+
 		gl.useProgram(program.getProgram());
 
 		gl.viewport(viewportX, viewportY, Math.floor(width / 2), height);
