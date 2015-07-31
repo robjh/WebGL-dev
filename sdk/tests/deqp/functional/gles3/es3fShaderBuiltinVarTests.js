@@ -326,8 +326,12 @@ goog.scope(function() {
 		        /** @type {number} */ var z = (xf + yf) / 2.0;
 		        /** @type {Array<number>} */ var fragCoord = [x + .5, y + .5, z];
 		        /** @type {Array<number>} */ var scaledFC = deMath.multiply(fragCoord, scale);
-		        /** @type {Array<number>} */ var color = [scaledFC[0], scaledFC[1], scaledFC[2], 1.0];
-
+		        /** @type {Array<number>} */
+				var color = [
+					deMath.clamp(Math.floor(scaledFC[0] * 255 + 0.5), 0, 255),
+					deMath.clamp(Math.floor(scaledFC[1] * 255 + 0.5), 0, 255),
+					deMath.clamp(Math.floor(scaledFC[2] * 255 + 0.5), 0, 255),
+					255];
 		        refImg.setPixel(x, y, color);
 		    }
 		}
@@ -336,8 +340,6 @@ goog.scope(function() {
 	    /** @type {boolean} */ var isOk = tcuImageCompare.pixelThresholdCompare('Result', 'Image comparison result', refImg, testImg, threshold);
 
 		if (!isOk) {
-			tcuLogImage.logImage('Reference', 'Reference', refImg.getAccess());
-			tcuLogImage.logImage('Test', 'Test', testImg.getAccess());
 			testFailedOptions('Image comparison failed', false);
 		}
 		else
@@ -424,8 +426,12 @@ goog.scope(function() {
 				/** @type {number} */ var oow = ((xf + yf) < 1.0) ?
 												es3fShaderBuiltinVarTests.projectedTriInterpolate([w[0], w[1], w[2]], [w[0], w[1], w[2]], xf, yf) :
 												es3fShaderBuiltinVarTests.projectedTriInterpolate([w[3], w[2], w[1]], [w[3], w[2], w[1]], 1.0 - xf, 1.0 - yf);
-				/** @type {Array<number>} */ var color = [0.0, oow - 1.0, 0.0, 1.0];
-
+				/** @type {Array<number>} */
+				var color = [
+					0,
+					deMath.clamp(Math.floor((oow - 1.0) * 255 + 0.5), 0, 255),
+					0,
+					255];
 				refImg.setPixel(x, y, color);
 			}
 		}
@@ -434,8 +440,6 @@ goog.scope(function() {
 		/** @type {boolean} */ var isOk = tcuImageCompare.pixelThresholdCompare('Result', 'Image comparison result', refImg, testImg, threshold);
 
 		if (!isOk) {
-			tcuLogImage.logImage('Reference', 'Reference', refImg.getAccess());
-			tcuLogImage.logImage('Test', 'Test', testImg.getAccess());
 			testFailedOptions('Image comparison failed', false);
 		}
 		else
@@ -635,18 +639,16 @@ goog.scope(function() {
 		// Draw reference
 		for (var y = 0; y < refImg.getHeight(); y++) {
 			for (var x = 0; x < Math.floor(refImg.getWidth() / 2); x++)
-				refImg.setPixel(x, y, tcuRGBA.RGBA.green.toVec());
+				refImg.setPixel(x, y, tcuRGBA.RGBA.green.toIVec());
 
 			for (var x = Math.floor(refImg.getWidth() / 2); x < refImg.getWidth(); x++)
-				refImg.setPixel(x, y, tcuRGBA.RGBA.blue.toVec());
+				refImg.setPixel(x, y, tcuRGBA.RGBA.blue.toIVec());
 		}
 
 		// Compare
 		/** @type {boolean} */ var isOk = tcuImageCompare.pixelThresholdCompare('Result', 'Image comparison result', refImg, testImg, threshold);
 
 		if (!isOk) {
-			tcuLogImage.logImage('Reference', 'Reference', refImg.getAccess());
-			tcuLogImage.logImage('Test', 'Test', testImg.getAccess());
 			testFailedOptions('Image comparison failed', false);
 		}
 		else
@@ -854,6 +856,8 @@ goog.scope(function() {
 			new BuiltinConstant('max_program_texel_offset', 'gl_MaxProgramTexelOffset', function() { return es3fShaderBuiltinVarTests.getInteger(gl.MAX_PROGRAM_TEXEL_OFFSET); })
 		];
 
+		// TODO: the following tests cause these tests to fail (FragCoordXYZCase, FragCoordWCase, PointCoordCase, FrontFacingCase)
+		// need to take a look at ShaderBuiltinConstantCase, maybe something needs to be cleaned up
 		for (var ndx = 0; ndx < builtinConstants.length; ndx++) {
 			/** @type {string} */ var caseName = builtinConstants[ndx].caseName;
 			/** @type {string} */ var varName = builtinConstants[ndx].varName;
@@ -863,19 +867,21 @@ goog.scope(function() {
 			testGroup.addChild(new es3fShaderBuiltinVarTests.ShaderBuiltinConstantCase(caseName + '_fragment', varName, varName, getValue, gluShaderProgram.shaderType.FRAGMENT));
 		}
 
+		// TODO: these two tests are crashing the webgl context (CONTEXT_LOST_WEBGL)
 		testGroup.addChild(new es3fShaderBuiltinVarTests.ShaderDepthRangeTest('depth_range_vertex', 'gl_DepthRange', true));
 		testGroup.addChild(new es3fShaderBuiltinVarTests.ShaderDepthRangeTest('depth_range_fragment', 'gl_DepthRange', false));
 
 		// Vertex shader builtin variables.
-		// \todo [2015-07-30 dag] skipping until we figure out if VertexIDCase has to be proted as well given the note below
+		// TODO: must implement
 		// addChild(new VertexIDCase		(m_context));
 		// \todo [2013-03-20 pyry] gl_InstanceID -- tested in instancing tests quite thoroughly.
 
 		// Fragment shader builtin variables.
 
+		// TODO: the following tests run and pass unless otherwise noted
 		testGroup.addChild(new es3fShaderBuiltinVarTests.FragCoordXYZCase());
 		testGroup.addChild(new es3fShaderBuiltinVarTests.FragCoordWCase());
-		testGroup.addChild(new es3fShaderBuiltinVarTests.PointCoordCase());
+		testGroup.addChild(new es3fShaderBuiltinVarTests.PointCoordCase()); // TODO: DOES NOT PASS! -> FAIL builtin_variable.pointcoord: Cannot set property '0' of undefined
 		testGroup.addChild(new es3fShaderBuiltinVarTests.FrontFacingCase());
 	};
 
