@@ -52,3 +52,4 @@ extensions/schematron/webgl_message.xsl
 
 *.compiled
 *.dep
+*.patch
