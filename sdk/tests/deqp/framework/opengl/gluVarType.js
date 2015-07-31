@@ -783,7 +783,6 @@ goog.scope(function() {
     };
 
     gluVarType.VariableDeclaration.prototype.toString = function() {
-        debugger;
         var str = '';
         if (typeof this.layout !== 'undefined')
             str += this.layout.toString() + ' ';

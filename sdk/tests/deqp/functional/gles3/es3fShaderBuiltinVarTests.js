@@ -246,7 +246,6 @@ goog.scope(function() {
 		bufferedLogToConsole("glDepthRangef(" + this.m_depthRange.zNear + ", " + this.m_depthRange.zFar + ")");
 		gl.depthRange(this.m_depthRange.zNear, this.m_depthRange.zFar);
 
-		//glsShaderRenderCase.ShaderRenderCase.iterate.call(this);
 		this.postiterate();
 		this.m_iterNdx += 1;
 
@@ -622,6 +621,7 @@ goog.scope(function() {
 		/** @type {Array<number>} */ var indicesCW = [2, 1, 0, 3, 1, 2];
 
 		/** @type {gluDrawUtil.VertexArrayBinding} */ var posBinding = gluDrawUtil.newFloatVertexArrayBinding("a_position", 4, 4, 0, positions);
+		
 		gl.useProgram(program.getProgram());
 
 		gl.viewport(viewportX, viewportY, Math.floor(width / 2), height);
