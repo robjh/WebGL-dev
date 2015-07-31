@@ -517,6 +517,9 @@ goog.scope(function() {
         }
     };
 
+    /**
+     * @return {tcuTestCase.IterateResult}
+     */
     glsShaderRenderCase.ShaderRenderCase.prototype.postiterate = function() {
         assertMsgOptions(this.m_program !== null, 'Program not specified.', false, true);
         /** @type {?WebGLProgram} */ var programID = this.m_program.getProgram();
@@ -558,8 +561,11 @@ goog.scope(function() {
         return tcuTestCase.IterateResult.STOP;
     };
 
+    /**
+     * @return {tcuTestCase.IterateResult}
+     */
     glsShaderRenderCase.ShaderRenderCase.prototype.iterate = function() {
-        this.postiterate();
+        return this.postiterate();
     };
 
     glsShaderRenderCase.ShaderRenderCase.prototype.setupShaderData = function() {};

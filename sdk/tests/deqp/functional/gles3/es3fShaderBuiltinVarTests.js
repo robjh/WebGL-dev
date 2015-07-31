@@ -4,14 +4,14 @@
  *
  * Copyright 2014 The Android Open Source Project
  *
- * Licensed under the Apache License, Version 2.0 (the 'License');
+ * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
  *
  *      http://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an 'AS IS' BASIS,
+ * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  * See the License for the specific language governing permissions and
  * limitations under the License.
@@ -25,6 +25,7 @@ goog.require('framework.delibs.debase.deRandom');
 goog.require('framework.common.tcuImageCompare');
 goog.require('framework.common.tcuLogImage');
 goog.require('framework.common.tcuPixelFormat');
+goog.require('framework.common.tcuRGBA');
 goog.require('framework.common.tcuSurface');
 goog.require('framework.common.tcuTestCase');
 goog.require('framework.opengl.gluDrawUtil');
@@ -50,6 +51,7 @@ goog.scope(function() {
 	var tcuLogImage = framework.common.tcuLogImage;
 	var tcuTestCase = framework.common.tcuTestCase;
 	var tcuImageCompare = framework.common.tcuImageCompare;
+	var tcuRGBA = framework.common.tcuRGBA;
 	/** @typedef {function():number} */ es3fShaderBuiltinVarTests.GetConstantValueFunc;
 
 	/**
@@ -98,8 +100,8 @@ goog.scope(function() {
 		/** @type {glsShaderExecUtil.ShaderSpec} */ var shaderSpec = new glsShaderExecUtil.ShaderSpec();
 
 		shaderSpec.version = gluShaderUtil.GLSLVersion.V300_ES;
-		shaderSpec.source = "result = " + varName + ";\n";
-		shaderSpec.outputs.push(new glsShaderExecUtil.Symbol("result", gluVarType.newTypeBasic(gluShaderUtil.DataType.INT, gluShaderUtil.precision.PRECISION_HIGHP)));
+		shaderSpec.source = 'result = ' + varName + ';\n';
+		shaderSpec.outputs.push(new glsShaderExecUtil.Symbol('result', gluVarType.newTypeBasic(gluShaderUtil.DataType.INT, gluShaderUtil.precision.PRECISION_HIGHP)));
 		return glsShaderExecUtil.createExecutor(shaderType, shaderSpec);
 
 	};
@@ -118,18 +120,18 @@ goog.scope(function() {
 		/** @type {goog.NumberArray} */ var result;
 
 		if (!shaderExecutor.isOk())
-			assertMsgOptions(false, "Compile failed", false, true);
+			assertMsgOptions(false, 'Compile failed', false, true);
 
 		shaderExecutor.useProgram();
 		result = shaderExecutor.execute(1, null);
 
-		bufferedLogToConsole(this.m_varName + " " /* + QP_KEY_TAG_NONE + " "*/ + result);
+		bufferedLogToConsole(this.m_varName + ' ' /* + QP_KEY_TAG_NONE + ' '*/ + result);
 
 		// TODO: there is another issue here: the types of result and reference do not matches
 		// result is a number whereas reference might be a number or an array.
 		if (result != reference) {
-			bufferedLogToConsole("ERROR: Expected " + this.m_varName + " = " + reference + "\n" +
-				"Test shader:" + shaderExecutor.m_program.getProgramInfo().infoLog);
+			bufferedLogToConsole('ERROR: Expected ' + this.m_varName + ' = ' + reference + '\n' +
+				'Test shader:' + shaderExecutor.m_program.getProgramInfo().infoLog);
 			testFailedOptions('Invalid builtin constant value', false);
 		}
 		else
@@ -242,7 +244,7 @@ goog.scope(function() {
 		];
 
 		this.m_depthRange = cases[this.m_iterNdx];
-		bufferedLogToConsole("glDepthRangef(" + this.m_depthRange.zNear + ", " + this.m_depthRange.zFar + ")");
+		bufferedLogToConsole('glDepthRangef(' + this.m_depthRange.zNear + ', ' + this.m_depthRange.zFar + ')');
 		gl.depthRange(this.m_depthRange.zNear, this.m_depthRange.zFar);
 
 		this.postiterate();
@@ -259,7 +261,7 @@ goog.scope(function() {
 	 * @extends {tcuTestCase.DeqpTest}
 	 */
 	es3fShaderBuiltinVarTests.FragCoordXYZCase = function() {
-		tcuTestCase.DeqpTest.call(this, "fragcoord_xyz", "gl_FragCoord.xyz Test");
+		tcuTestCase.DeqpTest.call(this, 'fragcoord_xyz', 'gl_FragCoord.xyz Test');
 	};
 
 	es3fShaderBuiltinVarTests.FragCoordXYZCase.prototype = Object.create(tcuTestCase.DeqpTest.prototype);
@@ -268,7 +270,7 @@ goog.scope(function() {
 	es3fShaderBuiltinVarTests.FragCoordXYZCase.prototype.iterate = function() {
 		/** @type {number} */ var width = gl.drawingBufferWidth;
 		/** @type {number} */ var height = gl.drawingBufferHeight;
-		/** @type {Array<number>} */ var threshold = deMath.add([1, 1, 1, 1], tcuPixelFormat.PixelFormatFromContext().getColorThreshold());
+		/** @type {Array<number>} */ var threshold = deMath.add([1, 1, 1, 1], tcuPixelFormat.PixelFormatFromContext(gl).getColorThreshold());
 		/** @type {Array<number>} */ var scale = [1. / width, 1. / height, 1.0];
 
 		/** @type {tcuSurface.Surface} */ var testImg = new tcuSurface.Surface(width, height);
@@ -290,12 +292,12 @@ goog.scope(function() {
 		    '{\n' +
 		    '    o_color = vec4(gl_FragCoord.xyz*u_scale, 1.0);\n' +
 		    '}\n';
-		/** @type {gluShaderProgram.ShaderProgram} */ var program = new gluShaderProgram.ShaderProgram(gl, gluShaderUtil.makeVtxFragSources(vtxSource, fragSource));
+		/** @type {gluShaderProgram.ShaderProgram} */ var program = new gluShaderProgram.ShaderProgram(gl, gluShaderProgram.makeVtxFragSources(vtxSource, fragSource));
 
-		bufferedLogToConsole(program.getProgramInfo());
+		bufferedLogToConsole(program.getProgramInfo().infoLog);
 
 		if (!program.isOk())
-		    throw new Error("Compile failed");
+		    throw new Error('Compile failed');
 
 		// Draw with GL.
 	    /** @type {Array<number>} */ var positions = [
@@ -306,13 +308,13 @@ goog.scope(function() {
 		];
 	    /** @type {Array<number>} */ var indices = [0, 1, 2, 2, 1, 3];
 
-	    /** @type {WebGLUniformLocation} */ var scaleLoc = gl.getUniformLocation(program.getProgram(), "u_scale");
-	    /** @type {gluDrawUtil.VertexArrayBinding} */ var posBinding = gluDrawUtil.newFloatVertexArrayBinding("a_position", 4, 4, 0, positions);
+	    /** @type {WebGLUniformLocation} */ var scaleLoc = gl.getUniformLocation(program.getProgram(), 'u_scale');
+	    /** @type {gluDrawUtil.VertexArrayBinding} */ var posBinding = gluDrawUtil.newFloatVertexArrayBinding('a_position', 4, 4, 0, positions);
 
 	    gl.useProgram(program.getProgram());
 	    gl.uniform3fv(scaleLoc, scale);
 
-	    gluDrawUtil.draw(gl, program.getProgram(), posBinding, gluDrawUtil.triangles(indices));
+	    gluDrawUtil.draw(gl, program.getProgram(), [posBinding], gluDrawUtil.triangles(indices));
 
 		testImg.readViewport(gl, [0, 0, width, height]);
 
@@ -331,7 +333,7 @@ goog.scope(function() {
 		}
 
 		// Compare
-	    /** @type {boolean} */ var isOk = tcuImageCompare.pixelThresholdCompare("Result", "Image comparison result", refImg, testImg, threshold);
+	    /** @type {boolean} */ var isOk = tcuImageCompare.pixelThresholdCompare('Result', 'Image comparison result', refImg, testImg, threshold);
 
 		if (!isOk) {
 			tcuLogImage.logImage('Reference', 'Reference', refImg.getAccess());
@@ -360,7 +362,7 @@ goog.scope(function() {
 	 * @extends {tcuTestCase.DeqpTest}
 	 */
 	es3fShaderBuiltinVarTests.FragCoordWCase = function() {
-		tcuTestCase.DeqpTest.call(this, "fragcoord_w", "gl_FragCoord.w Test");
+		tcuTestCase.DeqpTest.call(this, 'fragcoord_w', 'gl_FragCoord.w Test');
 	};
 
 	es3fShaderBuiltinVarTests.FragCoordWCase.prototype = Object.create(tcuTestCase.DeqpTest.prototype);
@@ -372,7 +374,7 @@ goog.scope(function() {
 	es3fShaderBuiltinVarTests.FragCoordWCase.prototype.iterate = function() {
 		/** @type {number} */ var width = gl.drawingBufferWidth;
 		/** @type {number} */ var height = gl.drawingBufferHeight;
-		/** @type {Array<number>} */ var threshold = deMath.add([1, 1, 1, 1], tcuPixelFormat.PixelFormatFromContext().getColorThreshold());
+		/** @type {Array<number>} */ var threshold = deMath.add([1, 1, 1, 1], tcuPixelFormat.PixelFormatFromContext(gl).getColorThreshold());
 
 		/** @type {tcuSurface.Surface} */ var testImg = new tcuSurface.Surface(width, height);
 		/** @type {tcuSurface.Surface} */ var refImg = new tcuSurface.Surface(width, height);
@@ -393,11 +395,11 @@ goog.scope(function() {
 			'	o_color = vec4(0.0, 1.0/gl_FragCoord.w - 1.0, 0.0, 1.0);\n' +
 			'}\n';
 
-		/** @type {gluShaderProgram.ShaderProgram} */ var program = new gluShaderProgram.ShaderProgram(gl, gluShaderUtil.makeVtxFragSources(vtxSource, fragSource));
-		bufferedLogToConsole(program.getProgramInfo());
+		/** @type {gluShaderProgram.ShaderProgram} */ var program = new gluShaderProgram.ShaderProgram(gl, gluShaderProgram.makeVtxFragSources(vtxSource, fragSource));
+		bufferedLogToConsole(program.getProgramInfo().infoLog);
 
 		if (!program.isOk())
-		    throw new Error("Compile failed");
+		    throw new Error('Compile failed');
 
 		// Draw with GL.
 		/** @type {Array<number>} */ var positions = [
@@ -408,10 +410,10 @@ goog.scope(function() {
 		];
 		/** @type {Array<number>} */ var indices = [0, 1, 2, 2, 1, 3];
 
-		/** @type {gluDrawUtil.VertexArrayBinding} */ var posBinding = gluDrawUtil.newFloatVertexArrayBinding("a_position", 4, 4, 0, positions);
+		/** @type {gluDrawUtil.VertexArrayBinding} */ var posBinding = gluDrawUtil.newFloatVertexArrayBinding('a_position', 4, 4, 0, positions);
 		gl.useProgram(program.getProgram());
 
-		gluDrawUtil.draw(gl, program.getProgram(), posBinding, gluDrawUtil.triangles(indices));
+		gluDrawUtil.draw(gl, program.getProgram(), [posBinding], gluDrawUtil.triangles(indices));
 		testImg.readViewport(gl, [0, 0, width, height]);
 
 		// Draw reference
@@ -429,7 +431,7 @@ goog.scope(function() {
 		}
 
 		// Compare
-		/** @type {boolean} */ var isOk = tcuImageCompare.pixelThresholdCompare("Result", "Image comparison result", refImg, testImg, threshold);
+		/** @type {boolean} */ var isOk = tcuImageCompare.pixelThresholdCompare('Result', 'Image comparison result', refImg, testImg, threshold);
 
 		if (!isOk) {
 			tcuLogImage.logImage('Reference', 'Reference', refImg.getAccess());
@@ -447,7 +449,7 @@ goog.scope(function() {
 	 * @extends {tcuTestCase.DeqpTest}
 	 */
 	es3fShaderBuiltinVarTests.PointCoordCase = function() {
-		tcuTestCase.DeqpTest.call(this, "pointcoord", "gl_PointCoord Test");
+		tcuTestCase.DeqpTest.call(this, 'pointcoord', 'gl_PointCoord Test');
 	};
 
 	es3fShaderBuiltinVarTests.PointCoordCase.prototype = Object.create(tcuTestCase.DeqpTest.prototype);
@@ -463,16 +465,16 @@ goog.scope(function() {
 
 		/** @type {number} */ var numPoints	= 8;
 
-		/** @type {number} */ var coords = [];
-		/** @type {number} */ var pointSizeRange = [0.0, 0.0];
+		/** @type {Array<number>} */ var coords = [];
+		/** @type {Array<number>} */ var pointSizeRange = [0.0, 0.0];
 		/** @type {deRandom.Random} */ var rnd = new deRandom.Random(0x145fa);
 		/** @type {tcuSurface.Surface} */ var testImg = new tcuSurface.Surface(width, height);
 		/** @type {tcuSurface.Surface} */ var refImg = new tcuSurface.Surface(width, height);
 
-		pointSizeRange = gl.getParameter(gl.ALIASED_POINT_SIZE_RANGE);
+		pointSizeRange = /** @type {Array<number>} */ (gl.getParameter(gl.ALIASED_POINT_SIZE_RANGE));
 
 		if (pointSizeRange[0] <= 0.0 || pointSizeRange[1] <= 0.0 || pointSizeRange[1] < pointSizeRange[0])
-			throw new Error("Invalid GL_ALIASED_POINT_SIZE_RANGE");
+			throw new Error('Invalid GL_ALIASED_POINT_SIZE_RANGE');
 
 		// Compute coordinates.
 
@@ -482,29 +484,29 @@ goog.scope(function() {
 			coords[i][2] = rnd.getFloat(pointSizeRange[0], pointSizeRange[1]);
 		}
 
-		/** @type {string} */ var vtxSource = "#version 300 es\n" +
-			"in highp vec3 a_positionSize;\n" +
-			"void main (void)\n" +
-			"{\n" +
-			"	gl_Position = vec4(a_positionSize.xy, 0.0, 1.0);\n" +
-			"	gl_PointSize = a_positionSize.z;\n" +
-			"}\n";
+		/** @type {string} */ var vtxSource = '#version 300 es\n' +
+			'in highp vec3 a_positionSize;\n' +
+			'void main (void)\n' +
+			'{\n' +
+			'	gl_Position = vec4(a_positionSize.xy, 0.0, 1.0);\n' +
+			'	gl_PointSize = a_positionSize.z;\n' +
+			'}\n';
 
-		/** @type {string} */ var fragSource = "#version 300 es\n" +
-			"layout(location = 0) out mediump vec4 o_color;\n" +
-			"void main (void)\n" +
-			"{\n" +
-			"	o_color = vec4(gl_PointCoord, 0.0, 1.0);\n" +
-			"}\n";
+		/** @type {string} */ var fragSource = '#version 300 es\n' +
+			'layout(location = 0) out mediump vec4 o_color;\n' +
+			'void main (void)\n' +
+			'{\n' +
+			'	o_color = vec4(gl_PointCoord, 0.0, 1.0);\n' +
+			'}\n';
 
-		/** @type {gluShaderProgram.ShaderProgram} */ var program = new gluShaderProgram.ShaderProgram(gl, gluShaderUtil.makeVtxFragSources(vtxSource, fragSource));
-		bufferedLogToConsole(program.getProgramInfo());
+		/** @type {gluShaderProgram.ShaderProgram} */ var program = new gluShaderProgram.ShaderProgram(gl, gluShaderProgram.makeVtxFragSources(vtxSource, fragSource));
+		bufferedLogToConsole(program.getProgramInfo().infoLog);
 
 		if (!program.isOk())
-		    throw new Error("Compile failed");
+		    throw new Error('Compile failed');
 
 		// Draw with GL.
-		/** @type {gluDrawUtil.VertexArrayBinding} */ var posBinding = gluDrawUtil.newFloatVertexArrayBinding("a_positionSize", 3, coords.length, 0, coords);
+		/** @type {gluDrawUtil.VertexArrayBinding} */ var posBinding = gluDrawUtil.newFloatVertexArrayBinding('a_positionSize', 3, coords.length, 0, coords);
 		/** @type {number} */ var viewportX	= rnd.getInt(0, gl.drawingBufferWidth - width);
 		/** @type {number} */ var viewportY	= rnd.getInt(0, gl.drawingBufferHeight - height);
 
@@ -514,16 +516,16 @@ goog.scope(function() {
 
 		gl.useProgram(program.getProgram());
 
-		gluDrawUtil.draw(gl, program.getProgram(), posBinding, gluDrawUtil.points(indices));
+		gluDrawUtil.draw(gl, program.getProgram(), [posBinding], gluDrawUtil.points(coords));
 		testImg.readViewport(gl, [viewportX, viewportY, width, height]);
 
 		// Draw reference
 		refImg.getAccess().clear([0.0, 0.0, 0.0, 1.0]);
 		for (var i = 0; i < coords.length; i++) {
-			/** @type {number} */ var x0 = deRoundFloatToInt32(width * (coords[i][0] * 0.5 + 0.5) - coords[i][2] * 0.5);
-			/** @type {number} */ var y0 = deRoundFloatToInt32(height*  (coords[i][1] * 0.5 + 0.5) - coords[i][2] * 0.5);
-			/** @type {number} */ var x1 = deRoundFloatToInt32(width * (coords[i][0] * 0.5 + 0.5) + coords[i][2] * 0.5);
-			/** @type {number} */ var y1 = deRoundFloatToInt32(height * (coords[i][1] * 0.5 + 0.5) + coords[i][2] * 0.5);
+			/** @type {number} */ var x0 = Math.round(width * (coords[i][0] * 0.5 + 0.5) - coords[i][2] * 0.5);
+			/** @type {number} */ var y0 = Math.round(height*  (coords[i][1] * 0.5 + 0.5) - coords[i][2] * 0.5);
+			/** @type {number} */ var x1 = Math.round(width * (coords[i][0] * 0.5 + 0.5) + coords[i][2] * 0.5);
+			/** @type {number} */ var y1 = Math.round(height * (coords[i][1] * 0.5 + 0.5) + coords[i][2] * 0.5);
 			/** @type {number} */ var w = x1 - x0;
 			/** @type {number} */ var h = y1 - y0;
 
@@ -535,14 +537,14 @@ goog.scope(function() {
 					/** @type {number} */ var dx = x0 + xo;
 					/** @type {number} */ var dy = y0 + yo;
 
-					if (deMath.inBounds(dx, 0, refImg.getWidth()) && deMath.inBounds(dy, 0, refImg.getHeight()))
+					if (deMath.deInBounds32(dx, 0, refImg.getWidth()) && deMath.deInBounds32(dy, 0, refImg.getHeight()))
 						refImg.setPixel(dx, dy, color);
 				}
 			}
 		}
 
 		// Compare
-		/** @type {boolean} */ var isOk = tcuImageCompare.fuzzyCompare("Result", "Image comparison result", refImg, testImg, threshold);
+		/** @type {boolean} */ var isOk = tcuImageCompare.fuzzyCompare('Result', 'Image comparison result', refImg.getAccess(), testImg.getAccess(), threshold);
 
 		if (!isOk) {
 			tcuLogImage.logImage('Reference', 'Reference', refImg.getAccess());
@@ -560,7 +562,7 @@ goog.scope(function() {
 	 * @extends {tcuTestCase.DeqpTest}
 	 */
 	es3fShaderBuiltinVarTests.FrontFacingCase = function() {
-		tcuTestCase.DeqpTest.call(this, "frontfacing", "gl_FrontFacing Test");
+		tcuTestCase.DeqpTest.call(this, 'frontfacing', 'gl_FrontFacing Test');
 	};
 
 	es3fShaderBuiltinVarTests.FrontFacingCase.prototype = Object.create(tcuTestCase.DeqpTest.prototype);
@@ -578,34 +580,34 @@ goog.scope(function() {
 		/** @type {number} */ var height = Math.min(64, gl.drawingBufferHeight);
 		/** @type {number} */ var viewportX = rnd.getInt(0, gl.drawingBufferWidth - width);
 		/** @type {number} */ var viewportY = rnd.getInt(0, gl.drawingBufferHeight - height);
-		/** @type {Array<number>} */ var threshold = deMath.add([1, 1, 1, 1], tcuPixelFormat.PixelFormatFromContext().getColorThreshold());
+		/** @type {Array<number>} */ var threshold = deMath.add([1, 1, 1, 1], tcuPixelFormat.PixelFormatFromContext(gl).getColorThreshold());
 
 		/** @type {tcuSurface.Surface} */ var testImg = new tcuSurface.Surface(width, height);
 		/** @type {tcuSurface.Surface} */ var refImg = new tcuSurface.Surface(width, height);
 
-		/** @type {string} */ var  vtxSource = "#version 300 es\n"
-			"in highp vec4 a_position;\n"
-			"void main (void)\n"
-			"{\n"
-			"	gl_Position = a_position;\n"
-			"}\n";
+		/** @type {string} */ var  vtxSource = '#version 300 es\n' +
+			'in highp vec4 a_position;\n' +
+			'void main (void)\n' +
+			'{\n' +
+			'	gl_Position = a_position;\n' +
+			'}\n';
 
-		/** @type {string} */ var  fragSource = "#version 300 es\n"
-			"layout(location = 0) out mediump vec4 o_color;\n"
-			"void main (void)\n"
-			"{\n"
-			"	if (gl_FrontFacing)\n"
-			"		o_color = vec4(0.0, 1.0, 0.0, 1.0);\n"
-			"	else\n"
-			"		o_color = vec4(0.0, 0.0, 1.0, 1.0);\n"
-			"}\n";
+		/** @type {string} */ var  fragSource = '#version 300 es\n' +
+			'layout(location = 0) out mediump vec4 o_color;\n' +
+			'void main (void)\n' +
+			'{\n' +
+			'	if (gl_FrontFacing)\n' +
+			'		o_color = vec4(0.0, 1.0, 0.0, 1.0);\n' +
+			'	else\n' +
+			'		o_color = vec4(0.0, 0.0, 1.0, 1.0);\n' +
+			'}\n';
 
-		/** @type {gluShaderProgram.ShaderProgram} */ var program = new gluShaderProgram.ShaderProgram(gl, gluShaderUtil.makeVtxFragSources(vtxSource, fragSource));
+		/** @type {gluShaderProgram.ShaderProgram} */ var program = new gluShaderProgram.ShaderProgram(gl, gluShaderProgram.makeVtxFragSources(vtxSource, fragSource));
 
-		bufferedLogToConsole(program.getProgramInfo());
+		bufferedLogToConsole(program.getProgramInfo().infoLog);
 
 		if (!program.isOk())
-		    throw new Error("Compile failed");
+		    throw new Error('Compile failed');
 
 
 		// Draw with GL.
@@ -619,16 +621,16 @@ goog.scope(function() {
 		/** @type {Array<number>} */ var indicesCCW = [0, 1, 2, 2, 1, 3];
 		/** @type {Array<number>} */ var indicesCW = [2, 1, 0, 3, 1, 2];
 
-		/** @type {gluDrawUtil.VertexArrayBinding} */ var posBinding = gluDrawUtil.newFloatVertexArrayBinding("a_position", 4, 4, 0, positions);
+		/** @type {gluDrawUtil.VertexArrayBinding} */ var posBinding = gluDrawUtil.newFloatVertexArrayBinding('a_position', 4, 4, 0, positions);
 
 		gl.useProgram(program.getProgram());
 
 		gl.viewport(viewportX, viewportY, Math.floor(width / 2), height);
 
-		gluDrawUtil.draw(gl, program.getProgram(), posBinding, gluDrawUtil.triangles(indicesCCW));
+		gluDrawUtil.draw(gl, program.getProgram(), [posBinding], gluDrawUtil.triangles(indicesCCW));
 
 		gl.viewport(viewportX + Math.floor(width / 2), viewportY, width - Math.floor(width / 2), height);
-		gluDrawUtil.draw(gl, program.getProgram(), posBinding, gluDrawUtil.triangles(indicesCW));
+		gluDrawUtil.draw(gl, program.getProgram(), [posBinding], gluDrawUtil.triangles(indicesCW));
 		testImg.readViewport(gl, [viewportX, viewportY, width, height]);
 		// Draw reference
 		for (var y = 0; y < refImg.getHeight(); y++) {
@@ -640,7 +642,7 @@ goog.scope(function() {
 		}
 
 		// Compare
-		/** @type {boolean} */ var isOk = tcuImageCompare.pixelThresholdCompare("Result", "Image comparison result", refImg, testImg, threshold);
+		/** @type {boolean} */ var isOk = tcuImageCompare.pixelThresholdCompare('Result', 'Image comparison result', refImg, testImg, threshold);
 
 		if (!isOk) {
 			tcuLogImage.logImage('Reference', 'Reference', refImg.getAccess());
@@ -658,15 +660,15 @@ goog.scope(function() {
 	 * @extends {tcuTestCase.DeqpTest}
 	 */
 	es3fShaderBuiltinVarTests.VertexIDCase = function() {
-		tcuTestCase.DeqpTest.call(this, "vertex_id",	"gl_VertexID Test");
+		tcuTestCase.DeqpTest.call(this, 'vertex_id',	'gl_VertexID Test');
 		/** @type {?WebGLProgram} */ this.m_program = null;
-		/** @type {WebGLBuffer} */ this.m_positionBuffer = 0;
-		/** @type {WebGLBuffer} */ this.m_elementBuffer = 0;
+		/** @type {WebGLBuffer} */ this.m_positionBuffer = null;
+		/** @type {WebGLBuffer} */ this.m_elementBuffer = null;
 		/** @type {number} */ this.m_viewportW = 0;
 		/** @type {number} */ this.m_viewportH = 0;
 		/** @type {number} */ this.m_iterNdx = 0;
-		/** @type {Array<number>} */ this.m_positions = [];
-		/** @type {Array<number>} */ this.m_colors = [];
+		/** @type {Array<Array<number>>} */ this.m_positions = [];
+		/** @type {Array<Array<number>>} */ this.m_colors = [];
 	};
 
 	es3fShaderBuiltinVarTests.VertexIDCase.prototype = Object.create(tcuTestCase.DeqpTest.prototype);
@@ -682,7 +684,7 @@ goog.scope(function() {
 		/** @type {number} */ var quadHeight = 32;
 
 		if (width < quadWidth)
-			throw new Error("Too small render target");
+			throw new Error('Too small render target');
 
 		/** @type {number} */ var maxQuadsX = Math.floor(width / quadWidth);
 		/** @type {number} */ var numVertices = es3fShaderBuiltinVarTests.VertexIDCase.MAX_VERTICES;
@@ -692,36 +694,36 @@ goog.scope(function() {
 		/** @type {number} */ var viewportH = (Math.floor(numQuads/maxQuadsX) + (numQuads % maxQuadsX != 0 ? 1 : 0)) * quadHeight;
 
 		if (viewportH > height)
-			throw new Error("Too small render target");
+			throw new Error('Too small render target');
 
 		assertMsgOptions(viewportW <= width && viewportH <= height, 'Unexpected viewport dimensions.', false, true);
 
 		assertMsgOptions(!this.m_program, 'Program should not be defined at this point.', false, true);
 
-		/** @type {string} */ var vtxSource = "#version 300 es\n" +
-			"in highp vec4 a_position;\n" +
-			"out mediump vec4 v_color;\n" +
-			"uniform highp vec4 u_colors[24];\n" +
-			"void main (void)\n" +
-			"{\n" +
-			"	gl_Position = a_position;\n" +
-			"	v_color = u_colors[gl_VertexID];\n" +
-			"}\n";
+		/** @type {string} */ var vtxSource = '#version 300 es\n' +
+			'in highp vec4 a_position;\n' +
+			'out mediump vec4 v_color;\n' +
+			'uniform highp vec4 u_colors[24];\n' +
+			'void main (void)\n' +
+			'{\n' +
+			'	gl_Position = a_position;\n' +
+			'	v_color = u_colors[gl_VertexID];\n' +
+			'}\n';
 
-		/** @type {string} */ var fragSource = "#version 300 es\n" +
-			"in mediump vec4 v_color;\n" +
-			"layout(location = 0) out mediump vec4 o_color;\n" +
-			"void main (void)\n" +
-			"{\n" +
-			"	o_color = v_color;\n" +
-			"}\n";
+		/** @type {string} */ var fragSource = '#version 300 es\n' +
+			'in mediump vec4 v_color;\n' +
+			'layout(location = 0) out mediump vec4 o_color;\n' +
+			'void main (void)\n' +
+			'{\n' +
+			'	o_color = v_color;\n' +
+			'}\n';
 
-		/** @type {gluShaderProgram.ShaderProgram} */ var program = new gluShaderProgram.ShaderProgram(gl, gluShaderUtil.makeVtxFragSources(vtxSource, fragSource));
-		bufferedLogToConsole(program.getProgramInfo());
+		/** @type {gluShaderProgram.ShaderProgram} */ var program = new gluShaderProgram.ShaderProgram(gl, gluShaderProgram.makeVtxFragSources(vtxSource, fragSource));
+		bufferedLogToConsole(program.getProgramInfo().infoLog);
 
 		if (!program.isOk()) {
 			this.m_program = null;
-			throw new Error("Compile failed");
+			throw new Error('Compile failed');
 		}
 
 		this.m_positionBuffer = gl.createBuffer();
@@ -784,7 +786,7 @@ goog.scope(function() {
 		this.m_viewportH	= viewportH;
 		this.m_iterNdx	= 0;
 
-		// m_testCtx.setTestResult(QP_TEST_RESULT_PASS, "Pass");
+		// m_testCtx.setTestResult(QP_TEST_RESULT_PASS, 'Pass');
 		testPassedOptions('Pass', true);
 	};
 
@@ -797,7 +799,7 @@ goog.scope(function() {
 		}
 
 		if (this.m_elementBuffer) {
-			gl.deleteBuffer(m_elementBuffer);
+			gl.deleteBuffer(this.m_elementBuffer);
 			this.m_elementBuffer = null;
 		}
 
@@ -805,9 +807,12 @@ goog.scope(function() {
 		this.m_colors = [];
 	};
 
-
+	/**
+	 * @constructor
+	 * @extends {tcuTestCase.DeqpTest}
+	 */
 	es3fShaderBuiltinVarTests.ShaderBuiltinVarTests = function() {
-		tcuTestCase.DeqpTest.call(this, "builtin_variable", "Built-in Variable Tests");
+		tcuTestCase.DeqpTest.call(this, 'builtin_variable', 'Built-in Variable Tests');
 	};
 
 	es3fShaderBuiltinVarTests.ShaderBuiltinVarTests.prototype = Object.create(tcuTestCase.DeqpTest.prototype);
@@ -833,20 +838,20 @@ goog.scope(function() {
 		/** @type {Array<BuiltinConstant>} */ var builtinConstants = [
 			// GLES 2.
 
-			new BuiltinConstant("max_vertex_attribs", "gl_MaxVertexAttribs", function() { return es3fShaderBuiltinVarTests.getInteger(gl.MAX_VERTEX_ATTRIBS); }),
-			new BuiltinConstant("max_vertex_uniform_vectors", "gl_MaxVertexUniformVectors", function() { return es3fShaderBuiltinVarTests.getInteger(gl.MAX_VERTEX_UNIFORM_VECTORS); }),
-			new BuiltinConstant("max_fragment_uniform_vectors", "gl_MaxFragmentUniformVectors", function() { return es3fShaderBuiltinVarTests.getInteger(gl.MAX_FRAGMENT_UNIFORM_VECTORS); }),
-			new BuiltinConstant("max_texture_image_units", "gl_MaxTextureImageUnits", function() { return es3fShaderBuiltinVarTests.getInteger(gl.MAX_TEXTURE_IMAGE_UNITS); }),
-			new BuiltinConstant("max_vertex_texture_image_units", "gl_MaxVertexTextureImageUnits", function() { return es3fShaderBuiltinVarTests.getInteger(gl.MAX_VERTEX_TEXTURE_IMAGE_UNITS); }),
-			new BuiltinConstant("max_combined_texture_image_units", "gl_MaxCombinedTextureImageUnits", function() { return es3fShaderBuiltinVarTests.getInteger(gl.MAX_COMBINED_TEXTURE_IMAGE_UNITS); }),
-			new BuiltinConstant("max_draw_buffers", "gl_MaxDrawBuffers", function() { return es3fShaderBuiltinVarTests.getInteger(gl.MAX_DRAW_BUFFERS); }),
+			new BuiltinConstant('max_vertex_attribs', 'gl_MaxVertexAttribs', function() { return es3fShaderBuiltinVarTests.getInteger(gl.MAX_VERTEX_ATTRIBS); }),
+			new BuiltinConstant('max_vertex_uniform_vectors', 'gl_MaxVertexUniformVectors', function() { return es3fShaderBuiltinVarTests.getInteger(gl.MAX_VERTEX_UNIFORM_VECTORS); }),
+			new BuiltinConstant('max_fragment_uniform_vectors', 'gl_MaxFragmentUniformVectors', function() { return es3fShaderBuiltinVarTests.getInteger(gl.MAX_FRAGMENT_UNIFORM_VECTORS); }),
+			new BuiltinConstant('max_texture_image_units', 'gl_MaxTextureImageUnits', function() { return es3fShaderBuiltinVarTests.getInteger(gl.MAX_TEXTURE_IMAGE_UNITS); }),
+			new BuiltinConstant('max_vertex_texture_image_units', 'gl_MaxVertexTextureImageUnits', function() { return es3fShaderBuiltinVarTests.getInteger(gl.MAX_VERTEX_TEXTURE_IMAGE_UNITS); }),
+			new BuiltinConstant('max_combined_texture_image_units', 'gl_MaxCombinedTextureImageUnits', function() { return es3fShaderBuiltinVarTests.getInteger(gl.MAX_COMBINED_TEXTURE_IMAGE_UNITS); }),
+			new BuiltinConstant('max_draw_buffers', 'gl_MaxDrawBuffers', function() { return es3fShaderBuiltinVarTests.getInteger(gl.MAX_DRAW_BUFFERS); }),
 
 			// GLES 3.
 
-			new BuiltinConstant("max_vertex_output_vectors", "gl_MaxVertexOutputVectors", function() { return es3fShaderBuiltinVarTests.getVectorsFromComps(gl.MAX_VERTEX_OUTPUT_COMPONENTS); }),
-			new BuiltinConstant("max_fragment_input_vectors", "gl_MaxFragmentInputVectors", function() { return es3fShaderBuiltinVarTests.getVectorsFromComps(gl.MAX_FRAGMENT_INPUT_COMPONENTS); }),
-			new BuiltinConstant("min_program_texel_offset", "gl_MinProgramTexelOffset", function() { return es3fShaderBuiltinVarTests.getInteger(gl.MIN_PROGRAM_TEXEL_OFFSET); }),
-			new BuiltinConstant("max_program_texel_offset", "gl_MaxProgramTexelOffset", function() { return es3fShaderBuiltinVarTests.getInteger(gl.MAX_PROGRAM_TEXEL_OFFSET); })
+			new BuiltinConstant('max_vertex_output_vectors', 'gl_MaxVertexOutputVectors', function() { return es3fShaderBuiltinVarTests.getVectorsFromComps(gl.MAX_VERTEX_OUTPUT_COMPONENTS); }),
+			new BuiltinConstant('max_fragment_input_vectors', 'gl_MaxFragmentInputVectors', function() { return es3fShaderBuiltinVarTests.getVectorsFromComps(gl.MAX_FRAGMENT_INPUT_COMPONENTS); }),
+			new BuiltinConstant('min_program_texel_offset', 'gl_MinProgramTexelOffset', function() { return es3fShaderBuiltinVarTests.getInteger(gl.MIN_PROGRAM_TEXEL_OFFSET); }),
+			new BuiltinConstant('max_program_texel_offset', 'gl_MaxProgramTexelOffset', function() { return es3fShaderBuiltinVarTests.getInteger(gl.MAX_PROGRAM_TEXEL_OFFSET); })
 		];
 
 		for (var ndx = 0; ndx < builtinConstants.length; ndx++) {
@@ -854,12 +859,12 @@ goog.scope(function() {
 			/** @type {string} */ var varName = builtinConstants[ndx].varName;
 			/** @type {es3fShaderBuiltinVarTests.GetConstantValueFunc} */ var getValue = builtinConstants[ndx].getValue;
 
-			testGroup.addChild(new es3fShaderBuiltinVarTests.ShaderBuiltinConstantCase(caseName + "_vertex", varName, varName, getValue, gluShaderProgram.shaderType.VERTEX));
-			testGroup.addChild(new es3fShaderBuiltinVarTests.ShaderBuiltinConstantCase(caseName + "_fragment", varName, varName, getValue, gluShaderProgram.shaderType.FRAGMENT));
+			testGroup.addChild(new es3fShaderBuiltinVarTests.ShaderBuiltinConstantCase(caseName + '_vertex', varName, varName, getValue, gluShaderProgram.shaderType.VERTEX));
+			testGroup.addChild(new es3fShaderBuiltinVarTests.ShaderBuiltinConstantCase(caseName + '_fragment', varName, varName, getValue, gluShaderProgram.shaderType.FRAGMENT));
 		}
 
-		testGroup.addChild(new es3fShaderBuiltinVarTests.ShaderDepthRangeTest("depth_range_vertex", "gl_DepthRange", true));
-		testGroup.addChild(new es3fShaderBuiltinVarTests.ShaderDepthRangeTest("depth_range_fragment", "gl_DepthRange", false));
+		testGroup.addChild(new es3fShaderBuiltinVarTests.ShaderDepthRangeTest('depth_range_vertex', 'gl_DepthRange', true));
+		testGroup.addChild(new es3fShaderBuiltinVarTests.ShaderDepthRangeTest('depth_range_fragment', 'gl_DepthRange', false));
 
 		// Vertex shader builtin variables.
 		// \todo [2015-07-30 dag] skipping until we figure out if VertexIDCase has to be proted as well given the note below
