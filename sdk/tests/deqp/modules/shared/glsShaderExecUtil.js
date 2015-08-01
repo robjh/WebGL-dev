@@ -70,9 +70,9 @@ goog.scope(function() {
      */
     glsShaderExecUtil.ShaderSpec = function() {
         /** @type{gluShaderUtil.GLSLVersion} */ this.version = gluShaderUtil.GLSLVersion.V300_ES; //!< Shader version.
-    	/** @type{Array<glsShaderExecUtil.Symbol>} */ this.inputs;
-    	/** @type{Array<glsShaderExecUtil.Symbol>} */ this.outputs;
-    	/** @type{string} */ this.globalDeclarations; //!< These are placed into global scope. Can contain uniform declarations for example.
+    	/** @type{Array<glsShaderExecUtil.Symbol>} */ this.inputs = [];
+    	/** @type{Array<glsShaderExecUtil.Symbol>} */ this.outputs = [];
+    	/** @type{string} */ this.globalDeclarations = ''; //!< These are placed into global scope. Can contain uniform declarations for example.
     	/** @type{*} */ this.source; //!< Source snippet to be executed.
     };
 
@@ -309,8 +309,8 @@ goog.scope(function() {
     				src += (decl + ';\n');
     			}
     		}
-    		else
-    			src += '';//glu::VariableDeclaration(output.varType, output.name, glu::STORAGE_OUT, glu::INTERPOLATION_LAST, location) << ";\n";
+    		else //src += '';//glu::VariableDeclaration(output.varType, output.name, glu::STORAGE_OUT, glu::INTERPOLATION_LAST, location) << ";\n";
+    		    src += new gluVarType.VariableDeclaration(output.varType, output.name, gluVarType.Storage.STORAGE_OUT, undefined, new gluVarType.Layout(location)) + ";\n";
     	}
 
     	src += '\nvoid main (void)\n{\n';
@@ -475,7 +475,7 @@ goog.scope(function() {
     	// Draw with rasterization disabled.
     	gl.beginTransformFeedback(gl.POINTS);
     	gl.enable(gl.RASTERIZER_DISCARD);
-    	gluDrawUtil.draw(gl, this.m_program.getProgram(), vertexArrays, 
+    	gluDrawUtil.draw(gl, this.m_program.getProgram(), vertexArrays,
     			  new gluDrawUtil.PrimitiveList(gluDrawUtil.primitiveType.POINTS, numValues));
     	gl.disable(gl.RASTERIZER_DISCARD);
     	gl.endTransformFeedback();
@@ -673,7 +673,7 @@ glsShaderExecUtil.FragmentShaderExecutor.prototype.execute = function(numValues,
 
  // Render
     gl.viewport(0, 0, framebufferW, framebufferH);
-    gluDrawUtil.draw(gl, this.m_program.getProgram(), vertexArrays, 
+    gluDrawUtil.draw(gl, this.m_program.getProgram(), vertexArrays,
         new gluDrawUtil.PrimitiveList(gluDrawUtil.primitiveType.POINTS, numValues));
 
  // Read back pixels.
@@ -713,7 +713,7 @@ glsShaderExecUtil.FragmentShaderExecutor.prototype.execute = function(numValues,
        }
      }
    }
- 
+
 
  // \todo [2013-08-07 pyry] Clear draw buffers & viewport?
  gl.bindFramebuffer(gl.FRAMEBUFFER, null);

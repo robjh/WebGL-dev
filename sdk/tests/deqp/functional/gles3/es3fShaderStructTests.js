@@ -83,7 +83,6 @@ goog.scope(function() {
 
 			assertMsgOptions(this.m_textures.length === 1, 'Only one texture required', false, true);
 		}
-		// glsShaderRenderCase.ShaderRenderCase.prototype.init.call(this);
 		this.postinit();
 	};
 

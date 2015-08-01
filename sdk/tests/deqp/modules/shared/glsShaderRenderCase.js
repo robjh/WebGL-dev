@@ -517,7 +517,10 @@ goog.scope(function() {
         }
     };
 
-    glsShaderRenderCase.ShaderRenderCase.prototype.iterate = function() {
+    /**
+     * @return {tcuTestCase.IterateResult}
+     */
+    glsShaderRenderCase.ShaderRenderCase.prototype.postiterate = function() {
         assertMsgOptions(this.m_program !== null, 'Program not specified.', false, true);
         /** @type {?WebGLProgram} */ var programID = this.m_program.getProgram();
         gl.useProgram(programID);
@@ -556,6 +559,13 @@ goog.scope(function() {
             testPassedOptions("Pass", true);
 
         return tcuTestCase.IterateResult.STOP;
+    };
+
+    /**
+     * @return {tcuTestCase.IterateResult}
+     */
+    glsShaderRenderCase.ShaderRenderCase.prototype.iterate = function() {
+        return this.postiterate();
     };
 
     glsShaderRenderCase.ShaderRenderCase.prototype.setupShaderData = function() {};

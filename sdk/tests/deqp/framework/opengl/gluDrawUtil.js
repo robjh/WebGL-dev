@@ -202,6 +202,14 @@ gluDrawUtil.getPrimitiveGLType = function(gl, type) {
 };
 
 /**
+ * Calls gluDrawUtil.newPrimitiveListFromIndices() to create primitive list for Points
+ * @param {Array<number>} indices
+ */
+gluDrawUtil.points = function(indices) {
+    return gluDrawUtil.newPrimitiveListFromIndices(gluDrawUtil.primitiveType.POINTS, indices);
+};
+
+/**
  * Calls gluDrawUtil.newPrimitiveListFromIndices() to create primitive list for Triangles
  * @param {Array<number>} indices
  */
