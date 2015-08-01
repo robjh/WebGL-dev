@@ -570,6 +570,41 @@ tcuInterval.applyMonotone2 = function(arg0, arg1, body) {
     return ret;
 };
 
+/**
+ * TODO: Check if this function works properly
+ * @param {tcuInterval.Interval} arg0
+ * @param {tcuInterval.Interval} arg1
+ * @param {tcuInterval.Interval} arg2
+ * @param {function(number, number, number): tcuInterval.Interval} body
+ * @return {tcuInterval.Interval}
+ */
+tcuInterval.applyMonotone3 = function(arg0, arg1, arg2, body) {
+    var ret = new tcuInterval.Interval();
+
+    if (!arg0.empty() && !arg1.empty() && !arg2.empty()) {
+        var i0 = body(arg0.lo(), arg1.lo(), arg2.lo());
+        var i1 = body(arg0.lo(), arg1.lo(), arg2.hi());
+        var i2 = body(arg0.lo(), arg1.hi(), arg2.lo());
+        var i3 = body(arg0.lo(), arg1.hi(), arg2.hi());
+        var i4 = body(arg0.hi(), arg1.lo(), arg2.lo());
+        var i5 = body(arg0.hi(), arg1.lo(), arg2.hi());
+        var i6 = body(arg0.hi(), arg1.hi(), arg2.lo());
+        var i7 = body(arg0.hi(), arg1.hi(), arg2.hi());
+
+        var low = Math.min(i0.lo(), i1.lo(), i2.lo(), i3.lo(), i4.lo(), i5.lo(), i6.lo(), i7.lo());
+        var high = Math.min(i0.hi(), i1.hi(), i2.hi(), i3.hi(), i4.hi(), i5.hi(), i6.hi(), i7.hi());
+        var hasNaN = i0.hasNaN() && i1.hasNaN() && i2.hasNaN() && i3.hasNaN() && i4.hasNaN() && i5.hasNaN() && i6.hasNaN() && i7.hasNaN();
+
+        ret = tcuInterval.withParams(hasNaN, low, high);
+    }
+
+    if (arg0.hasNaN() || arg1.hasNaN() || arg2.hasNaN()) {
+        ret = ret.operatorOrBinary(new tcuInterval.Interval(NaN));
+    }
+
+    return ret;
+};
+
 //
 // //! Set the interval DST to the image of BODY on ARG, assuming that BODY on
 // //! ARG is a monotone function. In practice, BODY is evaluated on both the

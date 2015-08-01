@@ -1191,6 +1191,17 @@ glsBuiltinPrecisionTests.Typename;
     };
 
     /**
+     * @param {glsBuiltinPrecisionTests.Func} func
+     * @param {glsBuiltinPrecisionTests.Expr=} arg0
+     * @param {glsBuiltinPrecisionTests.Expr=} arg1
+     * @param {glsBuiltinPrecisionTests.Expr=} arg2
+     * @param {glsBuiltinPrecisionTests.Expr=} arg3
+     */
+    var app = function(func, arg0, arg1, arg2, arg3) {
+        return new glsBuiltinPrecisionTests.Apply('float', func, arg0, arg1, arg2, arg3);
+    }
+
+    /**
      * @param{glsBuiltinPrecisionTests.FuncSet} dst
      */
     glsBuiltinPrecisionTests.Apply.prototype.doGetUsedFuncs = function(dst) {
@@ -4304,17 +4315,17 @@ glsBuiltinPrecisionTests.Typename;
 
     glsBuiltinPrecisionTests.Dot.prototype.doExpand = function(ctx, args) {
         if (this.m_inputSize > 1) {
-            var val = new glsBuiltinPrecisionTests.Apply('float', new glsBuiltinPrecisionTests.Mul(),
+            var val = app(new glsBuiltinPrecisionTests.Mul(),
                 new glsBuiltinPrecisionTests.VectorVariable(args.a, 0), new glsBuiltinPrecisionTests.VectorVariable(args.b, 0));
             for (var i = 0; i < this.m_inputSize; i++) {
                 var tmp =  new glsBuiltinPrecisionTests.Apply('float', new glsBuiltinPrecisionTests.Mul(),
                     new glsBuiltinPrecisionTests.VectorVariable(args.a, i), new glsBuiltinPrecisionTests.VectorVariable(args.b, i));
-                val = new glsBuiltinPrecisionTests.Apply('float', new glsBuiltinPrecisionTests.Add(), val, tmp);
+                val = app(new glsBuiltinPrecisionTests.Add(), val, tmp);
             }
             return val;
         } else {
             // args.a * args.b
-            var ret = new glsBuiltinPrecisionTests.Apply('float', new glsBuiltinPrecisionTests.Mul(), args.a, args.b);
+            var ret = app(new glsBuiltinPrecisionTests.Mul(), args.a, args.b);
             return ret;
         }
     };
@@ -4339,8 +4350,8 @@ glsBuiltinPrecisionTests.Typename;
 
     glsBuiltinPrecisionTests.Length.prototype.doExpand = function(ctx, args) {
         //sqrt(dot(args.a, args.a));
-        var v0 = new glsBuiltinPrecisionTests.Apply('float', new glsBuiltinPrecisionTests.Dot(this.m_inputSize), args.a, args.a);
-        var v1 = new glsBuiltinPrecisionTests.Apply('float', new glsBuiltinPrecisionTests.Sqrt(), v0);
+        var v0 = app(new glsBuiltinPrecisionTests.Dot(this.m_inputSize), args.a, args.a);
+        var v1 = app(new glsBuiltinPrecisionTests.Sqrt(), v0);
         return v1;
     };
 
@@ -4365,7 +4376,7 @@ glsBuiltinPrecisionTests.Typename;
     glsBuiltinPrecisionTests.Distance.prototype.doExpand = function(ctx, args) {
         //length(args.a - args.b);
         var v0 = new glsBuiltinPrecisionTests.ApplyScalar(new glsBuiltinPrecisionTests.Sub(), args.a, args.b);
-        var v1 = new glsBuiltinPrecisionTests.Apply('float', new glsBuiltinPrecisionTests.Length(this.m_inputSize), v0);
+        var v1 = app(new glsBuiltinPrecisionTests.Length(this.m_inputSize), v0);
         return v1;
     };
 
@@ -4394,20 +4405,20 @@ glsBuiltinPrecisionTests.Typename;
             a[i] = new glsBuiltinPrecisionTests.VectorVariable(args.a, i);
             b[i] = new glsBuiltinPrecisionTests.VectorVariable(args.b, i);
         }
-        var v0 = new glsBuiltinPrecisionTests.Apply('float', new glsBuiltinPrecisionTests.Mul(), a[1], b[2]);
-        var v1 = new glsBuiltinPrecisionTests.Apply('float', new glsBuiltinPrecisionTests.Mul(), b[1], a[2]);
-        var v2 = new glsBuiltinPrecisionTests.Apply('float', new glsBuiltinPrecisionTests.Sub(), v0, v1);
+        var v0 = app(new glsBuiltinPrecisionTests.Mul(), a[1], b[2]);
+        var v1 = app(new glsBuiltinPrecisionTests.Mul(), b[1], a[2]);
+        var v2 = app(new glsBuiltinPrecisionTests.Sub(), v0, v1);
 
-        var v3 = new glsBuiltinPrecisionTests.Apply('float', new glsBuiltinPrecisionTests.Mul(), a[2], b[0]);
-        var v4 = new glsBuiltinPrecisionTests.Apply('float', new glsBuiltinPrecisionTests.Mul(), b[2], a[0]);
-        var v5 = new glsBuiltinPrecisionTests.Apply('float', new glsBuiltinPrecisionTests.Sub(), v3, v4);
+        var v3 = app(new glsBuiltinPrecisionTests.Mul(), a[2], b[0]);
+        var v4 = app(new glsBuiltinPrecisionTests.Mul(), b[2], a[0]);
+        var v5 = app(new glsBuiltinPrecisionTests.Sub(), v3, v4);
 
-        var v6 = new glsBuiltinPrecisionTests.Apply('float', new glsBuiltinPrecisionTests.Mul(), a[0], b[1]);
-        var v7 = new glsBuiltinPrecisionTests.Apply('float', new glsBuiltinPrecisionTests.Mul(), b[0], a[1]);
-        var v8 = new glsBuiltinPrecisionTests.Apply('float', new glsBuiltinPrecisionTests.Sub(), v6, v7);
+        var v6 = app(new glsBuiltinPrecisionTests.Mul(), a[0], b[1]);
+        var v7 = app(new glsBuiltinPrecisionTests.Mul(), b[0], a[1]);
+        var v8 = app(new glsBuiltinPrecisionTests.Sub(), v6, v7);
 
         // TODO: Test this logic
-        var v9 = new glsBuiltinPrecisionTests.Apply('float', new glsBuiltinPrecisionTests.GenVec(this.m_inputSize, true), v2, v5, v8);
+        var v9 = app(new glsBuiltinPrecisionTests.GenVec(this.m_inputSize, true), v2, v5, v8);
         return v9;
     };
 
@@ -4431,7 +4442,7 @@ glsBuiltinPrecisionTests.Typename;
 
     glsBuiltinPrecisionTests.Normalize.prototype.doExpand = function(ctx, args) {
         //args.a / length<Size>(args.a);
-        var v0 = new glsBuiltinPrecisionTests.Apply('float', new glsBuiltinPrecisionTests.Length(this.m_inputSize), args.a);
+        var v0 = app(new glsBuiltinPrecisionTests.Length(this.m_inputSize), args.a);
         var v1 = new glsBuiltinPrecisionTests.ApplyScalar(new glsBuiltinPrecisionTests.Div(), args.a, v0);
         return v1;
     };
@@ -4459,9 +4470,9 @@ glsBuiltinPrecisionTests.Typename;
         //cond(dot(args.c, args.b) < constant(0.0f), args.a, -args.a);
         var zero = new glsBuiltinPrecisionTests.Constant(0);
         var v0 = new glsBuiltinPrecisionTests.ApplyScalar(new glsBuiltinPrecisionTests.Negate(), args.a);
-        var v1 = new glsBuiltinPrecisionTests.Apply('float', new glsBuiltinPrecisionTests.Dot(this.m_inputSize), args.c, args.b)
-        var v2 = new glsBuiltinPrecisionTests.Apply('float', new glsBuiltinPrecisionTests.LessThan('float'), v1, zero);
-        var v3 = new glsBuiltinPrecisionTests.Apply('float', new glsBuiltinPrecisionTests.Cond(this.typename), v2, args.a, v0);
+        var v1 = app(new glsBuiltinPrecisionTests.Dot(this.m_inputSize), args.c, args.b)
+        var v2 = app(new glsBuiltinPrecisionTests.LessThan('float'), v1, zero);
+        var v3 = app(new glsBuiltinPrecisionTests.Cond(this.typename), v2, args.a, v0);
         return v3;
     };
 
@@ -4486,7 +4497,7 @@ glsBuiltinPrecisionTests.Typename;
     glsBuiltinPrecisionTests.Reflect.prototype.doExpand = function(ctx, args) {
         //args.a - (args.b * dot(args.b, args.a) * constant(2.0f));
         var two = new glsBuiltinPrecisionTests.Constant(2);
-        var v0 = new glsBuiltinPrecisionTests.Apply('float', new glsBuiltinPrecisionTests.Dot(this.m_inputSize), args.b, args.a);
+        var v0 = app(new glsBuiltinPrecisionTests.Dot(this.m_inputSize), args.b, args.a);
         var v1 = new glsBuiltinPrecisionTests.ApplyScalar(new glsBuiltinPrecisionTests.Mul(), args.b, v0);
         var v2 = new glsBuiltinPrecisionTests.ApplyScalar(new glsBuiltinPrecisionTests.Mul(), v1, two);
         var v3 = new glsBuiltinPrecisionTests.ApplyScalar(new glsBuiltinPrecisionTests.Sub(), args.a, v2);
@@ -4519,7 +4530,7 @@ glsBuiltinPrecisionTests.Typename;
         var zero = new glsBuiltinPrecisionTests.Constant(0);
         var one = new glsBuiltinPrecisionTests.Constant(1);
         // dotNI = dot(n, i)
-        var v0 = new glsBuiltinPrecisionTests.Apply('float', new glsBuiltinPrecisionTests.Dot(this.m_inputSize), n, i);
+        var v0 = app(new glsBuiltinPrecisionTests.Dot(this.m_inputSize), n, i);
         var dotNI = glsBuiltinPrecisionTests.bindExpression('float', 'dotNI', ctx, v0);
         // k = 1 - eta * eta * (1 - dotNI * dotNI)
         var v1 = new glsBuiltinPrecisionTests.ApplyScalar(new glsBuiltinPrecisionTests.Mul(), dotNI, dotNI);
@@ -4538,8 +4549,8 @@ glsBuiltinPrecisionTests.Typename;
 
         var v11 = new glsBuiltinPrecisionTests.ApplyScalar(new glsBuiltinPrecisionTests.LessThan('float'), k, zero);
 
-        var zeroVector = new glsBuiltinPrecisionTests.Apply('float', new glsBuiltinPrecisionTests.GenVec(this.m_inputSize), zero);
-        var v12 = new glsBuiltinPrecisionTests.Apply('float', new glsBuiltinPrecisionTests.Cond(this.typename), v11, zeroVector, v10);
+        var zeroVector = app(new glsBuiltinPrecisionTests.GenVec(this.m_inputSize), zero);
+        var v12 = app(new glsBuiltinPrecisionTests.Cond(this.typename), v11, zeroVector, v10);
         return v12;
     };
 
@@ -4628,10 +4639,10 @@ glsBuiltinPrecisionTests.Typename;
     glsBuiltinPrecisionTests.Sinh.prototype.doExpand = function(ctx, args) {
         // (exp(x) - exp(-x)) / constant(2.0f)
         var x = args.a;
-        var v0 = new glsBuiltinPrecisionTests.Apply('float', new glsBuiltinPrecisionTests.Exp(), x);
-        var v1 = new glsBuiltinPrecisionTests.Apply('float', new glsBuiltinPrecisionTests.Negate(), x);
-        var v2 = new glsBuiltinPrecisionTests.Apply('float',  new glsBuiltinPrecisionTests.Exp(), v1);
-        var v3 = new glsBuiltinPrecisionTests.Apply('float',  new glsBuiltinPrecisionTests.Sub(), v0, v2);
+        var v0 = app(new glsBuiltinPrecisionTests.Exp(), x);
+        var v1 = app(new glsBuiltinPrecisionTests.Negate(), x);
+        var v2 = app( new glsBuiltinPrecisionTests.Exp(), v1);
+        var v3 = app( new glsBuiltinPrecisionTests.Sub(), v0, v2);
         var v4 = new glsBuiltinPrecisionTests.Constant(2);
         var v5 =  new glsBuiltinPrecisionTests.Apply('float',  new glsBuiltinPrecisionTests.Div, v3, v4);
         return v5;
@@ -4655,10 +4666,10 @@ glsBuiltinPrecisionTests.Typename;
     glsBuiltinPrecisionTests.Cosh.prototype.doExpand = function(ctx, args) {
         // (exp(x) + exp(-x)) / constant(2.0f)
         var x = args.a;
-        var v0 = new glsBuiltinPrecisionTests.Apply('float', new glsBuiltinPrecisionTests.Exp(), x);
-        var v1 = new glsBuiltinPrecisionTests.Apply('float', new glsBuiltinPrecisionTests.Negate(), x);
-        var v2 = new glsBuiltinPrecisionTests.Apply('float',  new glsBuiltinPrecisionTests.Exp(), v1);
-        var v3 = new glsBuiltinPrecisionTests.Apply('float',  new glsBuiltinPrecisionTests.Add(), v0, v2);
+        var v0 = app(new glsBuiltinPrecisionTests.Exp(), x);
+        var v1 = app(new glsBuiltinPrecisionTests.Negate(), x);
+        var v2 = app( new glsBuiltinPrecisionTests.Exp(), v1);
+        var v3 = app( new glsBuiltinPrecisionTests.Add(), v0, v2);
         var v4 = new glsBuiltinPrecisionTests.Constant(2);
         var v5 =  new glsBuiltinPrecisionTests.Apply('float',  new glsBuiltinPrecisionTests.Div, v3, v4);
         return v5;
@@ -4682,8 +4693,8 @@ glsBuiltinPrecisionTests.Typename;
     glsBuiltinPrecisionTests.Tanh.prototype.doExpand = function(ctx, args) {
         // sinh(x) / cosh(x)
         var x = args.a;
-        var v0 = new glsBuiltinPrecisionTests.Apply('float', new glsBuiltinPrecisionTests.Sinh(), x);
-        var v1 = new glsBuiltinPrecisionTests.Apply('float', new glsBuiltinPrecisionTests.Cosh(), x);
+        var v0 = app(new glsBuiltinPrecisionTests.Sinh(), x);
+        var v1 = app(new glsBuiltinPrecisionTests.Cosh(), x);
         var v2 =  new glsBuiltinPrecisionTests.Apply('float',  new glsBuiltinPrecisionTests.Div, v0, v1);
         return v2;
     };
@@ -4706,12 +4717,12 @@ glsBuiltinPrecisionTests.Typename;
     glsBuiltinPrecisionTests.ASinh.prototype.doExpand = function(ctx, args) {
         // log(x + sqrt(x * x + constant(1.0f)))
         var x = args.a;
-        var v0 = new glsBuiltinPrecisionTests.Apply('float', new glsBuiltinPrecisionTests.Mul(), x, x);
+        var v0 = app(new glsBuiltinPrecisionTests.Mul(), x, x);
         var v1 = new glsBuiltinPrecisionTests.Constant(1);
-        var v2 = new glsBuiltinPrecisionTests.Apply('float',  new glsBuiltinPrecisionTests.Add(), v0, v1);
-        var v3 = new glsBuiltinPrecisionTests.Apply('float',  new glsBuiltinPrecisionTests.Sqrt(), v2);
-        var v4 = new glsBuiltinPrecisionTests.Apply('float',  new glsBuiltinPrecisionTests.Add(), x, v3);
-        var v5 = new glsBuiltinPrecisionTests.Apply('float',  new glsBuiltinPrecisionTests.Log(), v4);
+        var v2 = app( new glsBuiltinPrecisionTests.Add(), v0, v1);
+        var v3 = app( new glsBuiltinPrecisionTests.Sqrt(), v2);
+        var v4 = app( new glsBuiltinPrecisionTests.Add(), x, v3);
+        var v5 = app( new glsBuiltinPrecisionTests.Log(), v4);
         return v5;
     };
 
@@ -4734,12 +4745,12 @@ glsBuiltinPrecisionTests.Typename;
         // log(x + sqrt((x + constant(1.0f)) * (x - constant(1.0f))))
         var x = args.a;
         var one = new glsBuiltinPrecisionTests.Constant(1);
-        var v0 = new glsBuiltinPrecisionTests.Apply('float', new glsBuiltinPrecisionTests.Add(), x, one);
-        var v1 = new glsBuiltinPrecisionTests.Apply('float', new glsBuiltinPrecisionTests.Sub(), x, one);
-        var v2 = new glsBuiltinPrecisionTests.Apply('float', new glsBuiltinPrecisionTests.Mul(), v0, v1);
-        var v3 = new glsBuiltinPrecisionTests.Apply('float', new glsBuiltinPrecisionTests.Sqrt(), v2);
-        var v4 = new glsBuiltinPrecisionTests.Apply('float', new glsBuiltinPrecisionTests.Add(), x, v3);
-        var v5 = new glsBuiltinPrecisionTests.Apply('float', new glsBuiltinPrecisionTests.Log(), v4);
+        var v0 = app(new glsBuiltinPrecisionTests.Add(), x, one);
+        var v1 = app(new glsBuiltinPrecisionTests.Sub(), x, one);
+        var v2 = app(new glsBuiltinPrecisionTests.Mul(), v0, v1);
+        var v3 = app(new glsBuiltinPrecisionTests.Sqrt(), v2);
+        var v4 = app(new glsBuiltinPrecisionTests.Add(), x, v3);
+        var v5 = app(new glsBuiltinPrecisionTests.Log(), v4);
         return v5;
     };
 
@@ -4763,11 +4774,11 @@ glsBuiltinPrecisionTests.Typename;
         var x = args.a;
         var one = new glsBuiltinPrecisionTests.Constant(1);
         var half = new glsBuiltinPrecisionTests.Constant(0.5);
-        var v0 = new glsBuiltinPrecisionTests.Apply('float', new glsBuiltinPrecisionTests.Add(), one, x);
-        var v1 = new glsBuiltinPrecisionTests.Apply('float', new glsBuiltinPrecisionTests.Sub(), one, x);
-        var v2 = new glsBuiltinPrecisionTests.Apply('float', new glsBuiltinPrecisionTests.Div(), v0, v1);
-        var v3 = new glsBuiltinPrecisionTests.Apply('float', new glsBuiltinPrecisionTests.Log(), v2);
-        var v4 = new glsBuiltinPrecisionTests.Apply('float', new glsBuiltinPrecisionTests.Mul(), half, v3);
+        var v0 = app(new glsBuiltinPrecisionTests.Add(), one, x);
+        var v1 = app(new glsBuiltinPrecisionTests.Sub(), one, x);
+        var v2 = app(new glsBuiltinPrecisionTests.Div(), v0, v1);
+        var v3 = app(new glsBuiltinPrecisionTests.Log(), v2);
+        var v4 = app(new glsBuiltinPrecisionTests.Mul(), half, v3);
         return v4;
     };
 
@@ -4790,8 +4801,8 @@ glsBuiltinPrecisionTests.Typename;
         // constant(1.0f) / app<InverseSqrt>(x)
         var x = args.a;
         var one = new glsBuiltinPrecisionTests.Constant(1);
-        var v0 = new glsBuiltinPrecisionTests.Apply('float', new glsBuiltinPrecisionTests.InverseSqrt(), x);
-        var v1 = new glsBuiltinPrecisionTests.Apply('float', new glsBuiltinPrecisionTests.Div(), one, v0);
+        var v0 = app(new glsBuiltinPrecisionTests.InverseSqrt(), x);
+        var v1 = app(new glsBuiltinPrecisionTests.Div(), one, v0);
         return v1;
     };
 
@@ -4813,8 +4824,8 @@ glsBuiltinPrecisionTests.Typename;
     glsBuiltinPrecisionTests.Fract.prototype.doExpand = function(ctx, args) {
         // x - floor(x)
         var x = args.a;
-        var v0 = new glsBuiltinPrecisionTests.Apply('float', new glsBuiltinPrecisionTests.Floor(), x);
-        var v1 = new glsBuiltinPrecisionTests.Apply('float', new glsBuiltinPrecisionTests.Sub(), x, v0);
+        var v0 = app(new glsBuiltinPrecisionTests.Floor(), x);
+        var v1 = app(new glsBuiltinPrecisionTests.Sub(), x, v0);
         return v1;
     };
 
@@ -4837,10 +4848,10 @@ glsBuiltinPrecisionTests.Typename;
         // x - y * floor(x/y)
         var x = args.a;
         var y = args.b;
-        var v0 = new glsBuiltinPrecisionTests.Apply('float', new glsBuiltinPrecisionTests.Div(), x, y);
-        var v1 = new glsBuiltinPrecisionTests.Apply('float', new glsBuiltinPrecisionTests.Floor(), v0);
-        var v2 = new glsBuiltinPrecisionTests.Apply('float', new glsBuiltinPrecisionTests.Mul(), y, v1);
-        var v3 = new glsBuiltinPrecisionTests.Apply('float', new glsBuiltinPrecisionTests.Sub(), x, v2);
+        var v0 = app(new glsBuiltinPrecisionTests.Div(), x, y);
+        var v1 = app(new glsBuiltinPrecisionTests.Floor(), v0);
+        var v2 = app(new glsBuiltinPrecisionTests.Mul(), y, v1);
+        var v3 = app(new glsBuiltinPrecisionTests.Sub(), x, v2);
         return v3;
     };
 
@@ -4906,10 +4917,10 @@ glsBuiltinPrecisionTests.Typename;
         var y = args.b;
         var a = args.c;
         var one = new glsBuiltinPrecisionTests.Constant(1);
-        var v0 = new glsBuiltinPrecisionTests.Apply('float', new glsBuiltinPrecisionTests.Sub(), one, a);
-        var v1 = new glsBuiltinPrecisionTests.Apply('float', new glsBuiltinPrecisionTests.Mul(), x, v0);
-        var v2 = new glsBuiltinPrecisionTests.Apply('float', new glsBuiltinPrecisionTests.Mul(), y, a);
-        var v3 = new glsBuiltinPrecisionTests.Apply('float', new glsBuiltinPrecisionTests.Add(), v1, v2);
+        var v0 = app(new glsBuiltinPrecisionTests.Sub(), one, a);
+        var v1 = app(new glsBuiltinPrecisionTests.Mul(), x, v0);
+        var v2 = app(new glsBuiltinPrecisionTests.Mul(), y, a);
+        var v3 = app(new glsBuiltinPrecisionTests.Add(), v1, v2);
         return v3;
     };
 
@@ -4936,17 +4947,17 @@ glsBuiltinPrecisionTests.Typename;
     //     var zero = new glsBuiltinPrecisionTests.Constant(0);
     //     var one = new glsBuiltinPrecisionTests.Constant(1);
     //     //clamp((x - edge0) / (edge1 - edge0), constant(0.0f), constant(1.0f));
-    //     var v0 = new glsBuiltinPrecisionTests.Apply('float', new glsBuiltinPrecisionTests.Sub(), x, edge0);
-    //     var v1 = new glsBuiltinPrecisionTests.Apply('float', new glsBuiltinPrecisionTests.Sub(), edge1, edge0);
-    //     var v2 = new glsBuiltinPrecisionTests.Apply('float', new glsBuiltinPrecisionTests.Clamp(), v2, zero, one);
+    //     var v0 = app(new glsBuiltinPrecisionTests.Sub(), x, edge0);
+    //     var v1 = app(new glsBuiltinPrecisionTests.Sub(), edge1, edge0);
+    //     var v2 = app(new glsBuiltinPrecisionTests.Clamp(), v2, zero, one);
     //     // TODO: bind v2 to a variable 't' for better performance
     //     //(t * t * (constant(3.0f) - constant(2.0f) * t))
     //     var two = new glsBuiltinPrecisionTests.Constant(2);
     //     var three = new glsBuiltinPrecisionTests.Constant(3);
-    //     var v3 = new glsBuiltinPrecisionTests.Apply('float', new glsBuiltinPrecisionTests.Mul(), v2, v2);
-    //     var v4 = new glsBuiltinPrecisionTests.Apply('float', new glsBuiltinPrecisionTests.Mul(), v3, three);
-    //     var v5 = new glsBuiltinPrecisionTests.Apply('float', new glsBuiltinPrecisionTests.Mul(), two, v2);
-    //     var v6 = new glsBuiltinPrecisionTests.Apply('float', new glsBuiltinPrecisionTests.Sub(), v4, v5);
+    //     var v3 = app(new glsBuiltinPrecisionTests.Mul(), v2, v2);
+    //     var v4 = app(new glsBuiltinPrecisionTests.Mul(), v3, three);
+    //     var v5 = app(new glsBuiltinPrecisionTests.Mul(), two, v2);
+    //     var v6 = app(new glsBuiltinPrecisionTests.Sub(), v4, v5);
     //     return v6;
     // };
 
@@ -4969,9 +4980,9 @@ glsBuiltinPrecisionTests.Typename;
         // exp2(y * log2(x))
         var x = args.a;
         var y = args.b;
-        var v0 = new glsBuiltinPrecisionTests.Apply('float', new glsBuiltinPrecisionTests.Log2(), x);
-        var v1 = new glsBuiltinPrecisionTests.Apply('float', new glsBuiltinPrecisionTests.Mul(), y, v0);
-        var v2 = new glsBuiltinPrecisionTests.Apply('float', new glsBuiltinPrecisionTests.Exp2(), v1);
+        var v0 = app(new glsBuiltinPrecisionTests.Log2(), x);
+        var v1 = app(new glsBuiltinPrecisionTests.Mul(), y, v0);
+        var v2 = app(new glsBuiltinPrecisionTests.Exp2(), v1);
         return v2;
     };
 
@@ -5329,9 +5340,9 @@ glsBuiltinPrecisionTests.Typename;
     glsBuiltinPrecisionTests.Tan.prototype.doExpand = function(ctx, args) {
         //  sin(x) * (constant(1.0f) / cos(x)
         var x = args.a;
-        var sin = new glsBuiltinPrecisionTests.Apply('float', new glsBuiltinPrecisionTests.Sin(), x);
-        var cos = new glsBuiltinPrecisionTests.Apply('float', new glsBuiltinPrecisionTests.Cos(), x);
-        var expr = new glsBuiltinPrecisionTests.Apply('float', new glsBuiltinPrecisionTests.Div(),
+        var sin = app(new glsBuiltinPrecisionTests.Sin(), x);
+        var cos = app(new glsBuiltinPrecisionTests.Cos(), x);
+        var expr = app(new glsBuiltinPrecisionTests.Div(),
                                                       new glsBuiltinPrecisionTests.Constant(1),
                                                       cos);
 
@@ -5474,8 +5485,8 @@ glsBuiltinPrecisionTests.Typename;
         var elem1_0 = new glsBuiltinPrecisionTests.MatrixVariable(args.a, 1, 0);
         var elem1_1 = new glsBuiltinPrecisionTests.MatrixVariable(args.a, 1, 1);
 
-        var val0 = new glsBuiltinPrecisionTests.Apply('float', new glsBuiltinPrecisionTests.Mul(), elem0_0, elem1_1);
-        var val1 = new glsBuiltinPrecisionTests.Apply('float', new glsBuiltinPrecisionTests.Mul(), elem0_1, elem1_0);
+        var val0 = app(new glsBuiltinPrecisionTests.Mul(), elem0_0, elem1_1);
+        var val1 = app(new glsBuiltinPrecisionTests.Mul(), elem0_1, elem1_0);
         return new glsBuiltinPrecisionTests.Apply('float', new glsBuiltinPrecisionTests.Sub(), val0, val1);
     };
 
@@ -5498,7 +5509,7 @@ glsBuiltinPrecisionTests.Typename;
 
     glsBuiltinPrecisionTests.Inverse.prototype.doExpand = function(ctx, args) {
         var mat = args.a;
-        var v0 = new glsBuiltinPrecisionTests.Apply('float', new glsBuiltinPrecisionTests.Determinant(), mat);
+        var v0 = app(new glsBuiltinPrecisionTests.Determinant(), mat);
         var det = glsBuiltinPrecisionTests.bindExpression('float', 'det', ctx, v0);
 
         var elem0_0 = new glsBuiltinPrecisionTests.MatrixVariable(args.a, 0, 0);
@@ -5506,16 +5517,16 @@ glsBuiltinPrecisionTests.Typename;
         var elem1_0 = new glsBuiltinPrecisionTests.MatrixVariable(args.a, 1, 0);
         var elem1_1 = new glsBuiltinPrecisionTests.MatrixVariable(args.a, 1, 1);
 
-        var result0_0 = new glsBuiltinPrecisionTests.Apply('float', new glsBuiltinPrecisionTests.Div(), elem1_1, det);
-        var result0_1 = new glsBuiltinPrecisionTests.Apply('float', new glsBuiltinPrecisionTests.Div(), elem0_1, det);
-        result0_1 = new glsBuiltinPrecisionTests.Apply('float', new glsBuiltinPrecisionTests.Negate(), result0_1);
-        var result1_0 = new glsBuiltinPrecisionTests.Apply('float', new glsBuiltinPrecisionTests.Div(), elem1_0, det);
-        result1_0 = new glsBuiltinPrecisionTests.Apply('float', new glsBuiltinPrecisionTests.Negate(), result1_0);
-        var result1_1 = new glsBuiltinPrecisionTests.Apply('float', new glsBuiltinPrecisionTests.Div(), elem0_0, det);
+        var result0_0 = app(new glsBuiltinPrecisionTests.Div(), elem1_1, det);
+        var result0_1 = app(new glsBuiltinPrecisionTests.Div(), elem0_1, det);
+        result0_1 = app(new glsBuiltinPrecisionTests.Negate(), result0_1);
+        var result1_0 = app(new glsBuiltinPrecisionTests.Div(), elem1_0, det);
+        result1_0 = app(new glsBuiltinPrecisionTests.Negate(), result1_0);
+        var result1_1 = app(new glsBuiltinPrecisionTests.Div(), elem0_0, det);
 
-        var col0 = new glsBuiltinPrecisionTests.Apply('float', new glsBuiltinPrecisionTests.GenVec(this.size, true), result0_0, result1_0);
-        var col1 = new glsBuiltinPrecisionTests.Apply('float', new glsBuiltinPrecisionTests.GenVec(this.size, true), result0_1, result1_1);
-        var ret = new glsBuiltinPrecisionTests.Apply('float', new glsBuiltinPrecisionTests.GenMat(this.size, this.size), col0, col1);
+        var col0 = app(new glsBuiltinPrecisionTests.GenVec(this.size, true), result0_0, result1_0);
+        var col1 = app(new glsBuiltinPrecisionTests.GenVec(this.size, true), result0_1, result1_1);
+        var ret = app(new glsBuiltinPrecisionTests.GenMat(this.size, this.size), col0, col1);
 
         return ret;
     };
