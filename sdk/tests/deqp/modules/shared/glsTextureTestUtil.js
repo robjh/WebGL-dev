@@ -1550,7 +1550,7 @@ glsTextureTestUtil.verifyTexture3DResult = function(
     var numFailedPixels = 0;
 
     assertMsgOptions(
-        glsTextureTestUtil.getCompareMask(pixelFormat) == lookupPrec.colorMask,
+        deMath.equal(glsTextureTestUtil.getCompareMask(pixelFormat), lookupPrec.colorMask),
         'Compare color masks do not match', false, true
     );
 
@@ -1605,7 +1605,7 @@ glsTextureTestUtil.computeTextureLookupDiff3D = function(
     var dstSize = [result.getWidth(), result.getHeight()];
     var dstW = dstSize[0];
     var dstH = dstSize[1];
-    var srcSize = [src.getWidth(), src.getHeight()];
+    var srcSize = [src.getWidth(), src.getHeight(), src.getDepth()];
 
     // Coordinates and lod per triangle.
     var triS = [deMath.swizzle(sq, [0, 1, 2]), deMath.swizzle(sq, [3, 2, 1])];

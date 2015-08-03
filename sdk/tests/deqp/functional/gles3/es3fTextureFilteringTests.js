@@ -265,7 +265,6 @@ goog.scope(function() {
             }
 
             this.m_caseNdx = 0;
-            testPassed('');
         }
         catch (e) {
             // Clean up to save memory.
@@ -305,7 +304,7 @@ goog.scope(function() {
         /** @type {tcuTextureUtil.TextureFormatInfo} */
         var fmtInfo = tcuTextureUtil.getTextureFormatInfo(texFmt);
         var curCase = this.m_cases[this.m_caseNdx];
-        bufferedLogToConsole('Test ' + this.m_caseNdx);
+        debug('Test ' + this.m_caseNdx);
         var refParams = new glsTextureTestUtil.ReferenceParams(
             glsTextureTestUtil.textureType.TEXTURETYPE_2D
         );
@@ -326,7 +325,7 @@ goog.scope(function() {
         refParams.colorScale = fmtInfo.lookupScale;
 
         // Compute texture coordinates.
-        bufferedLogToConsole(
+        debug(
             'Texture coordinates: ' + curCase.minCoord +
             ' -> ' + curCase.maxCoord
         );
@@ -408,10 +407,11 @@ goog.scope(function() {
                     'ERROR: Verification against low ' +
                     'precision requirements failed, failing test case.'
                 );
-                testFailed('Image verification failed');
+                testFailedOptions('Image verification failed', false);
             } else
                 checkMessage(false, 'Low-quality filtering result');
-        }
+        } else
+            testPassed('High quality verification passed.');
 
         this.m_caseNdx += 1;
         return this.m_caseNdx < this.m_cases.length ?
@@ -476,6 +476,7 @@ goog.scope(function() {
 
     es3fTextureFilteringTests.TextureCubeFilteringCase.prototype =
         Object.create(tcuTestCase.DeqpTest.prototype);
+
     es3fTextureFilteringTests.TextureCubeFilteringCase.prototype.constructor =
         es3fTextureFilteringTests.TextureCubeFilteringCase;
 
@@ -660,7 +661,6 @@ goog.scope(function() {
             }
 
             this.m_caseNdx = 0;
-            testPassed('');
         }
         catch (e) {
             // Clean up to save memory.
@@ -712,7 +712,7 @@ goog.scope(function() {
                 deMath.BinaryOp.XOR
             )
         );
-        bufferedLogToConsole('Test' + this.m_caseNdx);
+        debug('Test' + this.m_caseNdx);
         /** @type {es3fTextureFilteringTests.
          *      TextureCubeFilteringCase.FilterCase}
          */
@@ -758,7 +758,7 @@ goog.scope(function() {
         sampleParams.colorScale = fmtInfo.lookupScale;
         sampleParams.lodMode = glsTextureTestUtil.lodMode.EXACT;
 
-        bufferedLogToConsole(
+        debug(
             'Coordinates: ' + curCase.bottomLeft + ' -> ' + curCase.topRight
         );
 
@@ -777,7 +777,7 @@ goog.scope(function() {
                 face, curCase.bottomLeft, curCase.topRight
             );
 
-            bufferedLogToConsole(
+            debug(
                 'Face ' + es3fTextureFilteringTests.getFaceDesc(face)
             );
 
@@ -844,9 +844,11 @@ goog.scope(function() {
                 if (!isOk) {
                     bufferedLogToConsole('ERROR: Verification against low' +
                         'precision requirements failed, failing test case.');
-                    testFailed('Image verification failed');
+                    testFailedOptions('Image verification failed', false);
                 } else
                     checkMessage(false, 'Low-quality filtering result');
+            } else {
+                testPassed('High quality verification passed.');
             }
         }
 
@@ -1068,7 +1070,6 @@ goog.scope(function() {
                 );
 
             this.m_caseNdx = 0;
-            testPassed('');
         }
         catch (e) {
             // Clean up to save memory.
@@ -1084,7 +1085,7 @@ goog.scope(function() {
     function() {
         if (this.m_gradientTex)
             gl.deleteTexture(this.m_gradientTex.getGLTexture());
-        if(this.m_gridTex)
+        if (this.m_gridTex)
             gl.deleteTexture(this.m_gridTex.getGLTexture());
 
         this.m_gradientTex = null;
@@ -1115,7 +1116,7 @@ goog.scope(function() {
         /** @type {tcuTextureUtil.TextureFormatInfo} */
         var fmtInfo = tcuTextureUtil.getTextureFormatInfo(texFmt);
 
-        bufferedLogToConsole('Test' + this.m_caseNdx);
+        debug('Test' + this.m_caseNdx);
 
         /** @type {glsTextureTestUtil.ReferenceParams} */
         var refParams = new glsTextureTestUtil.ReferenceParams(
@@ -1142,7 +1143,7 @@ goog.scope(function() {
         refParams.colorScale = fmtInfo.lookupScale;
 
         // Compute texture coordinates.
-        bufferedLogToConsole(
+        debug(
             'Approximate lod per axis = ' + curCase.lod +
             ', offset = ' + curCase.offset
         );
@@ -1240,10 +1241,11 @@ goog.scope(function() {
                     'ERROR: Verification against low precision requirements ' +
                     'failed, failing test case.'
                 );
-                testFailed('Image verification failed');
+                testFailedOptions('Image verification failed', false);
             } else
                 checkMessage(false, 'Low-quality filtering result');
-        }
+        } else
+            testPassed('High quality verification passed.');
 
         this.m_caseNdx += 1;
         return this.m_caseNdx < this.m_cases.length ?
@@ -1333,11 +1335,14 @@ goog.scope(function() {
             ) + 1;
 
             // Create textures.
-            this.m_gradientTex = new gluTexture.Texture3D(
-                this.m_internalFormat, this.m_width, this.m_height, this.m_depth
+            this.m_gradientTex = gluTexture.texture3DFromInternalFormat(
+                gl, this.m_internalFormat,
+                this.m_width, this.m_height, this.m_depth
             );
-            this.m_gridTex = new gluTexture.Texture3D(
-                this.m_internalFormat, this.m_width, this.m_height, this.m_depth
+
+            this.m_gridTex = gluTexture.texture3DFromInternalFormat(
+                gl, this.m_internalFormat,
+                this.m_width, this.m_height, this.m_depth
             );
 
             // Fill first gradient texture.
@@ -1415,7 +1420,6 @@ goog.scope(function() {
             );
 
             this.m_caseNdx = 0;
-            testPassed('');
         }
         catch (e) {
             // Clean up to save memory.
@@ -1461,7 +1465,7 @@ goog.scope(function() {
         /** @type {tcuTextureUtil.TextureFormatInfo} */
         var fmtInfo = tcuTextureUtil.getTextureFormatInfo(texFmt);
 
-        bufferedLogToConsole('Test' + this.m_caseNdx);
+        debug('Test' + this.m_caseNdx);
         /** @type {glsTextureTestUtil.ReferenceParams} */
         var refParams = new glsTextureTestUtil.ReferenceParams(
             glsTextureTestUtil.textureType.TEXTURETYPE_3D
@@ -1489,27 +1493,27 @@ goog.scope(function() {
         refParams.colorScale = fmtInfo.lookupScale;
 
         // Compute texture coordinates.
-        bufferedLogToConsole('Approximate lod per axis = ' + curCase.lod +
+        debug('Approximate lod per axis = ' + curCase.lod +
             ', offset = ' + curCase.offset);
 
-        /***/ var lodX = curCase.lod[0];
-        /***/ var lodY = curCase.lod[1];
-        /***/ var lodZ = curCase.lod[2];
-        /***/ var oX = curCase.offset[0];
-        /***/ var oY = curCase.offset[1];
-        /***/ var oZ = curCase.offset[2];
-        /***/ var sX = Math.pow(2, lodX) * viewport.width /
+        /** @type {number} */ var lodX = curCase.lod[0];
+        /** @type {number} */ var lodY = curCase.lod[1];
+        /** @type {number} */ var lodZ = curCase.lod[2];
+        /** @type {number} */ var oX = curCase.offset[0];
+        /** @type {number} */ var oY = curCase.offset[1];
+        /** @type {number} */ var oZ = curCase.offset[2];
+        /** @type {number} */ var sX = Math.pow(2, lodX) * viewport.width /
             this.m_gradientTex.getRefTexture().getWidth();
-        /***/ var sY = Math.pow(2, lodY) * viewport.height /
+        /** @type {number} */ var sY = Math.pow(2, lodY) * viewport.height /
             this.m_gradientTex.getRefTexture().getHeight();
-        /***/ var sZ = Math.pow(2, lodZ) *
+        /** @type {number} */ var sZ = Math.pow(2, lodZ) *
             Math.max(viewport.width, viewport.height) /
             this.m_gradientTex.getRefTexture().getDepth();
 
-        texCoord.push(oX); texCoord.push(oY); texCoord.push(oZ);
-        texCoord.push(oX); texCoord.push(oY + sY); texCoord.push(oZ + sZ * 0.5);
-        texCoord.push(oX + sX); texCoord.push(oY); texCoord.push(oZ + sZ * 0.5);
-        texCoord.push(oX + sX); texCoord.push(oY + sY); texCoord.push(oZ + sZ);
+        texCoord[0] = oX; texCoord[1] = oY; texCoord[2] = oZ;
+        texCoord[3] = oX; texCoord[4] = oY + sY; texCoord[5] = oZ + sZ * 0.5;
+        texCoord[6] = oX + sX; texCoord[7] = oY; texCoord[8] = oZ + sZ * 0.5;
+        texCoord[9] = oX + sX; texCoord[10] = oY + sY; texCoord[11] = oZ + sZ;
 
         gl.bindTexture(gl.TEXTURE_3D, curCase.texture.getGLTexture());
         gl.texParameteri(
@@ -1581,10 +1585,11 @@ goog.scope(function() {
                 bufferedLogToConsole('ERROR: Verification against low ' +
                     'precision requirements failed, failing test case.'
                 );
-                testFailed('Image verification failed');
+                testFailedOptions('Image verification failed', false);
             } else
                 checkMessage(false, 'Low-quality filtering result');
-        }
+        } else
+            testPassed('High quality verification passed.');
 
         this.m_caseNdx += 1;
         return this.m_caseNdx < this.m_cases.length ?

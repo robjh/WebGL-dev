@@ -40,13 +40,13 @@ gluShaderProgram.shaderType = {
  * @return {string}
  */
 gluShaderProgram.getShaderTypeName = function(shaderType) {
-	var s_names =
-	[
-		"vertex",
-		"fragment"
-	];
+    var s_names =
+    [
+        'vertex',
+        'fragment'
+    ];
 
-	return s_names[shaderType];
+    return s_names[shaderType];
 };
 
 /**

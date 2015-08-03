@@ -2416,11 +2416,16 @@ tcuTexture.Texture3DView.prototype.sampleCompare = function(sampler, ref, texCoo
 /**
  * @param {number} width
  * @param {number=} height
+ * @param {number=} depth
  * @return {number} Number of pyramid levels
  */
-tcuTexture.computeMipPyramidLevels = function(width, height) {
-    var h = height || width;
-    return Math.floor(Math.log2(Math.max(width, h))) + 1;
+tcuTexture.computeMipPyramidLevels = function(width, height, depth) {
+    if (depth !== undefined)
+        return Math.floor(Math.log2(Math.max(width, Math.max(height, depth)))) + 1;
+    else if (height !== undefined)
+        return Math.floor(Math.log2(Math.max(width, height))) + 1;
+    else
+        return Math.floor(Math.log2(width)) + 1;
 };
 
 /**
@@ -2908,7 +2913,7 @@ tcuTexture.Texture2DArray.prototype.allocLevel = function(levelNdx) {
  * @param {number} depth
  */
 tcuTexture.Texture3D = function(format, width, height, depth) {
-    tcuTexture.TextureLevelPyramid.call(this, format, tcuTexture.computeMipPyramidLevels(width, height));
+    tcuTexture.TextureLevelPyramid.call(this, format, tcuTexture.computeMipPyramidLevels(width, height, depth));
     this.m_width = width;
     this.m_height = height;
     this.m_depth = depth;

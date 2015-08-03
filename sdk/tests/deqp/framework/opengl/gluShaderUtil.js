@@ -663,8 +663,7 @@ gluShaderUtil.getDataTypeNumLocations = function(dataType) {
  * @param {gluShaderUtil.DataType} dataType
  * @return {number}
  */
-gluShaderUtil.getDataTypeNumComponents = function(dataType)
-{
+gluShaderUtil.getDataTypeNumComponents = function(dataType) {
     if (gluShaderUtil.isDataTypeScalarOrVector(dataType))
         return gluShaderUtil.getDataTypeScalarSize(dataType);
     else if (gluShaderUtil.isDataTypeMatrix(dataType))
