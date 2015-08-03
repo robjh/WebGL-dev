@@ -95,62 +95,6 @@ goog.scope(function() {
 	};
 
 	/**
-	 * @constructor
-	 * @param {WebGL2RenderingContext} gl_
-	 */
-	es3fShaderDerivateTests.AutoFbo = function(gl_) {
-		/** @type {WebGL2RenderingContext} */ this.m_gl = gl_;
-		/** @type {?WebGLFramebuffer} */ this.m_fbo = null;
-	};
-
-	es3fShaderDerivateTests.AutoFbo.prototype.deinit = function() {
-		if (this.m_fbo) {
-			this.m_gl.deleteFramebuffer(this.m_fbo);
-			this.m_fbo = null;
-		}
-	};
-
-	es3fShaderDerivateTests.AutoFbo.prototype.gen = function() {
-		if (!this.m_fbo)
-			this.m_fbo = this.m_gl.createFramebuffer();
-	};
-
-	/**
-	 * @return {?WebGLFramebuffer}
-	 */
-	es3fShaderDerivateTests.AutoFbo.prototype.get = function() {
-		return this.m_fbo;
-	};
-
-	/**
-	 * @constructor
-	 * @param {WebGL2RenderingContext} gl_
-	 */
-	es3fShaderDerivateTests.AutoRbo = function(gl_) {
-		/** @type {WebGL2RenderingContext} */ this.m_gl = gl_;
-		/** @type {?WebGLRenderbuffer} */ this.m_rbo = null;
-	};
-
-	es3fShaderDerivateTests.AutoRbo.prototype.deinit = function() {
-		if (this.m_rbo) {
-			this.m_gl.deleteRenderbuffer(this.m_rbo);
-			this.m_rbo = null;
-		}
-	};
-
-	es3fShaderDerivateTests.AutoRbo.prototype.gen = function() {
-		if (!this.m_rbo)
-			this.m_rbo = this.m_gl.createRenderbuffer();
-	};
-
-	/**
-	 * @return {?WebGLRenderbuffer}
-	 */
-	es3fShaderDerivateTests.AutoRbo.prototype.get = function() {
-		return this.m_rbo;
-	};
-
-	/**
 	 * @param  {es3fShaderDerivateTests.DerivateFunc} func
 	 * @return {string}
 	 */
@@ -358,7 +302,7 @@ goog.scope(function() {
 			deMath.addScalar(
 				deMath.subtract(
 					[baseBits, baseBits, baseBits, baseBits],
-					numBitsLost/*.asInt()*/), // TODO: asInt() exists in UVec4 - should we make sure that the array containes only floored components?
+					numBitsLost),
 				-es3fShaderDerivateTests.INTERPOLATION_LOST_BITS),
 			[0, 0, 0, 0]);
 
@@ -368,23 +312,6 @@ goog.scope(function() {
 				es3fShaderDerivateTests.computeFloatingPointError(expectedDerivate[3], numAccurateBits[3])];
 	};
 
-	// /begin Might be able to get rid of this iff all appearances of LogVecComps()
-	// are replaced by whatever the first argument is.
-	/**
-	 * @struct
-	 * @constructor
-	 * @param  {Array<number>} v_
-	 * @param  {number} numComps_
-	 */
-	es3fShaderDerivateTests.LogVecComps = function(v_, numComps_) {
-		/** @type {Array<number>} */ this.v = v_;
-		/** @type {number} */ this.numComps = numComps_;
-	};
-
-	es3fShaderDerivateTests.LogVecComps.prototype.toString = function() {
-		return this.v.toString();
-	};
-	// /end
     /**
 	 * @param  {tcuTexture.ConstPixelBufferAccess} result
 	 * @param  {tcuTexture.PixelBufferAccess} errorMask
@@ -398,7 +325,6 @@ goog.scope(function() {
 	 */
 	es3fShaderDerivateTests.verifyConstantDerivate = function(result, errorMask, dataType, reference, threshold, scale, bias, logPolicy) {
 		logPolicy = logPolicy === undefined ? es3fShaderDerivateTests.VerificationLogging.LOG_ALL : logPolicy;
-		// /** @type {number} */ var numComps = gluShaderUtil.getDataTypeScalarTypeAsDataType(dataType); // we might not need this at all
 		/** @type {Array<boolean>} */ var mask = deMath.logicalNotBool(es3fShaderDerivateTests.getDerivateMask(dataType));
 		/** @type {number} */ var numFailedPixels = 0;
 
@@ -668,8 +594,8 @@ goog.scope(function() {
 		/** @type {Array<number>} */ var viewportSize = this.getViewportSize();
 		/** @type {number} */ var viewportX = useFbo ? 0 : rnd.getInt(0, gl.drawingBufferWidth - viewportSize[0]);
 		/** @type {number} */ var viewportY = useFbo ? 0 : rnd.getInt(0, gl.drawingBufferHeight - viewportSize[1]);
-		/** @type {es3fShaderDerivateTests.AutoFbo} */ var fbo = new es3fShaderDerivateTests.AutoFbo(gl);
-		/** @type {es3fShaderDerivateTests.AutoRbo} */ var rbo = new es3fShaderDerivateTests.AutoRbo(gl);
+		/** @type {?WebGLFramebuffer} */ var fbo = null;
+		/** @type {?WebGLRenderbuffer} */ var rbo = null;
 		/** @type {tcuTexture.TextureLevel} */ var result;
 
 		bufferedLogToConsole(program.getProgramInfo().infoLog);
@@ -678,16 +604,15 @@ goog.scope(function() {
 			assertMsgOptions(false, 'Compile failed', false, true);
 
 		if (useFbo) {
-			bufferedLogToConsole('Rendering to FBO, format = ' + /*glu::getPixelFormatStr(*/fboFormat/*)*/ + ', samples = ' + this.m_numSamples);
+			bufferedLogToConsole('Rendering to FBO, format = ' + wtu.glEnumToString(gl, fboFormat) + ', samples = ' + this.m_numSamples);
 
-			fbo.gen();
-			rbo.gen();
+			fbo = gl.createFramebuffer();
+			rbo = gl.createRenderbuffer();
 
-			gl.bindRenderbuffer(gl.RENDERBUFFER, rbo.get());
+			gl.bindRenderbuffer(gl.RENDERBUFFER, rbo);
 			gl.renderbufferStorageMultisample(gl.RENDERBUFFER, this.m_numSamples, fboFormat, viewportSize[0], viewportSize[1]);
-			gl.bindFramebuffer(gl.FRAMEBUFFER, fbo.get());
-			gl.framebufferRenderbuffer(gl.FRAMEBUFFER, gl.COLOR_ATTACHMENT0, gl.RENDERBUFFER, rbo.get());
-			//TCU_CHECK(gl.checkFramebufferStatus(gl.FRAMEBUFFER) === gl.FRAMEBUFFER_COMPLETE);
+			gl.bindFramebuffer(gl.FRAMEBUFFER, fbo);
+			gl.framebufferRenderbuffer(gl.FRAMEBUFFER, gl.COLOR_ATTACHMENT0, gl.RENDERBUFFER, rbo);
 		}
 		else {
 			/** @type {tcuPixelFormat.PixelFormat} */ var pixelFormat = tcuPixelFormat.PixelFormatFromContext(gl);
@@ -704,9 +629,7 @@ goog.scope(function() {
 			'\n' +
 			'u_scale: ' + this.m_derivScale + ', u_bias: ' + this.m_derivBias + ' (displayed values have scale/bias removed)' +
 			'Viewport: ' + viewportSize[0] + 'x' + viewportSize[1] +
-			'gl.FRAGMENT_SHADER_DERIVATE_HINT: ' + /*glu::getHintModeStr(*/this.m_hint/*)*/);
-			// TODO: glu::getHintModeStr()
-			//
+			'gl.FRAGMENT_SHADER_DERIVATE_HINT: ' + wtu.glEnumToString(gl, this.m_hint));
 		// Draw
 		/** @type {Array<number>} */ var positions = [
 			-1.0, -1.0, 0.0, 1.0,
@@ -745,13 +668,13 @@ goog.scope(function() {
 				break;
 
 			case gluShaderUtil.DataType.FLOAT_VEC2:
-				gl.uniform2fv(scaleLoc, this.m_derivScale);
-				gl.uniform2fv(biasLoc, this.m_derivBias);
+				gl.uniform2fv(scaleLoc, this.m_derivScale.slice(0,2));
+				gl.uniform2fv(biasLoc, this.m_derivBias.slice(0,2));
 				break;
 
 			case gluShaderUtil.DataType.FLOAT_VEC3:
-				gl.uniform3fv(scaleLoc, this.m_derivScale);
-				gl.uniform3fv(biasLoc, this.m_derivBias);
+				gl.uniform3fv(scaleLoc, this.m_derivScale.slice(0,3));
+				gl.uniform3fv(biasLoc, this.m_derivBias.slice(0,3));
 				break;
 
 			case gluShaderUtil.DataType.FLOAT_VEC4:
@@ -767,67 +690,47 @@ goog.scope(function() {
 		this.setupRenderState(program.getProgram());
 
 		gl.hint(gl.FRAGMENT_SHADER_DERIVATIVE_HINT, this.m_hint);
-		// GLU_EXPECT_NO_ERROR(gl.getError(), 'Setup program state');
 
 		gl.viewport(viewportX, viewportY, viewportSize[0], viewportSize[1]);
 		gluDrawUtil.draw(gl, program.getProgram(), vertexArrays, gluDrawUtil.triangles(indices));
-		// GLU_EXPECT_NO_ERROR(gl.getError(), 'Draw');
 
 		// Read back results
 
 		/** @type {boolean} */ var isMSAA = useFbo && this.m_numSamples > 0;
-		/** @type {es3fShaderDerivateTests.AutoFbo} */ var resFbo = new es3fShaderDerivateTests.AutoFbo(gl);
-		/** @type {es3fShaderDerivateTests.AutoRbo} */ var resRbo = new es3fShaderDerivateTests.AutoRbo(gl);
+		/** @type {?WebGLFramebuffer} */ var resFbo = null;
+		/** @type {?WebGLRenderbuffer} */ var resRbo = null;
 
 		// Resolve if necessary
 		if (isMSAA) {
-			resFbo.gen();
-			resRbo.gen();
+			resFbo = gl.createFramebuffer();
+			resRbo = gl.createRenderbuffer();
 
-			gl.bindRenderbuffer(gl.RENDERBUFFER, resRbo.get());
+			gl.bindRenderbuffer(gl.RENDERBUFFER, resRbo);
 			gl.renderbufferStorageMultisample(gl.RENDERBUFFER, 0, fboFormat, viewportSize[0], viewportSize[1]);
-			gl.bindFramebuffer(gl.DRAW_FRAMEBUFFER, resFbo.get());
-			gl.framebufferRenderbuffer(gl.DRAW_FRAMEBUFFER, gl.COLOR_ATTACHMENT0, gl.RENDERBUFFER, resRbo.get());
-			// TCU_CHECK(gl.checkFramebufferStatus(gl.FRAMEBUFFER) === gl.FRAMEBUFFER_COMPLETE);
+			gl.bindFramebuffer(gl.DRAW_FRAMEBUFFER, resFbo);
+			gl.framebufferRenderbuffer(gl.DRAW_FRAMEBUFFER, gl.COLOR_ATTACHMENT0, gl.RENDERBUFFER, resRbo);
 
 			gl.blitFramebuffer(0, 0, viewportSize[0], viewportSize[1], 0, 0, viewportSize[0], viewportSize[1], gl.COLOR_BUFFER_BIT, gl.NEAREST);
-			// GLU_EXPECT_NO_ERROR(gl.getError(), 'Resolve blit');
 
-			gl.bindFramebuffer(gl.READ_FRAMEBUFFER, resFbo.get());
+			gl.bindFramebuffer(gl.READ_FRAMEBUFFER, resFbo);
 		}
 		/** @type {tcuSurface.Surface} */ var resultSurface;
 		switch (this.m_surfaceType) {
 			case es3fShaderDerivateTests.SurfaceType.DEFAULT_FRAMEBUFFER:
 			case es3fShaderDerivateTests.SurfaceType.UNORM_FBO:
-				// result.setStorage(
-				// 	tcuTexture.TextureFormat(tcuTexture.ChannelOrder.RGBA, tcuTexture.ChannelType.UNORM_INT8),
-				// 	viewportSize[0],
-				// 	viewportSize[1]);
 				resultSurface = new tcuSurface.Surface(viewportSize[0], viewportSize[1]);
 				resultSurface.readViewport(gl, [viewportX, viewportY, viewportSize[0], viewportSize[1]]);
-				//glu::readPixels(this.m_context.getRenderContext(), viewportX, viewportY, result);
 				break;
 
 			case es3fShaderDerivateTests.SurfaceType.FLOAT_FBO:
-				// /** @type {tcuTexture.TextureFormat} */
-				// var dataFormat = new tcuTexture.TextureFormat(
-				// 	tcuTexture.ChannelOrder.RGBA, tcuTexture.ChannelType.FLOAT);
-				// /** @type {tcuTexture.TextureFormat} */
-				// var transferFormat = new tcuTexture.TextureFormat(
-				// 	tcuTexture.ChannelOrder.RGBA, tcuTexture.ChannelType.UNSIGNED_INT32);
-
-				//result.setStorage(dataFormat, viewportSize[0], viewportSize[1]);
 				resultSurface = new tcuSurface.Surface(viewportSize[0], viewportSize[1]);
 				resultSurface.readViewport(gl, [viewportX, viewportY, viewportSize[0], viewportSize[1]]);
-				// glu::readPixels(this.m_context.getRenderContext(), viewportX, viewportY,
-				// 				tcu::PixelBufferAccess(transferFormat, result.getWidth(), result.getHeight(), result.getDepth(), result.getAccess().getDataPtr()));
 				break;
 
 			default:
 				throw new Error('Surface Type not supported: ' + this.m_surfaceType);
 		}
 
-		// GLU_EXPECT_NO_ERROR(gl.getError(), 'Read pixels');
 
 		// Verify
 		/** @type {tcuSurface.Surface} */
@@ -845,6 +748,12 @@ goog.scope(function() {
 		}
         else
             testPassedOptions('Pass', true);
+
+		// Cleaning up buffers
+		gl.deleteFramebuffer(fbo);
+		gl.deleteRenderbuffer(rbo);
+		gl.deleteFramebuffer(resFbo);
+		gl.deleteRenderbuffer(resRbo);
 
 		return tcuTestCase.IterateResult.STOP;
 	};
@@ -865,7 +774,7 @@ goog.scope(function() {
 			case es3fShaderDerivateTests.SurfaceType.UNORM_FBO: return deMath.scale([1, 1, 1, 1], 1.0/255.0);
 			case es3fShaderDerivateTests.SurfaceType.FLOAT_FBO: return [0.0, 0.0, 0.0, 0.0];
 			default:
-				assertMsgOptions(false,'Surface Type not supported. Falling back to default retun value [0.0, 0.0, 0.0, 0.0]', false, false);
+				assertMsgOptions(false, 'Surface Type not supported. Falling back to default retun value [0.0, 0.0, 0.0, 0.0]', false, false);
 				return [0.0, 0.0, 0.0, 0.0];
 		}
 	};
@@ -1063,7 +972,6 @@ goog.scope(function() {
 			reference = deMath.multiply(deMath.scale(deMath.subtract(this.m_coordMax, this.m_coordMin), 1/div), scale);
 			/** @type {Array<number>} */ var opThreshold = es3fShaderDerivateTests.getDerivateThreshold(this.m_precision, deMath.multiply(this.m_coordMin, scale), deMath.multiply(this.m_coordMax, scale), reference);
 			threshold = deMath.max(surfaceThreshold, opThreshold);
-			// /** @type {number} */ var numComps = gluShaderUtil.getDataTypeScalarTypeAsDataType(this.m_dataType); // we might not need this at all
 			bufferedLogToConsole('Verifying result image.\n' +
 				'\tValid derivative is ' + reference + ' with threshold ' + threshold);
 
@@ -1319,7 +1227,6 @@ goog.scope(function() {
 			reference = deMath.multiply(deMath.scale(deMath.subtract(this.m_texValueMax, this.m_texValueMin), 1 / div), scale);
 			/** @type {Array<number>} */ var opThreshold = es3fShaderDerivateTests.getDerivateThreshold(this.m_precision, deMath.multiply(this.m_texValueMin, scale), deMath.multiply(this.m_texValueMax, scale), reference);
 			threshold = deMath.max(surfaceThreshold, opThreshold);
-			// /** @type {number} */ var numComps = gluShaderUtil.getDataTypeScalarTypeAsDataType(this.m_dataType); // we might not need this at all
 
 			bufferedLogToConsole('Verifying result image.\n'+
 			    '\tValid derivative is ' + reference + ' with threshold ' + threshold);

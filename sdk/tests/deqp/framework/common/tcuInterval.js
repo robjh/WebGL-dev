@@ -164,6 +164,17 @@
     };
 
     /**
+     * @param {number} a
+     * @param {number} b
+     * @return{tcuInterval.Interval}
+     */
+    tcuInterval.withNumbers = function(a, b) {
+        var x = new tcuInterval.Interval(a);
+        var y =  new tcuInterval.Interval(b);
+        return tcuInterval.withIntervals(x, y);
+    };
+
+    /**
      * @param {boolean} hasNaN_
      * @param {number} lo_
      * @param {number} hi_
@@ -262,8 +273,8 @@
     tcuInterval.Interval.prototype.operatorAndBinary = function (other) {
         /** @type{tcuInterval.Interval} */ var temp = new tcuInterval.Interval();
         temp.m_hasNaN = this.m_hasNaN && other.m_hasNaN;
-        temp.m_lo = Math.min(this.m_lo, other.m_lo);
-        temp.m_hi = Math.max(this.m_hi, other.m_hi);
+        temp.m_lo = Math.max(this.m_lo, other.m_lo);
+        temp.m_hi = Math.min(this.m_hi, other.m_hi);
 		return temp;
 	};
 
@@ -301,8 +312,8 @@
     tcuInterval.Interval.prototype.operatorNegative = function () {
         /** @type{tcuInterval.Interval} */ var temp = new tcuInterval.Interval();
         temp.m_hasNaN = this.m_hasNaN;
-        temp.m_lo = -this.m_lo;
-        temp.m_hi = -this.m_hi;
+        temp.m_lo = -this.m_hi;
+        temp.m_hi = -this.m_lo;
 		return temp;
     };
 
@@ -559,6 +570,41 @@ tcuInterval.applyMonotone2 = function(arg0, arg1, body) {
     return ret;
 };
 
+/**
+ * TODO: Check if this function works properly
+ * @param {tcuInterval.Interval} arg0
+ * @param {tcuInterval.Interval} arg1
+ * @param {tcuInterval.Interval} arg2
+ * @param {function(number, number, number): tcuInterval.Interval} body
+ * @return {tcuInterval.Interval}
+ */
+tcuInterval.applyMonotone3 = function(arg0, arg1, arg2, body) {
+    var ret = new tcuInterval.Interval();
+
+    if (!arg0.empty() && !arg1.empty() && !arg2.empty()) {
+        var i0 = body(arg0.lo(), arg1.lo(), arg2.lo());
+        var i1 = body(arg0.lo(), arg1.lo(), arg2.hi());
+        var i2 = body(arg0.lo(), arg1.hi(), arg2.lo());
+        var i3 = body(arg0.lo(), arg1.hi(), arg2.hi());
+        var i4 = body(arg0.hi(), arg1.lo(), arg2.lo());
+        var i5 = body(arg0.hi(), arg1.lo(), arg2.hi());
+        var i6 = body(arg0.hi(), arg1.hi(), arg2.lo());
+        var i7 = body(arg0.hi(), arg1.hi(), arg2.hi());
+
+        var low = Math.min(i0.lo(), i1.lo(), i2.lo(), i3.lo(), i4.lo(), i5.lo(), i6.lo(), i7.lo());
+        var high = Math.min(i0.hi(), i1.hi(), i2.hi(), i3.hi(), i4.hi(), i5.hi(), i6.hi(), i7.hi());
+        var hasNaN = i0.hasNaN() && i1.hasNaN() && i2.hasNaN() && i3.hasNaN() && i4.hasNaN() && i5.hasNaN() && i6.hasNaN() && i7.hasNaN();
+
+        ret = tcuInterval.withParams(hasNaN, low, high);
+    }
+
+    if (arg0.hasNaN() || arg1.hasNaN() || arg2.hasNaN()) {
+        ret = ret.operatorOrBinary(new tcuInterval.Interval(NaN));
+    }
+
+    return ret;
+};
+
 //
 // //! Set the interval DST to the image of BODY on ARG, assuming that BODY on
 // //! ARG is a monotone function. In practice, BODY is evaluated on both the
@@ -620,5 +666,8 @@ tcuInterval.applyMonotone2 = function(arg0, arg1, body) {
 // 							 const Interval&		arg0,
 // 							 const Interval&		arg1);
 
-
+/** @const */ tcuInterval.POSITIVE_INFINITY = new tcuInterval.Interval(Infinity);
+/** @const */ tcuInterval.NEGATIVE_INFINITY = new tcuInterval.Interval(-Infinity);
+/** @const */ tcuInterval.ZERO = new tcuInterval.Interval(0);
+/** @const */ tcuInterval.NAN = new tcuInterval.Interval(NaN);
 });

@@ -558,7 +558,22 @@ goog.scope(function() {
             case 3: return gluVarType.newTypeBasic(gluShaderUtil.DataType.FLOAT_VEC3, precision);
             case 2: return gluVarType.newTypeBasic(gluShaderUtil.DataType.FLOAT_VEC2, precision);
         }
-        return gluVarType.newTypeBasic(gluShaderUtil.DataType.FLOAT, precision);
+        switch (T) {
+            case 'float' : return gluVarType.newTypeBasic(gluShaderUtil.DataType.FLOAT, precision);
+            case 'vec4': return gluVarType.newTypeBasic(gluShaderUtil.DataType.FLOAT_VEC4, precision);
+            case 'vec3': return gluVarType.newTypeBasic(gluShaderUtil.DataType.FLOAT_VEC3, precision);
+            case 'vec2': return gluVarType.newTypeBasic(gluShaderUtil.DataType.FLOAT_VEC2, precision);
+            case 'mat2': return gluVarType.newTypeBasic(gluShaderUtil.DataType.FLOAT_MAT2, precision);
+            case 'mat2x3': return gluVarType.newTypeBasic(gluShaderUtil.DataType.FLOAT_MAT2X3, precision);
+            case 'mat2x4': return gluVarType.newTypeBasic(gluShaderUtil.DataType.FLOAT_MAT2X4, precision);
+            case 'mat3x2': return gluVarType.newTypeBasic(gluShaderUtil.DataType.FLOAT_MAT3X2, precision);
+            case 'mat3': return gluVarType.newTypeBasic(gluShaderUtil.DataType.FLOAT_MAT3, precision);
+            case 'mat3x4': return gluVarType.newTypeBasic(gluShaderUtil.DataType.FLOAT_MAT3X4, precision);
+            case 'mat4x2': return gluVarType.newTypeBasic(gluShaderUtil.DataType.FLOAT_MAT4X2, precision);
+            case 'mat4x3': return gluVarType.newTypeBasic(gluShaderUtil.DataType.FLOAT_MAT4X3, precision);
+            case 'mat4': return gluVarType.newTypeBasic(gluShaderUtil.DataType.FLOAT_MAT4, precision);
+        }
+        throw new Error('Invalid input type ' + T + ' or size ' + size);
     };
 
     /**
@@ -665,7 +680,7 @@ goog.scope(function() {
     gluVarType.MatrixOrder = {
         MATRIXORDER_COLUMN_MAJOR: 0,
         MATRIXORDER_ROW_MAJOR: 1
-    };    
+    };
 
    /**
      * @param {gluVarType.MatrixOrder} qualifier
@@ -709,6 +724,11 @@ goog.scope(function() {
 
     /**
      * @constructor
+     * @param {number=} location
+     * @param {number=} binding
+     * @param {number=} offset
+     * @param {gluVarType.FormatLayout=} format
+     * @param {gluVarType.MatrixOrder=} matrixOrder
      */
     gluVarType.Layout = function(location, binding, offset, format, matrixOrder) {
         this.location = location;
@@ -765,7 +785,7 @@ goog.scope(function() {
     gluVarType.VariableDeclaration.prototype.toString = function() {
         var str = '';
         if (typeof this.layout !== 'undefined')
-            str += this.layout + ' ';
+            str += this.layout.toString() + ' ';
 
         for (var bitNdx = 0; (1 << bitNdx) & gluVarType.MemoryAccessQualifier.MEMORYACCESSQUALIFIER_MASK; ++bitNdx)
             if (this.memoryAccessQualifierBits & (1 << bitNdx))
@@ -780,7 +800,7 @@ goog.scope(function() {
 
         str += gluVarType.declareVariable(this.varType, this.name);
 
-        return str;        
+        return str;
     };
 
 });
