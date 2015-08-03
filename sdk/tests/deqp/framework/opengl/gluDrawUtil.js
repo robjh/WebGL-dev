@@ -203,10 +203,10 @@ gluDrawUtil.getPrimitiveGLType = function(gl, type) {
 
 /**
  * Calls gluDrawUtil.newPrimitiveListFromIndices() to create primitive list for Points
- * @param {Array<number>} indices
+ * @param {Array<number>} numElements
  */
-gluDrawUtil.points = function(indices) {
-    return gluDrawUtil.newPrimitiveListFromIndices(gluDrawUtil.primitiveType.POINTS, indices);
+gluDrawUtil.pointsFromElements = function(numElements) {
+    return new gluDrawUtil.PrimitiveList(gluDrawUtil.primitiveType.POINTS, numElements);
 };
 
 /**
@@ -418,11 +418,11 @@ gluDrawUtil.bindingPointFromName = function(name, location) {
 };
 
 /**
- * @param  {string} name
- * @param  {number} numComponents
- * @param  {number} numElements
- * @param  {number} stride
- * @param  {Array<number>} data
+ * @param {string} name
+ * @param {number} numComponents
+ * @param {number} numElements
+ * @param {number} stride
+ * @param {Array<number>} data
  * @return {gluDrawUtil.VertexArrayBinding}
  */
 gluDrawUtil.newFloatVertexArrayBinding = function(name, numComponents, numElements, stride, data) {

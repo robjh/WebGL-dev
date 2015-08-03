@@ -195,7 +195,7 @@ deMath.scale = function(a, b) {
 };
 
 /**
- * Add two vectors, element by element
+ * Add vector and scalar, element by element
  * @param {goog.NumberArray} a
  * @param {number} b
  * @return {Array<number>} Result array
@@ -555,7 +555,7 @@ deMath.binaryOp = function(valueA, valueB, binaryOpParm) {
  * @return {number}
  */
 deMath.binaryNot = function(value) {
-    if (value == 0) return 0;
+    if (value == 0) return 0xffffffff;
     value = value < 0 ? new Uint32Array([value])[0] : value;
     /** @type {number} */ var bitsSize = value == 0 ? 0 : Math.floor(Math.log2(value) + 1);
 
@@ -802,7 +802,7 @@ deMath.addScalarToVector = function(a, b) {
  * @param {number} exponent
  * @return {number}
  */
-deMath.deLdExp = function(a, exponent)	{
+deMath.deLdExp = function(a, exponent) {
     return deMath.ldexp(a, exponent);
 };
 
@@ -811,7 +811,7 @@ deMath.deLdExp = function(a, exponent)	{
  * @param {number} exponent
  * @return {number}
  */
-deMath.deFloatLdExp = function(a, exponent)  {
+deMath.deFloatLdExp = function(a, exponent) {
     return deMath.ldexp(a, exponent);
 };
 

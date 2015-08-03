@@ -46,7 +46,7 @@ gluShaderProgram.getShaderTypeName = function(shaderType) {
 		'fragment'
 	];
 
-	return s_names[shaderType];
+    return s_names[shaderType];
 };
 
 /**
