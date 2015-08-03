@@ -71,34 +71,6 @@ glsBuiltinPrecisionTests.Value;
 glsBuiltinPrecisionTests.Typename;
 
 
-// public:
-// 	Interval			roundOut		(const Interval& x, bool roundUnderOverflow) const;
-// 	double				round			(double d, bool upward) const;
-// 	double				roundOut		(double d, bool upward, bool roundUnderOverflow) const;
-// 	Interval			convert			(const Interval& x) const;
-//
-// 	std::string			floatToHex		(double x) const;
-// 	std::string 		intervalToHex	(const Interval& interval) const;
-//
-// 	static FloatFormat	nativeFloat		(void);
-// 	static FloatFormat	nativeDouble	(void);
-
-
-    /**
-     TREE OF HERITAGE
-     ---------- Signature
-     Signature (struct)
-        uses . Traits<>
-            <void>
-            <bool,float,int>
-                ScalarTraits
-            <Matrix<typename,Rows,Cols>,vector<typename,size>>
-                ContainerTraits
-        uses . Tuple4<>
-
-
-     */
-
     /**
      * @param{number} value
      * @return {boolean}
@@ -158,7 +130,6 @@ glsBuiltinPrecisionTests.Typename;
 
 
     /**
-     * template <typename In>
      * Returns true for all other types except Void
      * @param{*} In
      * @return{number}
@@ -172,7 +143,6 @@ glsBuiltinPrecisionTests.Typename;
     };
 
     /**
-     * template <typename Out>
      * Returns true for all other types except Void
      * @param{*} Out
      * @return{number}
@@ -184,7 +154,6 @@ glsBuiltinPrecisionTests.Typename;
     };
 
     /**
-     * template<typename In0_ = Void, typename In1_ = Void, typename In2_ = Void, typename In3_ = Void>
      * @constructor
      * @param{glsBuiltinPrecisionTests.Typename=} In0_
      * @param{glsBuiltinPrecisionTests.Typename=} In1_
@@ -357,7 +326,6 @@ glsBuiltinPrecisionTests.Typename;
      */
     glsBuiltinPrecisionTests.Traits.traitsFactory = function(typename) {
         switch (typename) {
-            case 'array' : return new glsBuiltinPrecisionTests.ContainerTraits('float');
             case 'boolean' : return new glsBuiltinPrecisionTests.TraitsBool();
             case 'float' :  case 'vec2' : case 'vec3' : case 'vec4' : 
             case 'mat2' : case 'mat2x3' : case 'mat2x4' :
@@ -661,150 +629,6 @@ glsBuiltinPrecisionTests.Typename;
 		return value.toString(10);
 	};
 
-
-
-
-    /**
-     * @constructor
-     * @extends{glsBuiltinPrecisionTests.Traits}
-     * @param{string} elementType
-     * @param{number} size
-     */
-    glsBuiltinPrecisionTests.VectorTraits = function(elementType, size) {
-        var name = 'vec' + size;
-        glsBuiltinPrecisionTests.Traits.call(this, name);
-        this.elementType = elementType;
-        this.size = size;
-        this.name = name;
-        this.subTraits = glsBuiltinPrecisionTests.Traits.traitsFactory(elementType);
-    };
-
-    glsBuiltinPrecisionTests.VectorTraits.prototype = Object.create(glsBuiltinPrecisionTests.Traits.prototype);
-    glsBuiltinPrecisionTests.VectorTraits.prototype.constructor = glsBuiltinPrecisionTests.VectorTraits;
-
-    /**
-     * @param{Array<number>} value can be a vector or matrix
-     * @return{Array<*>}
-     */
-    glsBuiltinPrecisionTests.VectorTraits.prototype.doMakeIVal = function(value) {
-    	/** @type{Array<*>}	*/ var ret = [];
-
-		for (var ndx = 0; ndx < this.size; ++ndx)
-			ret[ndx] = this.subTraits.doMakeIVal(value[ndx]);
-
-		return ret;
-	};
-
-    /**
-     * @param{Array<*>} a
-     * @param{Array<*>} b
-     * @return{Array<*>}
-     */
-    glsBuiltinPrecisionTests.VectorTraits.prototype.doUnion = function (a, b) {
-    	/** @type{Array<*>}	*/ var ret = [];
-
-		for (var ndx = 0; ndx < this.size; ++ndx)
-			ret[ndx] = this.subTraits.doUnion(a[ndx], b[ndx]);
-
-		return ret;
-	};
-
-    /**
-     * @param{Array<*>} ival
-     * @param{*} value
-     * @return{boolean}
-     */
-    glsBuiltinPrecisionTests.VectorTraits.prototype.doContains = function(ival, value) {
-		for (var ndx = 0; ndx < this.size; ++ndx)
-			if (!this.subTraits.doContains(ival[ndx], value[ndx]))
-				return false;
-
-		return true;
-	};
-
-    /**
-     * @param{tcuFloatFormat.FloatFormat} fmt
-     * @param{Array<*>} ival
-     */
-    glsBuiltinPrecisionTests.VectorTraits.prototype.doPrintIVal = function(fmt, ival) {
-		/** @type{string} */ var os = this.name  + '(';
-
-		for (var ndx = 0; ndx < this.size; ++ndx)	{
-			if (ndx > 0)
-				os += ', ';
-			os += ival[ndx].doPrintIVal(fmt, ival[ndx]);
-		}
-
-		os += ')';
-        return os;
-	};
-
-    /**
-     * @param{tcuFloatFormat.FloatFormat} fmt
-     * @param{Array<*>} value
-     */
-    glsBuiltinPrecisionTests.VectorTraits.prototype.doPrintValue	= function(fmt, value) {
-		/** @type{string} */ var os = this.name + '(';
-
-		for (var ndx = 0; ndx < this.size; ++ndx)
-		{
-			if (ndx > 0)
-				os += ', ';
-
-			os += value[ndx].doPrintValue(fmt, value[ndx]);
-		}
-
-		os += ')';
-        return os;
-	};
-
-    /**
-     * @param{tcuFloatFormat.FloatFormat} fmt
-     * @param{Array<*>} value
-     * @return{Array<*>}
-     */
-    glsBuiltinPrecisionTests.VectorTraits.prototype.doConvert = function(fmt, value) {
-		/** @type{Array<*>}	*/ var ret = [];
-
-		for (var ndx = 0; ndx < this.size; ++ndx)
-			ret[ndx] = this.subTraits.doConvert(fmt, value[ndx]);
-
-		return ret;
-	};
-
-    /**
-     * @param{tcuFloatFormat.FloatFormat} fmt
-     * @param{Array<*>} value
-     * @return{Array<*>}
-     */
-    glsBuiltinPrecisionTests.VectorTraits.prototype.doRound = function(fmt, value) {
-    	/** @type{Array<*>}	*/ var ret;
-
-		for (var ndx = 0; ndx < this.size; ++ndx)
-			ret[ndx] = this.subTraits.doRound(fmt, value[ndx]);
-
-		return ret;
-	};
-
-
-
-
-    /**
-     * This is needed for container-generic operations.
-     * We want a scalar type typename to be its own "one-element vector".
-     * @constructor
-     * @param{*} typename typename
-     */
-    glsBuiltinPrecisionTests.ContainerOf = function(typename) {
-        this.Container = typename;
-    };
-
-//     class ExprBase;
-// class ExpandContext;
-// class Statement;
-// class StatementP;
-// class FuncBase;
-
     /**
      * @constructor
      */
@@ -934,14 +758,6 @@ glsBuiltinPrecisionTests.Typename;
         var variable = ctx.genSym(typename, name);
         ctx.addStatement(glsBuiltinPrecisionTests.variableDeclaration(variable, expr));
         return variable;
-    };
-
-    /**
-     * @constructor
-     * @param{*} typename
-     */
-    glsBuiltinPrecisionTests.ExprP = function(typename, size) {
-        this.typename = typename;
     };
 
     /**
@@ -1266,55 +1082,6 @@ glsBuiltinPrecisionTests.Typename;
 
 
 
-    /***********************************************************************/
-    /**
-
-    ---------- Func classes -----------
-    FuncBase
-
-       Func
-           PrimitiveFunc
-               FloatFunc1
-                   CFloatFunc1
-                       TrigFunc
-                           Sin, Cos
-                       ArcTrigFunc
-                           ASin, ACos, ATan
-                       ExpFunc
-                           Exp, Exp2
-                       LogFunc
-                           Log, Log2
-                       PreciseFunc1
-                           Abs, Sign, Floor, Trunc, RoundEven, Ceil,
-                   InverseSqrt
-                   Round
-               FloatFunc2
-                   InfixOperator
-                       Add, Mul, Div, Sub
-                   CFloatFunc2
-                       ATan2
-                       PreciseFunc2
-                           Min, Max, Step
-               FloatFunc3
-                   Clamp
-               Modf
-           DerivedFunc
-               DEFINE_DERIVED_FLOAT1 . Sqrt, Radians, Degrees, Tan, Sinh, Cosh,
-                   Tanh, ASinh, ACosh, ATanh, Fract
-               DEFINE_DERIVED_FLOAT2 . Pow, Mod,
-               DEFINE_DERIVED_FLOAT3 . Mix
-               (different extends)SmoothStep, Length, Distance, Dot, Cross, Normalize, FaceForward
-                   Reflect, Refract,
-
-               CompWiseFunc
-                   CompMatFuncBase
-                       CompMatFunc
-                           MatrixCompMult
-               OuterProduct
-               Transpose
-   Determinant
-   Inverse
-   */
     /**
      * @constructor
      */
@@ -1439,9 +1206,6 @@ glsBuiltinPrecisionTests.Typename;
     glsBuiltinPrecisionTests.Func.prototype.getParamNames = function() {
 		return this.doGetParamNames();
 	};
-
-    // protected:
-	// virtual IRet		doApply			(const EvalContext&, const IArgs&) const = 0;
 
     /**
      * @param{Array<glsBuiltinPrecisionTests.ExprBase>} args
@@ -2688,10 +2452,7 @@ glsBuiltinPrecisionTests.Typename;
         return ret;
     };
 
-    /************************************/
-
     /**
-     * template<typename In>
      * @constructor
      * @param{*} In
      */
@@ -2707,7 +2468,6 @@ glsBuiltinPrecisionTests.Typename;
     };
 
     /**
-     * template<typename Out>
      * @constructor
      * @param{number} size
      * @param{*} Out
@@ -2720,7 +2480,6 @@ glsBuiltinPrecisionTests.Typename;
 
 
     /**
-     * template<typename In, typename Out>
      * @constructor
      * @param{*} In
      * @param{*} Out
@@ -2736,7 +2495,6 @@ glsBuiltinPrecisionTests.Typename;
 
 
     /**
-     * template<typename F>
      * @constructor
      * @param{function(new:glsBuiltinPrecisionTests.Func)} F
      * @return{glsBuiltinPrecisionTests.GenFuncs}
@@ -2751,7 +2509,6 @@ glsBuiltinPrecisionTests.Typename;
 
 
     /**
-     * template <typename typename>
      * @constructor
      * @param{glsBuiltinPrecisionTests.Typename} typename
      */
@@ -2796,7 +2553,6 @@ glsBuiltinPrecisionTests.Typename;
     };
 
     /**
-     * template <typename typename>
      * @param{tcuFloatFormat.FloatFormat} fmt
      * @param{gluShaderUtil.precision} precision
      * @param{deRandom.Random} random
@@ -2814,7 +2570,6 @@ glsBuiltinPrecisionTests.Typename;
     };
 
     /**
-     * template <>  :  public Sampling<Void>
      * @constructor
      * @extends{glsBuiltinPrecisionTests.Sampling}
      * @param{glsBuiltinPrecisionTests.Typename} typename
@@ -2827,7 +2582,6 @@ glsBuiltinPrecisionTests.Typename;
      glsBuiltinPrecisionTests.DefaultSamplingVoid.prototype.constructor = glsBuiltinPrecisionTests.DefaultSamplingVoid;
 
     /**
-     * template <>  :  public Sampling<Void>
      * @param{tcuFloatFormat.FloatFormat} fmt
      * @param{Array<number>} dst
      */
@@ -2836,7 +2590,6 @@ glsBuiltinPrecisionTests.Typename;
     };
 
     /**
-     * template <>  :  public Sampling<bool>
      * @constructor
      * @extends{glsBuiltinPrecisionTests.Sampling}
      * @param{glsBuiltinPrecisionTests.Typename} typename
@@ -2849,7 +2602,6 @@ glsBuiltinPrecisionTests.Typename;
     glsBuiltinPrecisionTests.DefaultSamplingBool.prototype.constructor = glsBuiltinPrecisionTests.DefaultSamplingBool;
 
     /**
-     * template <>  :  public Sampling<bool>
      * @param{tcuFloatFormat.FloatFormat} fmt
      * @param{Array<Boolean>} dst
      */
@@ -2859,7 +2611,6 @@ glsBuiltinPrecisionTests.Typename;
 	};
 
     /**
-     * template <>  :  public Sampling<int>
      * @constructor
      * @extends{glsBuiltinPrecisionTests.Sampling}
      * @param{glsBuiltinPrecisionTests.Typename} typename
@@ -2889,7 +2640,6 @@ glsBuiltinPrecisionTests.Typename;
     };
 
     /**
-     * template <>  :  public Sampling<int>
      * @param{gluShaderUtil.precision} prec
      * @return{number}
      */
@@ -2904,7 +2654,6 @@ glsBuiltinPrecisionTests.Typename;
 	};
 
     /**
-     * template <>  :  public Sampling<float>
      * @constructor
      * @extends{glsBuiltinPrecisionTests.Sampling}
      * @param{glsBuiltinPrecisionTests.Typename} typename
@@ -3015,7 +2764,6 @@ glsBuiltinPrecisionTests.Typename;
     };
 
     /**
-     * template <typename typename, int Size>
      * @constructor
      * @extends{glsBuiltinPrecisionTests.Sampling}
      * @param{glsBuiltinPrecisionTests.Typename} typename
@@ -3056,7 +2804,6 @@ glsBuiltinPrecisionTests.Typename;
 	};
 
     /**
-     * template <typename typename, int Rows, int Columns>
      * @constructor
      * @extends{glsBuiltinPrecisionTests.Sampling}
      * @param{glsBuiltinPrecisionTests.Typename} typename
@@ -3109,7 +2856,6 @@ glsBuiltinPrecisionTests.Typename;
 
 
     /**
-     * template<typename In>
      * @constructor
      * @param {number=} size
      * @param{glsBuiltinPrecisionTests.InTypes} In
@@ -3123,7 +2869,6 @@ glsBuiltinPrecisionTests.Typename;
 
 
     /**
-     * template<typename In>
      * @param{glsBuiltinPrecisionTests.InTypes} In
      * @param {number=} size
      * @constructor
@@ -3158,10 +2903,6 @@ glsBuiltinPrecisionTests.Typename;
         return this.m_ctx.floatFormat;
     };
 
-	// TestLog&			log				(void) const 			{ return m_testCtx.getLog(); }
-	// virtual void		runTest			(void) = 0;
-
-
     /**
      * Return an output value extracted from flat array
      * @param {goog.NumberArray} output
@@ -3189,7 +2930,6 @@ glsBuiltinPrecisionTests.Typename;
         return output[index];
     }
     /**
-     * template <typename In, typename Out>
      * @param{glsBuiltinPrecisionTests.Variables} variables Variables<In, Out>
      * @param{glsBuiltinPrecisionTests.Inputs} inputs Inputs<In>
      * @param{glsBuiltinPrecisionTests.Statement} stmt
@@ -3243,22 +2983,18 @@ glsBuiltinPrecisionTests.Typename;
     		default: break;
     	}
 
-        // TODO: print this to Log
-    	// Print out the statement and its definitions
-    	// log() << TestLog::Message << "Statement: " << stmt << TestLog::EndMessage;
-    	// {
-    	// 	ostringstream	oss;
-    	// 	FuncSet			funcs;
-        //
-    	// 	stmt.getUsedFuncs(funcs);
-    	// 	for (FuncSet::const_iterator it = funcs.begin(); it != funcs.end(); ++it)
-    	// 	{
-    	// 		(*it).printDefinition(oss);
-    	// 	}
-    	// 	if (!funcs.empty())
-    	// 		log() << TestLog::Message << "Reference definitions:\n" << oss.str()
-    	// 			  << TestLog::EndMessage;
-    	// }
+        // TODO: Fix logging
+    	//Print out the statement and its definitions
+        // bufferedLogToConsole("Statement: " + stmt);
+        // var funcInfo = ''
+        // var funcs = {};
+        // stmt.getUsedFuncs(funcs);
+        // for (var key in funcs) {
+        //     var func = funcs[key];
+        //     funcInfo += func.printDefinition();
+        // };
+        // if (funcInfo.length > 0)
+        //     bufferedLogToConsole('Reference definitions:' + funcInfo);
 
     	// Initialize ShaderSpec from precision, variables and statement.
 
@@ -3355,7 +3091,6 @@ glsBuiltinPrecisionTests.Typename;
     			case 1:
                     reference0 = glsBuiltinPrecisionTests.convert(this.Out.Out0, highpFmt, env.lookup(variables.out0));
                     var value = glsBuiltinPrecisionTests.getOutput(outputs[0], valueNdx, reference0);
-                    // console.log('Shader output 0 (' + value + '), range: ' + reference0);
                     if (!glsBuiltinPrecisionTests.contains(this.Out.Out0, reference0, value)) {
                         msg = 'Shader output 0 (' + value + ') is outside acceptable range: ' + reference0;
                         result = false;
@@ -3421,7 +3156,6 @@ glsBuiltinPrecisionTests.Typename;
     };
 
     /**
-     * template <typename In, typename Out>
      * @param{glsBuiltinPrecisionTests.Variable} variable Variable<typename>
      * @return{glsShaderExecUtil.Symbol}
      */
@@ -3430,74 +3164,7 @@ glsBuiltinPrecisionTests.Typename;
 		return new glsShaderExecUtil.Symbol(v.getName(), gluVarType.getVarTypeOf(v.typename, this.m_size, this.m_ctx.precision));
 	};
 
- //    /**
- //     * template <typename typename>
- //     * @param{*} val1
- //     * @param{*} val2
- //     * @return{boolean}
- //     */
- //    glsBuiltinPrecisionTests.inputLess = function (val1, val2) {
- //        if (val1 === undefined || val2 === undefined) {
- //            return false;
- //        }
-
- //        if (typeof val1 == 'number' && glsBuiltinPrecisionTests.isFloat(val1)) {
- //            return glsBuiltinPrecisionTests.inputLessFloat(val1, val2);
- //        } else if (Array.isArray(val1)) {
- //            if (Array.isArray(val1[0])) {
- //                return glsBuiltinPrecisionTests.InputLessMatrix(val1, val2);
- //            } else {
- //                return glsBuiltinPrecisionTests.inputLessVector(val1, val2);
- //            }
- //        }
-	//     return false;
- //    };
-
- //    /**
- //     * @param{number} val1
- //     * @param{number} val2
- //     * @return{boolean}
- //     */
- //    glsBuiltinPrecisionTests.inputLessFloat = function(val1, val2) {
- //    	if (isNaN(val1))
- //    	   return false;
- //    	if (isNaN(val2))
- //    		return true;
- //    	return val1 < val2;
- //    };
-
- //    /**
- //     * @param{Array<number>} val1
- //     * @param{Array<number>} val2
- //     * @return{boolean}
- //     */
- //    glsBuiltinPrecisionTests.inputLessVector = function(val1, val2) {
-	// 	for (var ndx = 0; ndx < val1.length; ++ndx) {
-	// 		if (glsBuiltinPrecisionTests.inputLessFloat(vec1[ndx], vec2[ndx]))
-	// 			return true;
-	// 		if (glsBuiltinPrecisionTests.inputLessFloat(vec2[ndx], vec1[ndx]))
-	// 			return false;
-	// 	}
-	// 	return false;
- //    };
-
- //    /**
- //     * @param{Array<Array<number>>} mat1
- //     * @param{Array<Array<number>>} mat2
- //     * @return{boolean}
- //     */
- //    glsBuiltinPrecisionTests.InputLessMatrix = function(mat1, mat2) {
-	// 	for (var col = 0; col < mat1.length; ++col)	{
-	// 		if (glsBuiltinPrecisionTests.inputLessVector(mat1[col], mat2[col]))
-	// 			return true;
-	// 		if (glsBuiltinPrecisionTests.inputLessVector(mat2[col], mat1[col]))
-	// 			return false;
-	// 	}
-	// 	return false;
-	// };
-
     /**
-     * template <typename In>
      * @constructor
      * @extends{glsBuiltinPrecisionTests.Tuple4}
      * @param{*} in0
@@ -3512,33 +3179,8 @@ glsBuiltinPrecisionTests.Typename;
     glsBuiltinPrecisionTests.InTuple.prototype = Object.create(glsBuiltinPrecisionTests.Tuple4.prototype);
     glsBuiltinPrecisionTests.InTuple.prototype.constructor = glsBuiltinPrecisionTests.InTuple;
 
-  //   /**
-  //    * template <typename In>
-  //    * InputLess<InTuple<In> >
-  //    * @constructor
-  //    * @extends{glsBuiltinPrecisionTests.Tuple4}
-  //    * @param{*} In
-  //    */
-  //   glsBuiltinPrecisionTests.InputLess = function(in1, in2) {
-  //       if (glsBuiltinPrecisionTests.inputLess(in1.a, in2.a))
-		// 	return true;
-		// if (glsBuiltinPrecisionTests.inputLess(in2.a, in1.a))
-		// 	return false;
-		// if (glsBuiltinPrecisionTests.inputLess(in1.b, in2.b))
-		// 	return true;
-		// if (glsBuiltinPrecisionTests.inputLess(in2.b, in1.b))
-		// 	return false;
-		// if (glsBuiltinPrecisionTests.inputLess(in1.c, in2.c))
-		// 	return true;
-		// if (glsBuiltinPrecisionTests.inputLess(in2.c, in1.c))
-		// 	return false;
-		// if (glsBuiltinPrecisionTests.inputLess(in1.d, in2.d))
-		// 	return true;
-		// return false;
-  //   };
 
     /**
-     * template<typename In>: return Inputs<In>
      * @param{*} In
      * @param{glsBuiltinPrecisionTests.Samplings} samplings Samplings<In>
      * @param{tcuFloatFormat.FloatFormat} floatFormat
@@ -3625,7 +3267,6 @@ glsBuiltinPrecisionTests.Typename;
     };
 
     /**
-     * template <typename Sig>
      * @constructor
      * @extends{glsBuiltinPrecisionTests.FuncCaseBase}
      * @param{glsBuiltinPrecisionTests.Context} context
@@ -3658,7 +3299,6 @@ glsBuiltinPrecisionTests.Typename;
     };
 
     /**
-     * template <typename Sig>
      * @param{glsBuiltinPrecisionTests.Signature} Sig_
      */
     glsBuiltinPrecisionTests.InOutFuncCase.prototype.runTest = function(Sig_) {
@@ -3691,7 +3331,6 @@ glsBuiltinPrecisionTests.Typename;
 
 
     /**
-     * template <typename Sig>
      * @constructor
      * @extends{glsBuiltinPrecisionTests.FuncCaseBase}
      * @param{glsBuiltinPrecisionTests.Context} context
@@ -3724,7 +3363,6 @@ glsBuiltinPrecisionTests.Typename;
     };
 
     /**
-     * template <typename Sig>
      * @param{glsBuiltinPrecisionTests.Signature} Sig_
      */
     glsBuiltinPrecisionTests.FuncCase.prototype.runTest = function(Sig_) {
@@ -3756,8 +3394,6 @@ glsBuiltinPrecisionTests.Typename;
     };
 
     /**
-     * template <typename Sig>
-     * return ExprP<typename Sig::Ret>
      * @param{glsBuiltinPrecisionTests.Func} func
      * @param{glsBuiltinPrecisionTests.Variable} arg0
      * @param{glsBuiltinPrecisionTests.Variable} arg1
@@ -3825,7 +3461,6 @@ glsBuiltinPrecisionTests.Typename;
 	};
 
     /**
-     * template <typename Sig>
      * @param{glsBuiltinPrecisionTests.Context} context
      * @param{string} name
      * @param{glsBuiltinPrecisionTests.Func} func
@@ -4128,7 +3763,6 @@ glsBuiltinPrecisionTests.Typename;
     };
 
     /**
-     * template <typename Sig>
      * @constructor
      * @extends{glsBuiltinPrecisionTests.CaseFactory}
      * @param{glsBuiltinPrecisionTests.GenFuncs} funcs
@@ -4144,7 +3778,6 @@ glsBuiltinPrecisionTests.Typename;
     glsBuiltinPrecisionTests.GenFuncCaseFactory.prototype.constructor = glsBuiltinPrecisionTests.GenFuncCaseFactory;
 
     /**
-     * template <typename Sig>
      * @param{glsBuiltinPrecisionTests.Context} ctx
      * @return{tcuTestCase.DeqpTest}
      */
@@ -4603,25 +4236,6 @@ glsBuiltinPrecisionTests.Typename;
         var v12 = app(new glsBuiltinPrecisionTests.Cond(this.typename), v11, zeroVector, v10);
         return v12;
     };
-
-    // /**
-    //  * @constructor
-    //  * @extends {glsBuiltinPrecisionTests.DerivedFunc}
-    //  */
-    // glsBuiltinPrecisionTests.MyFunction = function() {
-    //     var sig = new glsBuiltinPrecisionTests.Signature();        
-    //     glsBuiltinPrecisionTests.DerivedFunc.call(this, sig);
-    // };
-
-    // setParentClass(glsBuiltinPrecisionTests.MyFunction, glsBuiltinPrecisionTests.DerivedFunc);
-
-    // glsBuiltinPrecisionTests.MyFunction.prototype.getName = function() {
-    //     return 'MyFunction';
-    // };
-
-    // glsBuiltinPrecisionTests.MyFunction.prototype.doExpand = function(ctx, args) {
-    // };
-
 
     /**
      * @constructor
