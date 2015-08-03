@@ -22,9 +22,9 @@
  *//*--------------------------------------------------------------------*/
 'use strict';
 goog.provide('functional.gles3.es3fBuiltinPrecisionTests');
-goog.require('modules.shared.glsBuiltinPrecisionTests');
 goog.require('framework.common.tcuTestCase');
 goog.require('framework.opengl.gluShaderProgram');
+goog.require('modules.shared.glsBuiltinPrecisionTests');
 
 goog.scope(function() {
 
@@ -34,14 +34,14 @@ goog.scope(function() {
     var gluShaderProgram = framework.opengl.gluShaderProgram;
 
     /**
-     * @param{*} context
-     * @return{tcuTestCase.DeqpTest}
+     * @param {*} context
+     * @return {tcuTestCase.DeqpTest}
      */
     es3fBuiltinPrecisionTests.createBuiltinPrecisionTests = function(context) {
         /** @type {tcuTestCase.DeqpTest} */
         var group = tcuTestCase.newTest('precision', 'Builtin precision tests');
 
-        /** @type{Array<gluShaderProgram.shaderType>} */ var shaderTypes = [];
+        /** @type {Array<gluShaderProgram.shaderType>} */ var shaderTypes = [];
         var es3Cases = glsBuiltinPrecisionTests.createES3BuiltinCases();
 
     	shaderTypes.push(gluShaderProgram.shaderType.VERTEX);
