@@ -505,7 +505,7 @@ goog.scope(function() {
         this.m_program = new gluShaderProgram.ShaderProgram(gl, gluShaderProgram.makeVtxFragSources(this.m_vertShaderSource, this.m_fragShaderSource));
 
         try {
-            //bufferedLogToConsole(this.m_program.getProgram().getProgramInfo().infoLog); // Always log shader program.
+            bufferedLogToConsole(this.m_program.program.info.infoLog); // Always log shader program.
 
             if (!this.m_program.isOk())
                 throw new Error("Shader compile error.");
