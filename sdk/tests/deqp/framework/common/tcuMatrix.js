@@ -72,7 +72,7 @@ goog.scope(function() {
     tcuMatrix.Matrix.prototype.setRow = function(row, values) {
         if (!deMath.deInBounds32(row, 0, this.rows))
             throw new Error('Rows out of range');
-        if  (values.length > this.cols)
+        if (values.length > this.cols)
             throw new Error('Too many columns');
         this.matrix[row] = values;
     };
