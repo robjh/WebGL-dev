@@ -803,16 +803,16 @@ gluShaderUtil.getDataTypeFromGLType = function(glType) {
  */
 gluShaderUtil.getShaderTypeName = function(shaderType) {
 	/** @type {Array<string>} */ var s_names = [
-		"vertex",
-		"fragment",
-		"geometry",
-		"tess_control",
-		"tess_eval",
-		"compute"
+		'vertex',
+		'fragment',
+		'geometry',
+		'tess_control',
+		'tess_eval',
+		'compute'
 	];
 
 	assertMsgOptions(deMath.deInBounds32(shaderType, 0, s_names.length), 'shaderType out of bouds.', false, true);
 	return s_names[shaderType];
-}
+};
 
 });

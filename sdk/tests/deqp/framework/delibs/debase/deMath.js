@@ -200,7 +200,7 @@ deMath.scale = function(a, b) {
  * @param {number} b
  * @return {Array<number>} Result array
  */
-deMath.addScalar= function(a, b) {
+deMath.addScalar = function(a, b) {
     if (!Array.isArray(a))
         throw new Error('First argument must be an array.');
     if (typeof b !== 'number')
@@ -839,11 +839,11 @@ deMath.frexp = function(value) {
  * @return {number}
  */
 deMath.ldexp = function(mantissa, exponent) {
-    return exponent > 1023 // avoid multiplying by infinity
-            ? mantissa * Math.pow(2, 1023) * Math.pow(2, exponent - 1023)
-            : exponent < -1074 // avoid multiplying by zero
-            ? mantissa * Math.pow(2, -1074) * Math.pow(2, exponent + 1074)
-            : mantissa * Math.pow(2, exponent);
+    return exponent > 1023 ? // avoid multiplying by infinity
+            mantissa * Math.pow(2, 1023) * Math.pow(2, exponent - 1023) :
+            exponent < -1074 ? // avoid multiplying by zero
+            mantissa * Math.pow(2, -1074) * Math.pow(2, exponent + 1074) :
+            mantissa * Math.pow(2, exponent);
 };
 
 /**
@@ -859,7 +859,7 @@ deMath.deCbrt = function(a) {
  * @return {number}
  */
 deMath.deSign = function(x) {
-    return isNaN(x) ? x : ((x > 0.0) - (x < 0.0)); 
+    return isNaN(x) ? x : ((x > 0.0) - (x < 0.0));
 };
 
 deMath.deFractExp = function(x) {

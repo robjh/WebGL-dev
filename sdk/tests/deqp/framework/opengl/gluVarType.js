@@ -579,7 +579,7 @@ goog.scope(function() {
     /**
      * @enum
      */
-    gluVarType.Storage  = {
+    gluVarType.Storage = {
             STORAGE_IN: 0,
             STORAGE_OUT: 1,
             STORAGE_CONST: 2,
@@ -607,7 +607,7 @@ goog.scope(function() {
     /**
      * @enum
      */
-    gluVarType.Interpolation  = {
+    gluVarType.Interpolation = {
         INTERPOLATION_SMOOTH: 0,
         INTERPOLATION_FLAT: 1,
         INTERPOLATION_CENTROID: 2
@@ -697,11 +697,11 @@ goog.scope(function() {
     };
 
     gluVarType.MemoryAccessQualifier = {
-        MEMORYACCESSQUALIFIER_COHERENT_BIT  : 0x01,
-        MEMORYACCESSQUALIFIER_VOLATILE_BIT  : 0x02,
-        MEMORYACCESSQUALIFIER_RESTRICT_BIT  : 0x04,
-        MEMORYACCESSQUALIFIER_READONLY_BIT  : 0x08,
-        MEMORYACCESSQUALIFIER_WRITEONLY_BIT : 0x10
+        MEMORYACCESSQUALIFIER_COHERENT_BIT: 0x01,
+        MEMORYACCESSQUALIFIER_VOLATILE_BIT: 0x02,
+        MEMORYACCESSQUALIFIER_RESTRICT_BIT: 0x04,
+        MEMORYACCESSQUALIFIER_READONLY_BIT: 0x08,
+        MEMORYACCESSQUALIFIER_WRITEONLY_BIT: 0x10
     };
     gluVarType.MemoryAccessQualifier.MEMORYACCESSQUALIFIER_MASK = (gluVarType.MemoryAccessQualifier.MEMORYACCESSQUALIFIER_WRITEONLY_BIT << 1) - 1;
 
@@ -712,11 +712,11 @@ goog.scope(function() {
     gluVarType.getMemoryAccessQualifierName = function(qualifier) {
         switch (qualifier)
         {
-            case gluVarType.MemoryAccessQualifier.MEMORYACCESSQUALIFIER_COHERENT_BIT:    return "coherent";
-            case gluVarType.MemoryAccessQualifier.MEMORYACCESSQUALIFIER_VOLATILE_BIT:    return "volatile";
-            case gluVarType.MemoryAccessQualifier.MEMORYACCESSQUALIFIER_RESTRICT_BIT:    return "restrict";
-            case gluVarType.MemoryAccessQualifier.MEMORYACCESSQUALIFIER_READONLY_BIT:    return "readonly";
-            case gluVarType.MemoryAccessQualifier.MEMORYACCESSQUALIFIER_WRITEONLY_BIT:   return "writeonly";
+            case gluVarType.MemoryAccessQualifier.MEMORYACCESSQUALIFIER_COHERENT_BIT: return 'coherent';
+            case gluVarType.MemoryAccessQualifier.MEMORYACCESSQUALIFIER_VOLATILE_BIT: return 'volatile';
+            case gluVarType.MemoryAccessQualifier.MEMORYACCESSQUALIFIER_RESTRICT_BIT: return 'restrict';
+            case gluVarType.MemoryAccessQualifier.MEMORYACCESSQUALIFIER_READONLY_BIT: return 'readonly';
+            case gluVarType.MemoryAccessQualifier.MEMORYACCESSQUALIFIER_WRITEONLY_BIT: return 'writeonly';
             default:
                 throw new Error('Unknown qualifier: ' + qualifier);
         }
@@ -789,14 +789,14 @@ goog.scope(function() {
 
         for (var bitNdx = 0; (1 << bitNdx) & gluVarType.MemoryAccessQualifier.MEMORYACCESSQUALIFIER_MASK; ++bitNdx)
             if (this.memoryAccessQualifierBits & (1 << bitNdx))
-                str +=  gluVarType.getMemoryAccessQualifierName((1 << bitNdx)) + ' ';
+                str += gluVarType.getMemoryAccessQualifierName((1 << bitNdx)) + ' ';
 
 
-        if (typeof  this.interpolation !== 'undefined')
-            str += gluVarType.getInterpolationName(this.interpolation) + " ";
+        if (typeof this.interpolation !== 'undefined')
+            str += gluVarType.getInterpolationName(this.interpolation) + ' ';
 
-        if (typeof  this.storage !== 'undefined')
-            str += gluVarType.getStorageName(this.storage) + " ";
+        if (typeof this.storage !== 'undefined')
+            str += gluVarType.getStorageName(this.storage) + ' ';
 
         str += gluVarType.declareVariable(this.varType, this.name);
 
