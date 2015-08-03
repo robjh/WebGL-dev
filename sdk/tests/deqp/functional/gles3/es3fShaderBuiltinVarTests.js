@@ -34,6 +34,15 @@ goog.require('framework.opengl.gluShaderUtil');
 goog.require('framework.opengl.gluVarType');
 goog.require('modules.shared.glsShaderExecUtil');
 goog.require('modules.shared.glsShaderRenderCase');
+goog.require('framework.referencerenderer.rrFragmentOperations');
+goog.require('framework.referencerenderer.rrGenericVector');
+goog.require('framework.referencerenderer.rrMultisamplePixelBufferAccess');
+goog.require('framework.referencerenderer.rrRenderer');
+goog.require('framework.referencerenderer.rrRenderState');
+goog.require('framework.referencerenderer.rrShadingContext');
+goog.require('framework.referencerenderer.rrVertexAttrib');
+goog.require('framework.referencerenderer.rrVertexPacket');
+goog.require('framework.opengl.simplereference.sglrShaderProgram');
 
 
 goog.scope(function() {
@@ -52,6 +61,17 @@ goog.scope(function() {
 	var tcuTestCase = framework.common.tcuTestCase;
 	var tcuImageCompare = framework.common.tcuImageCompare;
 	var tcuRGBA = framework.common.tcuRGBA;
+	var rrFragmentOperations = framework.referencerenderer.rrFragmentOperations;
+	var rrGenericVector = framework.referencerenderer.rrGenericVector;
+	var rrMultisamplePixelBufferAccess = framework.referencerenderer.rrMultisamplePixelBufferAccess;
+	var rrRenderer = framework.referencerenderer.rrRenderer;
+	var rrRenderState = framework.referencerenderer.rrRenderState;
+	var rrShadingContext = framework.referencerenderer.rrShadingContext;
+	var rrVertexAttrib = framework.referencerenderer.rrVertexAttrib;
+	var rrVertexPacket = framework.referencerenderer.rrVertexPacket;
+	var sglrShaderProgram = framework.opengl.simplereference.sglrShaderProgram;
+
+
 	/** @typedef {function():number} */ es3fShaderBuiltinVarTests.GetConstantValueFunc;
 
 	/**
@@ -492,11 +512,11 @@ goog.scope(function() {
 
 		// Compute coordinates.
 		for (var i = 0; i < numPoints; i++)
-			coords[i] = [
+			coords.push([
 				rnd.getFloat(-0.9, 0.9),
 				rnd.getFloat(-0.9, 0.9),
 				rnd.getFloat(pointSizeRange[0], pointSizeRange[1])
-			];
+			]);
 
 		/** @type {string} */ var vtxSource = '#version 300 es\n' +
 			'in highp vec3 a_positionSize;\n' +
@@ -823,6 +843,104 @@ goog.scope(function() {
 
 		this.m_positions = [];
 		this.m_colors = [];
+	};
+
+	/* @const */ es3fShaderBuiltinVarTests.VertexIDReferenceShader.VARYINGLOC_COLOR = 0;
+
+	/**
+	 * @constructor
+	 * @extends {sglrShaderProgram.ShaderProgram}
+	 */
+	es3fShaderBuiltinVarTests.VertexIDReferenceShader = function() {
+		/** @type {sglrShaderProgram.ShaderProgramDeclaration} */ var declaration = new sglrShaderProgram.ShaderProgramDeclaration();
+		declaration.pushVertexAttribute(new sglrShaderProgram.VertexAttribute(rrGenericVector.GenericVecType.FLOAT));
+		declaration.pushVertexAttribute(new sglrShaderProgram.VertexAttribute(rrGenericVector.GenericVecType.FLOAT));
+		declaration.pushVertexToFragmentVarying(new sglrShaderProgram.VertexToFragmentVarying(rrGenericVector.GenericVecType.FLOAT, new sglrShaderProgram.VaryingFlags()));
+		declaration.pushFragmentOutput(new sglrShaderProgram.FragmentOutput(rrGenericVector.GenericVecType.FLOAT));
+
+		sglrShaderProgram.ShaderProgram.call(this, declaration);
+	};
+
+	es3fShaderBuiltinVarTests.VertexIDReferenceShader.prototype = Object.create(sglrShaderProgram.ShaderProgram.prototype);
+	es3fShaderBuiltinVarTests.VertexIDReferenceShader.prototype.constructor = es3fShaderBuiltinVarTests.VertexIDReferenceShader;
+
+	/**
+	 * @param {Array<rrVertexAttrib.VertexAttrib>} inputs
+	 * @param {Array<rrVertexPacket.VertexPacket>} packets
+	 * @param {number} numPackets
+	 */
+	es3fShaderBuiltinVarTests.VertexIDReferenceShader.prototype.shadeVertices = function(inputs, packets) {
+		for (var packetNdx = 0; packetNdx < packets.length; ++packetNdx) {
+			/** @type {number} */ var positionAttrLoc = 0;
+			/** @type {number} */ var colorAttrLoc = 1;
+
+			/** @type {rrVertexPacket.VertexPacket} */ var packet = packets[packetNdx];
+
+			// Transform to position
+			packet.position = rrVertexAttrib.readVertexAttrib(inputs[positionAttrLoc], packet.instanceNdx, packet.vertexNdx, rrGenericVector.GenericVecType.FLOAT);
+
+			// Pass color to FS
+			packet.outputs[es3fShaderBuiltinVarTests.VertexIDReferenceShader.VARYINGLOC_COLOR] = rrVertexAttrib.readVertexAttrib(inputs[colorAttrLoc], packet.instanceNdx, packet.vertexNdx, rrGenericVector.GenericVecType.FLOAT);
+		}
+	};
+
+	/**
+	 * @param {Array<rrFragmentOperations.Fragment>} packets
+	 * @param {rrShadingContext.FragmentShadingContext}
+	 */
+	es3fShaderBuiltinVarTests.VertexIDReferenceShader.prototype.shadeFragments = function(packets, context) {
+		for (var packetNdx = 0; packetNdx < packets.length; ++packetNdx) {
+			/** @type {rrFragmentOperations.Fragment} */ var packet = packets[packetNdx];
+			packet.output = rrShadingContext.readVarying(packet, context, es3fShaderBuiltinVarTests.VertexIDReferenceShader.VARYINGLOC_COLOR);
+		}
+	};
+
+	/**
+	 * @param {tcuTexture.PixelBufferAccess} dst
+	 * @param {number} numVertices
+	 * @param {Array<number>} indices
+	 * @param {Array<Array<number>>} positions
+	 * @param {Array<Array<number>>} colors
+	 */
+	es3fShaderBuiltinVarTests.VertexIDCase.renderReference = function(dst, numVertices, indices, positions, colors) {
+		/** @type {rrRenderState.RenderState} */
+		var referenceState = new rrRenderState.RenderState(
+			new rrRenderer.RenderTarget(rrMultisamplePixelBufferAccess.MultisamplePixelBufferAccess.fromSinglesampleAccess(dst))
+		);
+
+		/** @type {rrRenderer.RenderTarget} */
+		var referenceTarget = new rrRenderer.RenderTarget(
+			rrMultisamplePixelBufferAccess.MultisamplePixelBufferAccess.fromSinglesampleAccess(dst)
+		);
+
+		/** @type {es3fShaderBuiltinVarTests.VertexIDReferenceShader} */
+		var referenceShaderProgram = new es3fShaderBuiltinVarTests.VertexIDReferenceShader();
+
+		/** @type {Array<rrVertexAttrib.VertexAttrib>} */ var attribs = [];
+		attribs[0] = new rrVertexAttrib.VertexAttrib();
+		attribs[0].type = rrVertexAttrib.VertexAttribType.FLOAT;
+		attribs[0].size = 4;
+		attribs[0].stride = 0;
+		attribs[0].instanceDivisor = 0;
+		attribs[0].pointer = positions;
+
+		attribs[1] = new rrVertexAttrib.VertexAttrib();
+		attribs[1].type = rrVertexAttrib.VertexAttribType.FLOAT;
+		attribs[1].size = 4;
+		attribs[1].stride = 0;
+		attribs[1].instanceDivisor = 0;
+		attribs[1].pointer = colors;
+
+		// referenceRenderer.draw(
+		// 	rr::DrawCommand(
+		// 		referenceState,
+		// 		referenceTarget,
+		// 		rr::Program(&referenceShader, &referenceShader),
+		// 		2,
+		// 		attribs,
+		// 		rr::PrimitiveList(rr::PRIMITIVETYPE_TRIANGLES, numVertices, rr::DrawIndices(indices))));
+		rrRenderer.drawQuads(referenceState, referenceTarget, referenceShaderProgram,
+			attribs, rrRenderer.PrimitiveType.TRIANGLES, 0, numVertices, /*instanceID = */ 0);
 	};
 
 	/**
