@@ -141,20 +141,20 @@ goog.scope(function() {
 
         switch (format) {
             case gl.RGB16F:
-                out.push('gl.EXT_color_buffer_half_float');
+                out.push('EXT_color_buffer_half_float');
                 break;
 
             case gl.RGBA16F:
             case gl.RG16F:
             case gl.R16F:
-                out.push('gl.EXT_color_buffer_half_float');
+                out.push('EXT_color_buffer_half_float');
 
             case gl.RGBA32F:
             case gl.RGB32F:
             case gl.R11F_G11F_B10F:
             case gl.RG32F:
             case gl.R32F:
-                out.push('gl.WEBGL_color_buffer_float');
+                out.push('WEBGL_color_buffer_float');
 
             default:
                 break;
