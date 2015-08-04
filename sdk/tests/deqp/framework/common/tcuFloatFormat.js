@@ -22,8 +22,9 @@
  *//*--------------------------------------------------------------------*/
  'use strict';
  goog.provide('framework.common.tcuFloatFormat');
- goog.require('framework.delibs.debase.deMath');
+
  goog.require('framework.common.tcuInterval');
+goog.require('framework.delibs.debase.deMath');
 
  goog.scope(function() {
 
@@ -32,10 +33,10 @@
      var tcuInterval = framework.common.tcuInterval;
 
      /**
-      * @param{tcuFloatFormat.YesNoMaybe} choice
-      * @param{tcuInterval.Interval} no
-      * @param{tcuInterval.Interval} yes
-      * @return{tcuInterval.Interval}
+      * @param {tcuFloatFormat.YesNoMaybe} choice
+      * @param {tcuInterval.Interval} no
+      * @param {tcuInterval.Interval} yes
+      * @return {tcuInterval.Interval}
       */
     tcuFloatFormat.chooseInterval = function(choice, no, yes) {
     	switch (choice)
@@ -43,96 +44,96 @@
     		case tcuFloatFormat.YesNoMaybe.NO:	return no;
     		case tcuFloatFormat.YesNoMaybe.YES:	return yes;
     		case tcuFloatFormat.YesNoMaybe.MAYBE:	return no.operatorOrBinary(yes);
-    		default: throw new Error("Impossible case");
+    		default: throw new Error('Impossible case');
     	}
     };
 
     /**
-     * @param{number} maxExp
-     * @param{number} fractionBits
-     * @return{number}
+     * @param {number} maxExp
+     * @param {number} fractionBits
+     * @return {number}
      */
     tcuFloatFormat.computeMaxValue = function(maxExp, fractionBits) {
         return deMath.deLdExp(1, maxExp) + deMath.deLdExp(Math.pow(2, fractionBits) - 1, maxExp - fractionBits);
     };
 
      /**
-      * @enum{number}
+      * @enum {number}
       */
      tcuFloatFormat.YesNoMaybe = {
-        NO : 0,
- 	    MAYBE : 1,
- 	    YES : 2
+        NO: 0,
+ 	    MAYBE: 1,
+ 	    YES: 2
      };
 
      /**
       * @constructor
-      * @param{number} minExp
-      * @param{number} maxExp
-      * @param{number} fractionBits
-      * @param{boolean} exactPrecision
-      * @param{tcuFloatFormat.YesNoMaybe=} hasSubnormal
-      * @param{tcuFloatFormat.YesNoMaybe=} hasInf
-      * @param{tcuFloatFormat.YesNoMaybe=} hasNaN
+      * @param {number} minExp
+      * @param {number} maxExp
+      * @param {number} fractionBits
+      * @param {boolean} exactPrecision
+      * @param {tcuFloatFormat.YesNoMaybe=} hasSubnormal
+      * @param {tcuFloatFormat.YesNoMaybe=} hasInf
+      * @param {tcuFloatFormat.YesNoMaybe=} hasNaN
       */
-     tcuFloatFormat.FloatFormat = function (minExp, maxExp, fractionBits, exactPrecision, hasSubnormal, hasInf, hasNaN) {
+     tcuFloatFormat.FloatFormat = function(minExp, maxExp, fractionBits, exactPrecision, hasSubnormal, hasInf, hasNaN) {
          // /** @type{number} */ var exponentShift (int exp) const;
      	// Interval			clampValue		(double d) const;
 
-     	/** @type{number} */ this.m_minExp = minExp;			// Minimum exponent, inclusive
-     	/** @type{number} */ this.m_maxExp = maxExp;			// Maximum exponent, inclusive
-     	/** @type{number} */ this.m_fractionBits = fractionBits;		// Number of fractional bits in significand
-     	/** @type{tcuFloatFormat.YesNoMaybe} */ this.m_hasSubnormal = hasSubnormal === undefined ? tcuFloatFormat.YesNoMaybe.MAYBE : hasSubnormal;		// Does the format support denormalized numbers?
-     	/** @type{tcuFloatFormat.YesNoMaybe} */ this.m_hasInf = hasInf === undefined ? tcuFloatFormat.YesNoMaybe.MAYBE : hasInf;			// Does the format support infinities?
-     	/** @type{tcuFloatFormat.YesNoMaybe} */ this.m_hasNaN = hasNaN === undefined ? tcuFloatFormat.YesNoMaybe.MAYBE : hasNaN;			// Does the format support NaNs?
-     	/** @type{boolean} */ this.m_exactPrecision = exactPrecision;	// Are larger precisions disallowed?
-     	/** @type{number} */ this.m_maxValue = tcuFloatFormat.computeMaxValue(maxExp, fractionBits);
+     	/** @type {number} */ this.m_minExp = minExp;			// Minimum exponent, inclusive
+     	/** @type {number} */ this.m_maxExp = maxExp;			// Maximum exponent, inclusive
+     	/** @type {number} */ this.m_fractionBits = fractionBits;		// Number of fractional bits in significand
+     	/** @type {tcuFloatFormat.YesNoMaybe} */ this.m_hasSubnormal = hasSubnormal === undefined ? tcuFloatFormat.YesNoMaybe.MAYBE : hasSubnormal;		// Does the format support denormalized numbers?
+     	/** @type {tcuFloatFormat.YesNoMaybe} */ this.m_hasInf = hasInf === undefined ? tcuFloatFormat.YesNoMaybe.MAYBE : hasInf;			// Does the format support infinities?
+     	/** @type {tcuFloatFormat.YesNoMaybe} */ this.m_hasNaN = hasNaN === undefined ? tcuFloatFormat.YesNoMaybe.MAYBE : hasNaN;			// Does the format support NaNs?
+     	/** @type {boolean} */ this.m_exactPrecision = exactPrecision;	// Are larger precisions disallowed?
+     	/** @type {number} */ this.m_maxValue = tcuFloatFormat.computeMaxValue(maxExp, fractionBits);
      };
 
      /**
-      * @return{number}
+      * @return {number}
       */
-     tcuFloatFormat.FloatFormat.prototype.getMinExp = function () {
+     tcuFloatFormat.FloatFormat.prototype.getMinExp = function() {
      	return this.m_minExp;
      };
 
      /**
-      * @return{number}
+      * @return {number}
       */
-     tcuFloatFormat.FloatFormat.prototype.getMaxExp = function () {
+     tcuFloatFormat.FloatFormat.prototype.getMaxExp = function() {
      	return this.m_maxExp;
      };
 
      /**
-      * @return{number}
+      * @return {number}
       */
-     tcuFloatFormat.FloatFormat.prototype.getMaxValue = function () {
+     tcuFloatFormat.FloatFormat.prototype.getMaxValue = function() {
      	return this.m_maxValue;
      };
 
      /**
-      * @return{number}
+      * @return {number}
       */
-     tcuFloatFormat.FloatFormat.prototype.getFractionBits = function () {
+     tcuFloatFormat.FloatFormat.prototype.getFractionBits = function() {
      	return this.m_fractionBits;
      };
 
      /**
-      * @return{tcuFloatFormat.YesNoMaybe}
+      * @return {tcuFloatFormat.YesNoMaybe}
       */
-     tcuFloatFormat.FloatFormat.prototype.hasSubnormal = function () {
+     tcuFloatFormat.FloatFormat.prototype.hasSubnormal = function() {
      	return this.m_hasSubnormal;
      };
 
      /**
-      * @param{number} x
-      * @param{number} count
-      * @return{number}
+      * @param {number} x
+      * @param {number} count
+      * @return {number}
       */
      tcuFloatFormat.FloatFormat.prototype.ulp = function(x, count) {
         var breakdown = deMath.deFractExp(Math.abs(x));
- 	    /** @type{number} */ var exp = breakdown.exponent;
- 	    /** @type{number} */ var frac = breakdown.significand;
+ 	    /** @type {number} */ var exp = breakdown.exponent;
+ 	    /** @type {number} */ var frac = breakdown.significand;
 
  	    if (isNaN(frac))
  		    return NaN;
@@ -148,7 +149,7 @@
      	// ULP cannot be lower than the smallest quantum.
      	exp = Math.max(exp, this.m_minExp);
 
-     	/** @type{number} */ var oneULP	= deMath.deLdExp(1.0, exp - this.m_fractionBits);
+     	/** @type {number} */ var oneULP	= deMath.deLdExp(1.0, exp - this.m_fractionBits);
      	// 	ScopedRoundingMode	ctx		(DE_ROUNDINGMODE_TO_POSITIVE_INF);
 
      	return oneULP * count;
@@ -161,24 +162,24 @@
      * For normal numbers this is the number of significand bits, but
      * for subnormals it is less and for values of exp where 2^exp is too
      * small to represent it is <0
-     * @param{number} exp
-     * @return{number}
+     * @param {number} exp
+     * @return {number}
      */
     tcuFloatFormat.FloatFormat.prototype.exponentShift = function(exp) {
     	return this.m_fractionBits - Math.max(this.m_minExp - exp, 0);
     };
 
     /**
-     * @param{number} d
-     * @param{boolean} upward
-     * @return{number}
+     * @param {number} d
+     * @param {boolean} upward
+     * @return {number}
      */
     tcuFloatFormat.FloatFormat.prototype.round = function(d, upward) {
         var breakdown = deMath.deFractExp(d);
-        /** @type{number} */ var exp = breakdown.exponent;
-        /** @type{number} */ var frac = breakdown.significand;
+        /** @type {number} */ var exp = breakdown.exponent;
+        /** @type {number} */ var frac = breakdown.significand;
 
-    	var		shift		= this.exponentShift(exp);
+    	var	shift	= this.exponentShift(exp);
     	var	shiftFrac	= deMath.deLdExp(frac, shift);
     	var	roundFrac	= upward ? Math.ceil(shiftFrac) : Math.floor(shiftFrac);
 
@@ -189,12 +190,12 @@
      * Return the range of numbers that `d` might be converted to in the
      * floatformat, given its limitations with infinities, subnormals and maximum
      * exponent.
-     * @param{number} d
-     * @return{tcuInterval.Interval}
+     * @param {number} d
+     * @return {tcuInterval.Interval}
      */
      tcuFloatFormat.FloatFormat.prototype.clampValue = function(d) {
-    	/** @type{number} */ var	rSign		= deMath.deSign(d);
-    	/** @type{number} */ var	rExp		= 0;
+    	/** @type {number} */ var	rSign	= deMath.deSign(d);
+    	/** @type {number} */ var	rExp	= 0;
 
     	// DE_ASSERT(!isNaN(d));
 
@@ -209,12 +210,12 @@
     };
 
     /**
-     * @param{number} d
-     * @param{boolean} upward
-     * @param{boolean} roundUnderOverflow
-     * @return{number}
+     * @param {number} d
+     * @param {boolean} upward
+     * @param {boolean} roundUnderOverflow
+     * @return {number}
      */
-    tcuFloatFormat.FloatFormat.prototype.roundOutDir = function(d, upward, roundUnderOverflow){
+    tcuFloatFormat.FloatFormat.prototype.roundOutDir = function(d, upward, roundUnderOverflow) {
         var breakdown = deMath.deFractExp(d);
         var exp = breakdown.exponent;
 
@@ -226,12 +227,12 @@
 
 
     /**
-     * @param{tcuInterval.Interval} x
-     * @param{boolean} roundUnderOverflow
-     * @return{tcuInterval.Interval}
+     * @param {tcuInterval.Interval} x
+     * @param {boolean} roundUnderOverflow
+     * @return {tcuInterval.Interval}
      */
-    tcuFloatFormat.FloatFormat.prototype.roundOut = function(x, roundUnderOverflow){
-    	/** @type{tcuInterval.Interval} */ var ret = x.nan();
+    tcuFloatFormat.FloatFormat.prototype.roundOut = function(x, roundUnderOverflow) {
+    	/** @type {tcuInterval.Interval} */ var ret = x.nan();
 
     	if (!x.empty()) {
             var a = new tcuInterval.Interval(this.roundOutDir(x.lo(), false, roundUnderOverflow));
@@ -244,12 +245,12 @@
     //! Return the range of numbers that might be used with this format to
     //! represent a number within `x`.
     /**
-     * @param{tcuInterval.Interval} x
-     * @return{tcuInterval.Interval}
+     * @param {tcuInterval.Interval} x
+     * @return {tcuInterval.Interval}
      */
     tcuFloatFormat.FloatFormat.prototype.convert = function(x) {
-    	/** @type{tcuInterval.Interval} */ var ret = new tcuInterval.Interval();
-    	/** @type{tcuInterval.Interval} */ var tmp = x;
+    	/** @type {tcuInterval.Interval} */ var ret = new tcuInterval.Interval();
+    	/** @type {tcuInterval.Interval} */ var tmp = x;
 
     	if (x.hasNaN())	{
     		// If NaN might be supported, NaN is a legal return value
@@ -277,10 +278,10 @@
     };
 
     /**
-     * @param{number} x
-     * @return{string}
+     * @param {number} x
+     * @return {string}
      */
-    tcuFloatFormat.FloatFormat.prototype.floatToHex	= function(x){
+    tcuFloatFormat.FloatFormat.prototype.floatToHex	= function(x) {
     	if (isNaN(x))
     		return 'NaN';
     	else if (!isFinite(x))
@@ -310,8 +311,8 @@
     };
 
     /**
-     * @param{tcuInterval.Interval} interval
-     * @return{string}
+     * @param {tcuInterval.Interval} interval
+     * @return {string}
      */
     tcuFloatFormat.FloatFormat.prototype.intervalToHex = function(interval) {
     	if (interval.empty())

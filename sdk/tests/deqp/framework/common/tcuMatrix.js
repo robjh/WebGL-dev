@@ -170,7 +170,7 @@ goog.scope(function() {
             for (var row = 0; row < this.rows; row++) {
                 str += this.matrix[col][row];
                 if (row != this.rows - 1)
-                    str += ', ';            
+                    str += ', ';
             }
             str += ']';
 

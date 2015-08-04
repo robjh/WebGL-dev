@@ -61,9 +61,9 @@
     tcuInterval.DoubleIntervalFunc3;
 
     /**
-     * @param{function(number): number} func
-     * @param{tcuInterval.Interval} arg0
-     * @return{tcuInterval.Interval}
+     * @param {function(number): number} func
+     * @param {tcuInterval.Interval} arg0
+     * @return {tcuInterval.Interval}
      */
     tcuInterval.applyMonotone1p = function(func, arg0) {
         /**
@@ -75,24 +75,24 @@
             x = x || 0;
             return func(x);
         };
-        return tcuInterval.applyMonotone1(arg0, 
+        return tcuInterval.applyMonotone1(arg0,
             function(x) { return tcuInterval.setInterval(body, x); });
     };
 
     /**
-     * @param{function(number): tcuInterval.Interval} func
-     * @param{tcuInterval.Interval} arg0
-     * @return{tcuInterval.Interval}
+     * @param {function(number): tcuInterval.Interval} func
+     * @param {tcuInterval.Interval} arg0
+     * @return {tcuInterval.Interval}
      */
     tcuInterval.applyMonotone1i = function(func, arg0) {
     	return tcuInterval.withIntervals(func(arg0.lo()), func(arg0.hi()));
     };
 
     /**
-     * @param{function(number, number): number} func
-     * @param{tcuInterval.Interval} arg0
-     * @param{tcuInterval.Interval} arg1
-     * @return{tcuInterval.Interval}
+     * @param {function(number, number): number} func
+     * @param {tcuInterval.Interval} arg0
+     * @param {tcuInterval.Interval} arg1
+     * @return {tcuInterval.Interval}
      */
     tcuInterval.applyMonotone2p = function(func, arg0, arg1) {
         /**
@@ -110,16 +110,16 @@
     };
 
     /**
-     * @param{function(number, number): tcuInterval.Interval} func
-     * @param{tcuInterval.Interval} arg0
-     * @param{tcuInterval.Interval} arg1
-     * @return{tcuInterval.Interval}
+     * @param {function(number, number): tcuInterval.Interval} func
+     * @param {tcuInterval.Interval} arg0
+     * @param {tcuInterval.Interval} arg1
+     * @return {tcuInterval.Interval}
      */
     tcuInterval.applyMonotone2i = function(func, arg0, arg1) {
-		/** @type{number} */ var lo0 = arg0.lo();
-        /** @type{number} */ var hi0 = arg0.hi();
-        /** @type{number} */ var lo1 = arg1.lo();
-        /** @type{number} */ var hi1 = arg1.hi();
+		/** @type {number} */ var lo0 = arg0.lo();
+        /** @type {number} */ var hi0 = arg0.hi();
+        /** @type {number} */ var lo1 = arg1.lo();
+        /** @type {number} */ var hi1 = arg1.hi();
         var a = tcuInterval.withIntervals(func(lo0, lo1), func(lo0, hi1));
         var b = tcuInterval.withIntervals(func(hi0, lo1), func(hi0, hi1));
         return tcuInterval.withIntervals(a, b);
@@ -128,7 +128,7 @@
 
     /**
      * @constructor
-     * @param{number=} val
+     * @param {number=} val
      */
     tcuInterval.Interval = function(val) {
         if (val === undefined) {
@@ -149,11 +149,11 @@
         str += ')';
         return str;
     };
-    
+
     /**
      * @param {tcuInterval.Interval} a
      * @param {tcuInterval.Interval} b
-     * @return{tcuInterval.Interval}
+     * @return {tcuInterval.Interval}
      */
     tcuInterval.withIntervals = function(a, b) {
         /** @type {tcuInterval.Interval} */ var interval = new tcuInterval.Interval();
@@ -166,11 +166,11 @@
     /**
      * @param {number} a
      * @param {number} b
-     * @return{tcuInterval.Interval}
+     * @return {tcuInterval.Interval}
      */
     tcuInterval.withNumbers = function(a, b) {
         var x = new tcuInterval.Interval(a);
-        var y =  new tcuInterval.Interval(b);
+        var y = new tcuInterval.Interval(b);
         return tcuInterval.withIntervals(x, y);
     };
 
@@ -178,78 +178,78 @@
      * @param {boolean} hasNaN_
      * @param {number} lo_
      * @param {number} hi_
-     * @return{tcuInterval.Interval}
+     * @return {tcuInterval.Interval}
      */
     tcuInterval.withParams = function(hasNaN_, lo_, hi_) {
         /** @type {tcuInterval.Interval} */ var interval = new tcuInterval.Interval();
-        interval.m_hasNaN = hasNaN_
+        interval.m_hasNaN = hasNaN_;
         interval.m_lo =	lo_;
         interval.m_hi = hi_;
         return interval;
     };
 
     /**
-     * @return{number}
+     * @return {number}
      */
-    tcuInterval.Interval.prototype.length = function () {
+    tcuInterval.Interval.prototype.length = function() {
         return this.m_hi - this.m_lo;
     };
 
     /**
-     * @return{number}
+     * @return {number}
      */
     tcuInterval.Interval.prototype.lo = function() {
         return this.m_lo;
     };
 
     /**
-     * @return{number}
+     * @return {number}
      */
     tcuInterval.Interval.prototype.hi = function() {
         return this.m_hi;
     };
 
     /**
-     * @return{boolean}
+     * @return {boolean}
      */
     tcuInterval.Interval.prototype.hasNaN = function() {
         return this.m_hasNaN;
     };
 
     /**
-     * @return{tcuInterval.Interval}
+     * @return {tcuInterval.Interval}
      */
     tcuInterval.Interval.prototype.nan = function() {
         return this.m_hasNaN ? new tcuInterval.Interval(NaN) : new tcuInterval.Interval();
     };
 
     /**
-     * @return{boolean}
+     * @return {boolean}
      */
     tcuInterval.Interval.prototype.empty = function() {
         return this.m_lo > this.m_hi;
     };
 
     /**
-     * @return{boolean}
+     * @return {boolean}
      */
     tcuInterval.Interval.prototype.isFinite	= function() {
         return isFinite(this.m_lo) && isFinite(this.m_hi);
     };
 
     /**
-     * @return{boolean}
+     * @return {boolean}
      */
-    tcuInterval.Interval.prototype.isOrdinary = function () {
+    tcuInterval.Interval.prototype.isOrdinary = function() {
         return !this.hasNaN() && !this.empty() && this.isFinite();
     };
 
     /**
-     * @param{tcuInterval.Interval} other
-     * @return{tcuInterval.Interval}
+     * @param {tcuInterval.Interval} other
+     * @return {tcuInterval.Interval}
      */
-    tcuInterval.Interval.prototype.operatorOrBinary = function (other) {
-        /** @type{tcuInterval.Interval} */ var temp = new tcuInterval.Interval();
+    tcuInterval.Interval.prototype.operatorOrBinary = function(other) {
+        /** @type {tcuInterval.Interval} */ var temp = new tcuInterval.Interval();
         temp.m_hasNaN = this.m_hasNaN || other.m_hasNaN;
         temp.m_lo = Math.min(this.m_lo, other.m_lo);
         temp.m_hi = Math.max(this.m_hi, other.m_hi);
@@ -257,21 +257,21 @@
 	};
 
     /**
-     * @param{tcuInterval.Interval} other
+     * @param {tcuInterval.Interval} other
      */
     tcuInterval.Interval.prototype.operatorOrAssignBinary = function(other) {
-        /** @type{tcuInterval.Interval} */ var temp = this.operatorOrBinary(other);
+        /** @type {tcuInterval.Interval} */ var temp = this.operatorOrBinary(other);
 		this.m_hasNaN = temp.m_hasNaN;
         this.m_lo = temp.m_lo;
         this.m_hi = temp.m_hi;
 	};
 
     /**
-     * @param{tcuInterval.Interval} other
-     * @return{tcuInterval.Interval}
+     * @param {tcuInterval.Interval} other
+     * @return {tcuInterval.Interval}
      */
-    tcuInterval.Interval.prototype.operatorAndBinary = function (other) {
-        /** @type{tcuInterval.Interval} */ var temp = new tcuInterval.Interval();
+    tcuInterval.Interval.prototype.operatorAndBinary = function(other) {
+        /** @type {tcuInterval.Interval} */ var temp = new tcuInterval.Interval();
         temp.m_hasNaN = this.m_hasNaN && other.m_hasNaN;
         temp.m_lo = Math.max(this.m_lo, other.m_lo);
         temp.m_hi = Math.min(this.m_hi, other.m_hi);
@@ -279,18 +279,18 @@
 	};
 
     /**
-     * @param{tcuInterval.Interval} other
+     * @param {tcuInterval.Interval} other
      */
     tcuInterval.Interval.prototype.operatorAndAssignBinary = function(other) {
-        /** @type{tcuInterval.Interval} */ var temp = this.operatorAndBinary(other);
+        /** @type {tcuInterval.Interval} */ var temp = this.operatorAndBinary(other);
 		this.m_hasNaN = temp.m_hasNaN;
         this.m_lo = temp.m_lo;
         this.m_hi = temp.m_hi;
 	};
 
     /**
-     * @param{tcuInterval.Interval} other
-     * @return{boolean}
+     * @param {tcuInterval.Interval} other
+     * @return {boolean}
      */
     tcuInterval.Interval.prototype.contains	= function(other) {
 		return (other.lo() >= this.lo() && other.hi() <= this.hi() &&
@@ -298,8 +298,8 @@
 	};
 
     /**
-     * @param{tcuInterval.Interval} other
-     * @return{boolean}
+     * @param {tcuInterval.Interval} other
+     * @return {boolean}
      */
     tcuInterval.Interval.prototype.intersects = function(other)	{
 		return ((other.hi() >= this.lo() && other.lo() >= this.hi()) ||
@@ -307,10 +307,10 @@
 	};
 
     /**
-     * @return{tcuInterval.Interval}
+     * @return {tcuInterval.Interval}
      */
-    tcuInterval.Interval.prototype.operatorNegative = function () {
-        /** @type{tcuInterval.Interval} */ var temp = new tcuInterval.Interval();
+    tcuInterval.Interval.prototype.operatorNegative = function() {
+        /** @type {tcuInterval.Interval} */ var temp = new tcuInterval.Interval();
         temp.m_hasNaN = this.m_hasNaN;
         temp.m_lo = -this.m_hi;
         temp.m_hi = -this.m_lo;
@@ -318,25 +318,25 @@
     };
 
     /**
-     * @param{boolean=} nan
-     * @return{tcuInterval.Interval}
+     * @param {boolean=} nan
+     * @return {tcuInterval.Interval}
      */
     tcuInterval.unbounded = function(nan) {
         if (nan === undefined)
             nan = false;
 		return tcuInterval.withParams(nan, Number.NEGATIVE_INFINITY, Number.POSITIVE_INFINITY);
-	}
+	};
 
     /**
-     * @return{number}
+     * @return {number}
      */
     tcuInterval.Interval.prototype.midpoint	= function() {
 		return 0.5 * (this.hi() + this.lo()); // returns NaN when not bounded
 	};
 
     /**
-     * @param{tcuInterval.Interval} other
-     * @return{boolean}
+     * @param {tcuInterval.Interval} other
+     * @return {boolean}
      */
     tcuInterval.Interval.prototype.operatorCompare = function(other) {
 		return ((this.m_hasNaN == other.m_hasNaN) &&
@@ -345,26 +345,26 @@
 	};
 
     /**
-     * @param{tcuInterval.Interval} x
-     * @return{tcuInterval.Interval}
+     * @param {tcuInterval.Interval} x
+     * @return {tcuInterval.Interval}
      */
     tcuInterval.Interval.operatorPositive = function(x) {
         return x;
-    }
+    };
 
     /**
-     * @param{tcuInterval.Interval} x
-     * @return{tcuInterval.Interval}
+     * @param {tcuInterval.Interval} x
+     * @return {tcuInterval.Interval}
      */
-    tcuInterval.Interval.exp2 = function (x) {
+    tcuInterval.Interval.exp2 = function(x) {
         // std::pow
         return tcuInterval.applyMonotone2p(Math.pow, new tcuInterval.Interval(2), x);
     };
 
 
     /**
-     * @param{tcuInterval.Interval} x
-     * @return{tcuInterval.Interval}
+     * @param {tcuInterval.Interval} x
+     * @return {tcuInterval.Interval}
      */
     tcuInterval.Interval.exp = function(x) {
         // std::exp
@@ -372,8 +372,8 @@
     };
 
     /**
-     * @param{tcuInterval.Interval} x
-     * @return{tcuInterval.Interval}
+     * @param {tcuInterval.Interval} x
+     * @return {tcuInterval.Interval}
      */
     tcuInterval.Interval.sign = function(x) {
         // TODO
@@ -381,15 +381,15 @@
     };
 
     /**
-     * @param{tcuInterval.Interval} x
-     * @param{tcuInterval.Interval} y
-     * @return{tcuInterval.Interval}
+     * @param {tcuInterval.Interval} x
+     * @param {tcuInterval.Interval} y
+     * @return {tcuInterval.Interval}
      */
     tcuInterval.Interval.operatorSum = function(x, y) {
-    	/** @type{tcuInterval.Interval} */ var ret = new tcuInterval.Interval();
+    	/** @type {tcuInterval.Interval} */ var ret = new tcuInterval.Interval();
 
     	if (!x.empty() && !y.empty())
-            ret = tcuInterval.setIntervalBounds(function(dummy) {return x.lo() + y.lo();}, function(dummy) {return x.hi() + y.hi();} );
+            ret = tcuInterval.setIntervalBounds(function(dummy) {return x.lo() + y.lo();}, function(dummy) {return x.hi() + y.hi();});
     	if (x.hasNaN() || y.hasNaN())
     		ret.operatorOrAssignBinary(new tcuInterval.Interval(NaN));
 
@@ -397,12 +397,12 @@
     };
 
     /**
-     * @param{tcuInterval.Interval} x
-     * @param{tcuInterval.Interval} y
-     * @return{tcuInterval.Interval}
+     * @param {tcuInterval.Interval} x
+     * @param {tcuInterval.Interval} y
+     * @return {tcuInterval.Interval}
      */
     tcuInterval.Interval.operatorSub = function(x, y) {
-    	/** @type{tcuInterval.Interval} */ var ret = new tcuInterval.Interval();
+    	/** @type {tcuInterval.Interval} */ var ret = new tcuInterval.Interval();
 
         /**
          * @param {number=} x
@@ -418,12 +418,12 @@
     };
 
     /**
-     * @param{tcuInterval.Interval} x
-     * @param{tcuInterval.Interval} y
-     * @return{tcuInterval.Interval}
+     * @param {tcuInterval.Interval} x
+     * @param {tcuInterval.Interval} y
+     * @return {tcuInterval.Interval}
      */
-    tcuInterval.Interval.operatorMul = function (x, y) {
-    	/** @type{tcuInterval.Interval} */ var ret = new tcuInterval.Interval();
+    tcuInterval.Interval.operatorMul = function(x, y) {
+    	/** @type {tcuInterval.Interval} */ var ret = new tcuInterval.Interval();
 
         /**
          * @param {number=} x
@@ -440,17 +440,17 @@
     };
 
     /**
-     * @param{tcuInterval.Interval} nom
-     * @param{tcuInterval.Interval} den
-     * @return{tcuInterval.Interval}
+     * @param {tcuInterval.Interval} nom
+     * @param {tcuInterval.Interval} den
+     * @return {tcuInterval.Interval}
      */
-    tcuInterval.Interval.operatorDiv = function (nom, den) {
+    tcuInterval.Interval.operatorDiv = function(nom, den) {
     	if (den.contains(new tcuInterval.Interval(0))) {
     		// \todo [2014-03-21 lauri] Non-inf endpoint when one den endpoint is
     		// zero and nom doesn't cross zero?
     		return tcuInterval.unbounded();
     	} else {
-    		/** @type{tcuInterval.Interval} */ var ret = new tcuInterval.Interval();
+    		/** @type {tcuInterval.Interval} */ var ret = new tcuInterval.Interval();
             /**
              * @param {number=} x
              * @param {number=} y
@@ -467,12 +467,12 @@
     };
 
     /**
-     * @param{tcuInterval.Interval} x
-     * @return{tcuInterval.Interval}
+     * @param {tcuInterval.Interval} x
+     * @return {tcuInterval.Interval}
      */
-    tcuInterval.Interval.prototype.abs = function(x){
+    tcuInterval.Interval.prototype.abs = function(x) {
         //std::abs
-        /** @type{tcuInterval.Interval} */ var mono = tcuInterval.applyMonotone1p(Math.abs, x);
+        /** @type {tcuInterval.Interval} */ var mono = tcuInterval.applyMonotone1p(Math.abs, x);
         var zero = new tcuInterval.Interval(0);
     	if (x.contains(zero))
     		return tcuInterval.withIntervals(zero, mono);
@@ -481,20 +481,20 @@
     };
 
     /**
-     * @param{tcuInterval.Interval} x
-     * @return{tcuInterval.Interval}
+     * @param {tcuInterval.Interval} x
+     * @return {tcuInterval.Interval}
      */
     tcuInterval.Interval.sqrt = function(x) {
         return tcuInterval.applyMonotone1p(Math.sqrt, x);
     };
 
     /**
-     * @param{tcuInterval.Interval} x
-     * @return{tcuInterval.Interval}
+     * @param {tcuInterval.Interval} x
+     * @return {tcuInterval.Interval}
      */
     tcuInterval.Interval.inverseSqrt = function(x) {
         var ret = new tcuInterval.Interval(1);
-        ret =  tcuInterval.Interval.operatorDiv(ret, tcuInterval.Interval.sqrt(x));
+        ret = tcuInterval.Interval.operatorDiv(ret, tcuInterval.Interval.sqrt(x));
 	    return ret;
     };
 
