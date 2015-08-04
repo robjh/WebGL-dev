@@ -323,8 +323,8 @@ goog.scope(function() {
     	}
 
     	// Operation - indented to correct level.
-      // TODO: Add indenting
-      src += shaderSpec.source;
+        // TODO: Add indenting
+        src += shaderSpec.source;
     	// {
     	// 	std::istringstream	opSrc	(shaderSpec.source);
     	// 	/** @type{number} */ var line;
