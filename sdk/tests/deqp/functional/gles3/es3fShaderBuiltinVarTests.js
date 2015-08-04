@@ -897,12 +897,11 @@ goog.scope(function() {
 
 	/**
 	 * @param {tcuTexture.PixelBufferAccess} dst
-	 * @param {number} numVertices
 	 * @param {Array<number>} indices
 	 * @param {Array<Array<number>>} positions
 	 * @param {Array<Array<number>>} colors
 	 */
-	es3fShaderBuiltinVarTests.VertexIDCase.renderReference = function(dst, numVertices, indices, positions, colors) {
+	es3fShaderBuiltinVarTests.VertexIDCase.renderReference = function(dst, indices, positions, colors) {
 		/** @type {rrRenderState.RenderState} */
 		var referenceState = new rrRenderState.RenderState(
 			new rrRenderer.RenderTarget(rrMultisamplePixelBufferAccess.MultisamplePixelBufferAccess.fromSinglesampleAccess(dst))
@@ -940,8 +939,119 @@ goog.scope(function() {
 		// 		attribs,
 		// 		rr::PrimitiveList(rr::PRIMITIVETYPE_TRIANGLES, numVertices, rr::DrawIndices(indices))));
 		rrRenderer.drawQuads(referenceState, referenceTarget, referenceShaderProgram,
-			attribs, rrRenderer.PrimitiveType.TRIANGLES, 0, numVertices, /*instanceID = */ 0);
+			attribs, rrRenderer.PrimitiveType.TRIANGLES, 0, indices.length, /*instanceID = */ 0);
 	};
+
+	/**
+	 * @return {tcuTestCase.IterateResult}
+	 */
+	es3fShaderBuiltinVarTests.VertexIDCase.iterate = function() {
+		// const glw::Functions&	gl			= m_context.getRenderContext().getFunctions();
+		/** @type {sglrReferenceContext.ReferenceContext} */
+		var ctx = new sglrReferenceContext.ReferenceContext(limits, colorbuffer, depthbuffer, stencilbuffer);
+		/** @type {number} */ var width = m_context.getRenderTarget().getWidth();
+		/** @type {number} */ var height = m_context.getRenderTarget().getHeight();
+		/** @type {number} */ var viewportW	= this.m_viewportW;
+		/** @type {number} */ var viewportH	= this.m_viewportH;
+
+		/** @type {number} */ var threshold = 0.02;
+
+		/** @type {deRandom.Random} */ var rnd = new deRandom.Random(0xcf23ab1 ^ deString.deStringHash(this.m_iterNdx));
+		/** @type {tcuSurface.Surface} */ var refImg = new tcuSurface.Surface(viewportW, viewportH);
+		/** @type {tcuSurface.Surface} */ var testImg = new tcuSurface.Surface(viewportW, viewportH);
+
+		/** @type {number} */ var viewportX	= rnd.getInt(0, width-viewportW);
+		/** @type {number} */ var viewportY	= rnd.getInt(0, height-viewportH);
+
+		/** @type {number} */ var posLoc = ctx.getAttribLocation(m_program.getProgram(), "a_position");
+		/** @type {number} */ var colorsLoc	= ctx.getUniformLocation(m_program.getProgram(), "u_colors[0]");
+		/** @type {Array<number>} */ var clearColor	= [0.0, 0.0, 0.0, 1.0];
+
+		// Setup common state.
+		ctx.viewport(viewportX, viewportY, viewportW, viewportH);
+		ctx.useProgram(this.m_program.getProgram());
+		ctx.bindBuffer(ctx.ARRAY_BUFFER, this.m_positionBuffer);
+		ctx.enableVertexAttribArray(posLoc);
+		ctx.vertexAttribPointer(posLoc, 4, ctx.FLOAT, ctx.FALSE, 0, null);
+		ctx.uniform4fv(colorsLoc, this.m_colors);
+
+		// Clear render target to black.
+		ctx.clearColor(clearColor[0], clearColor[1], clearColor[2], clearColor[3]);
+		ctx.clear(ctx.COLOR_BUFFER_BIT);
+
+		refImg.getAccess().clear(clearColor);
+
+		if (this.m_iterNdx === 0) {
+			bufferedLogToConsole("Iter0: glDrawArrays()");
+			/** @type {Array<number>} */ var indices = [];
+
+			ctx.bufferData(ctx.ARRAY_BUFFER, this.m_positions, ctx.DYNAMIC_DRAW);
+			ctx.drawArrays(ctx.TRIANGLES, 0, m_positions.length);
+
+			//glu::readPixels(m_context.getRenderContext(), viewportX, viewportY, testImg.getAccess());
+			testImg.readViewport(ctx, [viewportX, viewportY, viewportW, viewportH]);
+			// Reference indices
+			for (var ndx = 0; ndx < indices.length; ndx++)
+				indices[ndx] = ndx;
+
+			renderReference(refImg.getAccess(), indices, this.m_positions, this.m_colors);
+		}
+		else if (this.m_iterNdx === 1) {
+			bufferedLogToConsole("Iter1;: glDrawElements(), indices in client-side array")
+			/** @type {Array<number>} */ var indices = [];
+			/** @type {Array<Array<number>>} */ var mappedPos = [];
+
+			// Compute initial indices and suffle
+			for (var ndx = 0; ndx < indices.length; ndx++)
+				indices[ndx] = ndx;
+			deRandom.shuffle(rnd, indices);
+
+			// Use indices to re-map positions.
+			for (var ndx = 0; ndx < indices.length; ndx++)
+				mappedPos[indices[ndx]] = this.m_positions[ndx];
+
+			ctx.bufferData(ctx.ARRAY_BUFFER, mappedPos, ctx.DYNAMIC_DRAW);
+			ctx.drawElements(ctx.TRIANGLES, indices.length, ctx.UNSIGNED_SHORT, indices);
+
+			//glu::readPixels(this.m_context.getRenderContext(), viewportX, viewportY, testImg.getAccess());
+			testImg.readViewport(ctx, [viewportX, viewportY, viewportW, viewportH]);
+			this.renderReference(refImg.getAccess(), indices, mappedPos, this.m_colors);
+		}
+		else if (this.m_iterNdx == 2) {
+			bufferedLogToConsole("Iter2: glDrawElements(), indices in buffer");
+			/** @type {Array<number>} */ var indices = [];
+			/** @type {Array<Array<number>>} */ var mappedPos = [];
+
+			// Compute initial indices and suffle
+			for (var ndx = 0; ndx < indices.length; ndx++)
+				indices[ndx] = ndx;
+			deRandom.shuffle(rnd, indices);
+
+			// Use indices to re-map positions.
+			for (var ndx = 0; ndx < indices.length; ndx++)
+				mappedPos[indices[ndx]] = this.m_positions[ndx];
+
+			ctx.bindBuffer(ctx.ELEMENT_ARRAY_BUFFER, this.m_elementBuffer);
+			ctx.bufferData(ctx.ELEMENT_ARRAY_BUFFER, indices, ctx.DYNAMIC_DRAW);
+
+			ctx.bufferData(ctx.ARRAY_BUFFER, mappedPos, ctx.DYNAMIC_DRAW);
+			ctx.drawElements(ctx.TRIANGLES, indices.length, ctx.UNSIGNED_SHORT, null);
+
+			//glu::readPixels(m_context.getRenderContext(), viewportX, viewportY, testImg.getAccess());
+			testImg.readViewport(ctx, [viewportX, viewportY, viewportW, viewportH]);
+			refImg.getAccess().clear(clearColor);
+			this.renderReference(refImg.getAccess(), indices, mappedPos, this.m_colors);
+		}
+		else
+			throw new Error("Iteration count exceeded.");
+
+		if (!tcuImageCompare.fuzzyCompare("Result", "Image comparison result", refImg.getAccess(), testImg.getAccess(), threshold))
+			testFailedOptions("Image comparison failed");
+
+		this.m_iterNdx += 1;
+		return (this.m_iterNdx < 3) ? tcuTestCase.IterateResult.CONTINUE : tcuTestCase.IterateResult.STOP;
+	};
+
 
 	/**
 	 * @constructor
