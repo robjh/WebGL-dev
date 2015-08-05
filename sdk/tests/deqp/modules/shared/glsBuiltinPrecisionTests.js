@@ -3091,7 +3091,6 @@ glsBuiltinPrecisionTests.Typename;
                     }
     			case 1:
                     reference0 = glsBuiltinPrecisionTests.convert(this.Out.Out0, highpFmt, env.lookup(variables.out0));
-                    result = false;
                     value0 = glsBuiltinPrecisionTests.getOutput(outputs[0], valueNdx, reference0);
                     if (!glsBuiltinPrecisionTests.contains(this.Out.Out0, reference0, value0)) {
                         msg = 'Shader output 0 (' + value0 + ') is outside acceptable range: ' + reference0;
