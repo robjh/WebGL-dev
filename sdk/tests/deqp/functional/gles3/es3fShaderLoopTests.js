@@ -24,14 +24,16 @@ goog.require('framework.common.tcuStringTemplate');
 goog.require('framework.common.tcuTestCase');
 goog.require('framework.delibs.debase.deMath');
 goog.require('framework.opengl.gluShaderUtil');
+goog.require('framework.opengl.gluShaderProgram');
 goog.require('modules.shared.glsShaderRenderCase');
 
 goog.scope(function() {
-    var es3fShaderLoopTests = functional.gles3.es3fShaderLoopTests;
-    var tcuTestCase = framework.common.tcuTestCase;
-    var deMath = framework.delibs.debase.deMath;
-    var gluShaderUtil = framework.opengl.gluShaderUtil;
-    var glsShaderRenderCase = modules.shared.glsShaderRenderCase;
+var es3fShaderLoopTests = functional.gles3.es3fShaderLoopTests;
+var tcuTestCase = framework.common.tcuTestCase;
+var deMath = framework.delibs.debase.deMath;
+var gluShaderUtil = framework.opengl.gluShaderUtil;
+var gluShaderProgram = framework.opengl.gluShaderProgram;
+var glsShaderRenderCase = modules.shared.glsShaderRenderCase;
 var tcuStringTemplate = framework.common.tcuStringTemplate;
 // Repeated with for, while, do-while. Examples given as 'for' loops.
 // Repeated for const, uniform, dynamic loops.
@@ -1146,9 +1148,9 @@ es3fShaderLoopTests.ShaderLoopTests.prototype.init = function() {
     var testGroup = tcuTestCase.runner.testCases;
     // Loop cases.
 
-    /** @type {Array<gluShaderUtil.ShaderType>} */ var s_shaderTypes = [
-        gluShaderUtil.ShaderType.VERTEX,
-        gluShaderUtil.ShaderType.FRAGMENT
+    /** @type {Array<gluShaderProgram.shaderType>} */ var s_shaderTypes = [
+        gluShaderProgram.shaderType.VERTEX,
+        gluShaderProgram.shaderType.FRAGMENT
     ];
 
     /** @type {Array<gluShaderUtil.DataType>} */ var s_countDataType = [
@@ -1156,7 +1158,7 @@ es3fShaderLoopTests.ShaderLoopTests.prototype.init = function() {
         gluShaderUtil.DataType.FLOAT
     ];
 
-    /** @type {gluShaderUtil.ShaderType} */ var shaderType;
+    /** @type {gluShaderProgram.shaderType} */ var shaderType;
     /** @type {string} */ var shaderTypeName;
     /** @type {boolean} */ var isVertexCase;
     /** @type {string} */ var name;
@@ -1185,8 +1187,8 @@ es3fShaderLoopTests.ShaderLoopTests.prototype.init = function() {
 
                     for (var shaderTypeNdx = 0; shaderTypeNdx < s_shaderTypes.length; shaderTypeNdx++) {
                         shaderType = s_shaderTypes[shaderTypeNdx];
-                        shaderTypeName = gluShaderUtil.getShaderTypeName(shaderType);
-                        isVertexCase    = (shaderType == gluShaderUtil.ShaderType.VERTEX);
+                        shaderTypeName = gluShaderProgram.getShaderTypeName(shaderType);
+                        isVertexCase    = (shaderType == gluShaderProgram.shaderType.VERTEX);
 
 
                         name = 'basic_' + precisionName + '_' + dataTypeName + '_' + shaderTypeName;
@@ -1207,8 +1209,8 @@ es3fShaderLoopTests.ShaderLoopTests.prototype.init = function() {
 
                 for (var shaderTypeNdx = 0; shaderTypeNdx < s_shaderTypes.length; shaderTypeNdx++) {
                     shaderType = s_shaderTypes[shaderTypeNdx];
-                    shaderTypeName = gluShaderUtil.getShaderTypeName(shaderType);
-                    isVertexCase    = (shaderType == gluShaderUtil.ShaderType.VERTEX);
+                    shaderTypeName = gluShaderProgram.getShaderTypeName(shaderType);
+                    isVertexCase    = (shaderType == gluShaderProgram.shaderType.VERTEX);
 
                     name = loopCaseName + '_' + shaderTypeName;
                     desc = loopCaseName + ' loop with ' + loopTypeName + ' iteration count in ' + shaderTypeName + ' shader.';

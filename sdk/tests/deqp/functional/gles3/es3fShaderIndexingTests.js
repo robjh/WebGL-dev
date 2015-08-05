@@ -25,6 +25,7 @@ goog.require('framework.common.tcuStringTemplate');
 goog.require('framework.common.tcuTestCase');
 goog.require('framework.delibs.debase.deMath');
 goog.require('framework.opengl.gluShaderUtil');
+goog.require('framework.opengl.gluShaderProgram');
 goog.require('framework.opengl.gluTexture');
 goog.require('modules.shared.glsShaderRenderCase');
 
@@ -35,6 +36,7 @@ goog.scope(function() {
     var glsShaderRenderCase = modules.shared.glsShaderRenderCase;
     var gluShaderUtil = framework.opengl.gluShaderUtil;
     var gluTexture = framework.opengl.gluTexture;
+    var gluShaderProgram = framework.opengl.gluShaderProgram;
     var tcuTestCase = framework.common.tcuTestCase;
     var tcuStringTemplate = framework.common.tcuStringTemplate;
     /**
@@ -1095,9 +1097,9 @@ goog.scope(function() {
 
     es3fShaderIndexingTests.ShaderIndexingTests.prototype.init = function() {
         var testGroup = tcuTestCase.runner.testCases;
-        /** @type {Array<gluShaderUtil.ShaderType>} */ var s_shaderTypes = [
-            gluShaderUtil.ShaderType.VERTEX,
-            gluShaderUtil.ShaderType.FRAGMENT
+        /** @type {Array<gluShaderProgram.shaderType>} */ var s_shaderTypes = [
+            gluShaderProgram.shaderType.VERTEX,
+            gluShaderProgram.shaderType.FRAGMENT
         ];
         /** @type {Array<gluShaderUtil.DataType>} */ var s_floatAndVecTypes = [
             gluShaderUtil.DataType.FLOAT,
@@ -1109,7 +1111,7 @@ goog.scope(function() {
         /** @type {string} */ var desc;
         /** @type {string} */ var shaderTypeName;
         /** @type {boolean} */ var isVertexCase;
-        /** @type {gluShaderUtil.ShaderType} */ var shaderType;
+        /** @type {gluShaderProgram.shaderType} */ var shaderType;
         /** @type {string} */ var writeAccessName;
         /** @type {string} */ var readAccessName;
         // Varying array access cases.
@@ -1142,10 +1144,10 @@ goog.scope(function() {
                 readAccessName = es3fShaderIndexingTests.getIndexAccessTypeName(readAccess);
                 for (var shaderTypeNdx = 0; shaderTypeNdx < s_shaderTypes.length; shaderTypeNdx++) {
                     shaderType = s_shaderTypes[shaderTypeNdx];
-                    shaderTypeName = gluShaderUtil.getShaderTypeName(shaderType);
+                    shaderTypeName = gluShaderProgram.getShaderTypeName(shaderType);
                     name = gluShaderUtil.getDataTypeName(varType) + "_" + readAccessName + "_read_" + shaderTypeName;
                     desc = "Uniform array with " + readAccessName + " read in " + shaderTypeName + " shader.";
-                    isVertexCase = shaderType === gluShaderUtil.ShaderType.VERTEX;
+                    isVertexCase = shaderType === gluShaderProgram.shaderType.VERTEX;
                     uniformGroup.addChild(es3fShaderIndexingTests.createUniformArrayCase(name, desc, isVertexCase, varType, readAccess));
                 }
             }
@@ -1164,10 +1166,10 @@ goog.scope(function() {
 
                     for (var shaderTypeNdx = 0; shaderTypeNdx < s_shaderTypes.length; shaderTypeNdx++) {
                         shaderType = s_shaderTypes[shaderTypeNdx];
-                        shaderTypeName = gluShaderUtil.getShaderTypeName(shaderType);
+                        shaderTypeName = gluShaderProgram.getShaderTypeName(shaderType);
                         name = gluShaderUtil.getDataTypeName(varType) + "_" + writeAccessName + "_write_" + readAccessName + "_read_" + shaderTypeName;
                         desc = "Temporary array with " + writeAccessName + " write and " + readAccessName + " read in " + shaderTypeName + " shader.";
-                        isVertexCase = (shaderType === gluShaderUtil.ShaderType.VERTEX);
+                        isVertexCase = (shaderType === gluShaderProgram.shaderType.VERTEX);
                         tmpGroup.addChild(es3fShaderIndexingTests.createTmpArrayCase(name, desc, isVertexCase, varType, es3fShaderIndexingTests.IndexAccessType[writeAccess], es3fShaderIndexingTests.IndexAccessType[readAccess]));
                     }
                 }
@@ -1193,10 +1195,10 @@ goog.scope(function() {
 
                     for (var shaderTypeNdx = 0; shaderTypeNdx < s_shaderTypes.length; shaderTypeNdx++) {
                         shaderType = s_shaderTypes[shaderTypeNdx];
-                        shaderTypeName = gluShaderUtil.getShaderTypeName(shaderType);
+                        shaderTypeName = gluShaderProgram.getShaderTypeName(shaderType);
                         name = gluShaderUtil.getDataTypeName(varType) + "_" + writeAccessName + "_write_" + readAccessName + "_read_" + shaderTypeName;
                         desc = "Vector subscript access with " + writeAccessName + " write and " + readAccessName + " read in " + shaderTypeName + " shader.";
-                        isVertexCase = shaderType === gluShaderUtil.ShaderType.VERTEX;
+                        isVertexCase = shaderType === gluShaderProgram.shaderType.VERTEX;
                         vecGroup.addChild(es3fShaderIndexingTests.createVectorSubscriptCase(name, desc, isVertexCase, varType, es3fShaderIndexingTests.VectorAccessType[writeAccess], es3fShaderIndexingTests.VectorAccessType[readAccess]));
                     }
                 }
@@ -1228,10 +1230,10 @@ goog.scope(function() {
 
                     for (var shaderTypeNdx = 0; shaderTypeNdx < s_shaderTypes.length; shaderTypeNdx++) {
                         shaderType = s_shaderTypes[shaderTypeNdx];
-                        shaderTypeName = gluShaderUtil.getShaderTypeName(shaderType);
+                        shaderTypeName = gluShaderProgram.getShaderTypeName(shaderType);
                         name = gluShaderUtil.getDataTypeName(varType) + "_" + writeAccessName + "_write_" + readAccessName + "_read_" + shaderTypeName;
                         desc = "Vector subscript access with " + writeAccessName + " write and " + readAccessName + " read in " + shaderTypeName + " shader.";
-                        isVertexCase = shaderType === gluShaderUtil.ShaderType.VERTEX;
+                        isVertexCase = shaderType === gluShaderProgram.shaderType.VERTEX;
                         matGroup.addChild(es3fShaderIndexingTests.createMatrixSubscriptCase(name, desc, isVertexCase, varType, es3fShaderIndexingTests.IndexAccessType[writeAccess], es3fShaderIndexingTests.IndexAccessType[readAccess]));
                     }
                 }
