@@ -175,7 +175,7 @@ goog.scope(function() {
 
         // \todo [2013-08-01 pyry] Do we want to make these conditional based on renderCtx?
         addExtension("gl.EXT_color_buffer_half_float");
-        addExtension("gl.EXT_color_buffer_float");
+        addExtension("gl.WEBGL_color_buffer_float");
         */
     };
 
@@ -2021,13 +2021,19 @@ goog.scope(function() {
     };
 
     /**
-    * @return {Array<string>}
-    */
+     * @return {Array<string>}
+     */
     sglrReferenceContext.ReferenceContext.prototype.getSupportedExtensions = function() {
-        var extensions = gl.getSupportedExtensions(); //TODO: Let's just return the context's supported extensions for now
-        extensions.push('EXT_color_buffer_float');
-        extensions.push('EXT_color_buffer_half_float');
+        var extensions = gl.getSupportedExtensions(); //TODO: Let's just return gl's supported extensions for now
         return extensions;
+    };
+
+    /**
+     * @param {string} name
+     * @return {*}
+     */
+    sglrReferenceContext.ReferenceContext.prototype.getExtension = function(name) {
+        return gl.getExtension(name); //TODO: Let's just return gl's supported extensions for now
     };
 
     /** transpose matrix 'x' of 'size' columns and rows

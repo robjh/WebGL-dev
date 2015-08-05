@@ -590,11 +590,13 @@ tcuTexture.getChannelSize = function(type) {
         case tcuTexture.ChannelType.UNSIGNED_INT8: return 1;
         case tcuTexture.ChannelType.UNSIGNED_INT16: return 2;
         case tcuTexture.ChannelType.UNSIGNED_INT32: return 4;
+        case tcuTexture.ChannelType.UNSIGNED_INT_11F_11F_10F_REV: return 4;
+        case tcuTexture.ChannelType.UNSIGNED_INT_999_E5_REV: return 4;
         case tcuTexture.ChannelType.HALF_FLOAT: return 2;
         case tcuTexture.ChannelType.FLOAT: return 4;
 
     }
-    throw new Error('Unrecognized type ' + type);
+    throw new Error('Unrecognized type ' + deString.enumToString(tcuTexture.ChannelType, type));
 };
 
 /**

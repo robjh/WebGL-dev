@@ -66,65 +66,32 @@ goog.scope(function() {
 
     /**
      * @constructor
-     */
-    es3fFboRenderTest.FboConfig = function() {
-        // Buffer bit mask (gl.COLOR_BUFFER_BIT|gl.DEPTH_BUFFER_BIT|...)
-        this.buffers = 0;
-        // gl.TEXTURE_2D, gl.TEXTURE_CUBE_MAP, gl.RENDERBUFFER
-        this.colorType = gl.NONE;
-        // Internal format for color buffer texture or renderbuffer
-        this.colorFormat = gl.NONE;
-        this.depthStencilType = gl.NONE;
-        this.depthStencilFormat = gl.NONE;
-        this.width = 0;
-        this.height = 0;
-        this.samples = 0;
-    };
-
-    /**
-     * @param {number} buffers_
-     * @param {number} colorType_
-     * @param {number} colorFormat_
-     * @param {number} depthStencilType_
-     * @param {number} depthStencilFormat_
+     * @param {number=} buffers_
+     * @param {number=} colorType_
+     * @param {number=} colorFormat_
+     * @param {number=} depthStencilType_
+     * @param {number=} depthStencilFormat_
      * @param {number=} width_
      * @param {number=} height_
      * @param {number=} samples_
-     * @return {es3fFboRenderTest.FboConfig}
      */
-    es3fFboRenderTest.newFboConfigDetailed = function(
+    es3fFboRenderTest.FboConfig = function(
         buffers_, colorType_, colorFormat_, depthStencilType_,
-        depthStencilFormat_, width_, height_, samples_) {
-
-        var fboConfig = new es3fFboRenderTest.FboConfig();
-        fboConfig.buffers = buffers_;
-        fboConfig.colorType = colorType_;
-        fboConfig.colorFormat = colorFormat_;
-        fboConfig.depthStencilType = depthStencilType_;
-        fboConfig.depthStencilFormat = depthStencilFormat_;
-        fboConfig.width = width_;
-        fboConfig.height = height_;
-        fboConfig.samples = samples_;
-
-        return fboConfig;
-    };
-
-    /**
-     * @param {es3fFboRenderTest.FboConfig} config
-     * @return {es3fFboRenderTest.FboConfig}
-     */
-    es3fFboRenderTest.copyFboConfig = function(config) {
-        var fboConfig = new es3fFboRenderTest.FboConfig();
-        fboConfig.buffers = config.buffers;
-        fboConfig.colorType = config.colorType;
-        fboConfig.colorFormat = config.colorFormat;
-        fboConfig.depthStencilType = config.depthStencilType;
-        fboConfig.depthStencilFormat = config.depthStencilFormat;
-        fboConfig.width = config.width;
-        fboConfig.height = config.height;
-        fboConfig.samples = config.samples;
-
-        return fboConfig;
+        depthStencilFormat_, width_, height_, samples_
+    ) {
+        // Buffer bit mask (gl.COLOR_BUFFER_BIT|gl.DEPTH_BUFFER_BIT|...)
+        this.buffers = buffers_ ? buffers_ : 0;
+        // gl.TEXTURE_2D, gl.TEXTURE_CUBE_MAP, gl.RENDERBUFFER
+        this.colorType = colorType_ ? colorType_ : gl.NONE;
+        // Internal format for color buffer texture or renderbuffer
+        this.colorFormat = colorFormat_ ? colorFormat_ : gl.NONE;
+        this.depthStencilType = depthStencilType_?
+            depthStencilType_ : gl.NONE;
+        this.depthStencilFormat = depthStencilFormat_ ?
+            depthStencilFormat_ : gl.NONE;
+        this.width = width_ ? width_ : 0;
+        this.height = height_ ? height_ : 0;
+        this.samples = samples_? samples_ : 0;
     };
 
     /**
@@ -174,20 +141,20 @@ goog.scope(function() {
 
         switch (format) {
             case gl.RGB16F:
-                out.push('gl.EXT_color_buffer_half_float');
+                out.push('EXT_color_buffer_half_float');
                 break;
 
             case gl.RGBA16F:
             case gl.RG16F:
             case gl.R16F:
-                out.push('gl.EXT_color_buffer_half_float');
+                out.push('EXT_color_buffer_half_float');
 
             case gl.RGBA32F:
             case gl.RGB32F:
             case gl.R11F_G11F_B10F:
             case gl.RG32F:
             case gl.R32F:
-                out.push('gl.EXT_color_buffer_float');
+                out.push('WEBGL_color_buffer_float');
 
             default:
                 break;
@@ -200,23 +167,10 @@ goog.scope(function() {
      * @param {?sglrGLContext.GLContext|sglrReferenceContext.ReferenceContext}
      * context
      * @param {string} name
-     * @return {boolean}
+     * @return {*}
      */
     es3fFboRenderTest.isExtensionSupported = function(context, name) {
-        /** @type {Array<string>} */ var extensions =
-            context.getSupportedExtensions();
-
-        var extension = '';
-
-        var line_number = 0;
-        while (line_number < extensions.length) {
-            extension = extensions[line_number];
-            if (('gl.' + extension) == name)
-                return true;
-            line_number++;
-        }
-
-        return false;
+        return context.getExtension(name);
     };
 
     /**
@@ -271,7 +225,7 @@ goog.scope(function() {
             var errMsg = 'Format not supported, requires ' + (
                 (requiredExts.length == 1) ? requiredExts[0] :
                 ' one of the following: ' +
-                es3fFboRenderTest.join(requiredExts, ', ')
+                requiredExts.join(', ')
             );
 
             throw new Error(errMsg);
@@ -421,7 +375,7 @@ goog.scope(function() {
     };
 
     /**
-     * dinit
+     * deinit
      */
     es3fFboRenderTest.Framebuffer.prototype.deinit = function() {
         this.m_context.deleteFramebuffer(
@@ -984,7 +938,8 @@ goog.scope(function() {
         // Fbo B - don't create colorbuffer
 
         /** @type {es3fFboRenderTest.FboConfig} */
-        var cfg = es3fFboRenderTest.copyFboConfig(this.m_config);
+        var cfg = /** @type {es3fFboRenderTest.FboConfig} */
+            (deUtil.clone(this.m_config));
 
         cfg.buffers = deMath.binaryOp(
             cfg.buffers,
@@ -1343,7 +1298,8 @@ goog.scope(function() {
 
         // Fbo B
         /** @type {es3fFboRenderTest.FboConfig} */
-        var cfg = es3fFboRenderTest.copyFboConfig(this.m_config);
+        var cfg = /** @type {es3fFboRenderTest.FboConfig} */
+            (deUtil.clone(this.m_config));
 
         cfg.buffers = deMath.binaryOp(
             cfg.buffers,
@@ -1606,7 +1562,7 @@ goog.scope(function() {
                 break;
 
             default:
-                throw new Error('Color type unsuppoerted');
+                throw new Error('Color type unsupported');
         }
 
         if (depth || stencil) {
@@ -2134,7 +2090,7 @@ goog.scope(function() {
             if (!depthStencilFormats[fmtNdx].stencil)
                 continue;
 
-            config = es3fFboRenderTest.newFboConfigDetailed(
+            config = new es3fFboRenderTest.FboConfig(
                 gl.COLOR_BUFFER_BIT | gl.STENCIL_BUFFER_BIT,
                 colorType, colorFmt, stencilType,
                 depthStencilFormats[fmtNdx].format
@@ -2162,7 +2118,7 @@ goog.scope(function() {
                 continue;
 
             for (var typeNdx = 0; typeNdx < objectTypes.length; typeNdx++) {
-                config = es3fFboRenderTest.newFboConfigDetailed(
+                config = new es3fFboRenderTest.FboConfig(
                     gl.COLOR_BUFFER_BIT, objectTypes[typeNdx],
                     colorFormats[colorFmtNdx].format, gl.NONE, gl.NONE
                 );
@@ -2198,19 +2154,19 @@ goog.scope(function() {
 
             for (var typeNdx = 0; typeNdx < objectTypes.length; typeNdx++) {
                 /** @type {es3fFboRenderTest.FboConfig} */
-                var colorOnlyConfig = es3fFboRenderTest.newFboConfigDetailed(
+                var colorOnlyConfig = new es3fFboRenderTest.FboConfig(
                     gl.COLOR_BUFFER_BIT, objectTypes[typeNdx],
                     colorFormats[colorFmtNdx].format, gl.NONE, gl.NONE
                 );
                 /** @type {es3fFboRenderTest.FboConfig} */
-                var colorDepthConfig = es3fFboRenderTest.newFboConfigDetailed(
+                var colorDepthConfig = new es3fFboRenderTest.FboConfig(
                     gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT,
                     objectTypes[typeNdx], colorFormats[colorFmtNdx].format,
                     depthStencilType, depthStencilFormat
                 );
                 /** @type {es3fFboRenderTest.FboConfig} */
                 var colorDepthStencilConfig =
-                    es3fFboRenderTest.newFboConfigDetailed(
+                    new es3fFboRenderTest.FboConfig(
                         gl.COLOR_BUFFER_BIT |
                         gl.DEPTH_BUFFER_BIT |
                         gl.STENCIL_BUFFER_BIT,
@@ -2255,7 +2211,7 @@ goog.scope(function() {
 
             // Depth and stencil: both rbo and textures
             for (var typeNdx = 0; typeNdx < objectTypes.length; typeNdx++) {
-                config = es3fFboRenderTest.newFboConfigDetailed(
+                config = new es3fFboRenderTest.FboConfig(
                     gl.COLOR_BUFFER_BIT |
                     (depth ? gl.DEPTH_BUFFER_BIT : 0) |
                     (stencil ? gl.STENCIL_BUFFER_BIT : 0),
@@ -2285,7 +2241,7 @@ goog.scope(function() {
 
             // Color-only.
             for (var typeNdx = 0; typeNdx < objectTypes.length; typeNdx++) {
-                config = es3fFboRenderTest.newFboConfigDetailed(
+                config = new es3fFboRenderTest.FboConfig(
                     gl.COLOR_BUFFER_BIT, objectTypes[typeNdx],
                     colorFormat, gl.NONE, gl.NONE
                 );
@@ -2310,7 +2266,7 @@ goog.scope(function() {
                         if (!depth && objectTypes[typeNdx] != gl.RENDERBUFFER)
                             continue; // Not supported.
 
-                        config = es3fFboRenderTest.newFboConfigDetailed(
+                        config = new es3fFboRenderTest.FboConfig(
                             gl.COLOR_BUFFER_BIT |
                             (depth ? gl.DEPTH_BUFFER_BIT : 0) |
                             (stencil ? gl.STENCIL_BUFFER_BIT : 0),
@@ -2344,7 +2300,7 @@ goog.scope(function() {
 
             // Color-only.
             for (var typeNdx = 0; typeNdx < objectTypes.length; typeNdx++) {
-                config = es3fFboRenderTest.newFboConfigDetailed(
+                config = new es3fFboRenderTest.FboConfig(
                     gl.COLOR_BUFFER_BIT |
                     gl.DEPTH_BUFFER_BIT |
                     gl.STENCIL_BUFFER_BIT,
@@ -2379,7 +2335,7 @@ goog.scope(function() {
                 if (!depth && objectTypes[typeNdx] != gl.RENDERBUFFER)
                     continue;
 
-                config = es3fFboRenderTest.newFboConfigDetailed(
+                config = new es3fFboRenderTest.FboConfig(
                     gl.COLOR_BUFFER_BIT |
                     (depth ? gl.DEPTH_BUFFER_BIT : 0) |
                     (stencil ? gl.STENCIL_BUFFER_BIT : 0),

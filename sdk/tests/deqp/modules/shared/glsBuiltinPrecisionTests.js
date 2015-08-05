@@ -3066,6 +3066,7 @@ glsBuiltinPrecisionTests.Typename;
     	// shader output to the reference.
     	for (var valueNdx = 0; valueNdx < numValues; valueNdx++) {
     		/** @type {boolean} */ var result = true;
+            var value0, value1;
             var msg = '';
 
     		var in0_ = glsBuiltinPrecisionTests.convert(this.Arg0, fmt, glsBuiltinPrecisionTests.round(this.Arg0, fmt, inputs.in0[valueNdx]));
@@ -3083,16 +3084,16 @@ glsBuiltinPrecisionTests.Typename;
     		switch (outCount) {
     			case 2:
     				reference1 = glsBuiltinPrecisionTests.convert(this.Out.Out1, highpFmt, env.lookup(variables.out1));
-                    var value = glsBuiltinPrecisionTests.getOutput(outputs[1], valueNdx, reference1);
-    				if (!glsBuiltinPrecisionTests.contains(this.Out.Out1, reference1, value)) {
-                        msg = 'Shader output 1 (' + value + ') is outside acceptable range: ' + reference1;
+                    value1 = glsBuiltinPrecisionTests.getOutput(outputs[1], valueNdx, reference1);
+    				if (!glsBuiltinPrecisionTests.contains(this.Out.Out1, reference1, value1)) {
+                        msg = 'Shader output 1 (' + value1 + ') is outside acceptable range: ' + reference1;
                         result = false;
                     }
     			case 1:
                     reference0 = glsBuiltinPrecisionTests.convert(this.Out.Out0, highpFmt, env.lookup(variables.out0));
-                    var value = glsBuiltinPrecisionTests.getOutput(outputs[0], valueNdx, reference0);
-                    if (!glsBuiltinPrecisionTests.contains(this.Out.Out0, reference0, value)) {
-                        msg = 'Shader output 0 (' + value + ') is outside acceptable range: ' + reference0;
+                    value0 = glsBuiltinPrecisionTests.getOutput(outputs[0], valueNdx, reference0);
+                    if (!glsBuiltinPrecisionTests.contains(this.Out.Out0, reference0, value0)) {
+                        msg = 'Shader output 0 (' + value0 + ') is outside acceptable range: ' + reference0;
                         result = false;
                     }
     			default: break;
@@ -3128,14 +3129,14 @@ glsBuiltinPrecisionTests.Typename;
 
     			if (outCount > 0) {
     				builder += '\t' + variables.out0.getName() + ' = ' +
-    						outputs[0][valueNdx] + '\n' +
+    						value0 + '\n' +
     						'\tExpected range: ' +
     						reference0 + '\n';
     			}
 
     			if (outCount > 1) {
     				builder += '\t' + variables.out1.getName() + ' = ' +
-    						outputs[1][valueNdx] + '\n' +
+    						value1 + '\n' +
     						'\tExpected range: ' +
     						reference1 + '\n';
     			}
@@ -4613,16 +4614,17 @@ glsBuiltinPrecisionTests.Typename;
         //clamp((x - edge0) / (edge1 - edge0), constant(0.0f), constant(1.0f));
         var v0 = app(new glsBuiltinPrecisionTests.Sub(), x, edge0);
         var v1 = app(new glsBuiltinPrecisionTests.Sub(), edge1, edge0);
-        var v2 = app(new glsBuiltinPrecisionTests.Clamp(), v2, zero, one);
+        var v2 = app(new glsBuiltinPrecisionTests.Div(), v0, v1);
+        var v3 = app(new glsBuiltinPrecisionTests.Clamp(), v2, zero, one);
         // TODO: bind v2 to a variable 't' for better performance
         //(t * t * (constant(3.0f) - constant(2.0f) * t))
         var two = new glsBuiltinPrecisionTests.Constant(2);
         var three = new glsBuiltinPrecisionTests.Constant(3);
-        var v3 = app(new glsBuiltinPrecisionTests.Mul(), v2, v2);
-        var v4 = app(new glsBuiltinPrecisionTests.Mul(), v3, three);
-        var v5 = app(new glsBuiltinPrecisionTests.Mul(), two, v2);
-        var v6 = app(new glsBuiltinPrecisionTests.Sub(), v4, v5);
-        return v6;
+        var v4 = app(new glsBuiltinPrecisionTests.Mul(), v3, v3);
+        var v5 = app(new glsBuiltinPrecisionTests.Mul(), v4, three);
+        var v6 = app(new glsBuiltinPrecisionTests.Mul(), two, v2);
+        var v7 = app(new glsBuiltinPrecisionTests.Sub(), v5, v6);
+        return v7;
     };
 
     /**

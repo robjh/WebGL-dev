@@ -323,8 +323,8 @@ goog.scope(function() {
     	}
 
     	// Operation - indented to correct level.
-      // TODO: Add indenting
-      src += shaderSpec.source;
+        // TODO: Add indenting
+        src += shaderSpec.source;
     	// {
     	// 	std::istringstream	opSrc	(shaderSpec.source);
     	// 	/** @type{number} */ var line;
@@ -676,7 +676,7 @@ glsShaderExecUtil.FragmentShaderExecutor.prototype.execute = function(numValues,
     gluDrawUtil.draw(gl, this.m_program.getProgram(), vertexArrays,
         new gluDrawUtil.PrimitiveList(gluDrawUtil.primitiveType.POINTS, numValues));
 
- // Read back pixels.
+    // Read back pixels.
 
    // \todo [2013-08-07 pyry] Some fast-paths could be added here.
 
@@ -701,13 +701,13 @@ glsShaderExecUtil.FragmentShaderExecutor.prototype.execute = function(numValues,
          outputs[outNdx] = new Uint8Array(tmpBuf.getAccess().getBuffer());
        else
        {
-         outputs[outNdx] = new Uint8Array(numValues * outVecSize * 4);
-         var srcPtr = new Uint8Array(tmpBuf.getAccess().getBuffer());
+         outputs[outNdx] = new Uint32Array(numValues * outVecSize);
+         var srcPtr = new Uint32Array(tmpBuf.getAccess().getBuffer());
          for (var valNdx = 0; valNdx < numValues; valNdx++)
          {
            var srcOffset = valNdx * 4;
            var dstOffset = outSize * valNdx + outVecSize * locNdx;
-           for (var j = 0; j < outVecSize * 4; j++)
+           for (var j = 0; j < outVecSize; j++)
             outputs[outNdx][dstOffset + j] = srcPtr[srcOffset + j];
          }
        }
