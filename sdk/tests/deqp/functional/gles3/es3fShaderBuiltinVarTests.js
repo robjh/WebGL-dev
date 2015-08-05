@@ -193,7 +193,7 @@ goog.scope(function() {
 	 * @param {es3fShaderBuiltinVarTests.DepthRangeParams} params
 	 */
 	es3fShaderBuiltinVarTests.DepthRangeEvaluator = function(params) {
-		glsShaderRenderCase.ShaderEvaluator.call(this);
+		//glsShaderRenderCase.ShaderEvaluator.call(this);
 		/** @type {es3fShaderBuiltinVarTests.DepthRangeParams} */ this.m_params = params;
 	};
 
@@ -375,9 +375,8 @@ goog.scope(function() {
 		// Compare
 	    /** @type {boolean} */ var isOk = tcuImageCompare.pixelThresholdCompare('Result', 'Image comparison result', refImg, testImg, threshold);
 
-		if (!isOk) {
+		if (!isOk)
 			testFailedOptions('Image comparison failed', false);
-		}
 		else
 			testPassedOptions('Pass', true);
 
@@ -705,7 +704,7 @@ goog.scope(function() {
 	 */
 	es3fShaderBuiltinVarTests.VertexIDCase = function() {
 		tcuTestCase.DeqpTest.call(this, 'vertex_id', 'gl_VertexID Test');
-		/** @type {?WebGLProgram} */ this.m_program = null;
+		/** @type {?gluShaderProgram.ShaderProgram} */ this.m_program = null;
 		/** @type {WebGLBuffer} */ this.m_positionBuffer = null;
 		/** @type {WebGLBuffer} */ this.m_elementBuffer = null;
 		/** @type {number} */ this.m_viewportW = 0;
@@ -861,8 +860,8 @@ goog.scope(function() {
 		declaration.pushVertexAttribute(new sglrShaderProgram.VertexAttribute('', rrGenericVector.GenericVecType.FLOAT));
 		declaration.pushVertexToFragmentVarying(new sglrShaderProgram.VertexToFragmentVarying(rrGenericVector.GenericVecType.FLOAT, new sglrShaderProgram.VaryingFlags()));
 		declaration.pushFragmentOutput(new sglrShaderProgram.FragmentOutput(rrGenericVector.GenericVecType.FLOAT));
-		declaration.pushVertexSource(''); // ShaderProgram fails if we don't push a source, even though GLSL source is not used
-		declaration.pushFragmentSource('');
+		declaration.pushVertexSource(new sglrShaderProgram.VertexSource('')); // ShaderProgram fails if we don't push a source, even though GLSL source is not used
+		declaration.pushFragmentSource(new sglrShaderProgram.FragmentSource(''));
 		sglrShaderProgram.ShaderProgram.call(this, declaration);
 	};
 
@@ -904,8 +903,8 @@ goog.scope(function() {
 	/**
 	 * @param {tcuTexture.PixelBufferAccess} dst
 	 * @param {Array<number>} indices
-	 * @param {Array<Array<number>>} positions
-	 * @param {Array<Array<number>>} colors
+	 * @param {goog.NumberArray} positions
+	 * @param {goog.NumberArray} colors
 	 */
 	es3fShaderBuiltinVarTests.VertexIDCase.prototype.renderReference = function(dst, indices, positions, colors) {
 		/** @type {rrRenderState.RenderState} */
@@ -958,15 +957,19 @@ goog.scope(function() {
 		/** @type {number} */ var viewportY	= rnd.getInt(0, height - viewportH);
 
 		/** @type {number} */ var posLoc = gl.getAttribLocation(this.m_program.getProgram(), 'a_position');
-		/** @type {number} */ var colorsLoc	= gl.getUniformLocation(this.m_program.getProgram(), 'u_colors[0]');
+		/** @type {WebGLUniformLocation} */ var colorsLoc	= gl.getUniformLocation(this.m_program.getProgram(), 'u_colors[0]');
 		/** @type {Array<number>} */ var clearColor	= [0.0, 0.0, 0.0, 1.0];
+		/** @type {Array<number>} */ var indices = [];
+		/** @type {Array<Array<number>>} */ var mappedPos = [];
+		/** @type {goog.NumberArray} */ var flatColorArray;
+		/** @type {goog.NumberArray} */ var flatPosArray;
 		// Setup common state.
 		gl.viewport(viewportX, viewportY, viewportW, viewportH);
 		gl.useProgram(this.m_program.getProgram());
 		gl.bindBuffer(gl.ARRAY_BUFFER, this.m_positionBuffer);
 		gl.enableVertexAttribArray(posLoc);
 		gl.vertexAttribPointer(posLoc, 4, gl.FLOAT, false, 0, 0);
-		gl.uniform4fv(colorsLoc, this.m_colors);
+		gl.uniform4fv(colorsLoc, [].concat.apply([], this.m_colors));
 
 		// Clear render target to black.
 		gl.clearColor(clearColor[0], clearColor[1], clearColor[2], clearColor[3]);
@@ -976,11 +979,10 @@ goog.scope(function() {
 
 		if (this.m_iterNdx === 0) {
 			bufferedLogToConsole('Iter0: glDrawArrays()');
-			/** @type {Array<number>} */ var indices = [];
 
-			/** @type {googl.NumberArray} */ var flatPosArray = new Float32Array([].concat.apply([], this.m_positions));
-			/** @type {googl.NumberArray} */ var flatColorArray = new Float32Array([].concat.apply([], this.m_colors));
-			gl.bufferData(gl.ARRAY_BUFFER, flatPosArray, gl.DYNAMIC_DRAW);
+			flatPosArray = new Float32Array([].concat.apply([], this.m_positions));
+			flatColorArray = new Float32Array([].concat.apply([], this.m_colors));
+			gl.bufferData(gl.ARRAY_BUFFER, flatPosArray.buffer, gl.DYNAMIC_DRAW);
 			gl.drawArrays(gl.TRIANGLES, 0, Math.floor(flatPosArray.length / 4));
 
 			//glu::readPixels(m_context.getRenderContext(), viewportX, viewportY, testImg.getAccess());
@@ -993,8 +995,6 @@ goog.scope(function() {
 		}
 		else if (this.m_iterNdx === 1) {
 			bufferedLogToConsole('Iter1: glDrawElements(), indices in client-side array')
-			/** @type {Array<number>} */ var indices = [];
-			/** @type {Array<Array<number>>} */ var mappedPos = [];
 
 			// Compute initial indices and suffle
 			for (var ndx = 0; ndx < this.m_positions.length; ndx++)
@@ -1007,23 +1007,21 @@ goog.scope(function() {
 			for (var ndx = 0; ndx < indices.length; ndx++)
 				mappedPos[indices[ndx]] = this.m_positions[ndx];
 
-			/** @type {googl.NumberArray} */ var flatMappedPosArray = new Float32Array([].concat.apply([], mappedPos));
-			/** @type {googl.NumberArray} */ var flatColorArray = new Float32Array([].concat.apply([], this.m_colors));
-			gl.bufferData(gl.ARRAY_BUFFER, flatMappedPosArray, gl.DYNAMIC_DRAW);
+			flatPosArray = new Float32Array([].concat.apply([], mappedPos));
+			flatColorArray = new Float32Array([].concat.apply([], this.m_colors));
+			gl.bufferData(gl.ARRAY_BUFFER, flatPosArray.buffer, gl.DYNAMIC_DRAW);
 
 			gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, this.m_elementBuffer);
-			gl.bufferData(gl.ELEMENT_ARRAY_BUFFER, new Uint16Array(indices), gl.DYNAMIC_DRAW);
+			gl.bufferData(gl.ELEMENT_ARRAY_BUFFER, (new Uint16Array(indices)).buffer, gl.DYNAMIC_DRAW);
 
 			gl.drawElements(gl.TRIANGLES, indices.length, gl.UNSIGNED_SHORT, 0);
 
 			//glu::readPixels(this.m_context.getRenderContext(), viewportX, viewportY, testImg.getAccess());
 			testImg.readViewport(gl, [viewportX, viewportY, viewportW, viewportH]);
-			this.renderReference(refImg.getAccess(), indices, flatMappedPosArray, flatColorArray);
+			this.renderReference(refImg.getAccess(), indices, flatPosArray, flatColorArray);
 		}
 		else if (this.m_iterNdx === 2) {
 			bufferedLogToConsole('Iter2: glDrawElements(), indices in buffer');
-			/** @type {Array<number>} */ var indices = [];
-			/** @type {Array<Array<number>>} */ var mappedPos = [];
 
 			// Compute initial indices and suffle
 			for (var ndx = 0; ndx < this.m_positions.length; ndx++)
@@ -1036,23 +1034,23 @@ goog.scope(function() {
 				mappedPos[indices[ndx]] = this.m_positions[ndx];
 
 			gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, this.m_elementBuffer);
-			gl.bufferData(gl.ELEMENT_ARRAY_BUFFER, new Uint16Array(indices), gl.DYNAMIC_DRAW);
+			gl.bufferData(gl.ELEMENT_ARRAY_BUFFER, (new Uint16Array(indices)).buffer, gl.DYNAMIC_DRAW);
 
-			/** @type {googl.NumberArray} */ var flatMappedPosArray = new Float32Array([].concat.apply([], mappedPos));
-			/** @type {googl.NumberArray} */ var flatColorArray = new Float32Array([].concat.apply([], this.m_colors));
-			gl.bufferData(gl.ARRAY_BUFFER, flatMappedPosArray, gl.DYNAMIC_DRAW);
-			gl.drawElements(gl.TRIANGLES, indices.length, gl.UNSIGNED_SHORT, null);
+			flatPosArray = new Float32Array([].concat.apply([], mappedPos));
+			flatColorArray = new Float32Array([].concat.apply([], this.m_colors));
+			gl.bufferData(gl.ARRAY_BUFFER, flatPosArray.buffer, gl.DYNAMIC_DRAW);
+			gl.drawElements(gl.TRIANGLES, indices.length, gl.UNSIGNED_SHORT, 0);
 
 			//glu::readPixels(m_context.getRenderContext(), viewportX, viewportY, testImg.getAccess());
 			testImg.readViewport(gl, [viewportX, viewportY, viewportW, viewportH]);
 			refImg.getAccess().clear(clearColor);
-			this.renderReference(refImg.getAccess(), indices, flatMappedPosArray, flatColorArray);
+			this.renderReference(refImg.getAccess(), indices, flatPosArray, flatColorArray);
 		}
 		else
 			throw new Error('Iteration count exceeded.');
 
 		if (!tcuImageCompare.fuzzyCompare('Result', 'Image comparison result', refImg.getAccess(), testImg.getAccess(), threshold))
-			testFailedOptions('Image comparison failed');
+			testFailedOptions('Image comparison failed', false);
 		else
 			testPassedOptions('Pass', true);
 
@@ -1108,32 +1106,29 @@ goog.scope(function() {
 			new BuiltinConstant('max_program_texel_offset', 'gl_MaxProgramTexelOffset', function() { return es3fShaderBuiltinVarTests.getInteger(gl.MAX_PROGRAM_TEXEL_OFFSET); })
 		];
 
-		//TODO: the following tests cause these tests to fail (FragCoordXYZCase, FragCoordWCase, PointCoordCase, FrontFacingCase)
-		// need to take a look at ShaderBuiltinConstantCase, maybe something needs to be cleaned up
-		//for (var ndx = 0; ndx < builtinConstants.length; ndx++) {
-		// 	/** @type {string} */ var caseName = builtinConstants[ndx].caseName;
-		// 	/** @type {string} */ var varName = builtinConstants[ndx].varName;
-		// 	/** @type {es3fShaderBuiltinVarTests.GetConstantValueFunc} */ var getValue = builtinConstants[ndx].getValue;
-		//
-		// 	testGroup.addChild(new es3fShaderBuiltinVarTests.ShaderBuiltinConstantCase(caseName + '_vertex', varName, varName, getValue, gluShaderProgram.shaderType.VERTEX));
-		// 	testGroup.addChild(new es3fShaderBuiltinVarTests.ShaderBuiltinConstantCase(caseName + '_fragment', varName, varName, getValue, gluShaderProgram.shaderType.FRAGMENT));
-		// }
+		// TODO: tests are not performing proper cleanup; some tests fail when run without filters but pass if run individually
 
-		// TODO: these two tests are crashing the webgl context (CONTEXT_LOST_WEBGL)
-		// It seems the context is lost when calling gluShaderProgram.Program.prototype.link(), line 205
-		// testGroup.addChild(new es3fShaderBuiltinVarTests.ShaderDepthRangeTest('depth_range_vertex', 'gl_DepthRange', true));
-		// testGroup.addChild(new es3fShaderBuiltinVarTests.ShaderDepthRangeTest('depth_range_fragment', 'gl_DepthRange', false));
+		for (var ndx = 0; ndx < builtinConstants.length; ndx++) {
+			/** @type {string} */ var caseName = builtinConstants[ndx].caseName;
+			/** @type {string} */ var varName = builtinConstants[ndx].varName;
+			/** @type {es3fShaderBuiltinVarTests.GetConstantValueFunc} */ var getValue = builtinConstants[ndx].getValue;
+
+			testGroup.addChild(new es3fShaderBuiltinVarTests.ShaderBuiltinConstantCase(caseName + '_vertex', varName, varName, getValue, gluShaderProgram.shaderType.VERTEX));
+			testGroup.addChild(new es3fShaderBuiltinVarTests.ShaderBuiltinConstantCase(caseName + '_fragment', varName, varName, getValue, gluShaderProgram.shaderType.FRAGMENT));
+		}
+
+		testGroup.addChild(new es3fShaderBuiltinVarTests.ShaderDepthRangeTest('depth_range_vertex', 'gl_DepthRange', true));
+		testGroup.addChild(new es3fShaderBuiltinVarTests.ShaderDepthRangeTest('depth_range_fragment', 'gl_DepthRange', false));
 
 		// Vertex shader builtin variables.
-		// TODO: must implement
-		testGroup.addChild(new es3fShaderBuiltinVarTests.VertexIDCase(gl));
+		testGroup.addChild(new es3fShaderBuiltinVarTests.VertexIDCase());
 		// \todo [2013-03-20 pyry] gl_InstanceID -- tested in instancing tests quite thoroughly.
 
 		// Fragment shader builtin variables.
-		// testGroup.addChild(new es3fShaderBuiltinVarTests.FragCoordXYZCase());
-		// testGroup.addChild(new es3fShaderBuiltinVarTests.FragCoordWCase());
-		// testGroup.addChild(new es3fShaderBuiltinVarTests.PointCoordCase());
-		// testGroup.addChild(new es3fShaderBuiltinVarTests.FrontFacingCase());
+		testGroup.addChild(new es3fShaderBuiltinVarTests.FragCoordXYZCase());
+		testGroup.addChild(new es3fShaderBuiltinVarTests.FragCoordWCase());
+		testGroup.addChild(new es3fShaderBuiltinVarTests.PointCoordCase());
+		testGroup.addChild(new es3fShaderBuiltinVarTests.FrontFacingCase());
 	};
 
 

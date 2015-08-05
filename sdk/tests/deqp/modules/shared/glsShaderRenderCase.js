@@ -697,7 +697,7 @@ goog.scope(function() {
         /** @type {number} */ var height = result.getHeight();
         /** @type {number} */ var gridSize = quadGrid.getGridSize();
         /** @type {number} */ var stride = gridSize + 1;
-        /** @type {boolean} */ var hasAlpha    = gl.getContextAttributes().alpha;
+        /** @type {boolean} */ var hasAlpha = gl.getContextAttributes().alpha;
         /** @type {glsShaderRenderCase.ShaderEvalContext} */
         var evalCtx = new glsShaderRenderCase.ShaderEvalContext(quadGrid);
         /** @type {Array<number>} */ var color = [];
