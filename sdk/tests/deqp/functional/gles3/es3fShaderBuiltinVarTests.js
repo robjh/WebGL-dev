@@ -146,12 +146,8 @@ goog.scope(function() {
 	 * @return {tcuTestCase.IterateResult}
 	 */
 	es3fShaderBuiltinVarTests.ShaderBuiltinConstantCase.prototype.iterate = function() {
-		/** @type {glsShaderExecUtil.ShaderExecutor} */ var shaderExecutor = this.createGetConstantExecutor(this.m_shaderType, this.m_varName);
-		// TODO: So there is a potential issue here. m_getValue takes a context in the C++. This would make sense to port if the Reference Context is be used.
-		// If the Reference Context is not used, then there is no use in executing the function since it can be evaluated when the constructor is called.
-		// If the RC is used, then the constructor will take an anonymous function like so:
-		//    function(gl) { return es3fShaderBuiltinVarTests.getVectorsFromComps(GL_SOMETHING, gl); }
-		// Will need to come back later once I know more about this test.
+		/** @type {glsShaderExecUtil.ShaderExecutor} */
+		 var shaderExecutor = this.createGetConstantExecutor(this.m_shaderType, this.m_varName);
 		/** @type {number} */ var reference = this.m_getValue();
 		/** @type {goog.NumberArray} */ var result;
 
@@ -159,6 +155,7 @@ goog.scope(function() {
 			assertMsgOptions(false, 'Compile failed', false, true);
 
 		shaderExecutor.useProgram();
+		debugger;
 		result = shaderExecutor.execute(1, null);
 
 		bufferedLogToConsole(this.m_varName + ' ' /* + QP_KEY_TAG_NONE + ' '*/ + result);
@@ -750,7 +747,7 @@ goog.scope(function() {
 			'void main (void)\n' +
 			'{\n' +
 			'	gl_Position = a_position;\n' +
-			'	v_color = u_colors[gl_VertexID];\n' + // TODO gl_VertexID causes shader to fail to compile
+			'	v_color = u_colors[gl_VertexID];\n' +
 			'}\n';
 
 		/** @type {string} */ var fragSource = '#version 300 es\n' +
