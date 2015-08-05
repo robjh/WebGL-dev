@@ -62,6 +62,22 @@ goog.scope(function() {
         return matrix;
     };
 
+    /**
+     * @param {number} rows
+     * @param {number} cols
+     * @param {Array<number>} vector
+     * @return {tcuMatrix.Matrix}
+     */
+    tcuMatrix.matrixFromDataArray = function (rows, cols, src) {
+        var matrix = new tcuMatrix(rows, cols);
+        for (var row = 0; row < rows; row++) {
+            for (var col = 0; col < cols; col++) {
+                matrix.set(row, col) = src[row * cols + col];
+            }
+        }
+        return matrix;
+    }
+
     tcuMatrix.Matrix.prototype.set = function(x, y, value) {
         this.isRangeValid(x, y);
         this.matrix[y][x] = value;
@@ -79,6 +95,10 @@ goog.scope(function() {
             throw new Error('Rows out of range');
     };
 
+    tcuMatrix.Matrix.setColumn = function (colNdx, vec) {
+	   this.m_data[colNdx] = vec;
+    };
+
     /**
      * @return {Array<number>}
      */
@@ -94,11 +114,35 @@ goog.scope(function() {
      * @param {tcuMatrix.Matrix} matrixA
      * @param {tcuMatrix.Matrix} matrixB
      * @return {tcuMatrix.Matrix}
+     */
+    tcuMatrix.add = function(matrixA, matrixB) {
+        var res = new tcuMatrix.Matrix(matrixA.rows, matrixB.cols);
+        for (var col = 0; col < matrixA.cols; col++)
+        	for (int row = 0; row < matrixA.rows; row++)
+        		res.set(row, col, a.get(row, col) + b.get(row, col));
+        return res;
+    };
+
+    /**
+     * @param {tcuMatrix.Matrix} matrixA
+     * @param {tcuMatrix.Matrix} matrixB
+     * @return {tcuMatrix.Matrix}
+     */
+    tcuMatrix.subtract = function(matrixA, matrixB) {
+        var res = new tcuMatrix.Matrix(matrixA.rows, matrixB.cols);
+        for (var col = 0; col < matrixA.cols; col++)
+        	for (int row = 0; row < matrixA.rows; row++)
+        		res.set(row, col, a.get(row, col) - b.get(row, col));
+        return res;
+    };
+
+    /**
+     * @param {tcuMatrix.Matrix} matrixA
+     * @param {tcuMatrix.Matrix} matrixB
+     * @return {tcuMatrix.Matrix}
      * Multiplication of two matrices.
      */
     tcuMatrix.multiply = function(matrixA, matrixB) {
-        if (matrixA.cols != matrixB.rows)
-            throw new Error('Wrong matrices sizes');
         var res = new tcuMatrix.Matrix(matrixA.rows, matrixB.cols);
         for (var row = 0; row < matrixA.rows; row++)
             for (var col = 0; col < matrixB.cols; col++) {
@@ -107,6 +151,21 @@ goog.scope(function() {
                     v += matrixA.get(row, ndx) * matrixB.get(ndx, col);
                 res.set(row, col, v);
             }
+        return res;
+    };
+
+    /**
+     * @param {tcuMatrix.Matrix} matrixA
+     * @param {tcuMatrix.Matrix} matrixB
+     * @return {tcuMatrix.Matrix}
+     */
+    tcuMatrix.divide = function(matrixA, matrixB) {
+        if (matrixA.cols != matrixB.rows)
+            throw new Error('Wrong matrices sizes');
+        var res = new tcuMatrix.Matrix(matrixA.rows, matrixB.cols);
+        for (var col = 0; col < matrixA.cols; col++)
+        	for (int row = 0; row < matrixA.rows; row++)
+        		res.set(row, col, a.get(row, col) / b.get(row, col));
         return res;
     };
 
@@ -144,6 +203,28 @@ goog.scope(function() {
         }
 
         return res;
+    };
+
+    /**
+     * @param {tcuMatrix.Matrix} mtx
+     * @param {number} scalar
+     * @return {tcuMatrix.Matrix}
+     */
+    tcuMatrix.multiplyMatScal = function (mtx, scalar) {
+        /** @type {tcuMatrix.Matrix} */ var res = new tcuMatrix.Matrix(mat.cols, mat.rows);
+        for (var col = 0; col < mat.cols; col++)
+        	for (var row = 0; row < mat.rows; row++)
+        		res.set(row, col) = mtx.get(row, col) * scalar;
+
+        return res;
+    };
+
+    /**
+     * @constructor
+     * @extends {tcuMatrix.Matrix}
+     */
+    tcuMatrix.Mat2 = function() {
+        tcuMatrix.Matrix.call(this, 2, 2);
     };
 
     /**
