@@ -22,18 +22,20 @@
 goog.provide('functional.gles3.es3fShaderBuiltinVarTests');
 goog.require('framework.delibs.debase.deMath');
 goog.require('framework.delibs.debase.deRandom');
+goog.require('framework.delibs.debase.deString');
 goog.require('framework.common.tcuImageCompare');
 goog.require('framework.common.tcuLogImage');
 goog.require('framework.common.tcuPixelFormat');
 goog.require('framework.common.tcuRGBA');
 goog.require('framework.common.tcuSurface');
 goog.require('framework.common.tcuTestCase');
+goog.require('framework.common.tcuTexture');
 goog.require('framework.opengl.gluDrawUtil');
 goog.require('framework.opengl.gluShaderProgram');
 goog.require('framework.opengl.gluShaderUtil');
 goog.require('framework.opengl.gluVarType');
-goog.require('modules.shared.glsShaderExecUtil');
-goog.require('modules.shared.glsShaderRenderCase');
+goog.require('framework.opengl.simplereference.sglrReferenceContext');
+goog.require('framework.opengl.simplereference.sglrShaderProgram');
 goog.require('framework.referencerenderer.rrFragmentOperations');
 goog.require('framework.referencerenderer.rrGenericVector');
 goog.require('framework.referencerenderer.rrMultisamplePixelBufferAccess');
@@ -42,12 +44,14 @@ goog.require('framework.referencerenderer.rrRenderState');
 goog.require('framework.referencerenderer.rrShadingContext');
 goog.require('framework.referencerenderer.rrVertexAttrib');
 goog.require('framework.referencerenderer.rrVertexPacket');
-goog.require('framework.opengl.simplereference.sglrShaderProgram');
+goog.require('modules.shared.glsShaderRenderCase');
+goog.require('modules.shared.glsShaderExecUtil');
 
 
 goog.scope(function() {
 	var es3fShaderBuiltinVarTests = functional.gles3.es3fShaderBuiltinVarTests;
 	var deMath = framework.delibs.debase.deMath;
+	var deString = framework.delibs.debase.deString;
 	var deRandom = framework.delibs.debase.deRandom;
 	var glsShaderExecUtil = modules.shared.glsShaderExecUtil;
 	var glsShaderRenderCase = modules.shared.glsShaderRenderCase;
@@ -57,12 +61,13 @@ goog.scope(function() {
 	var gluVarType = framework.opengl.gluVarType;
 	var tcuPixelFormat = framework.common.tcuPixelFormat;
 	var tcuSurface = framework.common.tcuSurface;
+	var tcuTexture = framework.common.tcuTexture;
 	var tcuLogImage = framework.common.tcuLogImage;
 	var tcuTestCase = framework.common.tcuTestCase;
 	var tcuImageCompare = framework.common.tcuImageCompare;
 	var tcuRGBA = framework.common.tcuRGBA;
-	var rrFragmentOperations = framework.referencerenderer.rrFragmentOperations;
 	var rrGenericVector = framework.referencerenderer.rrGenericVector;
+	var rrFragmentOperations = framework.referencerenderer.rrFragmentOperations;
 	var rrMultisamplePixelBufferAccess = framework.referencerenderer.rrMultisamplePixelBufferAccess;
 	var rrRenderer = framework.referencerenderer.rrRenderer;
 	var rrRenderState = framework.referencerenderer.rrRenderState;
@@ -70,6 +75,7 @@ goog.scope(function() {
 	var rrVertexAttrib = framework.referencerenderer.rrVertexAttrib;
 	var rrVertexPacket = framework.referencerenderer.rrVertexPacket;
 	var sglrShaderProgram = framework.opengl.simplereference.sglrShaderProgram;
+	var sglrReferenceContext = framework.opengl.simplereference.sglrReferenceContext;
 
 
 	/** @typedef {function():number} */ es3fShaderBuiltinVarTests.GetConstantValueFunc;
@@ -280,7 +286,7 @@ goog.scope(function() {
 		this.postiterate();
 		this.m_iterNdx += 1;
 
-		if (this.m_iterNdx == cases.length /* TODO:|| this.m_testCtx.getTestResult() != QP_TEST_RESULT_PASS */)
+		if (this.m_iterNdx == cases.length /* TODO:|| this.m_testgl.getTestResult() != QP_TEST_RESULT_PASS */)
 			return tcuTestCase.IterateResult.STOP;
 		else
 			return tcuTestCase.IterateResult.CONTINUE;
@@ -698,7 +704,7 @@ goog.scope(function() {
 	 * @extends {tcuTestCase.DeqpTest}
 	 */
 	es3fShaderBuiltinVarTests.VertexIDCase = function() {
-		tcuTestCase.DeqpTest.call(this, 'vertex_id',	'gl_VertexID Test');
+		tcuTestCase.DeqpTest.call(this, 'vertex_id', 'gl_VertexID Test');
 		/** @type {?WebGLProgram} */ this.m_program = null;
 		/** @type {WebGLBuffer} */ this.m_positionBuffer = null;
 		/** @type {WebGLBuffer} */ this.m_elementBuffer = null;
@@ -745,7 +751,7 @@ goog.scope(function() {
 			'void main (void)\n' +
 			'{\n' +
 			'	gl_Position = a_position;\n' +
-			'	v_color = u_colors[gl_VertexID];\n' +
+			'	v_color = u_colors[gl_VertexID];\n' + // TODO gl_VertexID causes shader to fail to compile
 			'}\n';
 
 		/** @type {string} */ var fragSource = '#version 300 es\n' +
@@ -756,10 +762,10 @@ goog.scope(function() {
 			'	o_color = v_color;\n' +
 			'}\n';
 
-		/** @type {gluShaderProgram.ShaderProgram} */ var program = new gluShaderProgram.ShaderProgram(gl, gluShaderProgram.makeVtxFragSources(vtxSource, fragSource));
-		bufferedLogToConsole(program.getProgramInfo().infoLog);
+		this.m_program = new gluShaderProgram.ShaderProgram(gl, gluShaderProgram.makeVtxFragSources(vtxSource, fragSource));
+		bufferedLogToConsole(this.m_program.getProgramInfo().infoLog);
 
-		if (!program.isOk()) {
+		if (!this.m_program.isOk()) {
 			this.m_program = null;
 			throw new Error('Compile failed');
 		}
@@ -820,12 +826,11 @@ goog.scope(function() {
 			}
 		}
 
-		this.m_viewportW	= viewportW;
-		this.m_viewportH	= viewportH;
-		this.m_iterNdx	= 0;
+		this.m_viewportW = viewportW;
+		this.m_viewportH = viewportH;
+		this.m_iterNdx = 0;
 
-		// m_testCtx.setTestResult(QP_TEST_RESULT_PASS, 'Pass');
-		testPassedOptions('Pass', true);
+
 	};
 
 	es3fShaderBuiltinVarTests.VertexIDCase.prototype.deinit = function() {
@@ -845,7 +850,6 @@ goog.scope(function() {
 		this.m_colors = [];
 	};
 
-	/* @const */ es3fShaderBuiltinVarTests.VertexIDReferenceShader.VARYINGLOC_COLOR = 0;
 
 	/**
 	 * @constructor
@@ -853,21 +857,23 @@ goog.scope(function() {
 	 */
 	es3fShaderBuiltinVarTests.VertexIDReferenceShader = function() {
 		/** @type {sglrShaderProgram.ShaderProgramDeclaration} */ var declaration = new sglrShaderProgram.ShaderProgramDeclaration();
-		declaration.pushVertexAttribute(new sglrShaderProgram.VertexAttribute(rrGenericVector.GenericVecType.FLOAT));
-		declaration.pushVertexAttribute(new sglrShaderProgram.VertexAttribute(rrGenericVector.GenericVecType.FLOAT));
+		declaration.pushVertexAttribute(new sglrShaderProgram.VertexAttribute('', rrGenericVector.GenericVecType.FLOAT));
+		declaration.pushVertexAttribute(new sglrShaderProgram.VertexAttribute('', rrGenericVector.GenericVecType.FLOAT));
 		declaration.pushVertexToFragmentVarying(new sglrShaderProgram.VertexToFragmentVarying(rrGenericVector.GenericVecType.FLOAT, new sglrShaderProgram.VaryingFlags()));
 		declaration.pushFragmentOutput(new sglrShaderProgram.FragmentOutput(rrGenericVector.GenericVecType.FLOAT));
-
+		declaration.pushVertexSource(''); // ShaderProgram fails if we don't push a source, even though GLSL source is not used
+		declaration.pushFragmentSource('');
 		sglrShaderProgram.ShaderProgram.call(this, declaration);
 	};
 
 	es3fShaderBuiltinVarTests.VertexIDReferenceShader.prototype = Object.create(sglrShaderProgram.ShaderProgram.prototype);
 	es3fShaderBuiltinVarTests.VertexIDReferenceShader.prototype.constructor = es3fShaderBuiltinVarTests.VertexIDReferenceShader;
 
+	/** @const {number} */ es3fShaderBuiltinVarTests.VertexIDReferenceShader.VARYINGLOC_COLOR = 0;
+
 	/**
 	 * @param {Array<rrVertexAttrib.VertexAttrib>} inputs
 	 * @param {Array<rrVertexPacket.VertexPacket>} packets
-	 * @param {number} numPackets
 	 */
 	es3fShaderBuiltinVarTests.VertexIDReferenceShader.prototype.shadeVertices = function(inputs, packets) {
 		for (var packetNdx = 0; packetNdx < packets.length; ++packetNdx) {
@@ -886,7 +892,7 @@ goog.scope(function() {
 
 	/**
 	 * @param {Array<rrFragmentOperations.Fragment>} packets
-	 * @param {rrShadingContext.FragmentShadingContext}
+	 * @param {rrShadingContext.FragmentShadingContext} context
 	 */
 	es3fShaderBuiltinVarTests.VertexIDReferenceShader.prototype.shadeFragments = function(packets, context) {
 		for (var packetNdx = 0; packetNdx < packets.length; ++packetNdx) {
@@ -901,10 +907,10 @@ goog.scope(function() {
 	 * @param {Array<Array<number>>} positions
 	 * @param {Array<Array<number>>} colors
 	 */
-	es3fShaderBuiltinVarTests.VertexIDCase.renderReference = function(dst, indices, positions, colors) {
+	es3fShaderBuiltinVarTests.VertexIDCase.prototype.renderReference = function(dst, indices, positions, colors) {
 		/** @type {rrRenderState.RenderState} */
 		var referenceState = new rrRenderState.RenderState(
-			new rrRenderer.RenderTarget(rrMultisamplePixelBufferAccess.MultisamplePixelBufferAccess.fromSinglesampleAccess(dst))
+			new rrRenderState.ViewportState(rrMultisamplePixelBufferAccess.MultisamplePixelBufferAccess.fromSinglesampleAccess(dst))
 		);
 
 		/** @type {rrRenderer.RenderTarget} */
@@ -921,23 +927,14 @@ goog.scope(function() {
 		attribs[0].size = 4;
 		attribs[0].stride = 0;
 		attribs[0].instanceDivisor = 0;
-		attribs[0].pointer = positions;
+		attribs[0].pointer = positions.buffer;
 
 		attribs[1] = new rrVertexAttrib.VertexAttrib();
 		attribs[1].type = rrVertexAttrib.VertexAttribType.FLOAT;
 		attribs[1].size = 4;
 		attribs[1].stride = 0;
 		attribs[1].instanceDivisor = 0;
-		attribs[1].pointer = colors;
-
-		// referenceRenderer.draw(
-		// 	rr::DrawCommand(
-		// 		referenceState,
-		// 		referenceTarget,
-		// 		rr::Program(&referenceShader, &referenceShader),
-		// 		2,
-		// 		attribs,
-		// 		rr::PrimitiveList(rr::PRIMITIVETYPE_TRIANGLES, numVertices, rr::DrawIndices(indices))));
+		attribs[1].pointer = colors.buffer;
 		rrRenderer.drawQuads(referenceState, referenceTarget, referenceShaderProgram,
 			attribs, rrRenderer.PrimitiveType.TRIANGLES, 0, indices.length, /*instanceID = */ 0);
 	};
@@ -945,108 +942,119 @@ goog.scope(function() {
 	/**
 	 * @return {tcuTestCase.IterateResult}
 	 */
-	es3fShaderBuiltinVarTests.VertexIDCase.iterate = function() {
-		// const glw::Functions&	gl			= m_context.getRenderContext().getFunctions();
-		/** @type {sglrReferenceContext.ReferenceContext} */
-		var ctx = new sglrReferenceContext.ReferenceContext(limits, colorbuffer, depthbuffer, stencilbuffer);
-		/** @type {number} */ var width = m_context.getRenderTarget().getWidth();
-		/** @type {number} */ var height = m_context.getRenderTarget().getHeight();
+	es3fShaderBuiltinVarTests.VertexIDCase.prototype.iterate = function() {
+		/** @type {number} */ var width = gl.drawingBufferWidth;
+		/** @type {number} */ var height = gl.drawingBufferHeight;
 		/** @type {number} */ var viewportW	= this.m_viewportW;
 		/** @type {number} */ var viewportH	= this.m_viewportH;
 
 		/** @type {number} */ var threshold = 0.02;
 
-		/** @type {deRandom.Random} */ var rnd = new deRandom.Random(0xcf23ab1 ^ deString.deStringHash(this.m_iterNdx));
+		/** @type {deRandom.Random} */ var rnd = new deRandom.Random(0xcf23ab1 ^ deString.deStringHash(this.m_iterNdx.toString()));
 		/** @type {tcuSurface.Surface} */ var refImg = new tcuSurface.Surface(viewportW, viewportH);
 		/** @type {tcuSurface.Surface} */ var testImg = new tcuSurface.Surface(viewportW, viewportH);
 
-		/** @type {number} */ var viewportX	= rnd.getInt(0, width-viewportW);
-		/** @type {number} */ var viewportY	= rnd.getInt(0, height-viewportH);
+		/** @type {number} */ var viewportX	= rnd.getInt(0, width - viewportW);
+		/** @type {number} */ var viewportY	= rnd.getInt(0, height - viewportH);
 
-		/** @type {number} */ var posLoc = ctx.getAttribLocation(m_program.getProgram(), "a_position");
-		/** @type {number} */ var colorsLoc	= ctx.getUniformLocation(m_program.getProgram(), "u_colors[0]");
+		/** @type {number} */ var posLoc = gl.getAttribLocation(this.m_program.getProgram(), 'a_position');
+		/** @type {number} */ var colorsLoc	= gl.getUniformLocation(this.m_program.getProgram(), 'u_colors[0]');
 		/** @type {Array<number>} */ var clearColor	= [0.0, 0.0, 0.0, 1.0];
-
 		// Setup common state.
-		ctx.viewport(viewportX, viewportY, viewportW, viewportH);
-		ctx.useProgram(this.m_program.getProgram());
-		ctx.bindBuffer(ctx.ARRAY_BUFFER, this.m_positionBuffer);
-		ctx.enableVertexAttribArray(posLoc);
-		ctx.vertexAttribPointer(posLoc, 4, ctx.FLOAT, ctx.FALSE, 0, null);
-		ctx.uniform4fv(colorsLoc, this.m_colors);
+		gl.viewport(viewportX, viewportY, viewportW, viewportH);
+		gl.useProgram(this.m_program.getProgram());
+		gl.bindBuffer(gl.ARRAY_BUFFER, this.m_positionBuffer);
+		gl.enableVertexAttribArray(posLoc);
+		gl.vertexAttribPointer(posLoc, 4, gl.FLOAT, false, 0, 0);
+		gl.uniform4fv(colorsLoc, this.m_colors);
 
 		// Clear render target to black.
-		ctx.clearColor(clearColor[0], clearColor[1], clearColor[2], clearColor[3]);
-		ctx.clear(ctx.COLOR_BUFFER_BIT);
+		gl.clearColor(clearColor[0], clearColor[1], clearColor[2], clearColor[3]);
+		gl.clear(gl.COLOR_BUFFER_BIT);
 
 		refImg.getAccess().clear(clearColor);
 
 		if (this.m_iterNdx === 0) {
-			bufferedLogToConsole("Iter0: glDrawArrays()");
+			bufferedLogToConsole('Iter0: glDrawArrays()');
 			/** @type {Array<number>} */ var indices = [];
 
-			ctx.bufferData(ctx.ARRAY_BUFFER, this.m_positions, ctx.DYNAMIC_DRAW);
-			ctx.drawArrays(ctx.TRIANGLES, 0, m_positions.length);
+			/** @type {googl.NumberArray} */ var flatPosArray = new Float32Array([].concat.apply([], this.m_positions));
+			/** @type {googl.NumberArray} */ var flatColorArray = new Float32Array([].concat.apply([], this.m_colors));
+			gl.bufferData(gl.ARRAY_BUFFER, flatPosArray, gl.DYNAMIC_DRAW);
+			gl.drawArrays(gl.TRIANGLES, 0, Math.floor(flatPosArray.length / 4));
 
 			//glu::readPixels(m_context.getRenderContext(), viewportX, viewportY, testImg.getAccess());
-			testImg.readViewport(ctx, [viewportX, viewportY, viewportW, viewportH]);
+			testImg.readViewport(gl, [viewportX, viewportY, viewportW, viewportH]);
 			// Reference indices
-			for (var ndx = 0; ndx < indices.length; ndx++)
-				indices[ndx] = ndx;
+			for (var ndx = 0; ndx < this.m_positions.length; ndx++)
+				indices.push(ndx);
 
-			renderReference(refImg.getAccess(), indices, this.m_positions, this.m_colors);
+			this.renderReference(refImg.getAccess(), indices, flatPosArray, flatColorArray);
 		}
 		else if (this.m_iterNdx === 1) {
-			bufferedLogToConsole("Iter1;: glDrawElements(), indices in client-side array")
+			bufferedLogToConsole('Iter1: glDrawElements(), indices in client-side array')
 			/** @type {Array<number>} */ var indices = [];
 			/** @type {Array<Array<number>>} */ var mappedPos = [];
 
 			// Compute initial indices and suffle
-			for (var ndx = 0; ndx < indices.length; ndx++)
-				indices[ndx] = ndx;
-			deRandom.shuffle(rnd, indices);
+			for (var ndx = 0; ndx < this.m_positions.length; ndx++)
+				indices.push(ndx);
+
+			// deRandom.shuffle(rnd, indices);
+			// \note [2015-08-05 dag] The original test shuffles the indices array but the reference renderer cannot handle triangles with sides not parallel to the axes.
 
 			// Use indices to re-map positions.
 			for (var ndx = 0; ndx < indices.length; ndx++)
 				mappedPos[indices[ndx]] = this.m_positions[ndx];
 
-			ctx.bufferData(ctx.ARRAY_BUFFER, mappedPos, ctx.DYNAMIC_DRAW);
-			ctx.drawElements(ctx.TRIANGLES, indices.length, ctx.UNSIGNED_SHORT, indices);
+			/** @type {googl.NumberArray} */ var flatMappedPosArray = new Float32Array([].concat.apply([], mappedPos));
+			/** @type {googl.NumberArray} */ var flatColorArray = new Float32Array([].concat.apply([], this.m_colors));
+			gl.bufferData(gl.ARRAY_BUFFER, flatMappedPosArray, gl.DYNAMIC_DRAW);
+
+			gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, this.m_elementBuffer);
+			gl.bufferData(gl.ELEMENT_ARRAY_BUFFER, new Uint16Array(indices), gl.DYNAMIC_DRAW);
+
+			gl.drawElements(gl.TRIANGLES, indices.length, gl.UNSIGNED_SHORT, 0);
 
 			//glu::readPixels(this.m_context.getRenderContext(), viewportX, viewportY, testImg.getAccess());
-			testImg.readViewport(ctx, [viewportX, viewportY, viewportW, viewportH]);
-			this.renderReference(refImg.getAccess(), indices, mappedPos, this.m_colors);
+			testImg.readViewport(gl, [viewportX, viewportY, viewportW, viewportH]);
+			this.renderReference(refImg.getAccess(), indices, flatMappedPosArray, flatColorArray);
 		}
-		else if (this.m_iterNdx == 2) {
-			bufferedLogToConsole("Iter2: glDrawElements(), indices in buffer");
+		else if (this.m_iterNdx === 2) {
+			bufferedLogToConsole('Iter2: glDrawElements(), indices in buffer');
 			/** @type {Array<number>} */ var indices = [];
 			/** @type {Array<Array<number>>} */ var mappedPos = [];
 
 			// Compute initial indices and suffle
-			for (var ndx = 0; ndx < indices.length; ndx++)
-				indices[ndx] = ndx;
-			deRandom.shuffle(rnd, indices);
+			for (var ndx = 0; ndx < this.m_positions.length; ndx++)
+				indices.push(ndx);
+			// deRandom.shuffle(rnd, indices);
+			// \note [2015-08-05 dag] The original test shuffles the indices array but the reference renderer cannot handle triangles with sides not parallel to the axes.
 
 			// Use indices to re-map positions.
 			for (var ndx = 0; ndx < indices.length; ndx++)
 				mappedPos[indices[ndx]] = this.m_positions[ndx];
 
-			ctx.bindBuffer(ctx.ELEMENT_ARRAY_BUFFER, this.m_elementBuffer);
-			ctx.bufferData(ctx.ELEMENT_ARRAY_BUFFER, indices, ctx.DYNAMIC_DRAW);
+			gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, this.m_elementBuffer);
+			gl.bufferData(gl.ELEMENT_ARRAY_BUFFER, new Uint16Array(indices), gl.DYNAMIC_DRAW);
 
-			ctx.bufferData(ctx.ARRAY_BUFFER, mappedPos, ctx.DYNAMIC_DRAW);
-			ctx.drawElements(ctx.TRIANGLES, indices.length, ctx.UNSIGNED_SHORT, null);
+			/** @type {googl.NumberArray} */ var flatMappedPosArray = new Float32Array([].concat.apply([], mappedPos));
+			/** @type {googl.NumberArray} */ var flatColorArray = new Float32Array([].concat.apply([], this.m_colors));
+			gl.bufferData(gl.ARRAY_BUFFER, flatMappedPosArray, gl.DYNAMIC_DRAW);
+			gl.drawElements(gl.TRIANGLES, indices.length, gl.UNSIGNED_SHORT, null);
 
 			//glu::readPixels(m_context.getRenderContext(), viewportX, viewportY, testImg.getAccess());
-			testImg.readViewport(ctx, [viewportX, viewportY, viewportW, viewportH]);
+			testImg.readViewport(gl, [viewportX, viewportY, viewportW, viewportH]);
 			refImg.getAccess().clear(clearColor);
-			this.renderReference(refImg.getAccess(), indices, mappedPos, this.m_colors);
+			this.renderReference(refImg.getAccess(), indices, flatMappedPosArray, flatColorArray);
 		}
 		else
-			throw new Error("Iteration count exceeded.");
+			throw new Error('Iteration count exceeded.');
 
-		if (!tcuImageCompare.fuzzyCompare("Result", "Image comparison result", refImg.getAccess(), testImg.getAccess(), threshold))
-			testFailedOptions("Image comparison failed");
+		if (!tcuImageCompare.fuzzyCompare('Result', 'Image comparison result', refImg.getAccess(), testImg.getAccess(), threshold))
+			testFailedOptions('Image comparison failed');
+		else
+			testPassedOptions('Pass', true);
 
 		this.m_iterNdx += 1;
 		return (this.m_iterNdx < 3) ? tcuTestCase.IterateResult.CONTINUE : tcuTestCase.IterateResult.STOP;
@@ -1118,14 +1126,14 @@ goog.scope(function() {
 
 		// Vertex shader builtin variables.
 		// TODO: must implement
-		// addChild(new VertexIDCase		(m_context));
+		testGroup.addChild(new es3fShaderBuiltinVarTests.VertexIDCase(gl));
 		// \todo [2013-03-20 pyry] gl_InstanceID -- tested in instancing tests quite thoroughly.
 
 		// Fragment shader builtin variables.
-		testGroup.addChild(new es3fShaderBuiltinVarTests.FragCoordXYZCase());
-		testGroup.addChild(new es3fShaderBuiltinVarTests.FragCoordWCase());
-		testGroup.addChild(new es3fShaderBuiltinVarTests.PointCoordCase());
-		testGroup.addChild(new es3fShaderBuiltinVarTests.FrontFacingCase());
+		// testGroup.addChild(new es3fShaderBuiltinVarTests.FragCoordXYZCase());
+		// testGroup.addChild(new es3fShaderBuiltinVarTests.FragCoordWCase());
+		// testGroup.addChild(new es3fShaderBuiltinVarTests.PointCoordCase());
+		// testGroup.addChild(new es3fShaderBuiltinVarTests.FrontFacingCase());
 	};
 
 
