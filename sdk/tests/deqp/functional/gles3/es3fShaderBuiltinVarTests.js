@@ -160,7 +160,7 @@ goog.scope(function() {
 
 		bufferedLogToConsole(this.m_varName + ' ' /* + QP_KEY_TAG_NONE + ' '*/ + result);
 
-		// TODO: there is another issue here: the types of result and reference do not match
+		// TODO: the types of result and reference do not match
 		// result is a number whereas reference might be a number or an array.
 		if (result != reference) {
 			bufferedLogToConsole('ERROR: Expected ' + this.m_varName + ' = ' + reference + '\n' +
