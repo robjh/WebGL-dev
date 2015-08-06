@@ -612,7 +612,7 @@ goog.scope(function() {
         retVal.set(1, 0, -mat.get(1, 0) / det);
         retVal.set(1, 1, mat.get(0, 0) / det);
 
-        return retVal;
+        return gluShaderUtil.getDataTypeMatrix
     };
 
     /**
@@ -639,8 +639,8 @@ goog.scope(function() {
     	/** @type {tcuMatrix.Matrix} */ var	zeroMat = tcuMatrix.matrixFromVector(2, 2, nullField);
 
     	/** @type {tcuMatrix.Matrix} */ var	blockA = tcuMatrix.add(invA, tcuMatrix.multiply(invA, deMath.multiply(tcuMatrix.multiplyMatScal(matB, schurComplement), matC), invA));
-    	/** @type {tcuMatrix.Matrix} */ var	blockB = tcuMatrix.multiply(tcuMatrix.multiply(tcuMatrix.subtract(zeroMat - invA), matB), schurComplement);
-    	/** @type {tcuMatrix.Matrix} */ var	blockC = tcuMatrix.multiply(matC, tcuMatrix.multiply(invA, -schurComplement));
+    	/** @type {tcuMatrix.Matrix} */ var	blockB = tcuMatrix.multiply(tcuMatrix.multiplyMatScal(tcuMatrix.subtract(zeroMat - invA), matB), schurComplement);
+    	/** @type {tcuMatrix.Matrix} */ var	blockC = tcuMatrix.multiply(matC, tcuMatrix.multiplyMatScal(invA, - schurComplement));
     	/** @type {number} */ var blockD = schurComplement;
 
     	/** @type {Array<number>} */ var result = [
@@ -688,20 +688,19 @@ goog.scope(function() {
     	/** @type {tcuMatrix.Matrix} */ var	schurComplement = es3fShaderMatrixTest.inverse(tcuMatrix.subtract(matD, (tcuMatrix.multiply(matC, tcuMatrix.multiply(invA, matB)));
     	/** @type {tcuMatrix.Matrix} */ var	zeroMat = tcuMatrix.matrixFromVector(2, 2, nullField);
 
-    	/** @type {tcuMatrix.Matrix} */ var	blockA = tcuMatrix.add(invA, tcuMatrix.multiply(invA, tcuMatrix.multiply(matB, tcuMatrix.multiply(schurComplement, matC *invA;
-    	/** @type {tcuMatrix.Matrix} */ var	blockB = (zeroMat-invA)*matB*schurComplement;
-    	/** @type {tcuMatrix.Matrix} */ var	blockC = (zeroMat-schurComplement)*matC*invA;
+    	/** @type {tcuMatrix.Matrix} */ var	blockA = tcuMatrix.add(invA, tcuMatrix.multiply(invA, deMath.multiply(tcuMatrix.multiplyMatScal(matB, schurComplement), matC), invA));
+    	/** @type {tcuMatrix.Matrix} */ var	blockB = tcuMatrix.multiplyMatScal(tcuMatrix.multiply(tcuMatrix.subtract(zeroMat - invA), matB), schurComplement);
+    	/** @type {tcuMatrix.Matrix} */ var	blockC = tcuMatrix.multiply(tcuMatrix.multiply(tcuMatrix.subtractMatScal(zeroMat, schurComplement),matC), invA);
     	/** @type {tcuMatrix.Matrix} */ var	blockD = schurComplement;
 
-    	const float result[4*4] =
-    	{
-    		blockA(0,0),	blockA(0,1),	blockB(0,0),	blockB(0,1),
-    		blockA(1,0),	blockA(1,1),	blockB(1,0),	blockB(1,1),
-    		blockC(0,0),	blockC(0,1),	blockD(0,0),	blockD(0,1),
-    		blockC(1,0),	blockC(1,1),	blockD(1,0),	blockD(1,1),
-    	};
+    	/** @type {Array<number>} */ var result = [
+    		blockA.get(0, 0),	blockA.get(0, 1),	blockB.get(0, 0),	blockB.get(0, 1),
+    		blockA.get(1, 0),	blockA.get(1, 1),	blockB.get(1, 0),	blockB.get(1, 1),
+    		blockC.get(0, 0),	blockC.get(0, 1),	blockD.get(0, 0),	blockD.get(0, 1),
+    		blockC.get(1, 0),	blockC.get(1, 1),	blockD.get(1, 0),	blockD.get(1, 1),
+    	];
 
-    	return Mat4(result);
+    	return tcuMatrix.matrixFromVector(4, 4, result);
     };
 
     /**
@@ -712,11 +711,53 @@ goog.scope(function() {
         if (mat[0].length == 2) {
             return es3fShaderMatrixTest.inverseMat2(mat)
         } else if (mat[0].length == 3) {
-
+            return es3fShaderMatrixTest.inverseMat3(mat)
         } else {
-
+            return es3fShaderMatrixTest.inverseMat4(mat)
         }
-    }
+    };
+
+    /**
+     * @param {tcuMatrix.Matrix} mat
+     * @return {tcuMatrix.Matrix}
+     */
+    es3fShaderMatrixTest.negate = function (mat) {
+        /** @type {tcuMatrix.Matrix} */ var retVal = new tcuMatrix.Matrix(b.length, a.length);
+
+    	for (var r = 0; r < mat.rows; ++r)
+    		for (var c = 0; c < mat.cols; ++c)
+    			retVal.set(r,c) = -mat.get(r, c);
+
+    	return retVal;
+    };
+
+    /**
+     * @param {tcuMatrix.Matrix} mat
+     * @return {tcuMatrix.Matrix}
+     */
+    es3fShaderMatrixTest.increment = function (mat) {
+        /** @type {tcuMatrix.Matrix} */ var retVal = new tcuMatrix.Matrix(b.length, a.length);
+
+    	for (var r = 0; r < mat.rows; ++r)
+    		for (var c = 0; c < mat.cols; ++c)
+    			retVal.set(r,c) = mat.get(r, c) + 1.0;
+
+    	return retVal;
+    };
+
+    /**
+     * @param {tcuMatrix.Matrix} mat
+     * @return {tcuMatrix.Matrix}
+     */
+    es3fShaderMatrixTest.decrement = function (mat) {
+        /** @type {tcuMatrix.Matrix} */ var retVal = new tcuMatrix.Matrix(b.length, a.length);
+
+    	for (var r = 0; r < mat.rows; ++r)
+    		for (var c = 0; c < mat.cols; ++c)
+    			retVal.set(r,c) = mat.get(r, c) - 1.0;
+
+    	return retVal;
+    };
 
     /**
      * @param {Array<number>} a
@@ -734,7 +775,6 @@ goog.scope(function() {
 
         return es3fShaderMatrixTest.transpose(retVal);
     };
-
 
     /**
      * @enum
@@ -802,7 +842,8 @@ goog.scope(function() {
      */
     es3fShaderMatrixTest.MatrixShaderEvalFunc.prototype.getEvalFunc = function (in0, in0, op) {
         switch(op){
-            case es3fShaderMatrixTest.MatrixOp.OP_ADD: return function (in0, in1) {
+            case es3fShaderMatrixTest.MatrixOp.OP_ADD:
+                return function (in0, in1) {
                     in0 = in0.inputType == es3fShaderMatrixTest.InputType.INPUTTYPE_DYNAMIC ?
                         es3fShaderMatrixTest.getInputValue(in0.inputType, in0.dataType, evalCtx, 0)
                         : es3fShaderMatrixTest.getInputValue(es3fShaderMatrixTest.InputType.INPUTTYPE_CONST, in0.dataType, evalCtx, 0);
@@ -812,7 +853,8 @@ goog.scope(function() {
 
                     return es3fShaderMatrixTest.reduceVecToVec3(deMath.add(in0, in1))
                 };
-        	case es3fShaderMatrixTest.MatrixOp.OP_SUB: return function (in0, in1) {
+        	case es3fShaderMatrixTest.MatrixOp.OP_SUB:
+                return function (in0, in1) {
                     in0 = in0.inputType == es3fShaderMatrixTest.InputType.INPUTTYPE_DYNAMIC ?
                         es3fShaderMatrixTest.getInputValue(in0.inputType, in0.dataType, evalCtx, 0)
                         : es3fShaderMatrixTest.getInputValue(es3fShaderMatrixTest.InputType.INPUTTYPE_CONST, in0.dataType, evalCtx, 0);
@@ -822,7 +864,8 @@ goog.scope(function() {
 
                     return es3fShaderMatrixTest.reduceVecToVec3(deMath.subtract(in0, in1))
                 };
-        	case es3fShaderMatrixTest.MatrixOp.OP_MUL: return function (in0, in1) {
+        	case es3fShaderMatrixTest.MatrixOp.OP_MUL:
+                return function (in0, in1) {
                     in0 = in0.inputType == es3fShaderMatrixTest.InputType.INPUTTYPE_DYNAMIC ?
                         es3fShaderMatrixTest.getInputValue(in0.inputType, in0.dataType, evalCtx, 0)
                         : es3fShaderMatrixTest.getInputValue(es3fShaderMatrixTest.InputType.INPUTTYPE_CONST, in0.dataType, evalCtx, 0);
@@ -832,7 +875,8 @@ goog.scope(function() {
 
                     return es3fShaderMatrixTest.reduceVecToVec3(deMath.multiply(in0, in1))
                 };
-        	case es3fShaderMatrixTest.MatrixOp.OP_DIV: return function (in0, in1) {
+        	case es3fShaderMatrixTest.MatrixOp.OP_DIV:
+                return function (in0, in1) {
                     in0 = in0.inputType == es3fShaderMatrixTest.InputType.INPUTTYPE_DYNAMIC ?
                         es3fShaderMatrixTest.getInputValue(in0.inputType, in0.dataType, evalCtx, 0)
                         : es3fShaderMatrixTest.getInputValue(es3fShaderMatrixTest.InputType.INPUTTYPE_CONST, in0.dataType, evalCtx, 0);
@@ -842,7 +886,8 @@ goog.scope(function() {
 
                     return es3fShaderMatrixTest.reduceVecToVec3(deMath.divide(in0, in1))
                 };
-        	case es3fShaderMatrixTest.MatrixOp.OP_COMP_MUL: return function (in0, in1) {
+        	case es3fShaderMatrixTest.MatrixOp.OP_COMP_MUL:
+                return function (in0, in1) {
                     in0 = in0.inputType == es3fShaderMatrixTest.InputType.INPUTTYPE_DYNAMIC ?
                         es3fShaderMatrixTest.getInputValue(in0.inputType, in0.dataType, evalCtx, 0)
                         : es3fShaderMatrixTest.getInputValue(es3fShaderMatrixTest.InputType.INPUTTYPE_CONST, in0.dataType, evalCtx, 0);
@@ -852,7 +897,8 @@ goog.scope(function() {
 
                     return es3fShaderMatrixTest.reduceMatToVec3(es3fShaderMatrixTest.matrixCompMult(in0, in1));
                 };
-        	case es3fShaderMatrixTest.MatrixOp.OP_OUTER_PRODUCT: return function (in0, in1) {
+        	case es3fShaderMatrixTest.MatrixOp.OP_OUTER_PRODUCT:
+                return function (in0, in1) {
                     in0 = in0.inputType == es3fShaderMatrixTest.InputType.INPUTTYPE_DYNAMIC ?
                         es3fShaderMatrixTest.getInputValue(in0.inputType, in0.dataType, evalCtx, 0)
                         : es3fShaderMatrixTest.getInputValue(es3fShaderMatrixTest.InputType.INPUTTYPE_CONST, in0.dataType, evalCtx, 0);
@@ -862,26 +908,122 @@ goog.scope(function() {
 
                     return es3fShaderMatrixTest.reduceMatToVec3(es3fShaderMatrixTest.matrixCompMult(in0, in1));
                 };
-        	case es3fShaderMatrixTest.MatrixOp.OP_TRANSPOSE: return function (in0, in1) {
+        	case es3fShaderMatrixTest.MatrixOp.OP_TRANSPOSE:
+                return function (in0, in1) {
                     in0 = in0.inputType == es3fShaderMatrixTest.InputType.INPUTTYPE_DYNAMIC ?
                         es3fShaderMatrixTest.getInputValue(in0.inputType, in0.dataType, evalCtx, 0)
                         : es3fShaderMatrixTest.getInputValue(es3fShaderMatrixTest.InputType.INPUTTYPE_CONST, in0.dataType, evalCtx, 0);
 
                     return es3fShaderMatrixTest.reduceMatToVec3(es3fShaderMatrixTest.transpose(in0));
                 };
-        	case es3fShaderMatrixTest.MatrixOp.OP_INVERSE: return function () {
+        	case es3fShaderMatrixTest.MatrixOp.OP_INVERSE:
+                return function (in0, in1) {
+                    in0 = in0.inputType == es3fShaderMatrixTest.InputType.INPUTTYPE_DYNAMIC ?
+                        es3fShaderMatrixTest.getInputValue(in0.inputType, in0.dataType, evalCtx, 0)
+                        : es3fShaderMatrixTest.getInputValue(es3fShaderMatrixTest.InputType.INPUTTYPE_CONST, in0.dataType, evalCtx, 0);
 
-        	case es3fShaderMatrixTest.MatrixOp.OP_DETERMINANT: return function ()
-        	case es3fShaderMatrixTest.MatrixOp.OP_UNARY_PLUS: return function ()
-        	case es3fShaderMatrixTest.MatrixOp.OP_NEGATION: return function ()
-        	case es3fShaderMatrixTest.MatrixOp.OP_PRE_INCREMENT: return function ()
-        	case es3fShaderMatrixTest.MatrixOp.OP_PRE_DECREMENT: return function ()
-        	case es3fShaderMatrixTest.MatrixOp.OP_POST_INCREMENT: return function ()
-        	case es3fShaderMatrixTest.MatrixOp.OP_POST_DECREMENT: return function ()
-        	case es3fShaderMatrixTest.MatrixOp.OP_ADD_INTO: return function ()
-        	case es3fShaderMatrixTest.MatrixOp.OP_SUBTRACT_FROM: return function ()
-        	case es3fShaderMatrixTest.MatrixOp.OP_MULTIPLY_INTO: return function ()
-        	case es3fShaderMatrixTest.MatrixOp.OP_DIVIDE_INTO: return function ()
+                    return es3fShaderMatrixTest.reduceMatToVec3(es3fShaderMatrixTest.inverse(in0));
+                };
+        	case es3fShaderMatrixTest.MatrixOp.OP_DETERMINANT:
+                return function (in0, in1) {
+                    in0 = in0.inputType == es3fShaderMatrixTest.InputType.INPUTTYPE_DYNAMIC ?
+                        es3fShaderMatrixTest.getInputValue(in0.inputType, in0.dataType, evalCtx, 0)
+                        : es3fShaderMatrixTest.getInputValue(es3fShaderMatrixTest.InputType.INPUTTYPE_CONST, in0.dataType, evalCtx, 0);
+
+                    return es3fShaderMatrixTest.reduceMatToVec3(es3fShaderMatrixTest.determinant(in0));
+                };
+        	case es3fShaderMatrixTest.MatrixOp.OP_UNARY_PLUS:
+                return function (in0, in1) {
+                    in0 = in0.inputType == es3fShaderMatrixTest.InputType.INPUTTYPE_DYNAMIC ?
+                        es3fShaderMatrixTest.getInputValue(in0.inputType, in0.dataType, evalCtx, 0)
+                        : es3fShaderMatrixTest.getInputValue(es3fShaderMatrixTest.InputType.INPUTTYPE_CONST, in0.dataType, evalCtx, 0);
+
+                    return es3fShaderMatrixTest.reduceMatToVec3(in0);
+                };
+        	case es3fShaderMatrixTest.MatrixOp.OP_NEGATION:
+                return function (in0, in1) {
+                    in0 = in0.inputType == es3fShaderMatrixTest.InputType.INPUTTYPE_DYNAMIC ?
+                        es3fShaderMatrixTest.getInputValue(in0.inputType, in0.dataType, evalCtx, 0)
+                        : es3fShaderMatrixTest.getInputValue(es3fShaderMatrixTest.InputType.INPUTTYPE_CONST, in0.dataType, evalCtx, 0);
+
+                    return es3fShaderMatrixTest.reduceMatToVec3(es3fShaderMatrixTest.negate(in0));
+                };
+        	case es3fShaderMatrixTest.MatrixOp.OP_PRE_INCREMENT:
+                return function (in0, in1) {
+                    in0 = in0.inputType == es3fShaderMatrixTest.InputType.INPUTTYPE_DYNAMIC ?
+                        es3fShaderMatrixTest.getInputValue(in0.inputType, in0.dataType, evalCtx, 0)
+                        : es3fShaderMatrixTest.getInputValue(es3fShaderMatrixTest.InputType.INPUTTYPE_CONST, in0.dataType, evalCtx, 0);
+
+                    return deMath.add(es3fShaderMatrixTest.reduceMatToVec3(es3fShaderMatrixTest.increment(in0)), es3fShaderMatrixTest.reduceMatToVec3(es3fShaderMatrixTest.increment(in0)));
+                };
+        	case es3fShaderMatrixTest.MatrixOp.OP_PRE_DECREMENT:
+                return function (in0, in1) {
+                    in0 = in0.inputType == es3fShaderMatrixTest.InputType.INPUTTYPE_DYNAMIC ?
+                        es3fShaderMatrixTest.getInputValue(in0.inputType, in0.dataType, evalCtx, 0)
+                        : es3fShaderMatrixTest.getInputValue(es3fShaderMatrixTest.InputType.INPUTTYPE_CONST, in0.dataType, evalCtx, 0);
+
+                    return deMath.add(es3fShaderMatrixTest.reduceMatToVec3(es3fShaderMatrixTest.decrement(in0)), es3fShaderMatrixTest.reduceMatToVec3(es3fShaderMatrixTest.decrement(in0)));
+                };
+        	case es3fShaderMatrixTest.MatrixOp.OP_POST_INCREMENT:
+                return function (in0, in1) {
+                    in0 = in0.inputType == es3fShaderMatrixTest.InputType.INPUTTYPE_DYNAMIC ?
+                        es3fShaderMatrixTest.getInputValue(in0.inputType, in0.dataType, evalCtx, 0)
+                        : es3fShaderMatrixTest.getInputValue(es3fShaderMatrixTest.InputType.INPUTTYPE_CONST, in0.dataType, evalCtx, 0);
+
+                    return deMath.add(es3fShaderMatrixTest.reduceMatToVec3(in0), es3fShaderMatrixTest.reduceMatToVec3(es3fShaderMatrixTest.increment(in0)));
+                };
+        	case es3fShaderMatrixTest.MatrixOp.OP_POST_DECREMENT:
+                return function (in0, in1) {
+                    in0 = in0.inputType == es3fShaderMatrixTest.InputType.INPUTTYPE_DYNAMIC ?
+                        es3fShaderMatrixTest.getInputValue(in0.inputType, in0.dataType, evalCtx, 0)
+                        : es3fShaderMatrixTest.getInputValue(es3fShaderMatrixTest.InputType.INPUTTYPE_CONST, in0.dataType, evalCtx, 0);
+
+                    return deMath.add(es3fShaderMatrixTest.reduceMatToVec3(in0), es3fShaderMatrixTest.reduceMatToVec3(es3fShaderMatrixTest.decrement(in0)));
+                };
+        	case es3fShaderMatrixTest.MatrixOp.OP_ADD_INTO:
+                return function (in0, in1) {
+                    in0 = in0.inputType == es3fShaderMatrixTest.InputType.INPUTTYPE_DYNAMIC ?
+                        es3fShaderMatrixTest.getInputValue(in0.inputType, in0.dataType, evalCtx, 0)
+                        : es3fShaderMatrixTest.getInputValue(es3fShaderMatrixTest.InputType.INPUTTYPE_CONST, in0.dataType, evalCtx, 0);
+                    in1 = in1.inputType == es3fShaderMatrixTest.InputType.INPUTTYPE_DYNAMIC ?
+                        es3fShaderMatrixTest.getInputValue(in1.inputType, in0.dataType, evalCtx, 1)
+                        : es3fShaderMatrixTest.getInputValue(es3fShaderMatrixTest.InputType.INPUTTYPE_CONST, in1.dataType, evalCtx, 1);
+
+                    return es3fShaderMatrixTest.reduceMatToVec3(deMath.add(in0, in1));
+                };
+        	case es3fShaderMatrixTest.MatrixOp.OP_SUBTRACT_FROM:
+                return function (in0, in1) {
+                    in0 = in0.inputType == es3fShaderMatrixTest.InputType.INPUTTYPE_DYNAMIC ?
+                        es3fShaderMatrixTest.getInputValue(in0.inputType, in0.dataType, evalCtx, 0)
+                        : es3fShaderMatrixTest.getInputValue(es3fShaderMatrixTest.InputType.INPUTTYPE_CONST, in0.dataType, evalCtx, 0);
+                    in1 = in1.inputType == es3fShaderMatrixTest.InputType.INPUTTYPE_DYNAMIC ?
+                        es3fShaderMatrixTest.getInputValue(in1.inputType, in0.dataType, evalCtx, 1)
+                        : es3fShaderMatrixTest.getInputValue(es3fShaderMatrixTest.InputType.INPUTTYPE_CONST, in1.dataType, evalCtx, 1);
+
+                    return es3fShaderMatrixTest.reduceMatToVec3(deMath.subtract(in0, in1));
+                };
+        	case es3fShaderMatrixTest.MatrixOp.OP_MULTIPLY_INTO:
+                return function (in0, in1) {
+                    in0 = in0.inputType == es3fShaderMatrixTest.InputType.INPUTTYPE_DYNAMIC ?
+                        es3fShaderMatrixTest.getInputValue(in0.inputType, in0.dataType, evalCtx, 0)
+                        : es3fShaderMatrixTest.getInputValue(es3fShaderMatrixTest.InputType.INPUTTYPE_CONST, in0.dataType, evalCtx, 0);
+                    in1 = in1.inputType == es3fShaderMatrixTest.InputType.INPUTTYPE_DYNAMIC ?
+                        es3fShaderMatrixTest.getInputValue(in1.inputType, in0.dataType, evalCtx, 1)
+                        : es3fShaderMatrixTest.getInputValue(es3fShaderMatrixTest.InputType.INPUTTYPE_CONST, in1.dataType, evalCtx, 1);
+
+                    return es3fShaderMatrixTest.reduceMatToVec3(deMath.multiply(in0, in1));
+                };
+        	case es3fShaderMatrixTest.MatrixOp.OP_DIVIDE_INTO:
+                return function (in0, in1) {
+                    in0 = in0.inputType == es3fShaderMatrixTest.InputType.INPUTTYPE_DYNAMIC ?
+                        es3fShaderMatrixTest.getInputValue(in0.inputType, in0.dataType, evalCtx, 0)
+                        : es3fShaderMatrixTest.getInputValue(es3fShaderMatrixTest.InputType.INPUTTYPE_CONST, in0.dataType, evalCtx, 0);
+                    in1 = in1.inputType == es3fShaderMatrixTest.InputType.INPUTTYPE_DYNAMIC ?
+                        es3fShaderMatrixTest.getInputValue(in1.inputType, in0.dataType, evalCtx, 1)
+                        : es3fShaderMatrixTest.getInputValue(es3fShaderMatrixTest.InputType.INPUTTYPE_CONST, in1.dataType, evalCtx, 1);
+
+                    return es3fShaderMatrixTest.reduceMatToVec3(deMath.divide(in0, in1));
+                };
         }
 	};
 
@@ -900,10 +1042,63 @@ goog.scope(function() {
         this.m_in0 = in0;
         this.m_in1 = in1;
         this.m_op = op;
-        this.m_matEvaluator = (getEvalFunc(in0, in1, op), in0.inputType, in1.inputType)
+        this.m_matEvaluator = es3fShaderMatrixTest.getEvalFunc(in0, in1, op);
     };
 
     es3fShaderMatrixTest.ShaderMatrixCase.prototype = Object.create(tcuTestCase.DeqpTest.prototype);
-    es3fShaderMatrixTest.ShaderMatrixCase.prototype.constructor = es3fShaderMatrixTest.ShaderMatrixCase
+    es3fShaderMatrixTest.ShaderMatrixCase.prototype.constructor = es3fShaderMatrixTest.ShaderMatrixCase;
+
+    es3fShaderMatrixTest.ShaderMatrixCase.init = function () {
+        /** @type {string} */ var vtx = '';
+    	/** @type {string} */ var frag = '';
+    	/** @type {string} */ var op = this.m_isVertexCase ? vtx : frag;
+
+        /** @type {boolean} */ var isInDynMat0 = gluShaderUtil.isDataTypeMatrix(this.m_in0.dataType) && this.m_in0.inputType == es3fShaderMatrixTest.InputType.INPUTTYPE_DYNAMIC;
+    	/** @type {boolean} */ var isInDynMat1 = gluShaderUtil.isDataTypeMatrix(this.m_in1.dataType) && this.m_in1.inputType == es3fShaderMatrixTest.InputType.INPUTTYPE_DYNAMIC;
+    	/** @type {string} */ var inValue0 = '';
+    	/** @type {string} */ var inValue1 = '';
+    	/** @type {gluShaderUtil.DataType} */ var resultType = Object.keys(gluShaderUtil.DataType).length;
+    	/** @type {gluShaderUtil.precision} */ var resultPrec = this.m_in0.precision;
+    	/** @type {Array<string>} */ var passVars = [];
+    	/** @type {number} */ var numInputs		= (isOperationBinary(this.m_op)) ? (2) : (1);
+
+    	/** @type {string} */ var operationValue0 = '';
+    	/** @type {string} */ var operationValue1 = '';
+
+        if (!isInDynMat0 || !isInDynMat1) {
+            throw new Error ('Only single dynamic matrix input is allowed.');
+        }
+
+        if (this.m_op == es3fShaderMatrixTest.MatrixOp.OP_MUL && gluShaderUtil.isDataTypeMatrix(this.m_in0.dataType) && gluShaderUtil.isDataTypeMatrix(this.m_in1.dataType)) {
+    		resultType = gluShaderUtil.getDataTypeMatrix(gluShaderUtil.getDataTypeMatrixNumColumns(this.m_in1.dataType), gluShaderUtil.getDataTypeMatrixNumRows(this.m_in0.dataType));
+    	} else if (this.m_op == es3fShaderMatrixTest.MatrixOp.OP_OUTER_PRODUCT) {
+    		resultType = gluShaderUtil.getDataTypeMatrix(getDataTypeScalarSize(this.m_in1.dataType), getDataTypeScalarSize(this.m_in0.dataType));
+    	} else if (this.m_op == es3fShaderMatrixTest.MatrixOp.OP_TRANSPOSE) {
+    		resultType = gluShaderUtil.getDataTypeMatrix(gluShaderUtil.getDataTypeMatrixNumRows(this.m_in0.dataType), gluShaderUtil.getDataTypeMatrixNumColumns(this.m_in0.dataType));
+    	} else if (this.m_op == es3fShaderMatrixTest.MatrixOp.OP_INVERSE) {
+    		resultType = this.m_in0.dataType;
+    	} else if (this.m_op == es3fShaderMatrixTest.MatrixOp.OP_DETERMINANT) {
+    		resultType = gluShaderUtil.DataType.TYPE_FLOAT;
+    	} else if (getOperationType(this.m_op) == es3fShaderMatrixTest.OperationType.OPERATIONTYPE_UNARY_PREFIX_OPERATOR ||
+    			 getOperationType(this.m_op) == es3fShaderMatrixTest.OperationType.OPERATIONTYPE_UNARY_POSTFIX_OPERATOR) {
+    		resultType = this.m_in0.dataType;
+    	} else if (gluShaderUtil.isDataTypeMatrix(this.m_in0.dataType) && gluShaderUtil.isDataTypeMatrix(this.m_in1.dataType)) {
+    		DE_ASSERT(this.m_in0.dataType == this.m_in1.dataType);
+    		resultType = this.m_in0.dataType;
+    	} else if (gluShaderUtil.isDataTypeMatrix(this.m_in0.dataType) || gluShaderUtil.isDataTypeMatrix(this.m_in1.dataType)) {
+    		int			matNdx		= gluShaderUtil.isDataTypeMatrix(this.m_in0.dataType) ? 0 : 1;
+    		DataType	matrixType	= matNdx == 0 ? this.m_in0.dataType : this.m_in1.dataType;
+    		DataType	otherType	= matNdx == 0 ? this.m_in1.dataType : this.m_in0.dataType;
+
+    		if (otherType == gluShaderUtil.DataType.TYPE_FLOAT)
+    			resultType = matrixType;
+    		else  {
+    			DE_ASSERT(isDataTypeVector(otherType));
+    			resultType = getDataTypeFloatVec(matNdx == 0 ? gluShaderUtil.getDataTypeMatrixNumRows(matrixType) : gluShaderUtil.getDataTypeMatrixNumColumns(matrixType));
+    		}
+    	} else {
+    		DE_ASSERT(DE_FALSE);
+    	}
+    };
 
 });

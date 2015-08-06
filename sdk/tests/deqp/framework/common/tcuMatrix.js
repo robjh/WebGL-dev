@@ -78,6 +78,11 @@ goog.scope(function() {
         return matrix;
     }
 
+    /**
+     * @param {number} rows
+     * @param {number} cols
+     * @param {number} value
+     */
     tcuMatrix.Matrix.prototype.set = function(x, y, value) {
         this.isRangeValid(x, y);
         this.matrix[y][x] = value;
@@ -201,6 +206,20 @@ goog.scope(function() {
                 value += mtx.get(row, col) * vec[row];
             res[col] = value;
         }
+
+        return res;
+    };
+
+    /**
+     * @param {tcuMatrix.Matrix} mtx
+     * @param {number} scalar
+     * @return {tcuMatrix.Matrix}
+     */
+    tcuMatrix.subtractMatScal = function (mtx, scalar) {
+        /** @type {tcuMatrix.Matrix} */ var res = new tcuMatrix.Matrix(mat.cols, mat.rows);
+        for (var col = 0; col < mat.cols; col++)
+        	for (var row = 0; row < mat.rows; row++)
+        		res.set(row, col) = mtx.get(row, col) - scalar;
 
         return res;
     };
