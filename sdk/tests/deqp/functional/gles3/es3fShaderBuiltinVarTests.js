@@ -137,7 +137,8 @@ goog.scope(function() {
 
 		shaderSpec.version = gluShaderUtil.GLSLVersion.V300_ES;
 		shaderSpec.source = 'result = ' + varName + ';\n';
-		shaderSpec.outputs.push(new glsShaderExecUtil.Symbol('result', gluVarType.newTypeBasic(gluShaderUtil.DataType.INT, gluShaderUtil.precision.PRECISION_HIGHP)));
+		shaderSpec.outputs.push(new glsShaderExecUtil.Symbol('result',
+			gluVarType.newTypeBasic(gluShaderUtil.DataType.INT, gluShaderUtil.precision.PRECISION_HIGHP)));
 		return glsShaderExecUtil.createExecutor(shaderType, shaderSpec);
 
 	};
@@ -149,6 +150,7 @@ goog.scope(function() {
 		/** @type {glsShaderExecUtil.ShaderExecutor} */
 		 var shaderExecutor = this.createGetConstantExecutor(this.m_shaderType, this.m_varName);
 		/** @type {number} */ var reference = this.m_getValue();
+		/** @type {goog.NumberArray} */ var shaderExecutorResult;
 		/** @type {number} */ var result;
 
 		if (!shaderExecutor.isOk())
@@ -156,10 +158,10 @@ goog.scope(function() {
 
 		shaderExecutor.useProgram();
 
-		result = new Uint32Array(shaderExecutor.execute(1, null)[0].buffer)[0]; // shaderExecutor.execute() returns an array of Uint8Array
+		shaderExecutorResult = shaderExecutor.execute(1, null);
+		result = new Uint32Array(shaderExecutorResult[0].buffer)[0];
 
-		bufferedLogToConsole(this.m_varName + ' ' /* + QP_KEY_TAG_NONE + ' '*/ + result);
-
+		bufferedLogToConsole(this.m_varName + ' = ' + result);
 
 		if (result != reference) {
 			bufferedLogToConsole('ERROR: Expected ' + this.m_varName + ' = ' + reference + '\n' +
@@ -189,7 +191,6 @@ goog.scope(function() {
 	 * @param {es3fShaderBuiltinVarTests.DepthRangeParams} params
 	 */
 	es3fShaderBuiltinVarTests.DepthRangeEvaluator = function(params) {
-		//glsShaderRenderCase.ShaderEvaluator.call(this);
 		/** @type {es3fShaderBuiltinVarTests.DepthRangeParams} */ this.m_params = params;
 	};
 
@@ -282,7 +283,7 @@ goog.scope(function() {
 		this.postiterate();
 		this.m_iterNdx += 1;
 
-		if (this.m_iterNdx == cases.length /* TODO:|| this.m_testgl.getTestResult() != QP_TEST_RESULT_PASS */)
+		if (this.m_iterNdx == cases.length)
 			return tcuTestCase.IterateResult.STOP;
 		else
 			return tcuTestCase.IterateResult.CONTINUE;
