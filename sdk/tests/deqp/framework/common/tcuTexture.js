@@ -2157,7 +2157,7 @@ tcuTexture.sampleLevelArray2D = function(levels, numLevels, sampler, s, t, depth
         case tcuTexture.FilterMode.NEAREST_MIPMAP_LINEAR:
         case tcuTexture.FilterMode.LINEAR_MIPMAP_LINEAR: {
             var maxLevel = numLevels - 1;
-            var level0 = deMath.clamp(Math.ceil(lod + 0.5) - 1, 0, maxLevel);
+            var level0 = deMath.clamp(Math.floor(lod + 0.5) - 1, 0, maxLevel);
             var level1 = Math.min(maxLevel, level0 + 1);
             var levelFilter = (filterMode == tcuTexture.FilterMode.LINEAR_MIPMAP_LINEAR) ? tcuTexture.FilterMode.LINEAR : tcuTexture.FilterMode.NEAREST;
             var f = deMath.deFloatFrac(lod);
