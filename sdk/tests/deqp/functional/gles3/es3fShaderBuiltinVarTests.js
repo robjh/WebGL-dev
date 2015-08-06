@@ -137,7 +137,8 @@ goog.scope(function() {
 
 		shaderSpec.version = gluShaderUtil.GLSLVersion.V300_ES;
 		shaderSpec.source = 'result = ' + varName + ';\n';
-		shaderSpec.outputs.push(new glsShaderExecUtil.Symbol('result', gluVarType.newTypeBasic(gluShaderUtil.DataType.INT, gluShaderUtil.precision.PRECISION_HIGHP)));
+		shaderSpec.outputs.push(new glsShaderExecUtil.Symbol('result',
+			gluVarType.newTypeBasic(gluShaderUtil.DataType.INT, gluShaderUtil.precision.PRECISION_HIGHP)));
 		return glsShaderExecUtil.createExecutor(shaderType, shaderSpec);
 
 	};
@@ -146,25 +147,22 @@ goog.scope(function() {
 	 * @return {tcuTestCase.IterateResult}
 	 */
 	es3fShaderBuiltinVarTests.ShaderBuiltinConstantCase.prototype.iterate = function() {
-		/** @type {glsShaderExecUtil.ShaderExecutor} */ var shaderExecutor = this.createGetConstantExecutor(this.m_shaderType, this.m_varName);
-		// TODO: So there is a potential issue here. m_getValue takes a context in the C++. This would make sense to port if the Reference Context is be used.
-		// If the Reference Context is not used, then there is no use in executing the function since it can be evaluated when the constructor is called.
-		// If the RC is used, then the constructor will take an anonymous function like so:
-		//    function(gl) { return es3fShaderBuiltinVarTests.getVectorsFromComps(GL_SOMETHING, gl); }
-		// Will need to come back later once I know more about this test.
+		/** @type {glsShaderExecUtil.ShaderExecutor} */
+		 var shaderExecutor = this.createGetConstantExecutor(this.m_shaderType, this.m_varName);
 		/** @type {number} */ var reference = this.m_getValue();
-		/** @type {goog.NumberArray} */ var result;
+		/** @type {goog.NumberArray} */ var shaderExecutorResult;
+		/** @type {number} */ var result;
 
 		if (!shaderExecutor.isOk())
 			assertMsgOptions(false, 'Compile failed', false, true);
 
 		shaderExecutor.useProgram();
-		result = shaderExecutor.execute(1, null);
 
-		bufferedLogToConsole(this.m_varName + ' ' /* + QP_KEY_TAG_NONE + ' '*/ + result);
+		shaderExecutorResult = shaderExecutor.execute(1, null);
+		result = new Uint32Array(shaderExecutorResult[0].buffer)[0];
 
-		// TODO: there is another issue here: the types of result and reference do not match
-		// result is a number whereas reference might be a number or an array.
+		bufferedLogToConsole(this.m_varName + ' = ' + result);
+
 		if (result != reference) {
 			bufferedLogToConsole('ERROR: Expected ' + this.m_varName + ' = ' + reference + '\n' +
 				'Test shader:' + shaderExecutor.m_program.getProgramInfo().infoLog);
@@ -193,7 +191,6 @@ goog.scope(function() {
 	 * @param {es3fShaderBuiltinVarTests.DepthRangeParams} params
 	 */
 	es3fShaderBuiltinVarTests.DepthRangeEvaluator = function(params) {
-		//glsShaderRenderCase.ShaderEvaluator.call(this);
 		/** @type {es3fShaderBuiltinVarTests.DepthRangeParams} */ this.m_params = params;
 	};
 
@@ -286,7 +283,7 @@ goog.scope(function() {
 		this.postiterate();
 		this.m_iterNdx += 1;
 
-		if (this.m_iterNdx == cases.length /* TODO:|| this.m_testgl.getTestResult() != QP_TEST_RESULT_PASS */)
+		if (this.m_iterNdx == cases.length)
 			return tcuTestCase.IterateResult.STOP;
 		else
 			return tcuTestCase.IterateResult.CONTINUE;
@@ -750,7 +747,7 @@ goog.scope(function() {
 			'void main (void)\n' +
 			'{\n' +
 			'	gl_Position = a_position;\n' +
-			'	v_color = u_colors[gl_VertexID];\n' + // TODO gl_VertexID causes shader to fail to compile
+			'	v_color = u_colors[gl_VertexID];\n' +
 			'}\n';
 
 		/** @type {string} */ var fragSource = '#version 300 es\n' +

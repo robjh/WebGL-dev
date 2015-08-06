@@ -923,7 +923,7 @@ glsTextureTestUtil.computeLodFromDerivates3D = function(mode, dudx, dvdx, dwdx, 
             DE_ASSERT(false);
     }
 
-    return Math.round(Math.log2(p));
+    return Math.log(p) * 1.44269504089;
 };
 
 /**
