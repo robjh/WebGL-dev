@@ -155,7 +155,7 @@ goog.scope(function() {
 			assertMsgOptions(false, 'Compile failed', false, true);
 
 		shaderExecutor.useProgram();
-		debugger;
+
 		result = shaderExecutor.execute(1, null);
 
 		bufferedLogToConsole(this.m_varName + ' ' /* + QP_KEY_TAG_NONE + ' '*/ + result);
