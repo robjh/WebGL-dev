@@ -87,7 +87,8 @@ targets = {
     'shaderderivate' : 'functional.gles3.es3fShaderDerivateTests',
     'builtinprecision' : 'functional.gles3.es3fBuiltinPrecisionTests',
     'shaderbuiltinvar' : 'functional.gles3.es3fShaderBuiltinVarTests',
-    'texturefiltering' : 'functional.gles3.es3fTextureFilteringTests'
+    'texturefiltering' : 'functional.gles3.es3fTextureFilteringTests',
+    'fragdepth' : 'functional.gles3.es3fFragDepthTests'
 }
 
 total_errors = 0
@@ -252,4 +253,3 @@ def main(argv):
 
 if __name__ == '__main__':
     main(sys.argv[1:])
-
