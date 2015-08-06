@@ -2546,10 +2546,11 @@ tcuTexture.sampleCubeSeamlessLinear = function(faceAccesses, baseFace, sampler, 
  * @param {number} s
  * @param {number} t
  * @param {number} depth
- * @param {number} lod
+ * @param {number=} lod
  * @return {Array<number>}
  */
 tcuTexture.sampleLevelArrayCubeSeamless = function(faces, numLevels, face, sampler, s, t, depth, lod) {
+    lod = lod || 0;
     var magnified = lod <= sampler.lodThreshold;
     /** @type {tcuTexture.FilterMode} */ var filterMode = magnified ? sampler.magFilter : sampler.minFilter;
     /** @type {Array<tcuTexture.ConstPixelBufferAccess>} */ var faceAccesses = [];
@@ -2962,7 +2963,7 @@ tcuTexture.TextureCubeView = function(numLevels, levels) {
 /**
  * @param {tcuTexture.Sampler} sampler
  * @param {Array<number>} texCoord
- * @param {number} lod
+ * @param {number=} lod
  * @return {Array<number>} Pixel color
  */
 tcuTexture.TextureCubeView.prototype.sample = function(sampler, texCoord, lod) {

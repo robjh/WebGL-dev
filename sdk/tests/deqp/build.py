@@ -87,7 +87,8 @@ targets = {
     'shaderderivate' : 'functional.gles3.es3fShaderDerivateTests',
     'builtinprecision' : 'functional.gles3.es3fBuiltinPrecisionTests',
     'shaderbuiltinvar' : 'functional.gles3.es3fShaderBuiltinVarTests',
-    'texturefiltering' : 'functional.gles3.es3fTextureFilteringTests'
+    'texturefiltering' : 'functional.gles3.es3fTextureFilteringTests',
+    'fbocolor' : 'functional.gles3.es3fFboColorbufferTests'
 }
 
 total_errors = 0
