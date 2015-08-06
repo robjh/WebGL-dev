@@ -149,19 +149,18 @@ goog.scope(function() {
 		/** @type {glsShaderExecUtil.ShaderExecutor} */
 		 var shaderExecutor = this.createGetConstantExecutor(this.m_shaderType, this.m_varName);
 		/** @type {number} */ var reference = this.m_getValue();
-		/** @type {goog.NumberArray} */ var result;
+		/** @type {number} */ var result;
 
 		if (!shaderExecutor.isOk())
 			assertMsgOptions(false, 'Compile failed', false, true);
 
 		shaderExecutor.useProgram();
 
-		result = shaderExecutor.execute(1, null);
+		result = new Uint32Array(shaderExecutor.execute(1, null)[0].buffer)[0]; // shaderExecutor.execute() returns an array of Uint8Array
 
 		bufferedLogToConsole(this.m_varName + ' ' /* + QP_KEY_TAG_NONE + ' '*/ + result);
 
-		// TODO: the types of result and reference do not match
-		// result is a number whereas reference might be a number or an array.
+
 		if (result != reference) {
 			bufferedLogToConsole('ERROR: Expected ' + this.m_varName + ' = ' + reference + '\n' +
 				'Test shader:' + shaderExecutor.m_program.getProgramInfo().infoLog);
