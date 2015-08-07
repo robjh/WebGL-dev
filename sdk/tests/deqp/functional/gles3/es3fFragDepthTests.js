@@ -350,16 +350,15 @@ goog.scope(function() {
 		renderedFrame.readViewport(gl, [viewportX, viewportY, viewportW, viewportH]);
 
 		// Render reference.
-		for (var y = 0; y < referenceFrame.getHeight(); y++) {
-			for (var x = 0; x < referenceFrame.getWidth(); x++) {
-				/** @type {number} */ var xf = (x + 0.5) / referenceFrame.getWidth();
-				/** @type {number} */ var yf = (y + 0.5) / referenceFrame.getHeight();
-				/** @type {number} */ var d = this.m_evalFunc([xf, yf]);
-				/** @type {number} */ var step = Math.floor(d / depthStep);
-				/** @type {number} */ var col = deMath.clamp(Math.floor(step * depthStep * 255.0), 0, 255);
+		for (var y = 0; y < referenceFrame.getHeight(); y++)
+		for (var x = 0; x < referenceFrame.getWidth(); x++) {
+			/** @type {number} */ var xf = (x + 0.5) / referenceFrame.getWidth();
+			/** @type {number} */ var yf = (y + 0.5) / referenceFrame.getHeight();
+			/** @type {number} */ var d = this.m_evalFunc([xf, yf]);
+			/** @type {number} */ var step = Math.floor(d / depthStep);
+			/** @type {number} */ var col = deMath.clamp(Math.floor(step * depthStep * 255.0), 0, 255);
 
-				referenceFrame.setPixel(x, y, [col, col, col, 0xff]);
-			}
+			referenceFrame.setPixel(x, y, [col, col, col, 0xff]);
 		}
 
 		/** @type {boolean} */ var isOk = tcuImageCompare.fuzzyCompare("Result", "Image comparison result", referenceFrame.getAccess(), renderedFrame.getAccess(), 0.05);
