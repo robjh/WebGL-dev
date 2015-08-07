@@ -311,6 +311,105 @@ goog.scope(function() {
 
 	/**
 	 * @constructor
+	 * @extends {es3fShaderPackingFunctionTests.ShaderPackingFunctionCase}
+	 */
+	es3fShaderPackingFunctionTests.PackUnorm2x16Case = function(shaderType, precision) {
+		/** @const {string} */ var name = "packunorm2x16" +
+		 	es3fShaderPackingFunctionTests.getPrecisionPostfix(precision) +
+			es3fShaderPackingFunctionTests.getShaderTypePostfix(shaderType);
+		es3fShaderPackingFunctionTests.ShaderPackingFunctionCase.call(this, name, "packUnorm2x16", shaderType);
+		this.m_precision = precision;
+
+		this.m_spec.inputs.push(new glsShaderExecUtil.Symbol('in0', gluVarType.newTypeBasic(gluShaderUtil.DataType.FLOAT_VEC2, precision)));
+		this.m_spec.outputs.push(new glsShaderExecUtil.Symbol('out0', gluVarType.newTypeBasic(gluShaderUtil.DataType.UINT, gluShaderUtil.precision.PRECISION_HIGHP)));
+		this.m_spec.source = "out0 = packUnorm2x16(in0);";
+	};
+
+	es3fShaderPackingFunctionTests.PackUnorm2x16Case.prototype = Object.create(es3fShaderPackingFunctionTests.ShaderPackingFunctionCase.prototype);
+	es3fShaderPackingFunctionTests.PackUnorm2x16Case.prototype.constructor = es3fShaderPackingFunctionTests.PackUnorm2x16Case;
+
+	/**
+	 * @return {tcuTestCase.IterateResult}
+	 */
+	es3fShaderPackingFunctionTests.PackUnorm2x16Case.prototype.iterate = function() {
+		/** @type {deRandom.Random} */ var rnd = new deRandom.Random(deString.deStringHash(this.name) ^ 0x776002);
+		/** @type {Array<Array<number>>} */ var inputs;
+		/** @type {Array<number>} */ var outputs;
+		/** @type {number} */ var maxDiff = this.m_precision == gluShaderUtil.precision.PRECISION_HIGHP ? 1 : // Rounding only.
+											this.m_precision == gluShaderUtil.precision.PRECISION_MEDIUMP ? 65 : // (2^-10) * (2^16) + 1
+											this.m_precision == gluShaderUtil.precision.PRECISION_LOWP ? 257 : 0; // (2^-8) * (2^16) + 1
+		/** @type {number} */ var x;
+		/** @type {number} */ var y;
+		// Special values to check.
+		inputs.push([0.0, 0.0]);
+		inputs.push([0.5, 1.0]);
+		inputs.push([1.0, 0.5]);
+		inputs.push([-0.5, 1.5]);
+		inputs.push([0.25, 0.75]);
+
+		// Random values, mostly in range.
+		for (var ndx = 0; ndx < 15; ndx++) {
+			x = rnd.getFloat() * 1.25;
+			y = rnd.getFloat() * 1.25;
+			inputs.push([x, y]);
+		}
+
+		// Large random values.
+		for (var ndx = 0; ndx < 80; ndx++) {
+			x = rnd.getFloat() * 1e6 - 1e5;
+			y = rnd.getFloat() * 1e6 - 1e5;
+			inputs.push([x, y]);
+		}
+
+		outputs.length = inputs.length;
+
+		bufferedLogToConsole("Executing shader for " + inputs.length + " input values");
+
+		this.m_executor.useProgram();
+		outputs = this.m_executor.execute(inputs.length, inputs);
+
+		// Verify
+		/** @type {number} */ var numValues = inputs.length;
+		/** @type {number} */ var maxPrints = 10;
+		/** @type {number} */ var numFailed = 0;
+
+		for (var valNdx = 0; valNdx < inputs.length; valNdx++) {
+			/** @type {number} */ var ref0 = deMath.clamp(Math.floor(deMath.clamp(inputs[valNdx][0], 0.0, 1.0) * 65535.0), 0, (1 << 16) - 1);
+			/** @type {number} */ var ref1 = deMath.clamp(Math.floor(deMath.clamp(inputs[valNdx][1], 0.0, 1.0) * 65535.0), 0, (1 << 16) - 1);
+			/** @type {number} */ var ref = (ref1 << 16) | ref0;
+			/** @type {number} */ var res = outputs[valNdx];
+			/** @type {number} */ var res0 = (res & 0xffff);
+			/** @type {number} */ var res1 = (res >> 16);
+			/** @type {number} */ var diff0 = Math.abs(ref0 - res0);
+			/** @type {number} */ var diff1 = Math.abs(ref1 - res1);
+
+			if (diff0 > maxDiff || diff1 > maxDiff) {
+				if (numFailed < maxPrints)
+					bufferedLogToConsole("ERROR: Mismatch in value " + valNdx +
+										 ", expected packUnorm2x16(" + inputs[valNdx] + ") = " + ref /*tcu::toHex(ref)*/ +
+										 ", got " + res /*tcu::toHex(res)*/ +
+										 "\n  diffs = (" + diff0 + ", " + diff1 + "), max diff = " + maxDiff);
+				else if (numFailed === maxPrints)
+					bufferedLogToConsole("...");
+
+				numFailed += 1;
+			}
+		}
+
+		bufferedLogToConsole((numValues - numFailed) + " / " + numValues + " values passed");
+
+		/** @type {boolean} */ var isOk = numFailed === 0;
+		if (!isOk)
+			testFailedOptions('Result comparison failed', false);
+		else
+			testPassedOptions('Pass', true);
+
+		return tcuTestCase.IterateResult.STOP;
+	};
+// continue 439
+
+	/**
+	 * @constructor
 	 * @extends {tcuTestCase.DeqpTest}
 	 */
 	es3fShaderPackingFunctionTests.ShaderPackingFunctionTests = function() {
@@ -331,13 +430,13 @@ goog.scope(function() {
 
 		testGroup.addChild(new es3fShaderPackingFunctionTests.UnpackSnorm2x16Case(gluShaderProgram.shaderType.VERTEX));
 		testGroup.addChild(new es3fShaderPackingFunctionTests.UnpackSnorm2x16Case(gluShaderProgram.shaderType.FRAGMENT));
-		
-		// testGroup.addChild(new es3fShaderPackingFunctionTests.PackUnorm2x16Case(gluShaderProgram.shaderType.VERTEX, gluShaderUtil.precision.PRECISION_LOWP));
-		// testGroup.addChild(new es3fShaderPackingFunctionTests.PackUnorm2x16Case(gluShaderProgram.shaderType.FRAGMENT, gluShaderUtil.precision.PRECISION_LOWP));
-		// testGroup.addChild(new es3fShaderPackingFunctionTests.PackUnorm2x16Case(gluShaderProgram.shaderType.VERTEX, gluShaderUtil.precision.PRECISION_MEDIUMP));
-		// testGroup.addChild(new es3fShaderPackingFunctionTests.PackUnorm2x16Case(gluShaderProgram.shaderType.FRAGMENT, gluShaderUtil.precision.PRECISION_MEDIUMP));
-		// testGroup.addChild(new es3fShaderPackingFunctionTests.PackUnorm2x16Case(gluShaderProgram.shaderType.VERTEX, gluShaderUtil.precision.PRECISION_HIGHP));
-		// testGroup.addChild(new es3fShaderPackingFunctionTests.PackUnorm2x16Case(gluShaderProgram.shaderType.FRAGMENT, gluShaderUtil.precision.PRECISION_HIGHP));
+
+		testGroup.addChild(new es3fShaderPackingFunctionTests.PackUnorm2x16Case(gluShaderProgram.shaderType.VERTEX, gluShaderUtil.precision.PRECISION_LOWP));
+		testGroup.addChild(new es3fShaderPackingFunctionTests.PackUnorm2x16Case(gluShaderProgram.shaderType.FRAGMENT, gluShaderUtil.precision.PRECISION_LOWP));
+		testGroup.addChild(new es3fShaderPackingFunctionTests.PackUnorm2x16Case(gluShaderProgram.shaderType.VERTEX, gluShaderUtil.precision.PRECISION_MEDIUMP));
+		testGroup.addChild(new es3fShaderPackingFunctionTests.PackUnorm2x16Case(gluShaderProgram.shaderType.FRAGMENT, gluShaderUtil.precision.PRECISION_MEDIUMP));
+		testGroup.addChild(new es3fShaderPackingFunctionTests.PackUnorm2x16Case(gluShaderProgram.shaderType.VERTEX, gluShaderUtil.precision.PRECISION_HIGHP));
+		testGroup.addChild(new es3fShaderPackingFunctionTests.PackUnorm2x16Case(gluShaderProgram.shaderType.FRAGMENT, gluShaderUtil.precision.PRECISION_HIGHP));
 		//
 		// testGroup.addChild(new es3fShaderPackingFunctionTests.UnpackUnorm2x16Case(gluShaderProgram.shaderType.VERTEX));
 		// testGroup.addChild(new es3fShaderPackingFunctionTests.UnpackUnorm2x16Case(gluShaderProgram.shaderType.FRAGMENT));
