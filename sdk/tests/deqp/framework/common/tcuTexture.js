@@ -2589,7 +2589,7 @@ tcuTexture.sampleLevelArrayCubeSeamless = function(faces, numLevels, face, sampl
         case tcuTexture.FilterMode.NEAREST_MIPMAP_LINEAR:
         case tcuTexture.FilterMode.LINEAR_MIPMAP_LINEAR: {
             var maxLevel = numLevels - 1;
-            var level0 = deMath.clamp(deMath.deFloatFrac(lod), 0, maxLevel);
+            var level0 = deMath.clamp(Math.floor(lod), 0, maxLevel);
             var level1 = Math.min(maxLevel, level0 + 1);
             levelFilter = (filterMode == tcuTexture.FilterMode.LINEAR_MIPMAP_LINEAR) ? tcuTexture.FilterMode.LINEAR : tcuTexture.FilterMode.NEAREST;
             var f = deMath.deFloatFrac(lod);

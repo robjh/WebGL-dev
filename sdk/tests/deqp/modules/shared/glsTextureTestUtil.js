@@ -959,7 +959,7 @@ glsTextureTestUtil.computeNonProjectedTriLod = function(mode, dstSize, srcSize, 
  * @return {number}
  */
 glsTextureTestUtil.triangleInterpolate = function(v, x, y) {
-    return v[0] + (v[2] - v[0]) * x + (v[1] - v[0]) * y;
+    return Number((v[0] + (v[2] - v[0]) * x + (v[1] - v[0]) * y).toFixed(10));
 };
 
 /**
@@ -1203,7 +1203,7 @@ glsTextureTestUtil.computeLodFromDerivates2D = function(mode, dudx, dvdx, dudy, 
             throw new Error('Unrecognized mode:' + mode);
     }
 
-    return Math.round(Math.log2(p));
+    return Math.log(p) * 1.44269504089;
 };
 
 /**
@@ -2046,7 +2046,7 @@ glsTextureTestUtil.computeTextureLookupDiffCube = function(
                             );
 
                         lodBounds[0] = Math.min(lodBounds[0], lodO[0]);
-                        lodBounds[1] = Math.max(lodBounds[0], lodO[0]);
+                        lodBounds[1] = Math.max(lodBounds[1], lodO[1]);
                     }
 
                     var clampedLod = tcuTexLookupVerifier.clampLodBounds(
