@@ -88,7 +88,8 @@ targets = {
     'builtinprecision' : 'functional.gles3.es3fBuiltinPrecisionTests',
     'shaderbuiltinvar' : 'functional.gles3.es3fShaderBuiltinVarTests',
     'texturefiltering' : 'functional.gles3.es3fTextureFilteringTests',
-    'fragdepth' : 'functional.gles3.es3fFragDepthTests'
+    'fragdepth' : 'functional.gles3.es3fFragDepthTests',
+    'shaderpackingfunction' : 'functional.gles3.es3fShaderPackingFunctionTests'
 }
 
 total_errors = 0
