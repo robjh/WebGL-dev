@@ -2336,10 +2336,11 @@ tcuTexture.Texture2DArrayView.prototype.selectLayer = function(r) {
 /**
  * @param {tcuTexture.Sampler} sampler
  * @param {Array<number>} texCoord
- * @param {number} lod
+ * @param {number=} lod
  * @return {Array<number>} Pixel color
  */
 tcuTexture.Texture2DArrayView.prototype.sample = function(sampler, texCoord, lod) {
+    lod = lod || 0;
     return tcuTexture.sampleLevelArray2D(this.m_levels, this.m_numLevels, sampler, texCoord[0], texCoord[1], this.selectLayer(texCoord[2]), lod);
 };
 
@@ -2395,10 +2396,11 @@ tcuTexture.Texture3DView.prototype.getSubView = function(baseLevel, maxLevel) {
 /**
  * @param {tcuTexture.Sampler} sampler
  * @param {Array<number>} texCoord
- * @param {number} lod
+ * @param {number=} lod
  * @return {Array<number>} Pixel color
  */
 tcuTexture.Texture3DView.prototype.sample = function(sampler, texCoord, lod) {
+    lod = lod || 0;
     return tcuTexture.sampleLevelArray3D(this.m_levels, this.m_numLevels, sampler, texCoord[0], texCoord[1], texCoord[2], lod);
 };
 

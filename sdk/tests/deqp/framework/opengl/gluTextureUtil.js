@@ -803,77 +803,74 @@ gluTextureUtil.getSamplerCubeType = function(format) {
     }
 };
 
-// /*--------------------------------------------------------------------*//*!
-//  * \brief Get GLSL sampler type for texture format.
-//  *
-//  * If no mapping is found, glu::TYPE_LAST is returned.
-//  *
-//  * \param format Texture format
-//  * \return GLSL 2D array sampler type for format
-//  *//*--------------------------------------------------------------------*/
-// DataType getSampler2DArrayType (tcu::TextureFormat format)
-// {
-//     using tcu::TextureFormat;
+/**
+ * \brief Get GLSL sampler type for texture format.
+ *
+ * If no mapping is found, glu::TYPE_LAST is returned.
+ *
+ * @param {tcuTexture.TextureFormat} format
+ * @return {gluShaderUtil.DataType} GLSL 2D sampler type for format
+ */
+gluTextureUtil.getSampler2DArrayType = function(format)
+{
 
-//     if (format.order == tcuTexture.ChannelOrder.D || format.order == tcuTexture.ChannelOrder.DS)
-//         return TYPE_SAMPLER_2D_ARRAY;
+    if (format.order == tcuTexture.ChannelOrder.D || format.order == tcuTexture.ChannelOrder.DS)
+        return gluShaderUtil.DataType.SAMPLER_2D_ARRAY;
 
-//     if (format.order == tcuTexture.ChannelOrder.S)
-//         return TYPE_LAST;
+    if (format.order == tcuTexture.ChannelOrder.S)
+        throw new Error("No 2d array sampler");
 
-//     switch (tcu::getTextureChannelClass(format.type))
-//     {
-//         case tcu::TEXTURECHANNELCLASS_FLOATING_POINT:
-//         case tcu::TEXTURECHANNELCLASS_SIGNED_FIXED_POINT:
-//         case tcu::TEXTURECHANNELCLASS_UNSIGNED_FIXED_POINT:
-//             return glu::TYPE_SAMPLER_2D_ARRAY;
+    switch (tcuTexture.getTextureChannelClass(format.type))
+    {
+        case tcuTexture.TextureChannelClass.FLOATING_POINT:
+        case tcuTexture.TextureChannelClass.SIGNED_FIXED_POINT:
+        case tcuTexture.TextureChannelClass.UNSIGNED_FIXED_POINT:
+            return gluShaderUtil.DataType.SAMPLER_2D_ARRAY;
 
-//         case tcu::TEXTURECHANNELCLASS_SIGNED_INTEGER:
-//             return glu::TYPE_INT_SAMPLER_2D_ARRAY;
+        case tcuTexture.TextureChannelClass.SIGNED_INTEGER:
+            return gluShaderUtil.DataType.INT_SAMPLER_2D_ARRAY;
 
-//         case tcu::TEXTURECHANNELCLASS_UNSIGNED_INTEGER:
-//             return glu::TYPE_UINT_SAMPLER_2D_ARRAY;
+        case tcuTexture.TextureChannelClass.UNSIGNED_INTEGER:
+            return gluShaderUtil.DataType.UINT_SAMPLER_2D_ARRAY;
 
-//         default:
-//             return glu::TYPE_LAST;
-//     }
-// }
+        default:
+            throw new Error("No 2d array sampler");
+    }
+};
 
-// /*--------------------------------------------------------------------*//*!
-//  * \brief Get GLSL sampler type for texture format.
-//  *
-//  * If no mapping is found, glu::TYPE_LAST is returned.
-//  *
-//  * \param format Texture format
-//  * \return GLSL 3D sampler type for format
-//  *//*--------------------------------------------------------------------*/
-// DataType getSampler3DType (tcu::TextureFormat format)
-// {
-//     using tcu::TextureFormat;
+/**
+ * \brief Get GLSL sampler type for texture format.
+ *
+ * If no mapping is found, glu::TYPE_LAST is returned.
+ *
+ * @param {tcuTexture.TextureFormat} format
+ * @return {gluShaderUtil.DataType} GLSL 2D sampler type for format
+ */
+gluTextureUtil.getSampler3D = function(format)
+{
+    if (format.order == tcuTexture.ChannelOrder.D || format.order == tcuTexture.ChannelOrder.DS)
+        return gluShaderUtil.DataType.SAMPLER_3D;
 
-//     if (format.order == tcuTexture.ChannelOrder.D || format.order == tcuTexture.ChannelOrder.DS)
-//         return TYPE_SAMPLER_3D;
+    if (format.order == tcuTexture.ChannelOrder.S)
+        throw new Error("No 3d sampler");
 
-//     if (format.order == tcuTexture.ChannelOrder.S)
-//         return TYPE_LAST;
+    switch (tcuTexture.getTextureChannelClass(format.type))
+    {
+        case  tcuTexture.TextureChannelClass.FLOATING_POINT:
+        case  tcuTexture.TextureChannelClass.SIGNED_FIXED_POINT:
+        case  tcuTexture.TextureChannelClass.UNSIGNED_FIXED_POINT:
+            return gluShaderUtil.DataType.SAMPLER_3D;
 
-//     switch (tcu::getTextureChannelClass(format.type))
-//     {
-//         case tcu::TEXTURECHANNELCLASS_FLOATING_POINT:
-//         case tcu::TEXTURECHANNELCLASS_SIGNED_FIXED_POINT:
-//         case tcu::TEXTURECHANNELCLASS_UNSIGNED_FIXED_POINT:
-//             return glu::TYPE_SAMPLER_3D;
+        case  tcuTexture.TextureChannelClass.SIGNED_INTEGER:
+            return gluShaderUtil.DataType.INT_SAMPLER_3D;
 
-//         case tcu::TEXTURECHANNELCLASS_SIGNED_INTEGER:
-//             return glu::TYPE_INT_SAMPLER_3D;
+        case  tcuTexture.TextureChannelClass.UNSIGNED_INTEGER:
+            return gluShaderUtil.DataType.UINT_SAMPLER_3D;
 
-//         case tcu::TEXTURECHANNELCLASS_UNSIGNED_INTEGER:
-//             return glu::TYPE_UINT_SAMPLER_3D;
-
-//         default:
-//             return glu::TYPE_LAST;
-//     }
-// }
+        default:
+            throw new Error("No 3d sampler");
+    }
+};
 
 // /*--------------------------------------------------------------------*//*!
 //  * \brief Get GLSL sampler type for texture format.
