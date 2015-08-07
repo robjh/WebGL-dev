@@ -89,7 +89,8 @@ targets = {
     'shaderbuiltinvar' : 'functional.gles3.es3fShaderBuiltinVarTests',
     'texturefiltering' : 'functional.gles3.es3fTextureFilteringTests',
     'fbocolor' : 'functional.gles3.es3fFboColorbufferTests',
-    'fragdepth' : 'functional.gles3.es3fFragDepthTests'
+    'fragdepth' : 'functional.gles3.es3fFragDepthTests',
+    'shaderpackingfunction' : 'functional.gles3.es3fShaderPackingFunctionTests'
 }
 
 total_errors = 0
