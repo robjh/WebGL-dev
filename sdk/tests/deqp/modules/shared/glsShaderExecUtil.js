@@ -467,9 +467,7 @@ goog.scope(function() {
     	if (useTFObject)
     		gl.bindTransformFeedback(gl.TRANSFORM_FEEDBACK, transformFeedback);
     	gl.bindBuffer(gl.TRANSFORM_FEEDBACK_BUFFER, outputBuffer);
-        // TODO: Usage should be STREAM_READ but Chrome fails
-    	//gl.bufferData(gl.TRANSFORM_FEEDBACK_BUFFER, outputBufferStride*numValues, gl.STREAM_READ);
-        gl.bufferData(gl.TRANSFORM_FEEDBACK_BUFFER, outputBufferStride * numValues, gl.STREAM_DRAW);
+    	gl.bufferData(gl.TRANSFORM_FEEDBACK_BUFFER, outputBufferStride*numValues, gl.STREAM_READ);
     	gl.bindBufferBase(gl.TRANSFORM_FEEDBACK_BUFFER, 0, outputBuffer);
 
     	// Draw with rasterization disabled.
