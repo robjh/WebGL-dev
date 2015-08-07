@@ -452,7 +452,7 @@ void FragmentProcessor::render (const rr::MultisamplePixelBufferAccess& msColorB
                     var frag = fragments[i];
                     if (frag.isAlive) {
                         frag.blendedRGB = deMath.swizzle(frag.value, [0, 1, 2]);
-                        frag.blendedA = 1.0; //frag.value[3];
+                        frag.blendedA = frag.value[3];
                     }
                 }
             }

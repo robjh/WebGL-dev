@@ -4101,7 +4101,6 @@ glsBuiltinPrecisionTests.Typename;
         var v7 = app(new glsBuiltinPrecisionTests.Mul(), b[0], a[1]);
         var v8 = app(new glsBuiltinPrecisionTests.Sub(), v6, v7);
 
-        // TODO: Test this logic
         var v9 = app(new glsBuiltinPrecisionTests.GenVec(this.m_inputSize, true), v2, v5, v8);
         return v9;
     };
@@ -4616,14 +4615,14 @@ glsBuiltinPrecisionTests.Typename;
         var v1 = app(new glsBuiltinPrecisionTests.Sub(), edge1, edge0);
         var v2 = app(new glsBuiltinPrecisionTests.Div(), v0, v1);
         var v3 = app(new glsBuiltinPrecisionTests.Clamp(), v2, zero, one);
-        // TODO: bind v2 to a variable 't' for better performance
+        var t = glsBuiltinPrecisionTests.bindExpression('float', 't', ctx, v3);
         //(t * t * (constant(3.0f) - constant(2.0f) * t))
         var two = new glsBuiltinPrecisionTests.Constant(2);
         var three = new glsBuiltinPrecisionTests.Constant(3);
-        var v4 = app(new glsBuiltinPrecisionTests.Mul(), v3, v3);
-        var v5 = app(new glsBuiltinPrecisionTests.Mul(), v4, three);
-        var v6 = app(new glsBuiltinPrecisionTests.Mul(), two, v2);
-        var v7 = app(new glsBuiltinPrecisionTests.Sub(), v5, v6);
+        var v4 = app(new glsBuiltinPrecisionTests.Mul(), two, t);
+        var v5 = app(new glsBuiltinPrecisionTests.Sub(), three, v4);
+        var v6 = app(new glsBuiltinPrecisionTests.Mul(), t, t);
+        var v7 = app(new glsBuiltinPrecisionTests.Mul(), v6, v5);
         return v7;
     };
 

@@ -60,9 +60,26 @@ goog.scope(function() {
         var matrix = new tcuMatrix.Matrix(rows, cols);
         for (var row = 0; row < vector.length; row++)
             for (var col = 0; col < vector.length; col++)
-                matrix.matrix[row][col] = row == col ? vector[row] : 0;
+                matrix.matrix[col][row] = row == col ? vector[row] : 0;
         return matrix;
     };
+
+    /**
+     * Fill the Matrix with data from array
+     * @param {number} rows
+     * @param {number} cols
+     * @param {Array<number>} array
+     * @return {tcuMatrix.Matrix}
+     */
+    tcuMatrix.matrixFromArray = function(rows, cols, array) {
+        DE_ASSERT(array.length === rows * cols);
+        var matrix = new tcuMatrix.Matrix(rows, cols);
+        for (var row = 0; row < rows; row++)
+            for (var col = 0; col < cols; col++)
+                matrix.matrix[col][row] = array[row * cols +col];
+        return matrix;
+    };
+
 
     tcuMatrix.Matrix.prototype.set = function(x, y, value) {
         this.isRangeValid(x, y);

@@ -575,19 +575,30 @@ es3fFboTestUtil.FboIncompleteException.prototype.getReason = function() {return 
     es3fFboTestUtil.TextureCubeShader.prototype.setFace = function(face) {
         /** @const {Array<Array<number>>} */ var s_cubeTransforms = [
             // Face -X: (x, y, 1) -> (-1, -(2*y-1), +(2*x-1))
-            [[0.0, 0.0, -1.0], [0.0, -2.0, 1.0], [2.0, 0.0, -1.0]],
+            [0, 0, -1,
+             0, -2, 1,
+             2, 0, -1],
             // Face +X: (x, y, 1) -> (+1, -(2*y-1), -(2*x-1))
-            [[0.0, 0.0, 1.0], [0.0, -2.0, 1.0], [-2.0, 0.0, 1.0]],
+            [0, 0, 1,
+             0, -2, 1,
+            -2, 0, 1],
             // Face -Y: (x, y, 1) -> (+(2*x-1), -1, -(2*y-1))
-            [[2.0, 0.0, -1.0], [0.0, 0.0, -1.0], [0.0, -2.0, 1.0]],
+            [2, 0, -1,
+             0, 0, -1,
+             0, -2, 1],
             // Face +Y: (x, y, 1) -> (+(2*x-1), +1, +(2*y-1))
-            [[2.0, 0.0, -1.0], [0.0, 0.0, 1.0], [0.0, 2.0, -1.0]],
+            [2, 0, -1,
+             0, 0, 1,
+             0, 2, -1],
             // Face -Z: (x, y, 1) -> (-(2*x-1), -(2*y-1), -1)
-            [[-2.0, 0.0, 1.0], [0.0, -2.0, 1.0], [0.0, 0.0, -1.0]],
+            [-2, 0, 1,
+             0, -2, 1,
+              0, 0, -1],
             // Face +Z: (x, y, 1) -> (+(2*x-1), -(2*y-1), +1)
-            [[2.0, 0.0, -1.0], [0.0, -2.0, 1.0], [0.0, 0.0, 1.0]]];
-        DE_ASSERT(deMath.deInBounds32(face, 0, Object.keys(tcuTexture.CubeFace).length));
-        this.m_coordMat = /** @type {tcuMatrix.Mat3} */ (tcuMatrix.matrixFromVector(3, 3, s_cubeTransforms[face]));
+            [2, 0, -1,
+             0, -2, 1,
+             0, 0, 1]];
+        this.m_coordMat = /** @type {tcuMatrix.Mat3} */ (tcuMatrix.matrixFromArray(3, 3, s_cubeTransforms[face]));
     };
 
     /**
@@ -618,7 +629,7 @@ es3fFboTestUtil.FboIncompleteException.prototype.getReason = function() {return 
      * @param {number} numPackets
      */
     es3fFboTestUtil.TextureCubeShader.prototype.shadeVertices = function(inputs, packets, numPackets) {
-        /** @type {tcuMatrix.Matrix} */ var texCoordMat = tcuMatrix.matrixFromVector(3, 3, this.m_uniforms[0].value);
+    /** @type {tcuMatrix.Matrix} */ var texCoordMat = tcuMatrix.matrixFromArray(3, 3, this.m_uniforms[0].value);
 
         for (var packetNdx = 0; packetNdx < numPackets; ++packetNdx) {
             /** @type {rrVertexPacket.VertexPacket} */ var packet = packets[packetNdx];
@@ -638,10 +649,8 @@ es3fFboTestUtil.FboIncompleteException.prototype.getReason = function() {return 
      */
     es3fFboTestUtil.TextureCubeShader.prototype.shadeFragments = function(packet, context) {
         var numPackets = packet.length;
-        var sval = this.m_uniforms[2].value;
-        var bval = this.m_uniforms[3].value;
-        /** @const {Array<number>} */ var texScale = [sval, sval, sval, sval];
-        /** @const {Array<number>} */ var texBias = [bval, bval, bval, bval];
+        /** @const {Array<number>} */ var texScale = this.m_uniforms[2].value;
+        /** @const {Array<number>} */ var texBias = this.m_uniforms[3].value;
 
         var texCoords = [];
         var colors = [];
@@ -1253,7 +1262,8 @@ es3fFboTestUtil.FboIncompleteException.prototype.getReason = function() {return 
         /** @type {gluTextureUtil.TransferFormat} */ var transferFmt = gluTextureUtil.getTransferFormat(readFormat);
         /** @type {number} */ var alignment = 4; // \note gl.PACK_ALIGNMENT = 4 is assumed.
         /** @type {number} */ var rowSize = deMath.deAlign32(readFormat.getPixelSize() * width, alignment);
-        var data = new Uint8Array(rowSize * height);
+        var typedArrayType = tcuTexture.getTypedArray(readFormat.type);
+        var data = new typedArrayType(rowSize * height);
         ctx.readPixels(x, y, width, height, transferFmt.format, transferFmt.dataType, data);
 
         // Convert to surface.
