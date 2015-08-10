@@ -347,6 +347,7 @@ goog.scope(function() {
 	    gl.useProgram(program.getProgram());
 	    gl.uniform3fv(scaleLoc, scale);
 
+	    gl.viewport(0, 0, width, height);
 	    gluDrawUtil.draw(gl, program.getProgram(), [posBinding], gluDrawUtil.triangles(indices));
 
 		testImg.readViewport(gl, [0, 0, width, height]);
