@@ -803,7 +803,6 @@ goog.scope(function() {
             tcuLogImage.logImageWithInfo(error.getAccess(), 'Error mask');
         } else {
             debug('Verfication result');
-            tcuLogImage.logImageWithInfo(image.getAccess(), 'Result');
         }
 
         return isOk;
