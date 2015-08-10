@@ -654,7 +654,7 @@ goog.scope(function() {
         // verify image
 
         if (this.verifyImage(surface))
-            testPassed('Pass');
+            testPassed('');
         else
             testFailed('Incorrect rendering result');
         return tcuTestCase.IterateResult.STOP;

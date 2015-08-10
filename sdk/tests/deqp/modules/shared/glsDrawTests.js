@@ -3003,7 +3003,6 @@ goog.scope(function() {
             bufferedLogToConsole(spec.getMultilineDesc());
 
             // Data
-
             this.m_glArrayPack.clearArrays();
             this.m_rrArrayPack.clearArrays();
 
@@ -3124,13 +3123,15 @@ goog.scope(function() {
                     checkMessage(false, 'Failed to draw with unaligned stride.');
                 else
                     testFailedOptions('Image comparison failed.', false);
+                return iterateResult;
             }
         } else {
             testFailedOptions('Image comparison failed.', false);
             return tcuTestCase.IterateResult.STOP;
         }
 
-        //this.m_result.setTestContextResult(this.m_testCtx);
+        if (iterateResult == tcuTestCase.IterateResult.STOP)
+            testPassed('');
 
         this.m_iteration++;
         return iterateResult;

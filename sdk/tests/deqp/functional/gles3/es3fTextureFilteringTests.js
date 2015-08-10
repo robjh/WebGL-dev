@@ -422,7 +422,7 @@ goog.scope(function() {
         if (this.m_caseNdx < this.m_cases.length)
             return tcuTestCase.IterateResult.CONTINUE;
 
-        testPassed('Verification passed.');
+        testPassed('Verified');
         return tcuTestCase.IterateResult.STOP;
     };
 
@@ -868,7 +868,7 @@ goog.scope(function() {
         if (this.m_caseNdx < this.m_cases.length)
             return tcuTestCase.IterateResult.CONTINUE;
 
-        testPassed('Verification passed.');
+        testPassed('Verified');
         return tcuTestCase.IterateResult.STOP;
     };
 
@@ -1270,7 +1270,7 @@ goog.scope(function() {
         if (this.m_caseNdx < this.m_cases.length)
             return tcuTestCase.IterateResult.CONTINUE;
 
-        testPassed('Verification passed.');
+        testPassed('Verified');
         return tcuTestCase.IterateResult.STOP;
     };
 
@@ -1621,7 +1621,7 @@ goog.scope(function() {
         if (this.m_caseNdx < this.m_cases.length)
             return tcuTestCase.IterateResult.CONTINUE;
 
-        testPassed('Verification passed.');
+        testPassed('Verified');
         return tcuTestCase.IterateResult.STOP;
     };
 
