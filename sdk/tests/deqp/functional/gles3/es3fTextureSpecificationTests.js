@@ -43,92 +43,164 @@ goog.scope(function() {
         es3fTextureSpecificationTests.TextureSpecificationTests;
 
     es3fTextureSpecificationTests.TextureSpecificationTests.init = function () {
+        /** @type {Array<{name: string, format: number, dataType: number}>} */
         var unsizedFormats [
-            [
-                "alpha_unsigned_byte",
-                gl.ALPHA,gl.UNSIGNED_BYTE
-            ], [
-                "luminance_unsigned_byte", gl.LUMINANCE, gl.UNSIGNED_BYTE
-            ], [
-                "luminance_alpha_unsigned_byte",
-                gl.LUMINANCE_ALPHA,
-                gl.UNSIGNED_BYTE
-            ], [
-                "rgb_unsigned_short_5_6_5", gl.RGB, gl.UNSIGNED_SHORT_5_6_5
-            ], [
-                "rgb_unsigned_byte", gl.RGB, gl.UNSIGNED_BYTE
-            ], [
-                "rgba_unsigned_short_4_4_4_4",
-                gl.RGBA,
-                gl.UNSIGNED_SHORT_4_4_4_4
-            ], [
-                "rgba_unsigned_short_5_5_5_1",
-                gl.RGBA,
-                gl.UNSIGNED_SHORT_5_5_5_1
-            ], [
-                "rgba_unsigned_byte", gl.RGBA, gl.UNSIGNED_BYTE
-            ]
+            {
+                name: "alpha_unsigned_byte",
+                format: gl.ALPHA,
+                dataType: gl.UNSIGNED_BYTE
+            }, {
+                name: "luminance_unsigned_byte",
+                format: gl.LUMINANCE,
+                dataType: gl.UNSIGNED_BYTE
+            }, {
+                name: "luminance_alpha_unsigned_byte",
+                format: gl.LUMINANCE_ALPHA,
+                dataType: gl.UNSIGNED_BYTE
+            }, {
+                name: "rgb_unsigned_short_5_6_5",
+                format: gl.RGB,
+                dataType: gl.UNSIGNED_SHORT_5_6_5
+            }, {
+                name: "rgb_unsigned_byte",
+                format: gl.RGB,
+                dataType: gl.UNSIGNED_BYTE
+            }, {
+                name: "rgba_unsigned_short_4_4_4_4",
+                format: gl.RGBA,
+                dataType: gl.UNSIGNED_SHORT_4_4_4_4
+            }, {
+                name: "rgba_unsigned_short_5_5_5_1",
+                format: gl.RGBA,
+                dataType: gl.UNSIGNED_SHORT_5_5_5_1
+            }, {
+                name: "rgba_unsigned_byte",
+                format: gl.RGBA,
+                dataType: gl.UNSIGNED_BYTE
+            }
         ];
 
+        /** @type {Array<{name: string, internalFormat: number}>} */
         var colorFormats = [
-            [ "rgba32f",            gl.RGBA32F,            ],
-            [ "rgba32i",            gl.RGBA32I,            ],
-            [ "rgba32ui",            gl.RGBA32UI,        ],
-            [ "rgba16f",            gl.RGBA16F,            ],
-            [ "rgba16i",            gl.RGBA16I,            ],
-            [ "rgba16ui",            gl.RGBA16UI,        ],
-            [ "rgba8",                gl.RGBA8,            ],
-            [ "rgba8i",                gl.RGBA8I,            ],
-            [ "rgba8ui",            gl.RGBA8UI,            ],
-            [ "srgb8_alpha8",        gl.SRGB8_ALPHA8,    ],
-            [ "rgb10_a2",            gl.RGB10_A2,        ],
-            [ "rgb10_a2ui",            gl.RGB10_A2UI,        ],
-            [ "rgba4",                gl.RGBA4,            ],
-            [ "rgb5_a1",            gl.RGB5_A1,            ],
-            [ "rgba8_snorm",        gl.RGBA8_SNORM,        ],
-            [ "rgb8",                gl.RGB8,            ],
-            [ "rgb565",                gl.RGB565,            ],
-            [ "r11f_g11f_b10f",        gl.R11F_G11F_B10F,    ],
-            [ "rgb32f",                gl.RGB32F,            ],
-            [ "rgb32i",                gl.RGB32I,            ],
-            [ "rgb32ui",            gl.RGB32UI,            ],
-            [ "rgb16f",                gl.RGB16F,            ],
-            [ "rgb16i",                gl.RGB16I,            ],
-            [ "rgb16ui",            gl.RGB16UI,            ],
-            [ "rgb8_snorm",            gl.RGB8_SNORM,        ],
-            [ "rgb8i",                gl.RGB8I,            ],
-            [ "rgb8ui",                gl.RGB8UI,            ],
-            [ "srgb8",                gl.SRGB8,            ],
-            [ "rgb9_e5",            gl.RGB9_E5,            ],
-            [ "rg32f",                gl.RG32F,            ],
-            [ "rg32i",                gl.RG32I,            ],
-            [ "rg32ui",                gl.RG32UI,            ],
-            [ "rg16f",                gl.RG16F,            ],
-            [ "rg16i",                gl.RG16I,            ],
-            [ "rg16ui",                gl.RG16UI,            ],
-            [ "rg8",                gl.RG8,                ],
-            [ "rg8i",                gl.RG8I,            ],
-            [ "rg8ui",                gl.RG8UI,            ],
-            [ "rg8_snorm",            gl.RG8_SNORM,        ],
-            [ "r32f",                gl.R32F,            ],
-            [ "r32i",                gl.R32I,            ],
-            [ "r32ui",                gl.R32UI,            ],
-            [ "r16f",                gl.R16F,            ],
-            [ "r16i",                gl.R16I,            ],
-            [ "r16ui",                gl.R16UI,            ],
-            [ "r8",                    gl.R8,                ],
-            [ "r8i",                gl.R8I,                ],
-            [ "r8ui",                gl.R8UI,            ],
-            [ "r8_snorm",            gl.R8_SNORM,        ]
+            {
+                name: "rgba32f", internalFormat: gl.RGBA32F
+            }, {
+                name: "rgba32i", internalFormat: gl.RGBA32I
+            }, {
+                name: "rgba32ui", internalFormat: gl.RGBA32UI
+            }, {
+                name: "rgba16f", internalFormat: gl.RGBA16F
+            }, {
+                name: "rgba16i", internalFormat: gl.RGBA16I
+            }, {
+                name: "rgba16ui", internalFormat: gl.RGBA16UI
+            }, {
+                name: "rgba8", internalFormat: gl.RGBA8
+            }, {
+                name: "rgba8i", internalFormat: gl.RGBA8I
+            }, {
+                name: "rgba8ui", internalFormat: gl.RGBA8UI
+            }, {
+                name: "srgb8_alpha8", internalFormat: gl.SRGB8_ALPHA8
+            }, {
+                name: "rgb10_a2", internalFormat: gl.RGB10_A2
+            }, {
+                name: "rgb10_a2ui", internalFormat: gl.RGB10_A2UI
+            }, {
+                name: "rgba4", internalFormat: gl.RGBA4
+            }, {
+                name: "rgb5_a1", internalFormat: gl.RGB5_A1
+            }, {
+                name: "rgba8_snorm", internalFormat: gl.RGBA8_SNORM
+            }, {
+                name: "rgb8", internalFormat: gl.RGB8
+            }, {
+                name: "rgb565", internalFormat: gl.RGB565
+            }, {
+                name: "r11f_g11f_b10f", internalFormat: gl.R11F_G11F_B10F
+            }, {
+                name: "rgb32f", internalFormat: gl.RGB32F
+            }, {
+                name: "rgb32i", internalFormat: gl.RGB32I
+            }, {
+                name: "rgb32ui", internalFormat: gl.RGB32UI
+            }, {
+                name: "rgb16f", internalFormat: gl.RGB16F
+            }, {
+                name: "rgb16i", internalFormat: gl.RGB16I
+            }, {
+                name: "rgb16ui", internalFormat: gl.RGB16UI
+            }, {
+                name: "rgb8_snorm", internalFormat: gl.RGB8_SNORM
+            }, {
+                name: "rgb8i", internalFormat: gl.RGB8I
+            }, {
+                name: "rgb8ui", internalFormat: gl.RGB8UI
+            }, {
+                name: "srgb8", internalFormat: gl.SRGB8
+            }, {
+                name: "rgb9_e5", internalFormat: gl.RGB9_E5
+            }, {
+                name: "rg32f", internalFormat: gl.RG32F
+            }, {
+                name: "rg32i", internalFormat: gl.RG32I
+            }, {
+                name: "rg32ui", internalFormat: gl.RG32UI
+            }, {
+                name: "rg16f", internalFormat: gl.RG16F
+            }, {
+                name: "rg16i", internalFormat: gl.RG16I
+            }, {
+                name: "rg16ui", internalFormat: gl.RG16UI
+            }, {
+                name: "rg8", internalFormat: gl.RG8
+            }, {
+                name: "rg8i", internalFormat: gl.RG8I
+            }, {
+                name: "rg8ui", internalFormat: gl.RG8UI
+            }, {
+                name: "rg8_snorm", internalFormat: gl.RG8_SNORM
+            }, {
+                name: "r32f", internalFormat: gl.R32F
+            }, {
+                name: "r32i", internalFormat: gl.R32I
+            }, {
+                name: "r32ui", internalFormat: gl.R32UI
+            }, {
+                name: "r16f", internalFormat: gl.R16F
+            }, {
+                name: "r16i", internalFormat: gl.R16I
+            }, {
+                name: "r16ui", internalFormat: gl.R16UI
+            }, {
+                name: "r8", internalFormat: gl.R8
+            }, {
+                name: "r8i", internalFormat: gl.R8I
+            }, {
+                name: "r8ui", internalFormat: gl.R8UI
+            }, {
+                name: "r8_snorm", internalFormat: gl.R8_SNORM
+            }
         ];
 
-        var depthStencilFormats = [
-            // Depth and stencil formats
-            [ "depth_component32f",    gl.DEPTH_COMPONENT32F    ],
-            [ "depth_component24",    gl.DEPTH_COMPONENT24    ],
-            [ "depth_component16",    gl.DEPTH_COMPONENT16    ],
-            [ "depth32f_stencil8",    gl.DEPTH32F_STENCIL8    ],
-            [ "depth24_stencil8",    gl.DEPTH24_STENCIL8        ]
+        // Depth and stencil formats
+        /** @type {Array<{name: string, internalFormat: number}>} */
+        var depthStencilFormats = [{
+                name: "depth_component32f",
+                internalFormat: gl.DEPTH_COMPONENT32F
+            }, {
+                name: "depth_component24",
+                internalFormat: gl.DEPTH_COMPONENT24
+            }, {
+                name: "depth_component16",
+                internalFormat: gl.DEPTH_COMPONENT16
+            }, {
+                name: "depth32f_stencil8",
+                internalFormat: gl.DEPTH32F_STENCIL8
+            }, {
+                name: "depth24_stencil8",
+                internalFormat: gl.DEPTH24_STENCIL8
+            }
         ];
 
         // Basic TexImage2D usage.
@@ -144,11 +216,11 @@ goog.scope(function() {
             /** @type {number} */
             var format = colorFormats[formatNdx].internalFormat;
             /** @type {number} */
-            var tex2DWidth    = 64;
+            var tex2DWidth = 64;
             /** @type {number} */
-            var tex2DHeight    = 128;
+            var tex2DHeight = 128;
             /** @type {number} */
-            var texCubeSize    = 64;
+            var texCubeSize = 64;
 
             basicTexImageGroup.addChild(
                 new es3fTextureSpecificationTests.BasicTexImage2DCase(
@@ -188,8 +260,8 @@ goog.scope(function() {
         // Cubemap cases.
         for (var ndx = 0; ndx < 10; ndx++)
         {
-            formatNdx    = rnd.getInt(0, colorFormats.length-1);
-            var        size        = 1 << rnd.getInt(2, 8);
+            formatNdx = rnd.getInt(0, colorFormats.length-1);
+            /** @type {number} */ var size = 1 << rnd.getInt(2, 8);
 
             randomTexImageGroup.addChild(
                 new es3fTextureSpecificationTests.RandomOrderTexImageCubeCase(
@@ -385,20 +457,64 @@ goog.scope(function() {
         );
         this.addChild(paramGroup);
 
-        var cases = [
-            [ "rgb8_alignment",        gl.RGB8,    31,    30,    0,    0,    0,    2 ],
-            [ "rgb8_row_length",    gl.RGB8,    31,    30,    50,    0,    0,    4 ],
-            [ "rgb8_skip_rows",        gl.RGB8,    31,    30,    0,    3,    0,    4 ],
-            [ "rgb8_skip_pixels",    gl.RGB8,    31,    30,    36,    0,    5,    4 ],
-            [ "r8_complex1",        gl.R8,        31, 30, 64, 1,    3,    1 ],
-            [ "r8_complex2",        gl.R8,        31, 30, 64, 1,    3,    2 ],
-            [ "r8_complex3",        gl.R8,        31, 30, 64, 1,    3,    4 ],
-            [ "r8_complex4",        gl.R8,        31, 30, 64, 1,    3,    8 ],
-            [ "rgba8_complex1",        gl.RGBA8,    56,    61,    69,    0,    0,    8 ],
-            [ "rgba8_complex2",        gl.RGBA8,    56,    61,    69,    0,    7,    8 ],
-            [ "rgba8_complex3",        gl.RGBA8,    56,    61,    69,    3,    0,    8 ],
-            [ "rgba8_complex4",        gl.RGBA8,    56,    61,    69,    3,    7,    8 ],
-            [ "rgba32f_complex",    gl.RGBA32F,    19,    10,    27,    1,    7,    8 ]
+        /**
+         * @type {Array<{name: string, format: number, width: number,
+         * height: number, rowLength: number, skipRows: number,
+         * skipPixels: number, alignment: number}>}
+         */
+        var cases = [ {
+                name: "rgb8_alignment", format: gl.RGB8, width: 31,
+                height: 30, rowLength: 0, skipRows: 0, skipPixels: 0,
+                alignment: 2
+            }, {
+                name: "rgb8_row_length", format: gl.RGB8, width: 31,
+                height: 30, rowLength: 50, skipRows: 0, skipPixels: 0,
+                alignment: 4
+            }, {
+                name: "rgb8_skip_rows", format: gl.RGB8, width: 31,
+                height: 30, rowLength: 0, skipRows: 3, skipPixels: 0,
+                alignment: 4
+            }, {
+                name: "rgb8_skip_pixels", format: gl.RGB8, width: 31,
+                height: 30, rowLength: 36, skipRows: 0, skipPixels: 5,
+                alignment: 4
+            }, {
+                name: "r8_complex1", format: gl.R8, width: 31,
+                height: 30, rowLength: 64, skipRows: 1, skipPixels: 3,
+                alignment: 1
+            }, {
+                name: "r8_complex2", format: gl.R8, width: 31,
+                height: 30, rowLength: 64, skipRows: 1, skipPixels: 3,
+                alignment: 2
+            }, {
+                name: "r8_complex3", format: gl.R8, width: 31,
+                height: 30, rowLength: 64, skipRows: 1, skipPixels: 3,
+                alignment: 4
+            }, {
+                name: "r8_complex4", format: gl.R8, width: 31,
+                height: 30, rowLength: 64, skipRows: 1, skipPixels: 3,
+                alignment: 8
+            }, {
+                name: "rgba8_complex1", format: gl.RGBA8, width: 56,
+                height: 61, rowLength: 69, skipRows: 0, skipPixels: 0,
+                alignment: 8
+            }, {
+                name: "rgba8_complex2", format: gl.RGBA8, width: 56,
+                height: 61, rowLength: 69, skipRows: 0, skipPixels: 7,
+                alignment: 8
+            }, {
+                name: "rgba8_complex3", format: gl.RGBA8, width: 56,
+                height: 61, rowLength: 69, skipRows: 3, skipPixels: 0,
+                alignment: 8
+            }, {
+                name: "rgba8_complex4", format: gl.RGBA8, width: 56,
+                height: 61, rowLength: 69, skipRows: 3, skipPixels: 7,
+                alignment: 8
+            }, {
+                name: "rgba32f_complex", format: gl.RGBA32F, width: 19,
+                height: 10, rowLength: 27, skipRows: 1, skipPixels: 7,
+                alignment: 8
+            }
         ];
 
         for (var ndx = 0; ndx < cases.length; ndx++)
@@ -419,13 +535,32 @@ goog.scope(function() {
         this.addChild(pboGroup);
 
         // Parameter cases
-        var parameterCases =
-        [
-            [ "rgb8_offset",        gl.RGB8,    31,    30,    0,    0,    0,    4,    67 ],
-            [ "rgb8_alignment",        gl.RGB8,    31,    30,    0,    0,    0,    2,    0 ],
-            [ "rgb8_row_length",    gl.RGB8,    31,    30,    50,    0,    0,    4,    0 ],
-            [ "rgb8_skip_rows",        gl.RGB8,    31,    30,    0,    3,    0,    4,    0 ],
-            [ "rgb8_skip_pixels",    gl.RGB8,    31,    30,    36,    0,    5,    4,    0 ]
+        /**
+         * @type {Array<{name: string, format: number, width: number,
+         * height: number, rowLength: number, skipRows: number,
+         * skipPixels: number, alignment: number, offset: number}>}
+         */
+        var parameterCases = [ {
+                name: "rgb8_offset", format: gl.RGB8, width: 31,
+                height: 30, rowLength: 0, skipRows: 0, skipPixels: 0,
+                alignment: 4, offset: 67
+            }, {
+                name: "rgb8_alignment", format: gl.RGB8, width: 31,
+                height: 30, rowLength: 0, skipRows: 0, skipPixels: 0,
+                alignment: 2, offset: 0
+            }, {
+                name: "rgb8_row_length", format: gl.RGB8, width: 31,
+                height: 30, rowLength: 50, skipRows: 0, skipPixels: 0,
+                alignment: 4, offset: 0
+            }, {
+                name: "rgb8_skip_rows", format: gl.RGB8, width: 31,
+                height: 30, rowLength: 0, skipRows: 3, skipPixels: 0,
+                alignment: 4, offset: 0
+            }, {
+                name: "rgb8_skip_pixels", format: gl.RGB8, width: 31,
+                height: 30, rowLength: 36, skipRows: 0, skipPixels: 5,
+                alignment: 4, offset: 0
+            }
         ];
 
         for (var formatNdx = 0; formatNdx < colorFormats.length; formatNdx++)
@@ -789,21 +924,65 @@ goog.scope(function() {
         );
         this.addChild(paramGroup);
 
-        var cases =
-        [
-            [ "rgb8_alignment",        gl.RGB8,    54,    60,    11,    7,    31,    30,    0,    0,    0,    2 ],
-            [ "rgb8_row_length",    gl.RGB8,    54,    60,    11,    7,    31,    30,    50,    0,    0,    4 ],
-            [ "rgb8_skip_rows",        gl.RGB8,    54,    60,    11,    7,    31,    30,    0,    3,    0,    4 ],
-            [ "rgb8_skip_pixels",    gl.RGB8,    54,    60,    11,    7,    31,    30,    36,    0,    5,    4 ],
-            [ "r8_complex1",        gl.R8,        54,    60,    11,    7,    31, 30, 64, 1,    3,    1 ],
-            [ "r8_complex2",        gl.R8,        54,    60,    11,    7,    31, 30, 64, 1,    3,    2 ],
-            [ "r8_complex3",        gl.R8,        54,    60,    11,    7,    31, 30, 64, 1,    3,    4 ],
-            [ "r8_complex4",        gl.R8,        54,    60,    11,    7,    31, 30, 64, 1,    3,    8 ],
-            [ "rgba8_complex1",        gl.RGBA8,    92,    84,    13,    19,    56,    61,    69,    0,    0,    8 ],
-            [ "rgba8_complex2",        gl.RGBA8,    92,    84,    13,    19,    56,    61,    69,    0,    7,    8 ],
-            [ "rgba8_complex3",        gl.RGBA8,    92,    84,    13,    19,    56,    61,    69,    3,    0,    8 ],
-            [ "rgba8_complex4",        gl.RGBA8,    92,    84,    13,    19,    56,    61,    69,    3,    7,    8 ],
-            [ "rgba32f_complex",    gl.RGBA32F,    92,    84,    13,    19,    56,    61,    69,    3,    7,    8 ]
+        /**
+         * @type {Array<{name: string, format: number, width: number,
+         * height: number, subX: number, subY: number, subW: number,
+         * subH: number, rowLength: number, skipRows: number,
+         * skipPixels: number, alignment: number}>}
+         */
+        cases = [ {
+                name: "rgb8_alignment", format: gl.RGB8, width: 54,
+                height: 60, subX: 11, subY: 7, subW: 31, subH: 30,
+                rowLength: 0, skipRows: 0, skipPixels: 0, alignment: 2
+            }, {
+                name: "rgb8_row_length", format: gl.RGB8, width: 54,
+                height: 60, subX: 11, subY: 7, subW: 31, subH: 30,
+                rowLength: 50, skipRows: 0, skipPixels: 0, alignment: 4
+            }, {
+                name: "rgb8_skip_rows", format: gl.RGB8, width: 54,
+                height: 60, subX: 11, subY: 7, subW: 31, subH: 30,
+                rowLength: 0, skipRows: 3, skipPixels: 0, alignment: 4
+            }, {
+                name: "rgb8_skip_pixels", format: gl.RGB8, width: 54,
+                height: 60, subX: 11, subY: 7, subW: 31, subH: 30,
+                rowLength: 36, skipRows: 0, skipPixels: 5, alignment: 4
+            }, {
+                name: "r8_complex1", format: gl.R8, width: 54,
+                height: 60, subX: 11, subY: 7, subW: 31, subH: 30,
+                rowLength: 64, skipRows: 1, skipPixels: 3, alignment: 1
+            }, {
+                name: "r8_complex2", format: gl.R8, width: 54,
+                height: 60, subX: 11, subY: 7, subW: 31, subH: 30,
+                rowLength: 64, skipRows: 1, skipPixels: 3, alignment: 2
+            }, {
+                name: "r8_complex3", format: gl.R8, width: 54,
+                height: 60, subX: 11, subY: 7, subW: 31, subH: 30,
+                rowLength: 64, skipRows: 1, skipPixels: 3, alignment: 4
+            }, {
+                name: "r8_complex4", format: gl.R8, width: 54,
+                height: 60, subX: 11, subY: 7, subW: 31, subH: 30,
+                rowLength: 64, skipRows: 1, skipPixels: 3, alignment: 8
+            }, {
+                name: "rgba8_complex1", format: gl.RGBA8, width: 92,
+                height: 84, subX: 13, subY: 19, subW: 56, subH: 61,
+                rowLength: 69, skipRows: 0, skipPixels: 0, alignment: 8
+            }, {
+                name: "rgba8_complex2", format: gl.RGBA8, width: 92,
+                height: 84, subX: 13, subY: 19, subW: 56, subH: 61,
+                rowLength: 69, skipRows: 0, skipPixels: 7, alignment: 8
+            }, {
+                name: "rgba8_complex3", format: gl.RGBA8, width: 92,
+                height: 84, subX: 13, subY: 19, subW: 56, subH: 61,
+                rowLength: 69, skipRows: 3, skipPixels: 0, alignment: 8
+            }, {
+                name: "rgba8_complex4", format: gl.RGBA8, width: 92,
+                height: 84, subX: 13, subY: 19, subW: 56, subH: 61,
+                rowLength: 69, skipRows: 3, skipPixels: 7, alignment: 8
+            }, {
+                name: "rgba32f_complex", format: gl.RGBA32F, width: 92,
+                height: 84, subX: 13, subY: 19, subW: 56, subH: 61,
+                rowLength: 69, skipRows: 3, skipPixels: 7, alignment: 8
+            }
         ];
 
         for (var ndx = 0; ndx < cases.length; ndx++)
