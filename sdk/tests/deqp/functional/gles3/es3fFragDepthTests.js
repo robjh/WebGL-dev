@@ -207,7 +207,7 @@ goog.scope(function() {
 		// Render reference.
 		for (var y = 0; y < referenceFrame.getHeight(); y++) {
 			/** @type {number} */ var yf = (y + 0.5) / referenceFrame.getHeight();
-			/** @type {number} */ var half = deMath.clamp((referenceFrame.getWidth() * 0.5 + 0.5), 0, referenceFrame.getWidth());
+			/** @type {number} */ var half = deMath.clamp(Math.floor(referenceFrame.getWidth() * 0.5 + 0.5), 0, referenceFrame.getWidth());
 
 			// Fill left half - comparison to constant 0.5
 			for (var x = 0; x < half; x++) {
