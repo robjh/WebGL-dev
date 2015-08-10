@@ -52,7 +52,7 @@ gluDrawUtil.VertexArrayBinding = function(type, location, components, elements, 
  * @return {gluDrawUtil.VertexArrayBinding}
  */
 gluDrawUtil.vabFromBindingPointAndArrayPointer = function(binding, pointer) {
-    var type = gl.FLOAT;
+    var type = gl.FLOAT; // TODO: remove hard-coded value;
     var location = binding.location;
     var components = pointer.numComponents;
     var elements = pointer.numElements;
@@ -425,7 +425,24 @@ gluDrawUtil.bindingPointFromName = function(name, location) {
  * @param {Array<number>} data
  * @return {gluDrawUtil.VertexArrayBinding}
  */
+gluDrawUtil.newUint32VertexArrayBinding = function(name, numComponents, numElements, stride, data) {
+    // TODO: make a more generic version and merge with newFloatVertexArrayBinding
+    var bindingPoint = gluDrawUtil.bindingPointFromName(name);
+    var arrayPointer = new gluDrawUtil.VertexArrayPointer(gluDrawUtil.VertexComponentType.VTX_COMP_UNSIGNED_INT32,
+        gluDrawUtil.VertexComponentConversion.VTX_COMP_CONVERT_NONE, numComponents, numElements, stride, data);
+    return gluDrawUtil.vabFromBindingPointAndArrayPointer(bindingPoint, arrayPointer); // TODO: vabFromBindingPointAndArrayPointer has a hardcoded constant (gl.FLOAT)
+};
+
+/**
+ * @param {string} name
+ * @param {number} numComponents
+ * @param {number} numElements
+ * @param {number} stride
+ * @param {Array<number>} data
+ * @return {gluDrawUtil.VertexArrayBinding}
+ */
 gluDrawUtil.newFloatVertexArrayBinding = function(name, numComponents, numElements, stride, data) {
+    // TODO: make a more generic version and merge with newUint32VertexArrayBinding
     var bindingPoint = gluDrawUtil.bindingPointFromName(name);
     var arrayPointer = new gluDrawUtil.VertexArrayPointer(gluDrawUtil.VertexComponentType.VTX_COMP_FLOAT,
         gluDrawUtil.VertexComponentConversion.VTX_COMP_CONVERT_NONE, numComponents, numElements, stride, data);
