@@ -34,7 +34,6 @@ goog.require('framework.referencerenderer.rrUtil');
 goog.require('framework.delibs.debase.deMath');
 goog.require('framework.opengl.gluShaderUtil');
 
-
 goog.scope(function() {
 var es3fFboColorbufferTests = functional.gles3.es3fFboColorbufferTests;
 var es3fFboTestCase = functional.gles3.es3fFboTestCase;
@@ -53,7 +52,6 @@ var gluShaderUtil = framework.opengl.gluShaderUtil;
 
 /** @type {WebGL2RenderingContext} */ var gl;
 
-
 /** @const*/ var MIN_THRESHOLD = new tcuRGBA.RGBA([12, 12, 12, 12]);
 
 var setParentClass = function(child, parent) {
@@ -67,8 +65,7 @@ var setParentClass = function(child, parent) {
  * @param {Array<number>} maxVal
  * @return {Array<number>}
  */
-es3fFboColorbufferTests.randomVector = function(rnd, minVal, maxVal)
-{
+es3fFboColorbufferTests.randomVector = function(rnd, minVal, maxVal) {
     var res = [];
     for (var ndx = 0; ndx < minVal.length; ndx++)
         res[ndx] = rnd.getFloat(minVal[ndx], maxVal[ndx]);
@@ -79,8 +76,7 @@ es3fFboColorbufferTests.randomVector = function(rnd, minVal, maxVal)
  * @param {deRandom.Random} rnd
  * @return {Array<number>}
  */
-es3fFboColorbufferTests.generateRandomColor = function(rnd)
-{
+es3fFboColorbufferTests.generateRandomColor = function(rnd) {
     var retVal = [];
 
     for (var i = 0; i < 3; ++i)
@@ -109,8 +105,7 @@ setParentClass(es3fFboColorbufferTests.FboColorbufferCase, es3fFboTestCase.FboTe
  * @param {tcuSurface.Surface} result
  * @return {boolean}
  */
-es3fFboColorbufferTests.FboColorbufferCase.prototype.compare = function(reference, result)
-    {
+es3fFboColorbufferTests.FboColorbufferCase.prototype.compare = function(reference, result) {
         /** @type {tcuRGBA.RGBA} */ var threshold = tcuRGBA.max(es3fFboTestUtil.getFormatThreshold(this.m_format), MIN_THRESHOLD);
 
         bufferedLogToConsole('Comparing images, threshold: ' + threshold);
@@ -135,14 +130,11 @@ es3fFboColorbufferTests.FboColorClearCase = function(name, desc, format, width, 
 
 setParentClass(es3fFboColorbufferTests.FboColorClearCase, es3fFboColorbufferTests.FboColorbufferCase);
 
-
-es3fFboColorbufferTests.FboColorClearCase.prototype.preCheck = function()
-    {
+es3fFboColorbufferTests.FboColorClearCase.prototype.preCheck = function() {
         this.checkFormatSupport(this.m_format);
     };
 
-es3fFboColorbufferTests.FboColorClearCase.prototype.render = function(dst)
-    {
+es3fFboColorbufferTests.FboColorClearCase.prototype.render = function(dst) {
         var ctx = this.getCurrentContext();
         var fboFormat = gluTextureUtil.mapGLInternalFormat(this.m_format);
         var fmtClass = tcuTexture.getTextureChannelClass(fboFormat.type);
@@ -165,8 +157,7 @@ es3fFboColorbufferTests.FboColorClearCase.prototype.render = function(dst)
         ctx.viewport(0, 0, this.m_width, this.m_height);
 
         // Initialize to transparent black.
-        switch (fmtClass)
-        {
+        switch (fmtClass) {
             case tcuTexture.TextureChannelClass.FLOATING_POINT:
             case tcuTexture.TextureChannelClass.SIGNED_FIXED_POINT:
             case tcuTexture.TextureChannelClass.UNSIGNED_FIXED_POINT:
@@ -187,8 +178,7 @@ es3fFboColorbufferTests.FboColorClearCase.prototype.render = function(dst)
 
         // Do random scissored clears.
         ctx.enable(gl.SCISSOR_TEST);
-        for (var ndx = 0; ndx < numClears; ndx++)
-        {
+        for (var ndx = 0; ndx < numClears; ndx++) {
             var x = rnd.getInt(0, this.m_width - 1);
             var y = rnd.getInt(0, this.m_height - 1);
             var w = rnd.getInt(1, this.m_width - x);
@@ -198,8 +188,7 @@ es3fFboColorbufferTests.FboColorClearCase.prototype.render = function(dst)
             ctx.scissor(x, y, w, h);
             ctx.clearBufferfv(gl.COLOR, 0, color);
 
-            switch (fmtClass)
-            {
+            switch (fmtClass) {
                 case tcuTexture.TextureChannelClass.FLOATING_POINT:
                 case tcuTexture.TextureChannelClass.SIGNED_FIXED_POINT:
                 case tcuTexture.TextureChannelClass.UNSIGNED_FIXED_POINT:
@@ -244,20 +233,17 @@ es3fFboColorbufferTests.FboColorMultiTex2DCase = function(name, desc, tex0Fmt, t
 
 setParentClass(es3fFboColorbufferTests.FboColorMultiTex2DCase, es3fFboColorbufferTests.FboColorbufferCase);
 
-es3fFboColorbufferTests.FboColorMultiTex2DCase.prototype.preCheck = function()
-    {
+es3fFboColorbufferTests.FboColorMultiTex2DCase.prototype.preCheck = function() {
         this.checkFormatSupport(this.m_tex0Fmt);
         this.checkFormatSupport(this.m_tex1Fmt);
     };
 
-es3fFboColorbufferTests.FboColorMultiTex2DCase.prototype.render = function(dst)
-    {
+es3fFboColorbufferTests.FboColorMultiTex2DCase.prototype.render = function(dst) {
         var ctx = this.getCurrentContext();
         var texFmt0 = gluTextureUtil.mapGLInternalFormat(this.m_tex0Fmt);
         var texFmt1 = gluTextureUtil.mapGLInternalFormat(this.m_tex1Fmt);
         var fmtInfo0 = tcuTextureUtil.getTextureFormatInfo(texFmt0);
         var fmtInfo1 = tcuTextureUtil.getTextureFormatInfo(texFmt1);
-
 
         /** @type {es3fFboTestUtil.Texture2DShader} */
         var texToFbo0Shader = new es3fFboTestUtil.Texture2DShader(
@@ -292,8 +278,7 @@ es3fFboColorbufferTests.FboColorMultiTex2DCase.prototype.render = function(dst)
         var tex0 = ctx.createTexture();
         var tex1 = ctx.createTexture();
 
-        for (var ndx = 0; ndx < 2; ndx++)
-        {
+        for (var ndx = 0; ndx < 2; ndx++) {
             var transferFmt = gluTextureUtil.getTransferFormat(ndx ? texFmt1 : texFmt0);
             var format = ndx ? this.m_tex1Fmt : this.m_tex0Fmt;
             var isFilterable = gluTextureUtil.isGLInternalColorFormatFilterable(format);
@@ -315,8 +300,7 @@ es3fFboColorbufferTests.FboColorMultiTex2DCase.prototype.render = function(dst)
         }
 
         // Render textures to both framebuffers.
-        for (var ndx = 0; ndx < 2; ndx++)
-        {
+        for (var ndx = 0; ndx < 2; ndx++) {
             var format = gl.RGBA;
             var dataType = gl.UNSIGNED_BYTE;
             var texW = 128;
@@ -371,13 +355,11 @@ es3fFboColorbufferTests.FboColorTexCubeCase = function(name, desc, texFmt, texSi
 
 setParentClass(es3fFboColorbufferTests.FboColorTexCubeCase, es3fFboColorbufferTests.FboColorbufferCase);
 
-es3fFboColorbufferTests.FboColorTexCubeCase.prototype.preCheck = function()
-    {
+es3fFboColorbufferTests.FboColorTexCubeCase.prototype.preCheck = function() {
         this.checkFormatSupport(this.m_format);
     };
 
-es3fFboColorbufferTests.FboColorTexCubeCase.prototype.render = function(dst)
-    {
+es3fFboColorbufferTests.FboColorTexCubeCase.prototype.render = function(dst) {
         var ctx = this.getCurrentContext();
         var texFmt = gluTextureUtil.mapGLInternalFormat(this.m_format);
         var fmtInfo = tcuTextureUtil.getTextureFormatInfo(texFmt);
@@ -428,7 +410,6 @@ es3fFboColorbufferTests.FboColorTexCubeCase.prototype.render = function(dst)
         var isFilterable = gluTextureUtil.isGLInternalColorFormatFilterable(this.m_format);
         var size = this.m_texSize;
 
-
         tex = ctx.createTexture();
 
         ctx.bindTexture(gl.TEXTURE_CUBE_MAP, tex);
@@ -442,8 +423,7 @@ es3fFboColorbufferTests.FboColorTexCubeCase.prototype.render = function(dst)
             ctx.texImage2D(cubeGLFaces[ndx], 0, this.m_format, size[0], size[1], 0, transferFmt.format, transferFmt.dataType, null);
         this.checkError();
 
-        for (var ndx = 0; ndx < cubeGLFaces.length; ndx++)
-        {
+        for (var ndx = 0; ndx < cubeGLFaces.length; ndx++) {
             var layerFbo = ctx.createFramebuffer();
             ctx.bindFramebuffer(gl.FRAMEBUFFER, layerFbo);
             ctx.framebufferTexture2D(gl.FRAMEBUFFER, gl.COLOR_ATTACHMENT0, cubeGLFaces[ndx], tex, 0);
@@ -460,8 +440,7 @@ es3fFboColorbufferTests.FboColorTexCubeCase.prototype.render = function(dst)
             order.push(n);
         rnd.shuffle(order);
 
-        for (var ndx = 0; ndx < 4; ndx++)
-        {
+        for (var ndx = 0; ndx < 4; ndx++) {
             var face = order[ndx];
             var format = gl.RGBA;
             var dataType = gl.UNSIGNED_BYTE;
@@ -488,27 +467,24 @@ es3fFboColorbufferTests.FboColorTexCubeCase.prototype.render = function(dst)
             this.checkError();
 
             // Render to framebuffer
-            {
-                var p0 = [(ndx % 2) - 1.0, Math.floor(ndx / 2) - 1.0, 0.0];
-                var p1 = deMath.add(p0, [1.0, 1.0, 0.0]);
+            var p0 = [(ndx % 2) - 1.0, Math.floor(ndx / 2) - 1.0, 0.0];
+            var p1 = deMath.add(p0, [1.0, 1.0, 0.0]);
 
-                ctx.bindFramebuffer(gl.FRAMEBUFFER, null);
-                ctx.viewport(0, 0, ctx.getWidth(), ctx.getHeight());
+            ctx.bindFramebuffer(gl.FRAMEBUFFER, null);
+            ctx.viewport(0, 0, ctx.getWidth(), ctx.getHeight());
 
-                ctx.activeTexture(gl.TEXTURE0);
-                ctx.bindTexture(gl.TEXTURE_CUBE_MAP, tex);
+            ctx.activeTexture(gl.TEXTURE0);
+            ctx.bindTexture(gl.TEXTURE_CUBE_MAP, tex);
 
-                cubeTexShader.setFace(cubeTexFaces[face]);
-                cubeTexShader.setUniforms(ctx, cubeTexShaderID);
+            cubeTexShader.setFace(cubeTexFaces[face]);
+            cubeTexShader.setUniforms(ctx, cubeTexShaderID);
 
-                rrUtil.drawQuad(ctx, cubeTexShaderID, p0, p1);
-                this.checkError();
-            }
+            rrUtil.drawQuad(ctx, cubeTexShaderID, p0, p1);
+            this.checkError();
         }
 
         this.readPixels(dst, 0, 0, ctx.getWidth(), ctx.getHeight());
     };
-
 
 /**
  * @constructor
@@ -525,13 +501,11 @@ es3fFboColorbufferTests.FboColorTex2DArrayCase = function(name, desc, texFmt, te
 
 setParentClass(es3fFboColorbufferTests.FboColorTex2DArrayCase, es3fFboColorbufferTests.FboColorbufferCase);
 
-es3fFboColorbufferTests.FboColorTex2DArrayCase.prototype.preCheck = function()
-    {
+es3fFboColorbufferTests.FboColorTex2DArrayCase.prototype.preCheck = function() {
         this.checkFormatSupport(this.m_format);
     };
 
-    es3fFboColorbufferTests.FboColorTex2DArrayCase.prototype.render = function(dst)
-    {
+    es3fFboColorbufferTests.FboColorTex2DArrayCase.prototype.render = function(dst) {
         var ctx = this.getCurrentContext();
         var texFmt = gluTextureUtil.mapGLInternalFormat(this.m_format);
         var fmtInfo = tcuTextureUtil.getTextureFormatInfo(texFmt);
@@ -563,9 +537,7 @@ es3fFboColorbufferTests.FboColorTex2DArrayCase.prototype.preCheck = function()
         var isFilterable = gluTextureUtil.isGLInternalColorFormatFilterable(this.m_format);
         var size = this.m_texSize;
 
-
         tex = ctx.createTexture();
-
 
         ctx.bindTexture(gl.TEXTURE_2D_ARRAY, tex);
         ctx.texParameteri(gl.TEXTURE_2D_ARRAY, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
@@ -576,8 +548,7 @@ es3fFboColorbufferTests.FboColorTex2DArrayCase.prototype.preCheck = function()
         ctx.texImage3D(gl.TEXTURE_2D_ARRAY, 0, this.m_format, size[0], size[1], size[2], 0, transferFmt.format, transferFmt.dataType, null);
 
         // Generate an FBO for each layer
-        for (var ndx = 0; ndx < this.m_texSize[2]; ndx++)
-        {
+        for (var ndx = 0; ndx < this.m_texSize[2]; ndx++) {
             var layerFbo = ctx.createFramebuffer();
             ctx.bindFramebuffer(gl.FRAMEBUFFER, layerFbo);
             ctx.framebufferTextureLayer(gl.FRAMEBUFFER, gl.COLOR_ATTACHMENT0, tex, 0, ndx);
@@ -594,8 +565,7 @@ es3fFboColorbufferTests.FboColorTex2DArrayCase.prototype.preCheck = function()
             order.push(n);
         rnd.shuffle(order);
 
-        for (var ndx = 0; ndx < 4; ndx++)
-        {
+        for (var ndx = 0; ndx < 4; ndx++) {
             var layer = order[ndx];
             var format = gl.RGBA;
             var dataType = gl.UNSIGNED_BYTE;
@@ -656,13 +626,11 @@ es3fFboColorbufferTests.FboColorTex3DCase = function(name, desc, texFmt, texSize
 
 setParentClass(es3fFboColorbufferTests.FboColorTex3DCase, es3fFboColorbufferTests.FboColorbufferCase);
 
-es3fFboColorbufferTests.FboColorTex3DCase.prototype.preCheck = function()
-    {
+es3fFboColorbufferTests.FboColorTex3DCase.prototype.preCheck = function() {
         this.checkFormatSupport(this.m_format);
     };
 
-    es3fFboColorbufferTests.FboColorTex3DCase.prototype.render = function(dst)
-    {
+    es3fFboColorbufferTests.FboColorTex3DCase.prototype.render = function(dst) {
         var ctx = this.getCurrentContext();
         var texFmt = gluTextureUtil.mapGLInternalFormat(this.m_format);
         var fmtInfo = tcuTextureUtil.getTextureFormatInfo(texFmt);
@@ -688,15 +656,11 @@ es3fFboColorbufferTests.FboColorTex3DCase.prototype.preCheck = function()
 
         // Framebuffers.
         var fbos = [];
-        var tex;
-
-        {
+        var tex;{
             var transferFmt = gluTextureUtil.getTransferFormat(texFmt);
             var size = this.m_texSize;
 
-
             tex = ctx.createTexture();
-
 
             ctx.bindTexture(gl.TEXTURE_3D, tex);
             ctx.texParameteri(gl.TEXTURE_3D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
@@ -707,8 +671,7 @@ es3fFboColorbufferTests.FboColorTex3DCase.prototype.preCheck = function()
             ctx.texImage3D(gl.TEXTURE_3D, 0, this.m_format, size[0], size[1], size[2], 0, transferFmt.format, transferFmt.dataType, null);
 
             // Generate an FBO for each layer
-            for (var ndx = 0; ndx < this.m_texSize[2]; ndx++)
-            {
+            for (var ndx = 0; ndx < this.m_texSize[2]; ndx++) {
                 var layerFbo = ctx.createFramebuffer();
                 ctx.bindFramebuffer(gl.FRAMEBUFFER, layerFbo);
                 ctx.framebufferTextureLayer(gl.FRAMEBUFFER, gl.COLOR_ATTACHMENT0, tex, 0, ndx);
@@ -726,8 +689,7 @@ es3fFboColorbufferTests.FboColorTex3DCase.prototype.preCheck = function()
             order.push(n);
         rnd.shuffle(order);
 
-        for (var ndx = 0; ndx < 4; ndx++)
-        {
+        for (var ndx = 0; ndx < 4; ndx++) {
             var layer = order[ndx];
             var format = gl.RGBA;
             var dataType = gl.UNSIGNED_BYTE;
@@ -751,7 +713,6 @@ es3fFboColorbufferTests.FboColorTex3DCase.prototype.preCheck = function()
             ctx.viewport(0, 0, viewport[0], viewport[1]);
             rrUtil.drawQuad(ctx, texToFboShaderID, [-1.0, -1.0, 0.0], [1.0, 1.0, 0.0]);
             this.checkError();
-
 
             // Render to framebuffer
             var p0 = [(ndx % 2) - 1.0, Math.floor(ndx / 2) - 1.0, 0.0];
@@ -801,13 +762,11 @@ es3fFboColorbufferTests.FboBlendCase = function(name, desc, format, size, funcRG
 
 setParentClass(es3fFboColorbufferTests.FboBlendCase, es3fFboColorbufferTests.FboColorbufferCase);
 
-es3fFboColorbufferTests.FboBlendCase.prototype.preCheck = function()
-    {
+es3fFboColorbufferTests.FboBlendCase.prototype.preCheck = function() {
         this.checkFormatSupport(this.m_format);
     }
 
-    es3fFboColorbufferTests.FboBlendCase.prototype.render = function (dst)
-    {
+    es3fFboColorbufferTests.FboBlendCase.prototype.render = function(dst) {
         // \note Assumes floating-point or fixed-point format.
         var ctx = this.getCurrentContext();
         var fboFmt = gluTextureUtil.mapGLInternalFormat(this.m_format);
@@ -820,8 +779,8 @@ es3fFboColorbufferTests.FboBlendCase.prototype.preCheck = function()
         /** @type {es3fFboTestUtil.GradientShader} */
         var gradShader = new es3fFboTestUtil.GradientShader(gluShaderUtil.DataType.FLOAT_VEC4);
 
-        var texShaderID     = ctx.createProgram(texShader);
-        var gradShaderID    = ctx.createProgram(gradShader);
+        var texShaderID = ctx.createProgram(texShader);
+        var gradShaderID = ctx.createProgram(gradShader);
 
         // Setup shaders
         texShader.setUniforms (ctx, texShaderID);
@@ -842,26 +801,24 @@ es3fFboColorbufferTests.FboBlendCase.prototype.preCheck = function()
         ctx.viewport(0, 0, this.m_size[0], this.m_size[1]);
 
         // Fill framebuffer with grid pattern.
-        {
-            var format      = gl.RGBA;
-            var dataType    = gl.UNSIGNED_BYTE;
-            var texW        = 128;
-            var texH        = 128;
-            var data = new tcuTexture.TextureLevel(gluTextureUtil.mapGLTransferFormat(format, dataType), texW, texH, 1);
+        var format = gl.RGBA;
+        var dataType = gl.UNSIGNED_BYTE;
+        var texW = 128;
+        var texH = 128;
+        var data = new tcuTexture.TextureLevel(gluTextureUtil.mapGLTransferFormat(format, dataType), texW, texH, 1);
 
-            tcuTextureUtil.fillWithGrid(data.getAccess(), 8, [0.2, 0.7, 0.1, 1.0], [0.7, 0.1, 0.5, 0.8]);
+        tcuTextureUtil.fillWithGrid(data.getAccess(), 8, [0.2, 0.7, 0.1, 1.0], [0.7, 0.1, 0.5, 0.8]);
 
-            var gridTex = ctx.createTexture();
-            ctx.bindTexture(gl.TEXTURE_2D, gridTex);
-            ctx.texParameteri(gl.TEXTURE_2D,  gl.TEXTURE_WRAP_S,      gl.CLAMP_TO_EDGE);
-            ctx.texParameteri(gl.TEXTURE_2D,  gl.TEXTURE_WRAP_T,      gl.CLAMP_TO_EDGE);
-            ctx.texParameteri(gl.TEXTURE_2D,  gl.TEXTURE_MIN_FILTER,  gl.LINEAR);
-            ctx.texParameteri(gl.TEXTURE_2D,  gl.TEXTURE_MAG_FILTER,  gl.LINEAR);
-            ctx.texImage2D(gl.TEXTURE_2D, 0, format, texW, texH, 0, format, dataType, data.getAccess().getDataPtr());
+        var gridTex = ctx.createTexture();
+        ctx.bindTexture(gl.TEXTURE_2D, gridTex);
+        ctx.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
+        ctx.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
+        ctx.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR);
+        ctx.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
+        ctx.texImage2D(gl.TEXTURE_2D, 0, format, texW, texH, 0, format, dataType, data.getAccess().getDataPtr());
 
-            rrUtil.drawQuad(ctx, texShaderID, [-1.0, -1.0, 0.0], [1.0, 1.0, 0.0]);
-            this.checkError();
-        }
+        rrUtil.drawQuad(ctx, texShaderID, [-1.0, -1.0, 0.0], [1.0, 1.0, 0.0]);
+        this.checkError();
 
         // Setup blend.
         ctx.enable(gl.BLEND);
@@ -884,8 +841,7 @@ es3fFboColorbufferTests.FboColorbufferTests = function() {
 
 setParentClass(es3fFboColorbufferTests.FboColorbufferTests, tcuTestCase.DeqpTest);
 
-es3fFboColorbufferTests.FboColorbufferTests.prototype.init = function()
-{
+es3fFboColorbufferTests.FboColorbufferTests.prototype.init = function() {
     var colorFormats = [
         // RGBA formats
         gl.RGBA32I,
@@ -980,16 +936,15 @@ es3fFboColorbufferTests.FboColorbufferTests.prototype.init = function()
     var blendGroup = tcuTestCase.newTest("blend", "Blending tests");
     this.addChild(blendGroup);
 
-    for (var ndx = 0; ndx < colorFormats.length; ndx++)
-    {
-        var format      = colorFormats[ndx];
-        var texFmt      = gluTextureUtil.mapGLInternalFormat(format);
-        var fmtClass    = tcuTexture.getTextureChannelClass(texFmt.type);
-        var fmtName     = es3fFboTestUtil.getFormatName(format);
+    for (var ndx = 0; ndx < colorFormats.length; ndx++) {
+        var format = colorFormats[ndx];
+        var texFmt = gluTextureUtil.mapGLInternalFormat(format);
+        var fmtClass = tcuTexture.getTextureChannelClass(texFmt.type);
+        var fmtName = es3fFboTestUtil.getFormatName(format);
 
-        if (texFmt.type == tcuTexture.ChannelType.FLOAT                ||
-            fmtClass    == tcuTexture.TextureChannelClass.SIGNED_INTEGER  ||
-            fmtClass    == tcuTexture.TextureChannelClass.UNSIGNED_INTEGER)
+        if (texFmt.type == tcuTexture.ChannelType.FLOAT ||
+            fmtClass == tcuTexture.TextureChannelClass.SIGNED_INTEGER ||
+            fmtClass == tcuTexture.TextureChannelClass.UNSIGNED_INTEGER)
             continue; // Blending is not supported.
 
         blendGroup.addChild(new es3fFboColorbufferTests.FboBlendCase(fmtName + "_src_over", "", format,
@@ -1002,23 +957,23 @@ es3fFboColorbufferTests.FboColorbufferTests.prototype.init = function()
 * @param {WebGL2RenderingContext} context
 */
 es3fFboColorbufferTests.run = function(context) {
-	gl = context;
-	//Set up Test Root parameters
-	var state = tcuTestCase.runner;
-	state.setRoot(new es3fFboColorbufferTests.FboColorbufferTests());
+    gl = context;
+    //Set up Test Root parameters
+    var state = tcuTestCase.runner;
+    state.setRoot(new es3fFboColorbufferTests.FboColorbufferTests());
 
-	//Set up name and description of this test series.
-	setCurrentTestName(state.testCases.fullName());
-	description(state.testCases.getDescription());
+    //Set up name and description of this test series.
+    setCurrentTestName(state.testCases.fullName());
+    description(state.testCases.getDescription());
 
-	try {
-		//Run test cases
-		tcuTestCase.runTestCases();
-	}
-	catch (err) {
-		testFailedOptions('Failed to es3fFboColorbufferTests.run tests', false);
-		tcuTestCase.runner.terminate();
-	}
+    try {
+        //Run test cases
+        tcuTestCase.runTestCases();
+    }
+    catch (err) {
+        testFailedOptions('Failed to es3fFboColorbufferTests.run tests', false);
+        tcuTestCase.runner.terminate();
+    }
 };
 
 });

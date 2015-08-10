@@ -34,7 +34,6 @@ goog.require('framework.referencerenderer.rrUtil');
 goog.require('framework.delibs.debase.deMath');
 goog.require('framework.opengl.gluShaderUtil');
 
-
 goog.scope(function() {
 var es3fFboDepthbufferTests = functional.gles3.es3fFboDepthbufferTests;
 var es3fFboTestCase = functional.gles3.es3fFboTestCase;
@@ -51,15 +50,12 @@ var rrUtil = framework.referencerenderer.rrUtil;
 var deMath = framework.delibs.debase.deMath;
 var gluShaderUtil = framework.opengl.gluShaderUtil;
 
-
 /** @type {WebGL2RenderingContext} */ var gl;
-
 
 var setParentClass = function(child, parent) {
     child.prototype = Object.create(parent.prototype);
     child.prototype.constructor = child;
 };
-
 
 /**
  * @constructor
@@ -79,8 +75,7 @@ es3fFboDepthbufferTests.BasicFboDepthCase = function(name, desc, format, width, 
 
 setParentClass(es3fFboDepthbufferTests.BasicFboDepthCase, es3fFboTestCase.FboTestCase);
 
-es3fFboDepthbufferTests.BasicFboDepthCase.prototype.preCheck = function()
-    {
+es3fFboDepthbufferTests.BasicFboDepthCase.prototype.preCheck = function() {
         this.checkFormatSupport(this.m_format);
     };
 
@@ -129,26 +124,24 @@ es3fFboDepthbufferTests.BasicFboDepthCase.prototype.render = function(dst) {
         rrUtil.drawQuad(ctx, gradShaderID, [-1.0, -1.0, 0.0], [1.0, 1.0, 0.0]);
 
         // Render grid pattern with depth = 0
-        {
-            var format = gl.RGBA;
-            var dataType = gl.UNSIGNED_BYTE;
-            var texW = 128;
-            var texH = 128;
-            var data = new tcuTexture.TextureLevel(gluTextureUtil.mapGLTransferFormat(format, dataType), texW, texH, 1);
+        var format = gl.RGBA;
+        var dataType = gl.UNSIGNED_BYTE;
+        var texW = 128;
+        var texH = 128;
+        var data = new tcuTexture.TextureLevel(gluTextureUtil.mapGLTransferFormat(format, dataType), texW, texH, 1);
 
-            tcuTextureUtil.fillWithGrid(data.getAccess(), 8, [0.2, 0.7, 0.1, 1.0], [0.7, 0.1, 0.5, 0.8]);
+        tcuTextureUtil.fillWithGrid(data.getAccess(), 8, [0.2, 0.7, 0.1, 1.0], [0.7, 0.1, 0.5, 0.8]);
 
-            var gridTex = ctx.createTexture();
-            ctx.bindTexture(gl.TEXTURE_2D, gridTex);
-            ctx.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
-            ctx.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
-            ctx.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR);
-            ctx.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
-            ctx.texImage2D(gl.TEXTURE_2D, 0, format, texW, texH, 0, format, dataType, data.getAccess().getDataPtr());
+        var gridTex = ctx.createTexture();
+        ctx.bindTexture(gl.TEXTURE_2D, gridTex);
+        ctx.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
+        ctx.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
+        ctx.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR);
+        ctx.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
+        ctx.texImage2D(gl.TEXTURE_2D, 0, format, texW, texH, 0, format, dataType, data.getAccess().getDataPtr());
 
-            rrUtil.drawQuad(ctx, texShaderID, [-1.0, -1.0, 0.0], [1.0, 1.0, 0.0]);
-            this.checkError();
-        }
+        rrUtil.drawQuad(ctx, texShaderID, [-1.0, -1.0, 0.0], [1.0, 1.0, 0.0]);
+        this.checkError();
 
         // Read results.
         this.readPixelsUsingFormat(dst, 0, 0, this.m_width, this.m_height,
@@ -174,8 +167,7 @@ es3fFboDepthbufferTests.DepthWriteClampCase = function(name, desc, format, width
 
 setParentClass(es3fFboDepthbufferTests.DepthWriteClampCase, es3fFboTestCase.FboTestCase);
 
-es3fFboDepthbufferTests.DepthWriteClampCase.prototype.preCheck = function()
-    {
+es3fFboDepthbufferTests.DepthWriteClampCase.prototype.preCheck = function() {
         this.checkFormatSupport(this.m_format);
     };
 
@@ -259,8 +251,7 @@ es3fFboDepthbufferTests.DepthTestClampCase = function(name, desc, format, width,
 
 setParentClass(es3fFboDepthbufferTests.DepthTestClampCase, es3fFboTestCase.FboTestCase);
 
-es3fFboDepthbufferTests.DepthTestClampCase.prototype.preCheck = function()
-    {
+es3fFboDepthbufferTests.DepthTestClampCase.prototype.preCheck = function() {
         this.checkFormatSupport(this.m_format);
     };
 
@@ -322,7 +313,6 @@ es3fFboDepthbufferTests.DepthTestClampCase.prototype.render = function(dst) {
              [1, 1, 1, 1], [0, 0, 0, 0]);
 };
 
-
 /**
  * @constructor
  * @extends {tcuTestCase.DeqpTest}
@@ -333,8 +323,7 @@ es3fFboDepthbufferTests.FboDepthbufferTests = function() {
 
 setParentClass(es3fFboDepthbufferTests.FboDepthbufferTests, tcuTestCase.DeqpTest);
 
-es3fFboDepthbufferTests.FboDepthbufferTests.prototype.init = function()
-{
+es3fFboDepthbufferTests.FboDepthbufferTests.prototype.init = function() {
     var depthFormats = [
         gl.DEPTH_COMPONENT32F,
         gl.DEPTH_COMPONENT24,
@@ -358,37 +347,36 @@ es3fFboDepthbufferTests.FboDepthbufferTests.prototype.init = function()
         depthClampGroup.addChild(new es3fFboDepthbufferTests.DepthWriteClampCase(es3fFboTestUtil.getFormatName(depthFormats[ndx]), '', depthFormats[ndx], 119, 127));
 
     // .depth_test_clamp
-    var depthTestGroup = tcuTestCase.newTest("depth_test_clamp", "Depth test value clamping tests");
+    var depthTestGroup = tcuTestCase.newTest('depth_test_clamp', 'Depth test value clamping tests');
     this.addChild(depthTestGroup);
 
     for (var ndx = 0; ndx < depthFormats.length; ndx++)
-        depthTestGroup.addChild(new es3fFboDepthbufferTests.DepthTestClampCase(es3fFboTestUtil.getFormatName(depthFormats[ndx]), "", depthFormats[ndx], 119, 127));
+        depthTestGroup.addChild(new es3fFboDepthbufferTests.DepthTestClampCase(es3fFboTestUtil.getFormatName(depthFormats[ndx]), '', depthFormats[ndx], 119, 127));
 
 };
-
 
 /**
 * Run test
 * @param {WebGL2RenderingContext} context
 */
 es3fFboDepthbufferTests.run = function(context) {
-	gl = context;
-	//Set up Test Root parameters
-	var state = tcuTestCase.runner;
-	state.setRoot(new es3fFboDepthbufferTests.FboDepthbufferTests());
+    gl = context;
+    //Set up Test Root parameters
+    var state = tcuTestCase.runner;
+    state.setRoot(new es3fFboDepthbufferTests.FboDepthbufferTests());
 
-	//Set up name and description of this test series.
-	setCurrentTestName(state.testCases.fullName());
-	description(state.testCases.getDescription());
+    //Set up name and description of this test series.
+    setCurrentTestName(state.testCases.fullName());
+    description(state.testCases.getDescription());
 
-	try {
-		//Run test cases
-		tcuTestCase.runTestCases();
-	}
-	catch (err) {
-		testFailedOptions('Failed to es3fFboDepthbufferTests.run tests', false);
-		tcuTestCase.runner.terminate();
-	}
+    try {
+        //Run test cases
+        tcuTestCase.runTestCases();
+    }
+    catch (err) {
+        testFailedOptions('Failed to es3fFboDepthbufferTests.run tests', false);
+        tcuTestCase.runner.terminate();
+    }
 };
 
 });

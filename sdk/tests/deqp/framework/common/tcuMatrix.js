@@ -80,7 +80,6 @@ goog.scope(function() {
         return matrix;
     };
 
-
     tcuMatrix.Matrix.prototype.set = function(x, y, value) {
         this.isRangeValid(x, y);
         this.matrix[y][x] = value;

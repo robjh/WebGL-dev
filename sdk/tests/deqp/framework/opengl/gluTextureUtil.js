@@ -785,8 +785,7 @@ gluTextureUtil.getSamplerCubeType = function(format) {
     if (format.order == tcuTexture.ChannelOrder.S)
         throw new Error('No cube sampler');
 
-    switch (tcuTexture.getTextureChannelClass(format.type))
-    {
+    switch (tcuTexture.getTextureChannelClass(format.type)) {
         case tcuTexture.TextureChannelClass.FLOATING_POINT:
         case tcuTexture.TextureChannelClass.SIGNED_FIXED_POINT:
         case tcuTexture.TextureChannelClass.UNSIGNED_FIXED_POINT:
@@ -811,8 +810,7 @@ gluTextureUtil.getSamplerCubeType = function(format) {
  * @param {tcuTexture.TextureFormat} format
  * @return {gluShaderUtil.DataType} GLSL 2D sampler type for format
  */
-gluTextureUtil.getSampler2DArrayType = function(format)
-{
+gluTextureUtil.getSampler2DArrayType = function(format) {
 
     if (format.order == tcuTexture.ChannelOrder.D || format.order == tcuTexture.ChannelOrder.DS)
         return gluShaderUtil.DataType.SAMPLER_2D_ARRAY;
@@ -820,8 +818,7 @@ gluTextureUtil.getSampler2DArrayType = function(format)
     if (format.order == tcuTexture.ChannelOrder.S)
         throw new Error('No 2d array sampler');
 
-    switch (tcuTexture.getTextureChannelClass(format.type))
-    {
+    switch (tcuTexture.getTextureChannelClass(format.type)) {
         case tcuTexture.TextureChannelClass.FLOATING_POINT:
         case tcuTexture.TextureChannelClass.SIGNED_FIXED_POINT:
         case tcuTexture.TextureChannelClass.UNSIGNED_FIXED_POINT:
@@ -846,16 +843,14 @@ gluTextureUtil.getSampler2DArrayType = function(format)
  * @param {tcuTexture.TextureFormat} format
  * @return {gluShaderUtil.DataType} GLSL 2D sampler type for format
  */
-gluTextureUtil.getSampler3D = function(format)
-{
+gluTextureUtil.getSampler3D = function(format) {
     if (format.order == tcuTexture.ChannelOrder.D || format.order == tcuTexture.ChannelOrder.DS)
         return gluShaderUtil.DataType.SAMPLER_3D;
 
     if (format.order == tcuTexture.ChannelOrder.S)
         throw new Error('No 3d sampler');
 
-    switch (tcuTexture.getTextureChannelClass(format.type))
-    {
+    switch (tcuTexture.getTextureChannelClass(format.type)) {
         case tcuTexture.TextureChannelClass.FLOATING_POINT:
         case tcuTexture.TextureChannelClass.SIGNED_FIXED_POINT:
         case tcuTexture.TextureChannelClass.UNSIGNED_FIXED_POINT:
