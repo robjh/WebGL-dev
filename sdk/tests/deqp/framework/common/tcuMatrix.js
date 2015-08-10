@@ -76,7 +76,7 @@ goog.scope(function() {
         var matrix = new tcuMatrix.Matrix(rows, cols);
         for (var row = 0; row < rows; row++)
             for (var col = 0; col < cols; col++)
-                matrix.matrix[col][row] = array[row * cols +col];
+                matrix.matrix[col][row] = array[row * cols + col];
         return matrix;
     };
 

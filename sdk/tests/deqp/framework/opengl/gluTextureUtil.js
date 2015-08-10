@@ -783,7 +783,7 @@ gluTextureUtil.getSamplerCubeType = function(format) {
         return gluShaderUtil.DataType.SAMPLER_CUBE;
 
     if (format.order == tcuTexture.ChannelOrder.S)
-        throw new Error("No cube sampler");
+        throw new Error('No cube sampler');
 
     switch (tcuTexture.getTextureChannelClass(format.type))
     {
@@ -799,7 +799,7 @@ gluTextureUtil.getSamplerCubeType = function(format) {
             return gluShaderUtil.DataType.UINT_SAMPLER_CUBE;
 
         default:
-            throw new Error("No cube sampler");
+            throw new Error('No cube sampler');
     }
 };
 
@@ -818,7 +818,7 @@ gluTextureUtil.getSampler2DArrayType = function(format)
         return gluShaderUtil.DataType.SAMPLER_2D_ARRAY;
 
     if (format.order == tcuTexture.ChannelOrder.S)
-        throw new Error("No 2d array sampler");
+        throw new Error('No 2d array sampler');
 
     switch (tcuTexture.getTextureChannelClass(format.type))
     {
@@ -834,7 +834,7 @@ gluTextureUtil.getSampler2DArrayType = function(format)
             return gluShaderUtil.DataType.UINT_SAMPLER_2D_ARRAY;
 
         default:
-            throw new Error("No 2d array sampler");
+            throw new Error('No 2d array sampler');
     }
 };
 
@@ -852,23 +852,23 @@ gluTextureUtil.getSampler3D = function(format)
         return gluShaderUtil.DataType.SAMPLER_3D;
 
     if (format.order == tcuTexture.ChannelOrder.S)
-        throw new Error("No 3d sampler");
+        throw new Error('No 3d sampler');
 
     switch (tcuTexture.getTextureChannelClass(format.type))
     {
-        case  tcuTexture.TextureChannelClass.FLOATING_POINT:
-        case  tcuTexture.TextureChannelClass.SIGNED_FIXED_POINT:
-        case  tcuTexture.TextureChannelClass.UNSIGNED_FIXED_POINT:
+        case tcuTexture.TextureChannelClass.FLOATING_POINT:
+        case tcuTexture.TextureChannelClass.SIGNED_FIXED_POINT:
+        case tcuTexture.TextureChannelClass.UNSIGNED_FIXED_POINT:
             return gluShaderUtil.DataType.SAMPLER_3D;
 
-        case  tcuTexture.TextureChannelClass.SIGNED_INTEGER:
+        case tcuTexture.TextureChannelClass.SIGNED_INTEGER:
             return gluShaderUtil.DataType.INT_SAMPLER_3D;
 
-        case  tcuTexture.TextureChannelClass.UNSIGNED_INTEGER:
+        case tcuTexture.TextureChannelClass.UNSIGNED_INTEGER:
             return gluShaderUtil.DataType.UINT_SAMPLER_3D;
 
         default:
-            throw new Error("No 3d sampler");
+            throw new Error('No 3d sampler');
     }
 };
 

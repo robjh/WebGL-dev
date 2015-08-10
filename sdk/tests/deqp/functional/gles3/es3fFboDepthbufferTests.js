@@ -82,20 +82,20 @@ setParentClass(es3fFboDepthbufferTests.BasicFboDepthCase, es3fFboTestCase.FboTes
 es3fFboDepthbufferTests.BasicFboDepthCase.prototype.preCheck = function()
     {
         this.checkFormatSupport(this.m_format);
-    }
+    };
 
-es3fFboDepthbufferTests.BasicFboDepthCase.prototype.render = function (dst) {
+es3fFboDepthbufferTests.BasicFboDepthCase.prototype.render = function(dst) {
         var ctx = this.getCurrentContext();
-        var colorFormat     = gl.RGBA8;
+        var colorFormat = gl.RGBA8;
         /** @type {es3fFboTestUtil.GradientShader} */
         var gradShader = new es3fFboTestUtil.GradientShader(gluShaderUtil.DataType.FLOAT_VEC4);
 
         /** @type {es3fFboTestUtil.Texture2DShader} */
         var texShader = new es3fFboTestUtil.Texture2DShader(
             [gluShaderUtil.DataType.SAMPLER_2D], gluShaderUtil.DataType.FLOAT_VEC4);
-        var texShaderID     = ctx.createProgram(texShader);
-        var gradShaderID    = ctx.createProgram(gradShader);
-        var clearDepth      = 1;
+        var texShaderID = ctx.createProgram(texShader);
+        var gradShaderID = ctx.createProgram(gradShader);
+        var clearDepth = 1;
 
         // Setup shaders
         gradShader.setGradient(ctx, gradShaderID, [0, 0, 0, 0], [1, 1, 1, 1]);
@@ -130,20 +130,20 @@ es3fFboDepthbufferTests.BasicFboDepthCase.prototype.render = function (dst) {
 
         // Render grid pattern with depth = 0
         {
-            var format      = gl.RGBA;
-            var dataType    = gl.UNSIGNED_BYTE;
-            var texW        = 128;
-            var texH        = 128;
+            var format = gl.RGBA;
+            var dataType = gl.UNSIGNED_BYTE;
+            var texW = 128;
+            var texH = 128;
             var data = new tcuTexture.TextureLevel(gluTextureUtil.mapGLTransferFormat(format, dataType), texW, texH, 1);
 
             tcuTextureUtil.fillWithGrid(data.getAccess(), 8, [0.2, 0.7, 0.1, 1.0], [0.7, 0.1, 0.5, 0.8]);
 
             var gridTex = ctx.createTexture();
             ctx.bindTexture(gl.TEXTURE_2D, gridTex);
-            ctx.texParameteri(gl.TEXTURE_2D,  gl.TEXTURE_WRAP_S,      gl.CLAMP_TO_EDGE);
-            ctx.texParameteri(gl.TEXTURE_2D,  gl.TEXTURE_WRAP_T,      gl.CLAMP_TO_EDGE);
-            ctx.texParameteri(gl.TEXTURE_2D,  gl.TEXTURE_MIN_FILTER,  gl.LINEAR);
-            ctx.texParameteri(gl.TEXTURE_2D,  gl.TEXTURE_MAG_FILTER,  gl.LINEAR);
+            ctx.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
+            ctx.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
+            ctx.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR);
+            ctx.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
             ctx.texImage2D(gl.TEXTURE_2D, 0, format, texW, texH, 0, format, dataType, data.getAccess().getDataPtr());
 
             rrUtil.drawQuad(ctx, texShaderID, [-1.0, -1.0, 0.0], [1.0, 1.0, 0.0]);
@@ -177,17 +177,17 @@ setParentClass(es3fFboDepthbufferTests.DepthWriteClampCase, es3fFboTestCase.FboT
 es3fFboDepthbufferTests.DepthWriteClampCase.prototype.preCheck = function()
     {
         this.checkFormatSupport(this.m_format);
-    }
+    };
 
-es3fFboDepthbufferTests.DepthWriteClampCase.prototype.render = function (dst) {
+es3fFboDepthbufferTests.DepthWriteClampCase.prototype.render = function(dst) {
         var ctx = this.getCurrentContext();
-        var colorFormat     = gl.RGBA8;
-        var transferFmt     = gluTextureUtil.getTransferFormat(gluTextureUtil.mapGLInternalFormat(this.m_format));
+        var colorFormat = gl.RGBA8;
+        var transferFmt = gluTextureUtil.getTransferFormat(gluTextureUtil.mapGLInternalFormat(this.m_format));
         /** @type {es3fFboTestUtil.DepthGradientShader} */
         var gradShader = new es3fFboTestUtil.DepthGradientShader(gluShaderUtil.DataType.FLOAT_VEC4);
 
-        var gradShaderID    = ctx.createProgram(gradShader);
-        var clearDepth      = 1;
+        var gradShaderID = ctx.createProgram(gradShader);
+        var clearDepth = 1;
         var red = [1, 0, 0, 1];
         var green = [0, 1, 0, 1];
 
@@ -262,17 +262,17 @@ setParentClass(es3fFboDepthbufferTests.DepthTestClampCase, es3fFboTestCase.FboTe
 es3fFboDepthbufferTests.DepthTestClampCase.prototype.preCheck = function()
     {
         this.checkFormatSupport(this.m_format);
-    }
+    };
 
-es3fFboDepthbufferTests.DepthTestClampCase.prototype.render = function (dst) {
+es3fFboDepthbufferTests.DepthTestClampCase.prototype.render = function(dst) {
         var ctx = this.getCurrentContext();
-        var colorFormat     = gl.RGBA8;
-        var transferFmt     = gluTextureUtil.getTransferFormat(gluTextureUtil.mapGLInternalFormat(this.m_format));
+        var colorFormat = gl.RGBA8;
+        var transferFmt = gluTextureUtil.getTransferFormat(gluTextureUtil.mapGLInternalFormat(this.m_format));
         /** @type {es3fFboTestUtil.DepthGradientShader} */
         var gradShader = new es3fFboTestUtil.DepthGradientShader(gluShaderUtil.DataType.FLOAT_VEC4);
 
-        var gradShaderID    = ctx.createProgram(gradShader);
-        var clearDepth      = 1;
+        var gradShaderID = ctx.createProgram(gradShader);
+        var clearDepth = 1;
         var yellow = [1, 1, 0, 1];
         var green = [0, 1, 0, 1];
 
@@ -312,7 +312,7 @@ es3fFboDepthbufferTests.DepthTestClampCase.prototype.render = function (dst) {
 
         // Render yellow quad, depth gradient = [-0.5..3]. Gradients have equal values only outside [0, 1] range due to clamping
         ctx.depthFunc(gl.EQUAL);
-        
+
         gradShader.setUniforms(ctx, gradShaderID, -0.5, 3, yellow);
         rrUtil.drawQuad(ctx, gradShaderID, [-1.0, -1.0, 0.0], [1.0, 1.0, 0.0]);
 
@@ -344,31 +344,25 @@ es3fFboDepthbufferTests.FboDepthbufferTests.prototype.init = function()
     ];
 
     // .basic
-    {
-        var basicGroup = tcuTestCase.newTest("basic", "Basic depth tests");
-        this.addChild(basicGroup);
+    var basicGroup = tcuTestCase.newTest('basic', 'Basic depth tests');
+    this.addChild(basicGroup);
 
-        for (var ndx = 0; ndx < depthFormats.length; ndx++)
-            basicGroup.addChild(new es3fFboDepthbufferTests.BasicFboDepthCase(es3fFboTestUtil.getFormatName(depthFormats[ndx]), "", depthFormats[ndx], 119, 127));
-    }
+    for (var ndx = 0; ndx < depthFormats.length; ndx++)
+        basicGroup.addChild(new es3fFboDepthbufferTests.BasicFboDepthCase(es3fFboTestUtil.getFormatName(depthFormats[ndx]), '', depthFormats[ndx], 119, 127));
 
     // .depth_write_clamp
-    {
-        var depthClampGroup = tcuTestCase.newTest("depth_write_clamp", "Depth write clamping tests");
-        this.addChild(depthClampGroup);
+    var depthClampGroup = tcuTestCase.newTest('depth_write_clamp', 'Depth write clamping tests');
+    this.addChild(depthClampGroup);
 
-        for (var ndx = 0; ndx < depthFormats.length; ndx++)
-            depthClampGroup.addChild(new es3fFboDepthbufferTests.DepthWriteClampCase(es3fFboTestUtil.getFormatName(depthFormats[ndx]), "", depthFormats[ndx], 119, 127));
-    }
+    for (var ndx = 0; ndx < depthFormats.length; ndx++)
+        depthClampGroup.addChild(new es3fFboDepthbufferTests.DepthWriteClampCase(es3fFboTestUtil.getFormatName(depthFormats[ndx]), '', depthFormats[ndx], 119, 127));
 
     // .depth_test_clamp
-    {
-        var depthTestGroup = tcuTestCase.newTest("depth_test_clamp", "Depth test value clamping tests");
-        this.addChild(depthTestGroup);
+    var depthTestGroup = tcuTestCase.newTest("depth_test_clamp", "Depth test value clamping tests");
+    this.addChild(depthTestGroup);
 
-        for (var ndx = 0; ndx < depthFormats.length; ndx++)
-            depthTestGroup.addChild(new es3fFboDepthbufferTests.DepthTestClampCase(es3fFboTestUtil.getFormatName(depthFormats[ndx]), "", depthFormats[ndx], 119, 127));
-    }
+    for (var ndx = 0; ndx < depthFormats.length; ndx++)
+        depthTestGroup.addChild(new es3fFboDepthbufferTests.DepthTestClampCase(es3fFboTestUtil.getFormatName(depthFormats[ndx]), "", depthFormats[ndx], 119, 127));
 
 };
 
