@@ -434,7 +434,6 @@ goog.scope(function() {
     	/** @type {number} */ var outputBufferStride = glsShaderExecUtil.computeTotalScalarSize(this.m_outputs) * 4;
 
     	// Setup inputs.
-    	debugger;
     	for (var inputNdx = 0; inputNdx < this.m_inputs.length; inputNdx++) {
     		symbol	= this.m_inputs[inputNdx];
     		/*const void* */var ptr = inputs[inputNdx];
