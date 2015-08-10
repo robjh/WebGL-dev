@@ -654,7 +654,7 @@ goog.scope(function() {
 		bufferedLogToConsole("Executing shader for " + inputs.length + " input values");
 
 		this.m_executor.useProgram();
-		outputs = this.m_executor.execute(inputs.length, inputs);
+		outputs = this.m_executor.execute(inputs.length, [inputs]);
 
 		// Verify
 		/** @type {number} */ var numValues = inputs.length

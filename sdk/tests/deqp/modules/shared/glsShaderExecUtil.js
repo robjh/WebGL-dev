@@ -434,6 +434,7 @@ goog.scope(function() {
     	/** @type {number} */ var outputBufferStride = glsShaderExecUtil.computeTotalScalarSize(this.m_outputs) * 4;
 
     	// Setup inputs.
+    	debugger;
     	for (var inputNdx = 0; inputNdx < this.m_inputs.length; inputNdx++) {
     		symbol	= this.m_inputs[inputNdx];
     		/*const void* */var ptr = inputs[inputNdx];
@@ -445,7 +446,8 @@ goog.scope(function() {
     		else if (gluShaderUtil.isDataTypeIntOrIVec(basicType))
     			vertexArrays.push(0);//glu::va::Int32(symbol.name, vecSize, numValues, 0, (const deInt32*)ptr));
     		else if (gluShaderUtil.isDataTypeUintOrUVec(basicType))
-    			vertexArrays.push(0);//glu::va::Uint32(symbol.name, vecSize, numValues, 0, (const deUint32*)ptr));
+                vertexArrays.push(gluDrawUtil.newUint32VertexArrayBinding(symbol.name, vecSize, numValues, 0, ptr));
+    			//vertexArrays.push(0);//glu::va::Uint32(symbol.name, vecSize, numValues, 0, (const deUint32*)ptr));
     		else if (gluShaderUtil.isDataTypeMatrix(basicType))	{
     			/** @type {number} */ var numRows	= gluShaderUtil.getDataTypeMatrixNumRows(basicType);
     			/** @type {number} */ var numCols	= gluShaderUtil.getDataTypeMatrixNumColumns(basicType);
