@@ -126,6 +126,7 @@ goog.scope(function() {
 		if (depthBits == 0)
 			throw new Error('Depth buffer is required');
 
+		gl.depthMask(true);
 		gl.viewport(viewportX, viewportY, viewportW, viewportH);
 		gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT | gl.STENCIL_BUFFER_BIT);
 		gl.enable(gl.DEPTH_TEST);
@@ -206,7 +207,7 @@ goog.scope(function() {
 		// Render reference.
 		for (var y = 0; y < referenceFrame.getHeight(); y++) {
 			/** @type {number} */ var yf = (y + 0.5) / referenceFrame.getHeight();
-			/** @type {number} */ var half = deMath.clamp((referenceFrame.getWidth() * 0.5 + 0.5), 0, referenceFrame.getWidth());
+			/** @type {number} */ var half = deMath.clamp(Math.floor(referenceFrame.getWidth() * 0.5 + 0.5), 0, referenceFrame.getWidth());
 
 			// Fill left half - comparison to constant 0.5
 			for (var x = 0; x < half; x++) {
@@ -274,6 +275,7 @@ goog.scope(function() {
 		if (depthBits === 0)
 			throw new Error("Depth buffer is required");
 
+		gl.depthMask(true);
 		gl.viewport(viewportX, viewportY, viewportW, viewportH);
 		gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT | gl.STENCIL_BUFFER_BIT);
 		gl.enable(gl.DEPTH_TEST);

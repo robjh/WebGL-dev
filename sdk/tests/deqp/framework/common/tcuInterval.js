@@ -605,67 +605,6 @@ tcuInterval.applyMonotone3 = function(arg0, arg1, arg2, body) {
     return ret;
 };
 
-//
-// //! Set the interval DST to the image of BODY on ARG, assuming that BODY on
-// //! ARG is a monotone function. In practice, BODY is evaluated on both the
-// //! upper and lower bound of ARG, and DST is set to the union of these
-// //! results. While evaluating BODY, PARAM is bound to the bound of ARG, and
-// //! the output of BODY should be stored in VAR.
-//
-// #define TCU_INTERVAL_APPLY_MONOTONE1(DST, PARAM, ARG, VAR, BODY) do		\
-// 	{																	\
-// 	const ::tcu::Interval&	VAR##_arg_		= (ARG);					\
-// 	::tcu::Interval&		VAR##_dst_		= (DST);					\
-// 	::tcu::Interval			VAR##_lo_;									\
-// 	::tcu::Interval			VAR##_hi_;									\
-// 	if (VAR##_arg_.empty())												\
-// 		VAR##_dst_ = Interval();										\
-// 	else																\
-// 	{																	\
-// 		{																\
-// 			const double		PARAM	= VAR##_arg_.lo();				\
-// 			::tcu::Interval&	VAR		= VAR##_lo_;					\
-// 			BODY;														\
-// 		}																\
-// 		{																\
-// 			const double		PARAM	= VAR##_arg_.hi();				\
-// 			::tcu::Interval&	VAR		= VAR##_hi_;					\
-// 			BODY;														\
-// 		}																\
-// 		VAR##_dst_ = VAR##_lo_ | VAR##_hi_;								\
-// 	}																	\
-// 	if (VAR##_arg_.hasNaN())											\
-// 		VAR##_dst_ |= TCU_NAN;											\
-// } while (::deGetFalse())
-
-// #define TCU_INTERVAL_APPLY_MONOTONE2(DST, P0, A0, P1, A1, VAR, BODY)	\
-// 	TCU_INTERVAL_APPLY_MONOTONE1(										\
-// 		DST, P0, A0, tmp2_,												\
-// 		TCU_INTERVAL_APPLY_MONOTONE1(tmp2_, P1, A1, VAR, BODY))
-//
-// #define TCU_INTERVAL_APPLY_MONOTONE3(DST, P0, A0, P1, A1, P2, A2, VAR, BODY) \
-// 	TCU_INTERVAL_APPLY_MONOTONE1(										\
-// 		DST, P0, A0, tmp3_,												\
-// 		TCU_INTERVAL_APPLY_MONOTONE2(tmp3_, P1, A1, P2, A2, VAR, BODY))
-
-// typedef double		DoubleFunc1			(double);
-// typedef double		DoubleFunc2			(double, double);
-// typedef double		DoubleFunc3			(double, double, double);
-// typedef Interval	DoubleIntervalFunc1	(double);
-// typedef Interval	DoubleIntervalFunc2	(double, double);
-// typedef Interval	DoubleIntervalFunc3	(double, double, double);
-//
-// Interval	applyMonotone	(DoubleFunc1&			func,
-// 							 const Interval&		arg0);
-// Interval	applyMonotone	(DoubleFunc2&			func,
-// 							 const Interval&		arg0,
-// 							 const Interval&		arg1);
-// Interval	applyMonotone	(DoubleIntervalFunc1&	func,
-// 							 const Interval&		arg0);
-// Interval	applyMonotone	(DoubleIntervalFunc2&	func,
-// 							 const Interval&		arg0,
-// 							 const Interval&		arg1);
-
 /** @const */ tcuInterval.POSITIVE_INFINITY = new tcuInterval.Interval(Infinity);
 /** @const */ tcuInterval.NEGATIVE_INFINITY = new tcuInterval.Interval(-Infinity);
 /** @const */ tcuInterval.ZERO = new tcuInterval.Interval(0);

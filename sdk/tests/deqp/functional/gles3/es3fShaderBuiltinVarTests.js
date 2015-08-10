@@ -134,7 +134,6 @@ goog.scope(function() {
 	 */
 	es3fShaderBuiltinVarTests.ShaderBuiltinConstantCase.prototype.createGetConstantExecutor = function(shaderType, varName) {
 		/** @type {glsShaderExecUtil.ShaderSpec} */ var shaderSpec = new glsShaderExecUtil.ShaderSpec();
-
 		shaderSpec.version = gluShaderUtil.GLSLVersion.V300_ES;
 		shaderSpec.source = 'result = ' + varName + ';\n';
 		shaderSpec.outputs.push(new glsShaderExecUtil.Symbol('result',
@@ -220,7 +219,7 @@ goog.scope(function() {
 		glsShaderRenderCase.ShaderRenderCase.call(this, name, desc, isVertexCase, this.m_evaluator);
 		/** @type {es3fShaderBuiltinVarTests.DepthRangeParams} */ this.m_depthRange = new es3fShaderBuiltinVarTests.DepthRangeParams();
 		// TODO: there is an issue with types below
-		/** @type {es3fShaderBuiltinVarTests.DepthRangeEvaluator} */ this.m_evaluator = this.m_depthRange;
+		/** @type {es3fShaderBuiltinVarTests.DepthRangeEvaluator} */ this.m_evaluator = new es3fShaderBuiltinVarTests.DepthRangeEvaluator(this.m_depthRange);
 		/** @type {number} */ this.m_iterNdx = 0;
 	};
 
@@ -271,13 +270,11 @@ goog.scope(function() {
 	 */
 	es3fShaderBuiltinVarTests.ShaderDepthRangeTest.prototype.iterate = function() {
 		/** @type {Array<es3fShaderBuiltinVarTests.DepthRangeParams>} */ var cases = [
-			new es3fShaderBuiltinVarTests.DepthRangeParams(0.0, 1.0),
-			new es3fShaderBuiltinVarTests.DepthRangeParams(1.5, -1.0),
-			new es3fShaderBuiltinVarTests.DepthRangeParams(0.7, 0.3)
+			new es3fShaderBuiltinVarTests.DepthRangeParams(0.0, 1.0)
 		];
 
 		this.m_depthRange = cases[this.m_iterNdx];
-		bufferedLogToConsole('glDepthRangef(' + this.m_depthRange.zNear + ', ' + this.m_depthRange.zFar + ')');
+		bufferedLogToConsole('gl.depthRange(' + this.m_depthRange.zNear + ', ' + this.m_depthRange.zFar + ')');
 		gl.depthRange(this.m_depthRange.zNear, this.m_depthRange.zFar);
 
 		this.postiterate();
@@ -347,6 +344,7 @@ goog.scope(function() {
 	    gl.useProgram(program.getProgram());
 	    gl.uniform3fv(scaleLoc, scale);
 
+	    gl.viewport(0, 0, width, height);
 	    gluDrawUtil.draw(gl, program.getProgram(), [posBinding], gluDrawUtil.triangles(indices));
 
 		testImg.readViewport(gl, [0, 0, width, height]);
@@ -991,34 +989,7 @@ goog.scope(function() {
 			this.renderReference(refImg.getAccess(), indices, flatPosArray, flatColorArray);
 		}
 		else if (this.m_iterNdx === 1) {
-			bufferedLogToConsole('Iter1: glDrawElements(), indices in client-side array')
-
-			// Compute initial indices and suffle
-			for (var ndx = 0; ndx < this.m_positions.length; ndx++)
-				indices.push(ndx);
-
-			// deRandom.shuffle(rnd, indices);
-			// \note [2015-08-05 dag] The original test shuffles the indices array but the reference renderer cannot handle triangles with sides not parallel to the axes.
-
-			// Use indices to re-map positions.
-			for (var ndx = 0; ndx < indices.length; ndx++)
-				mappedPos[indices[ndx]] = this.m_positions[ndx];
-
-			flatPosArray = new Float32Array([].concat.apply([], mappedPos));
-			flatColorArray = new Float32Array([].concat.apply([], this.m_colors));
-			gl.bufferData(gl.ARRAY_BUFFER, flatPosArray.buffer, gl.DYNAMIC_DRAW);
-
-			gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, this.m_elementBuffer);
-			gl.bufferData(gl.ELEMENT_ARRAY_BUFFER, (new Uint16Array(indices)).buffer, gl.DYNAMIC_DRAW);
-
-			gl.drawElements(gl.TRIANGLES, indices.length, gl.UNSIGNED_SHORT, 0);
-
-			//glu::readPixels(this.m_context.getRenderContext(), viewportX, viewportY, testImg.getAccess());
-			testImg.readViewport(gl, [viewportX, viewportY, viewportW, viewportH]);
-			this.renderReference(refImg.getAccess(), indices, flatPosArray, flatColorArray);
-		}
-		else if (this.m_iterNdx === 2) {
-			bufferedLogToConsole('Iter2: glDrawElements(), indices in buffer');
+			bufferedLogToConsole('Iter1: glDrawElements(), indices in buffer');
 
 			// Compute initial indices and suffle
 			for (var ndx = 0; ndx < this.m_positions.length; ndx++)
@@ -1052,7 +1023,7 @@ goog.scope(function() {
 			testPassedOptions('Pass', true);
 
 		this.m_iterNdx += 1;
-		return (this.m_iterNdx < 3) ? tcuTestCase.IterateResult.CONTINUE : tcuTestCase.IterateResult.STOP;
+		return (this.m_iterNdx < 2) ? tcuTestCase.IterateResult.CONTINUE : tcuTestCase.IterateResult.STOP;
 	};
 
 
@@ -1102,8 +1073,6 @@ goog.scope(function() {
 			new BuiltinConstant('min_program_texel_offset', 'gl_MinProgramTexelOffset', function() { return es3fShaderBuiltinVarTests.getInteger(gl.MIN_PROGRAM_TEXEL_OFFSET); }),
 			new BuiltinConstant('max_program_texel_offset', 'gl_MaxProgramTexelOffset', function() { return es3fShaderBuiltinVarTests.getInteger(gl.MAX_PROGRAM_TEXEL_OFFSET); })
 		];
-
-		// TODO: tests are not performing proper cleanup; some tests fail when run without filters but pass if run individually
 
 		for (var ndx = 0; ndx < builtinConstants.length; ndx++) {
 			/** @type {string} */ var caseName = builtinConstants[ndx].caseName;

@@ -55,21 +55,6 @@ goog.scope(function() {
 	};
 
 	/**
-	 * @struct
-	 * @constructor
-	 * @param {number} value_
-	 */
-	es3fShaderPackingFunctionTests.HexFloat = function(value_) {
-		this.value = value_;
-	};
-
-	// TODO: implement
-	// std::ostream& operator<< (std::ostream& str, const HexFloat& v)
-	// {
-	// 	return str << v.value << " / " << tcu::toHex(tcu::Float32(v.value).bitss());
-	// }
-
-	/**
 	 * @constructor
 	 * @extends {tcuTestCase.DeqpTest}
 	 * @param {string} name
@@ -289,9 +274,9 @@ goog.scope(function() {
 			if (diff0 > maxDiff || diff1 > maxDiff) {
 				if (numFailed < maxPrints)
 					bufferedLogToConsole("ERROR: Mismatch in value " + valNdx + ",\n" +
-				    	"  expected unpackSnorm2x16(" + inputs[valNdx] /*tcu::toHex(inputs[valNdx])*/ + ") = " +
-				    	"vec2(" + ref0 /*HexFloat(ref0)*/ + ", " + ref1 /*HexFloat(ref1)*/ + ")" +
-				    	", got vec2(" + res0 /*HexFloat(res0)*/ + ", " + res1 /*HexFloat(res1)*/ + ")" +
+				    	"  expected unpackSnorm2x16(" + parseInt(inputs[valNdx]).toString(16) + ") = " +
+				    	"vec2(" + parseInt(ref0).toString(16) + ", " + parseInt(ref1).toString(16) + ")" +
+				    	", got vec2(" + parseInt(res0).toString(16) + ", " + parseInt(res1).toString(16) + ")" +
 				    	"\n  ULP diffs = (" + diff0 + ", " + diff1 + "), max diff = " + maxDiff);
 				else if (numFailed == maxPrints)
 					bufferedLogToConsole("...");
@@ -474,9 +459,9 @@ goog.scope(function() {
 			if (diff0 > maxDiff || diff1 > maxDiff) {
 				if (numFailed < maxPrints)
 					bufferedLogToConsole("ERROR: Mismatch in value " + valNdx + ",\n" +
-									     "  expected unpackUnorm2x16(" + inputs[valNdx] /*tcu::toHex(inputs[valNdx])*/ + ") = " +
-									     "vec2(" + ref0 /*HexFloat(ref0)*/ + ", " + ref1 /*HexFloat(ref1)*/ + ")" +
-									     ", got vec2(" + res0 /*HexFloat(res0)*/ + ", " + res1 /*HexFloat(res1)*/ + ")" +
+									     "  expected unpackUnorm2x16(" + parseInt(inputs[valNdx]).toString(16) + ") = " +
+									     "vec2(" + parseInt(ref0).toString(16) + ", " + parseInt(ref1).toString(16) + ")" +
+									     ", got vec2(" + parseInt(res0).toString(16) + ", " + parseInt(res1).toString(16) + ")" +
 									     "\n  ULP diffs = (" + diff0 + ", " + diff1 + "), max diff = " + maxDiff);
 				else if (numFailed === maxPrints)
 					bufferedLogToConsole("...");
@@ -620,7 +605,7 @@ goog.scope(function() {
 	 */
 	es3fShaderPackingFunctionTests.UnpackHalf2x16Case.prototype.iterate = function() {
 
-		/** @type {number} */ var maxDiff = 0; // All bits must be accurate. // TODO COMPARE THIS LINE AND SIMILAR OENS VS DEQP
+		/** @type {number} */ var maxDiff = 0; // All bits must be accurate. // TODO COMPARE THIS AND SIMILAR LINES VS DEQP
 		/** @type {deRandom.Random} */ var rnd = new deRandom.Random(deString.deStringHash(this.name) ^ 0x776002);
 		/** @type {Array<number>} */ var inputs = [];
 		/** @type {Array<Array<number>>} */ var outputs = [];
@@ -654,7 +639,7 @@ goog.scope(function() {
 		bufferedLogToConsole("Executing shader for " + inputs.length + " input values");
 
 		this.m_executor.useProgram();
-		outputs = this.m_executor.execute(inputs.length, inputs);
+		outputs = this.m_executor.execute(inputs.length, [inputs]);
 
 		// Verify
 		/** @type {number} */ var numValues = inputs.length
