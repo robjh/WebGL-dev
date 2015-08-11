@@ -26,6 +26,272 @@ goog.scope(function() {
         functional.gles3.es3fTextureSpecificationTests;
 
     /**
+     * @param {number} internalFormat
+     * @return {tcuTexture.TextureFormat}
+     */
+    es3fTextureSpecificationTests.mapGLUnsizedInternalFormat = function (
+        internalFormat
+    ) {
+        switch (internalFormat)
+        {
+            case gl.ALPHA:
+                return new tcuTexture.TextureFormat (
+                    TextureFormat.ChannelOrder.A,
+                    TextureFormat.ChannelType.UNORM_INT8
+                );
+            case gl.LUMINANCE:
+                return new tcuTexture.TextureFormat (
+                    TextureFormat.ChannelOrder.L,
+                    TextureFormat.ChannelType.UNORM_INT8
+                );
+            case gl.LUMINANCE_ALPHA:
+                return new tcuTexture.TextureFormat (
+                    TextureFormat.ChannelOrder.LA,
+                    TextureFormat.ChannelType.UNORM_INT8
+                );
+            case gl.RGB:
+                return new tcuTexture.TextureFormat (
+                    TextureFormat.ChannelOrder.RGB,
+                    TextureFormat.ChannelType.UNORM_INT8
+                );
+            case gl.RGBA:
+                return new tcuTexture.TextureFormat (
+                    TextureFormat.ChannelOrder.RGBA,
+                    TextureFormat.ChannelType.UNORM_INT8
+                );
+            default:
+                throw new Error(
+                    'Can\'t map GL unsized internal format (' +
+                    internalFormat.toString(16) + ') to texture format'
+                );
+        }
+    };
+
+    VIEWPORT_WIDTH = 256;
+    VIEWPORT_HEIGHT = 256;
+
+    /**
+     * @param {number} width
+     * @param {number} height
+     * @return {number}
+     */
+    es3fTextureSpecificationTests.maxLevelCount = function (
+        width, height
+    ) {
+        return deMath.logToFloor(Math.max(width, height)) + 1;
+    };
+
+    /**
+     * @param {number} width
+     * @param {number} height
+     * @param {number} depth
+     * @return {number}
+     */
+    es3fTextureSpecificationTests.maxLevelCount = function (
+        width, height, depth
+    ) {
+        return deMath.logToFloor(Math.max(width, Math.max(height, depth))) + 1;
+    };
+
+    /**
+     * @param {deRandom.Random} rnd
+     * @param {Array<number>=} minVal
+     * @param {Array<number>=} maxVal
+     * @param {number} size
+     * @return {Array<number>}
+     */
+    es3fTextureSpecificationTests.randomVector = function (
+        rnd, minVal, maxVal, size
+    ) {
+        minVal = minVal || new Array(size).fill(0);
+        maxVal = maxVal || new Array(size).fill(1);
+        var res = [];
+        for (var ndx = 0; ndx < size; ndx++)
+            res[ndx] = rnd.getFloat(minVal[ndx], maxVal[ndx]);
+        return res;
+    };
+
+    /**
+     * @type {Array<number>}
+     */
+    es3fTextureSpecificationTests.s_cubeMapFaces = [
+        gl.TEXTURE_CUBE_MAP_NEGATIVE_X,
+        gl.TEXTURE_CUBE_MAP_POSITIVE_X,
+        gl.TEXTURE_CUBE_MAP_NEGATIVE_Y,
+        gl.TEXTURE_CUBE_MAP_POSITIVE_Y,
+        gl.TEXTURE_CUBE_MAP_NEGATIVE_Z,
+        gl.TEXTURE_CUBE_MAP_POSITIVE_Z,
+    ];
+
+    /**
+     * @param {tcuPixelFormat.PixelFormat} pixelFormat
+     * @param {tcuPixelFormat.PixelFormat} textureFormat
+     * @return {Array<number>} (ivec4)
+     */
+    es3fTextureSpecificationTests.getPixelFormatCompareDepth = function (
+        pixelFormat, textureFormat
+    ) {
+        switch (textureFormat.order)
+        {
+            case tcuTexture.ChannelOrder.L:
+            case tcuTexture.ChannelOrder.LA:
+                return [
+                    pixelFormat.redBits, pixelFormat.redBits,
+                    pixelFormat.redBits, pixelFormat.alphaBits
+                ];
+            default:
+                return [
+                    pixelFormat.redBits, pixelFormat.greenBits,
+                    pixelFormat.blueBits, pixelFormat.alphaBits
+                ];
+        }
+    };
+
+    /**
+     * @param {tcuPixelFormat.PixelFormat} pixelFormat
+     * @param {tcuTexture.TextureFormat} textureFormat
+     * @return {Array<number>} (uvec4)
+     */
+    es3fTextureSpecificationTests.computeCompareThreshold = function (
+        pixelFormat, textureFormat
+    ) {
+        /** @type {Array<number>} */
+        var texFormatBits = tcuTextureUtil.getTextureFormatBitDepth(
+            textureFormat
+        );
+        /** @type {Array<number>} */
+        var pixelFormatBits =
+            es3fTextureSpecificationTests.getPixelFormatCompareDepth(
+                pixelFormat, textureFormat
+            );
+        /** @type {Array<number>} */
+        var accurateFmtBits = deMath.min(pixelFormatBits, texFormatBits);
+        /** @type {Array<number>} */
+        var compareBits = deMath.addScalar(
+            tcuTextureUtil.select(
+                accurateFmtBits, [8, 8, 8, 8],
+                deMath.greaterThan(accurateFmtBits, [0, 0, 0, 0])
+            ), - 1
+        );
+
+        var element = 1 << (8-compareBits);
+        return [element, element, element, element];
+    };
+
+    /**
+     * @constructor
+     * @extends {tcuTestCase.DeqpTest}
+     * @param {string} name
+     * @param {string} desc
+     * @param {?sglrGLContext.GLContext|sglrReferenceContext.ReferenceContext}
+     * context
+     */
+    es3fTextureSpecificationTests.TextureSpecCase = function (name, desc, context) {
+        tcuTestCase.DeqpTest.call(this, name, desc);
+        this.m_context = context;
+    };
+
+    /**
+     * createTexture - Needs to be overridden
+     */
+    es3fTextureSpecificationTests.TextureSpecCase.prototype.createTexture =
+    function () {
+        throw new Error('Must override');
+    };
+
+    /**
+     * verifyTexture - Needs to be overridden
+     * @param {sglrGLContext.GLContext} webgl2Context
+     * @param {sglrReferenceContext.ReferenceContext} refContext
+     */
+    es3fTextureSpecificationTests.TextureSpecCase.prototype.verifyTexture =
+    function (
+        webgl2Context, refContext
+    ) {
+        throw new Error('Must override');
+    };
+
+    /**
+     * @return {tcuTestCase.IterateResult}
+     */
+    es3fTextureSpecificationTests.TextureSpecCase.iterate = function () {
+        if (gl.canvas.width < VIEWPORT_WIDTH ||
+            gl.canvas.height < VIEWPORT_HEIGHT)
+            throw new Error('Too small viewport', "");
+
+        // Context size, and viewport for GLES3
+        var rnd = new deRandom.Random(deString.deStringHash(this.fullName()));
+        var width = Math.min(gl.canvas.width, VIEWPORT_WIDTH);
+        var height = Math.min(gl.canvas.height, VIEWPORT_HEIGHT);
+        var x = rnd.getInt(0, gl.canvas.width - width);
+        var y = rnd.getInt(0, gl.canvas.height - height);
+
+        // Contexts.
+        /** @type {sglrGLContext.GLContext} */
+        var webgl2Context = new sglrGLContext.GLContext(
+            gl, [x, y, width, height]
+        );
+
+        /** @type {sglrReferenceContext.ReferenceContextBuffers} */
+        var refBuffers = new sglrReferenceContext.ReferenceContextBuffers(
+            new tcuPixelFormat.PixelFormat(
+                8, 8, 8, tcuPixelFormat.PixelFormatFromContext(),
+                renderTarget.getPixelFormat().alphaBits ? 8 : 0
+            ), 0 /* depth */, 0 /* stencil */, width, height
+        );
+
+        /** @type {sglrReferenceContext.ReferenceContext} */
+        var sglrReferenceContext            refContext        (sglr::ReferenceContextLimits(renderCtx), refBuffers.getColorbuffer(), refBuffers.getDepthbuffer(), refBuffers.getStencilbuffer());
+
+        // Clear color buffer.
+        for (int ndx = 0; ndx < 2; ndx++)
+        {
+            setContext(ndx ? (sglr::Context*)&refContext : (sglr::Context*)&gles3Context);
+            glClearColor(0.125f, 0.25f, 0.5f, 1.0f);
+            glClear(GL_COLOR_BUFFER_BIT|GL_DEPTH_BUFFER_BIT|GL_STENCIL_BUFFER_BIT);
+        }
+
+        // Construct texture using both GLES3 and reference contexts.
+        for (int ndx = 0; ndx < 2; ndx++)
+        {
+            setContext(ndx ? (sglr::Context*)&refContext : (sglr::Context*)&gles3Context);
+            createTexture();
+            TCU_CHECK(glGetError() == GL_NO_ERROR);
+        }
+
+        // Initialize case result to pass.
+        m_testCtx.setTestResult(QP_TEST_RESULT_PASS, "Pass");
+
+        // Disable logging.
+        gles3Context.enableLogging(0);
+
+        // Verify results.
+        verifyTexture(gles3Context, refContext);
+
+        return STOP;
+    }
+
+    void TextureSpecCase::renderTex (tcu::Surface& dst, deUint32 program, int width, int height)
+    {
+        int        targetW        = getWidth();
+        int        targetH        = getHeight();
+
+        float    w            = (float)width    / (float)targetW;
+        float    h            = (float)height    / (float)targetH;
+
+        sglr::drawQuad(*getCurrentContext(), program, tcu::Vec3(-1.0f, -1.0f, 0.0f), tcu::Vec3(-1.0f + w*2.0f, -1.0f + h*2.0f, 0.0f));
+
+        // Read pixels back.
+        readPixels(dst, 0, 0, width, height);
+    }
+
+    void TextureSpecCase::readPixels (tcu::Surface& dst, int x, int y, int width, int height)
+    {
+        dst.setSize(width, height);
+        glReadPixels(x, y, width, height, GL_RGBA, GL_UNSIGNED_BYTE, dst.getAccess().getDataPtr());
+    };
+
+    /**
      * @constructor
      * @extends {tcuTestCase.DeqpTest}
      * @param {WebGL2RenderingContext} context

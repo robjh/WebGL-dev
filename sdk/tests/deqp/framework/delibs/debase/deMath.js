@@ -784,20 +784,6 @@ deMath.toIVec = function(a) {
 };
 
 /**
- * Helper function to create and initialize arrays
- * @param {Array<number>} a
- * @param {number} b
- * @return {Array<number>}
- */
-deMath.addScalarToVector = function(a, b) {
-    if (!Array.isArray(a))
-        throw new Error('The first parameter is not an array: (' + typeof(a) + ')' + a);
-    /** @type {Array<number>} */ var res = [];
-    for (var i = 0; i < a.length; i++)
-        res.push(a[i] + b);
-    return res;
-};
-/**
  * @param {number} a
  * @param {number} exponent
  * @return {number}
