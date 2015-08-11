@@ -4,14 +4,14 @@
  *
  * Copyright 2014 The Android Open Source Project
  *
- * Licensed under the Apache License, Version 2.0 (the 'License');
+ * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
  *
  *      http://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an 'AS IS' BASIS,
+ * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  * See the License for the specific language governing permissions and
  * limitations under the License.
@@ -75,7 +75,7 @@ goog.scope(function() {
 		assertMsgOptions(!this.m_executor, 'Error: Executor is not null.', false, true);
 		this.m_executor = glsShaderExecUtil.createExecutor(this.m_shaderType, this.m_spec);
 		if (!this.m_executor.isOk())
-			throw new Error("Compile failed");
+			throw new Error('Compile failed');
 	};
 
 	es3fShaderPackingFunctionTests.ShaderPackingFunctionCase.prototype.deinit = function() {
@@ -88,9 +88,9 @@ goog.scope(function() {
 	 */
 	es3fShaderPackingFunctionTests.getPrecisionPostfix = function(precision) {
 		/** @type {Array<string>} */ var s_postfix = [
-			"_lowp",
-			"_mediump",
-			"_highp"
+			'_lowp',
+			'_mediump',
+			'_highp'
 		];
 		assertMsgOptions(0 <= precision && precision < s_postfix.length, 'Error: Out of range', false, true);
 		return s_postfix[precision];
@@ -102,8 +102,8 @@ goog.scope(function() {
 	 */
 	es3fShaderPackingFunctionTests.getShaderTypePostfix = function(shaderType) {
 		/** @type {Array<string>} */ var s_postfix = [
-			"_vertex",
-			"_fragment"
+			'_vertex',
+			'_fragment'
 		];
 		assertMsgOptions(0 <= shaderType && shaderType < s_postfix.length, 'Error Out of range', false, true);
 		return s_postfix[shaderType];
@@ -116,15 +116,15 @@ goog.scope(function() {
 	 * @param {gluShaderUtil.precision} precision
 	 */
 	es3fShaderPackingFunctionTests.PackSnorm2x16Case = function(shaderType, precision) {
-		/** @const {string} */ var name = "packsnorm2x16" +
+		/** @const {string} */ var name = 'packsnorm2x16' +
 			es3fShaderPackingFunctionTests.getPrecisionPostfix(precision) +
 			es3fShaderPackingFunctionTests.getShaderTypePostfix(shaderType);
-		es3fShaderPackingFunctionTests.ShaderPackingFunctionCase.call(this, name, "packSnorm2x16", shaderType);
+		es3fShaderPackingFunctionTests.ShaderPackingFunctionCase.call(this, name, 'packSnorm2x16', shaderType);
 		this.m_precision = precision;
 
 		this.m_spec.inputs.push(new glsShaderExecUtil.Symbol('in0', gluVarType.newTypeBasic(gluShaderUtil.DataType.FLOAT_VEC2, precision)));
 		this.m_spec.outputs.push(new glsShaderExecUtil.Symbol('out0', gluVarType.newTypeBasic(gluShaderUtil.DataType.UINT, gluShaderUtil.precision.PRECISION_HIGHP)));
-		this.m_spec.source = "out0 = packSnorm2x16(in0);";
+		this.m_spec.source = 'out0 = packSnorm2x16(in0);';
 	};
 
 	es3fShaderPackingFunctionTests.PackSnorm2x16Case.prototype = Object.create(es3fShaderPackingFunctionTests.ShaderPackingFunctionCase.prototype);
@@ -165,7 +165,7 @@ goog.scope(function() {
 
 		outputs.length = inputs.length;
 
-		bufferedLogToConsole("Executing shader for " + inputs.length + " input values");
+		bufferedLogToConsole('Executing shader for ' + inputs.length + ' input values');
 
 		this.m_executor.useProgram();
 		outputs = this.m_executor.execute(inputs.length, inputs)[0];
@@ -188,19 +188,19 @@ goog.scope(function() {
 			if (diff0 > maxDiff || diff1 > maxDiff) {
 				if (numFailed < maxPrints) {
 					bufferedLogToConsole(
-						"ERROR: Mismatch in value " + valNdx +
-						", expected packSnorm2x16(" + inputs[valNdx] + ") = " + ref + //tcu::toHex(ref)
-						", got " + res + // tcu::toHex(res)
-						"\n  diffs = (" + diff0 + ", " + diff1 + "), max diff = " + maxDiff);
+						'ERROR: Mismatch in value ' + valNdx +
+						', expected packSnorm2x16(' + inputs[valNdx] + ') = ' + ref + //tcu::toHex(ref)
+						', got ' + res + // tcu::toHex(res)
+						'\n  diffs = (' + diff0 + ', ' + diff1 + '), max diff = ' + maxDiff);
 				}
 				else if (numFailed == maxPrints)
-					bufferedLogToConsole("...");
+					bufferedLogToConsole('...');
 
 				numFailed += 1;
 			}
 		}
 
-		bufferedLogToConsole((numValues - numFailed) + " / " + numValues + " values passed");
+		bufferedLogToConsole((numValues - numFailed) + ' / ' + numValues + ' values passed');
 
 		/** @type {boolean} */ var isOk = numFailed === 0;
 		if (!isOk)
@@ -218,12 +218,12 @@ goog.scope(function() {
 	 * @param {gluShaderProgram.shaderType} shaderType
 	 */
 	es3fShaderPackingFunctionTests.UnpackSnorm2x16Case = function(shaderType) {
-		/** @const {string} */ var name = "unpacksnorm2x16" + es3fShaderPackingFunctionTests.getShaderTypePostfix(shaderType);
-		es3fShaderPackingFunctionTests.ShaderPackingFunctionCase.call(this, name, "unpackSnorm2x16", shaderType);
+		/** @const {string} */ var name = 'unpacksnorm2x16' + es3fShaderPackingFunctionTests.getShaderTypePostfix(shaderType);
+		es3fShaderPackingFunctionTests.ShaderPackingFunctionCase.call(this, name, 'unpackSnorm2x16', shaderType);
 
 		this.m_spec.inputs.push(new glsShaderExecUtil.Symbol('in0', gluVarType.newTypeBasic(gluShaderUtil.DataType.UINT, gluShaderUtil.precision.PRECISION_HIGHP)));
 		this.m_spec.outputs.push(new glsShaderExecUtil.Symbol('out0', gluVarType.newTypeBasic(gluShaderUtil.DataType.FLOAT_VEC2, gluShaderUtil.precision.PRECISION_HIGHP)));
-		this.m_spec.source = "out0 = unpackSnorm2x16(in0);";
+		this.m_spec.source = 'out0 = unpackSnorm2x16(in0);';
 	};
 
 	es3fShaderPackingFunctionTests.UnpackSnorm2x16Case.prototype = Object.create(es3fShaderPackingFunctionTests.ShaderPackingFunctionCase.prototype);
@@ -250,7 +250,7 @@ goog.scope(function() {
 
 		outputs.length = inputs.length;
 
-		bufferedLogToConsole("Executing shader for " + inputs.length + " input values");
+		bufferedLogToConsole('Executing shader for ' + inputs.length + ' input values');
 
 		this.m_executor.useProgram();
 		outputs = this.m_executor.execute(inputs.length, inputs)[0];
@@ -273,19 +273,19 @@ goog.scope(function() {
 
 			if (diff0 > maxDiff || diff1 > maxDiff) {
 				if (numFailed < maxPrints)
-					bufferedLogToConsole("ERROR: Mismatch in value " + valNdx + ",\n" +
-				    	"  expected unpackSnorm2x16(" + parseInt(inputs[valNdx]).toString(16) + ") = " +
-				    	"vec2(" + parseInt(ref0).toString(16) + ", " + parseInt(ref1).toString(16) + ")" +
-				    	", got vec2(" + parseInt(res0).toString(16) + ", " + parseInt(res1).toString(16) + ")" +
-				    	"\n  ULP diffs = (" + diff0 + ", " + diff1 + "), max diff = " + maxDiff);
+					bufferedLogToConsole('ERROR: Mismatch in value ' + valNdx + ',\n' +
+				    	'  expected unpackSnorm2x16(' + parseInt(inputs[valNdx]).toString(16) + ') = ' +
+				    	'vec2(' + parseInt(ref0).toString(16) + ', ' + parseInt(ref1).toString(16) + ')' +
+				    	', got vec2(' + parseInt(res0).toString(16) + ', ' + parseInt(res1).toString(16) + ')' +
+				    	'\n  ULP diffs = (' + diff0 + ', ' + diff1 + '), max diff = ' + maxDiff);
 				else if (numFailed == maxPrints)
-					bufferedLogToConsole("...");
+					bufferedLogToConsole('...');
 
 				numFailed += 1;
 			}
 		}
 
-		bufferedLogToConsole((numValues - numFailed) + " / " + numValues + " values passed");
+		bufferedLogToConsole((numValues - numFailed) + ' / ' + numValues + ' values passed');
 
 		/** @type {boolean} */ var isOk = numFailed === 0;
 		if (!isOk)
@@ -303,15 +303,15 @@ goog.scope(function() {
 	 * @param {gluShaderUtil.precision} precision
 	 */
 	es3fShaderPackingFunctionTests.PackUnorm2x16Case = function(shaderType, precision) {
-		/** @const {string} */ var name = "packunorm2x16" +
+		/** @const {string} */ var name = 'packunorm2x16' +
 		 	es3fShaderPackingFunctionTests.getPrecisionPostfix(precision) +
 			es3fShaderPackingFunctionTests.getShaderTypePostfix(shaderType);
-		es3fShaderPackingFunctionTests.ShaderPackingFunctionCase.call(this, name, "packUnorm2x16", shaderType);
+		es3fShaderPackingFunctionTests.ShaderPackingFunctionCase.call(this, name, 'packUnorm2x16', shaderType);
 		this.m_precision = precision;
 
 		this.m_spec.inputs.push(new glsShaderExecUtil.Symbol('in0', gluVarType.newTypeBasic(gluShaderUtil.DataType.FLOAT_VEC2, precision)));
 		this.m_spec.outputs.push(new glsShaderExecUtil.Symbol('out0', gluVarType.newTypeBasic(gluShaderUtil.DataType.UINT, gluShaderUtil.precision.PRECISION_HIGHP)));
-		this.m_spec.source = "out0 = packUnorm2x16(in0);";
+		this.m_spec.source = 'out0 = packUnorm2x16(in0);';
 	};
 
 	es3fShaderPackingFunctionTests.PackUnorm2x16Case.prototype = Object.create(es3fShaderPackingFunctionTests.ShaderPackingFunctionCase.prototype);
@@ -352,7 +352,7 @@ goog.scope(function() {
 
 		outputs.length = inputs.length;
 
-		bufferedLogToConsole("Executing shader for " + inputs.length + " input values");
+		bufferedLogToConsole('Executing shader for ' + inputs.length + ' input values');
 
 		this.m_executor.useProgram();
 		outputs = this.m_executor.execute(inputs.length, inputs);
@@ -374,18 +374,18 @@ goog.scope(function() {
 
 			if (diff0 > maxDiff || diff1 > maxDiff) {
 				if (numFailed < maxPrints)
-					bufferedLogToConsole("ERROR: Mismatch in value " + valNdx +
-										 ", expected packUnorm2x16(" + inputs[valNdx] + ") = " + ref /*tcu::toHex(ref)*/ +
-										 ", got " + res /*tcu::toHex(res)*/ +
-										 "\n  diffs = (" + diff0 + ", " + diff1 + "), max diff = " + maxDiff);
+					bufferedLogToConsole('ERROR: Mismatch in value ' + valNdx +
+										 ', expected packUnorm2x16(' + inputs[valNdx] + ') = ' + ref /*tcu::toHex(ref)*/ +
+										 ', got ' + res /*tcu::toHex(res)*/ +
+										 '\n  diffs = (' + diff0 + ', ' + diff1 + '), max diff = ' + maxDiff);
 				else if (numFailed === maxPrints)
-					bufferedLogToConsole("...");
+					bufferedLogToConsole('...');
 
 				numFailed += 1;
 			}
 		}
 
-		bufferedLogToConsole((numValues - numFailed) + " / " + numValues + " values passed");
+		bufferedLogToConsole((numValues - numFailed) + ' / ' + numValues + ' values passed');
 
 		/** @type {boolean} */ var isOk = numFailed === 0;
 		if (!isOk)
@@ -402,13 +402,13 @@ goog.scope(function() {
 	 * @param {gluShaderProgram.shaderType} shaderType
 	 */
 	es3fShaderPackingFunctionTests.UnpackUnorm2x16Case = function(shaderType) {
-		/** @const {string} */ var name = "unpackunorm2x16" +
+		/** @const {string} */ var name = 'unpackunorm2x16' +
 			es3fShaderPackingFunctionTests.getShaderTypePostfix(shaderType);
-		es3fShaderPackingFunctionTests.ShaderPackingFunctionCase.call(this, name, "unpackUnorm2x16", shaderType);
+		es3fShaderPackingFunctionTests.ShaderPackingFunctionCase.call(this, name, 'unpackUnorm2x16', shaderType);
 
 		this.m_spec.inputs.push(new glsShaderExecUtil.Symbol('in0', gluVarType.newTypeBasic(gluShaderUtil.DataType.UINT, gluShaderUtil.precision.PRECISION_HIGHP)));
 		this.m_spec.outputs.push(new glsShaderExecUtil.Symbol('out0', gluVarType.newTypeBasic(gluShaderUtil.DataType.FLOAT_VEC2, gluShaderUtil.precision.PRECISION_HIGHP)));
-		this.m_spec.source = "out0 = unpackUnorm2x16(in0);";
+		this.m_spec.source = 'out0 = unpackUnorm2x16(in0);';
 	};
 
 	es3fShaderPackingFunctionTests.UnpackUnorm2x16Case.prototype = Object.create(es3fShaderPackingFunctionTests.ShaderPackingFunctionCase.prototype);
@@ -435,7 +435,7 @@ goog.scope(function() {
 
 		outputs.length = inputs.length;
 
-		bufferedLogToConsole("Executing shader for " + inputs.length + " input values");
+		bufferedLogToConsole('Executing shader for ' + inputs.length + ' input values');
 
 		this.m_executor.useProgram();
 		outputs = this.m_executor.execute(inputs.length, inputs)[0];
@@ -458,19 +458,19 @@ goog.scope(function() {
 
 			if (diff0 > maxDiff || diff1 > maxDiff) {
 				if (numFailed < maxPrints)
-					bufferedLogToConsole("ERROR: Mismatch in value " + valNdx + ",\n" +
-									     "  expected unpackUnorm2x16(" + parseInt(inputs[valNdx]).toString(16) + ") = " +
-									     "vec2(" + parseInt(ref0).toString(16) + ", " + parseInt(ref1).toString(16) + ")" +
-									     ", got vec2(" + parseInt(res0).toString(16) + ", " + parseInt(res1).toString(16) + ")" +
-									     "\n  ULP diffs = (" + diff0 + ", " + diff1 + "), max diff = " + maxDiff);
+					bufferedLogToConsole('ERROR: Mismatch in value ' + valNdx + ',\n' +
+									     '  expected unpackUnorm2x16(' + parseInt(inputs[valNdx]).toString(16) + ') = ' +
+									     'vec2(' + parseInt(ref0).toString(16) + ', ' + parseInt(ref1).toString(16) + ')' +
+									     ', got vec2(' + parseInt(res0).toString(16) + ', ' + parseInt(res1).toString(16) + ')' +
+									     '\n  ULP diffs = (' + diff0 + ', ' + diff1 + '), max diff = ' + maxDiff);
 				else if (numFailed === maxPrints)
-					bufferedLogToConsole("...");
+					bufferedLogToConsole('...');
 
 				numFailed += 1;
 			}
 		}
 
-		bufferedLogToConsole((numValues - numFailed) + " / " + numValues + " values passed");
+		bufferedLogToConsole((numValues - numFailed) + ' / ' + numValues + ' values passed');
 
 		/** @type {boolean} */ var isOk = numFailed === 0;
 		if (!isOk)
@@ -487,13 +487,13 @@ goog.scope(function() {
 	 * @param {gluShaderProgram.shaderType} shaderType
 	 */
 	es3fShaderPackingFunctionTests.PackHalf2x16Case = function(shaderType) {
-		/** @const {string} */ var name = "packhalf2x16" +
+		/** @const {string} */ var name = 'packhalf2x16' +
 			es3fShaderPackingFunctionTests.getShaderTypePostfix(shaderType);
-		es3fShaderPackingFunctionTests.ShaderPackingFunctionCase.call(this, name, "packHalf2x16", shaderType);
+		es3fShaderPackingFunctionTests.ShaderPackingFunctionCase.call(this, name, 'packHalf2x16', shaderType);
 
 		this.m_spec.inputs.push(new glsShaderExecUtil.Symbol('in0', gluVarType.newTypeBasic(gluShaderUtil.DataType.FLOAT_VEC2, gluShaderUtil.precision.PRECISION_HIGHP)));
 		this.m_spec.outputs.push(new glsShaderExecUtil.Symbol('out0', gluVarType.newTypeBasic(gluShaderUtil.DataType.UINT, gluShaderUtil.precision.PRECISION_HIGHP)));
-		this.m_spec.source = "out0 = packHalf2x16(in0);";
+		this.m_spec.source = 'out0 = packHalf2x16(in0);';
 	};
 
 	es3fShaderPackingFunctionTests.PackHalf2x16Case.prototype = Object.create(es3fShaderPackingFunctionTests.ShaderPackingFunctionCase.prototype);
@@ -537,7 +537,7 @@ goog.scope(function() {
 
 		outputs.length = inputs.length;
 
-		bufferedLogToConsole("Executing shader for " + inputs.length + " input values");
+		bufferedLogToConsole('Executing shader for ' + inputs.length + ' input values');
 
 		this.m_executor.useProgram();
 		outputs = this.m_executor.execute(inputs.length, inputs);
@@ -559,18 +559,18 @@ goog.scope(function() {
 
 			if (diff0 > maxDiff || diff1 > maxDiff) {
 				if (numFailed < maxPrints)
-					bufferedLogToConsole("ERROR: Mismatch in value " + valNdx +
-									     ", expected packHalf2x16(" + inputs[valNdx] + ") = " + ref /*tcu::toHex(ref)*/ +
-									     ", got " + res /*tcu::toHex(res)*/ +
-									     "\n  diffs = (" + diff0 + ", " + diff1 + "), max diff = " + maxDiff);
+					bufferedLogToConsole('ERROR: Mismatch in value ' + valNdx +
+									     ', expected packHalf2x16(' + inputs[valNdx] + ') = ' + ref /*tcu::toHex(ref)*/ +
+									     ', got ' + res /*tcu::toHex(res)*/ +
+									     '\n  diffs = (' + diff0 + ', ' + diff1 + '), max diff = ' + maxDiff);
 				else if (numFailed == maxPrints)
-					bufferedLogToConsole("...");
+					bufferedLogToConsole('...');
 
 				numFailed += 1;
 			}
 		}
 
-		bufferedLogToConsole((numValues - numFailed) + " / " + numValues + " values passed");
+		bufferedLogToConsole((numValues - numFailed) + ' / ' + numValues + ' values passed');
 
 		/** @type {boolean} */ var isOk = numFailed === 0;
 		if (!isOk)
@@ -588,13 +588,13 @@ goog.scope(function() {
 	 * @param {gluShaderProgram.shaderType} shaderType
 	 */
 	es3fShaderPackingFunctionTests.UnpackHalf2x16Case = function(shaderType) {
-		/** @const {string} */ var name = "unpackhalf2x16" +
+		/** @const {string} */ var name = 'unpackhalf2x16' +
 			es3fShaderPackingFunctionTests.getShaderTypePostfix(shaderType);
-		es3fShaderPackingFunctionTests.ShaderPackingFunctionCase.call(this, name, "unpackHalf2x16", shaderType);
+		es3fShaderPackingFunctionTests.ShaderPackingFunctionCase.call(this, name, 'unpackHalf2x16', shaderType);
 
 		this.m_spec.inputs.push(new glsShaderExecUtil.Symbol('in0', gluVarType.newTypeBasic(gluShaderUtil.DataType.UINT, gluShaderUtil.precision.PRECISION_HIGHP)));
 		this.m_spec.outputs.push(new glsShaderExecUtil.Symbol('out0', gluVarType.newTypeBasic(gluShaderUtil.DataType.FLOAT_VEC2, gluShaderUtil.precision.PRECISION_MEDIUMP)));
-		this.m_spec.source = "out0 = unpackHalf2x16(in0);";
+		this.m_spec.source = 'out0 = unpackHalf2x16(in0);';
 	};
 
 	es3fShaderPackingFunctionTests.UnpackHalf2x16Case.prototype = Object.create(es3fShaderPackingFunctionTests.ShaderPackingFunctionCase.prototype);
@@ -635,7 +635,7 @@ goog.scope(function() {
 
 		outputs.length = inputs.length;
 
-		bufferedLogToConsole("Executing shader for " + inputs.length + " input values");
+		bufferedLogToConsole('Executing shader for ' + inputs.length + ' input values');
 
 		this.m_executor.useProgram();
 		outputs = this.m_executor.execute(inputs.length, [inputs]);
@@ -663,19 +663,19 @@ goog.scope(function() {
 
 			if (diff0 > maxDiff || diff1 > maxDiff) {
 				if (numFailed < maxPrints)
-					bufferedLogToConsole("ERROR: Mismatch in value " + valNdx + ",\n" +
-									 "  expected unpackHalf2x16(" + inputs[valNdx] /*tcu::toHex(inputs[valNdx])*/ + ") = " +
-									 "vec2(" + ref0 + " / " + refBits0 /*tcu::toHex(refBits0)*/ + ", " + ref1 + " / " + refBits1 /*tcu::toHex(refBits1)*/ + ")" +
-									 ", got vec2(" + res0 + " / " + resBits0 /*tcu::toHex(resBits0)*/ + ", " + res1 + " / " + resBits1 /*tcu::toHex(resBits1)*/ + ")" +
-									 "\n  ULP diffs = (" + diff0 + ", " + diff1 + "), max diff = " + maxDiff);
+					bufferedLogToConsole('ERROR: Mismatch in value ' + valNdx + ',\n' +
+									 '  expected unpackHalf2x16(' + inputs[valNdx] /*tcu::toHex(inputs[valNdx])*/ + ') = ' +
+									 'vec2(' + ref0 + ' / ' + refBits0 /*tcu::toHex(refBits0)*/ + ', ' + ref1 + ' / ' + refBits1 /*tcu::toHex(refBits1)*/ + ')' +
+									 ', got vec2(' + res0 + ' / ' + resBits0 /*tcu::toHex(resBits0)*/ + ', ' + res1 + ' / ' + resBits1 /*tcu::toHex(resBits1)*/ + ')' +
+									 '\n  ULP diffs = (' + diff0 + ', ' + diff1 + '), max diff = ' + maxDiff);
 				else if (numFailed == maxPrints)
-					bufferedLogToConsole("...");
+					bufferedLogToConsole('...');
 
 				numFailed += 1;
 			}
 		}
 
-		bufferedLogToConsole((numValues - numFailed) + " / " + numValues + " values passed");
+		bufferedLogToConsole((numValues - numFailed) + ' / ' + numValues + ' values passed');
 
 		/** @type {boolean} */ var isOk = numFailed === 0;
 		if (!isOk)
@@ -691,7 +691,7 @@ goog.scope(function() {
 	 * @extends {tcuTestCase.DeqpTest}
 	 */
 	es3fShaderPackingFunctionTests.ShaderPackingFunctionTests = function() {
-		tcuTestCase.DeqpTest.call(this, "pack_unpack", "Floating-point pack and unpack function tests");
+		tcuTestCase.DeqpTest.call(this, 'pack_unpack', 'Floating-point pack and unpack function tests');
 	};
 
 	es3fShaderPackingFunctionTests.ShaderPackingFunctionTests.prototype = Object.create(tcuTestCase.DeqpTest.prototype);
