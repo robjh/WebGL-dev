@@ -604,8 +604,7 @@ goog.scope(function() {
 	 * @return {tcuTestCase.IterateResult}
 	 */
 	es3fShaderPackingFunctionTests.UnpackHalf2x16Case.prototype.iterate = function() {
-
-		/** @type {number} */ var maxDiff = 0; // All bits must be accurate. // TODO COMPARE THIS AND SIMILAR LINES VS DEQP
+		/** @type {number} */ var maxDiff = 0; // All bits must be accurate.
 		/** @type {deRandom.Random} */ var rnd = new deRandom.Random(deString.deStringHash(this.name) ^ 0x776002);
 		/** @type {Array<number>} */ var inputs = [];
 		/** @type {Array<Array<number>>} */ var outputs = [];

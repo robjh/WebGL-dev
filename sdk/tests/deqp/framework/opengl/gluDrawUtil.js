@@ -49,10 +49,11 @@ gluDrawUtil.VertexArrayBinding = function(type, location, components, elements, 
  * Description of a vertex array binding
  * @param {gluDrawUtil.BindingPoint} binding
  * @param {gluDrawUtil.VertexArrayPointer} pointer
+ * @param {number=} dataType GL Data Type
  * @return {gluDrawUtil.VertexArrayBinding}
  */
-gluDrawUtil.vabFromBindingPointAndArrayPointer = function(binding, pointer) {
-    var type = gl.FLOAT; // TODO: remove hard-coded value;
+gluDrawUtil.vabFromBindingPointAndArrayPointer = function(binding, pointer, dataType) {
+    var type = dataType === undefined ? gl.FLOAT : dataType;
     var location = binding.location;
     var components = pointer.numComponents;
     var elements = pointer.numElements;
@@ -430,7 +431,7 @@ gluDrawUtil.newUint32VertexArrayBinding = function(name, numComponents, numEleme
     var bindingPoint = gluDrawUtil.bindingPointFromName(name);
     var arrayPointer = new gluDrawUtil.VertexArrayPointer(gluDrawUtil.VertexComponentType.VTX_COMP_UNSIGNED_INT32,
         gluDrawUtil.VertexComponentConversion.VTX_COMP_CONVERT_NONE, numComponents, numElements, stride, data);
-    return gluDrawUtil.vabFromBindingPointAndArrayPointer(bindingPoint, arrayPointer); // TODO: vabFromBindingPointAndArrayPointer has a hardcoded constant (gl.FLOAT)
+    return gluDrawUtil.vabFromBindingPointAndArrayPointer(bindingPoint, arrayPointer, gl.UNSIGNED_INT);
 };
 
 /**
