@@ -23,6 +23,7 @@ goog.provide('modules.shared.glsBuiltinPrecisionTests');
 goog.require('framework.common.tcuFloatFormat');
 goog.require('framework.common.tcuInterval');
 goog.require('framework.common.tcuMatrix');
+goog.require('framework.common.tcuMatrixUtil');
 goog.require('framework.common.tcuTestCase');
 goog.require('framework.delibs.debase.deMath');
 goog.require('framework.delibs.debase.deRandom');
@@ -49,6 +50,7 @@ goog.scope(function() {
     var deUtil = framework.delibs.debase.deUtil;
     var gluVarType = framework.opengl.gluVarType;
     var tcuMatrix = framework.common.tcuMatrix;
+    var tcuMatrixUtil = framework.common.tcuMatrixUtil;
 
 
     var DE_ASSERT = function(x) {
@@ -2310,7 +2312,7 @@ glsBuiltinPrecisionTests.Typename;
 
     setParentClass(glsBuiltinPrecisionTests.CompMatFuncBase, glsBuiltinPrecisionTests.CompWiseFunc);
 
-    glsBuiltinPrecisionTests.CompMatFuncBase.prototype.doApply = function(ctx, iargs)    
+    glsBuiltinPrecisionTests.CompMatFuncBase.prototype.doApply = function(ctx, iargs)
     {
         var ret = new tcuMatrix.Matrix(this.rows, this.cols);
         var fun = this.doGetScalarFunc();
@@ -2935,35 +2937,6 @@ glsBuiltinPrecisionTests.Typename;
      * @param {glsBuiltinPrecisionTests.Statement} stmt
      */
     glsBuiltinPrecisionTests.PrecisionCase.prototype.testStatement = function(variables, inputs, stmt) {
-        /**
-         * Flatten an array of arrays or matrices
-         * @param {(Array<Array<number>> | Array<tcuMatrix.Matrix>)} a
-         * @return {Array<number>}
-         */
-        var flatten = function(a) {
-            if (a[0] instanceof Array) {
-                var merged = [];
-                return merged.concat.apply(merged, a);
-            }
-
-            if (a[0] instanceof tcuMatrix.Matrix) {
-                /** @type {tcuMatrix.Matrix} */ var m = a[0];
-                var rows = m.rows;
-                var cols = m.cols;
-                var size = a.length;
-                var result = [];
-                for (var col = 0; col < cols; col++)
-                    for (var i = 0; i < size; i++)
-                        result.push(a[i].getColumn(col));
-                return [].concat.apply([], result);
-            }
-
-            if (typeof(a[0]) === 'number')
-                return a;
-
-            throw new Error('Invalid input');
-        };
-
     	/** @type {tcuFloatFormat.FloatFormat} */ var fmt = this.getFormat();
     	/** @type {number} */ var inCount = glsBuiltinPrecisionTests.numInputs(this.In);
     	/** @type {number} */ var outCount = glsBuiltinPrecisionTests.numOutputs(this.Out);
@@ -3028,7 +3001,7 @@ glsBuiltinPrecisionTests.Typename;
         var executor = glsShaderExecUtil.createExecutor(this.m_ctx.shaderType, spec);
 		/** @type {Array<*>} */ var inputArr	=
 		[
-			flatten(inputs.in0), flatten(inputs.in1), flatten(inputs.in2), flatten(inputs.in3)
+			tcuMatrixUtil.flatten(inputs.in0), tcuMatrixUtil.flatten(inputs.in1), tcuMatrixUtil.flatten(inputs.in2), tcuMatrixUtil.flatten(inputs.in3)
 		];
 
 		// executor.log(log());
