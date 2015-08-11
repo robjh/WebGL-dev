@@ -427,7 +427,6 @@ gluDrawUtil.bindingPointFromName = function(name, location) {
  * @return {gluDrawUtil.VertexArrayBinding}
  */
 gluDrawUtil.newUint32VertexArrayBinding = function(name, numComponents, numElements, stride, data) {
-    // TODO: make a more generic version and merge with newFloatVertexArrayBinding
     var bindingPoint = gluDrawUtil.bindingPointFromName(name);
     var arrayPointer = new gluDrawUtil.VertexArrayPointer(gluDrawUtil.VertexComponentType.VTX_COMP_UNSIGNED_INT32,
         gluDrawUtil.VertexComponentConversion.VTX_COMP_CONVERT_NONE, numComponents, numElements, stride, data);
@@ -443,7 +442,6 @@ gluDrawUtil.newUint32VertexArrayBinding = function(name, numComponents, numEleme
  * @return {gluDrawUtil.VertexArrayBinding}
  */
 gluDrawUtil.newFloatVertexArrayBinding = function(name, numComponents, numElements, stride, data) {
-    // TODO: make a more generic version and merge with newUint32VertexArrayBinding
     var bindingPoint = gluDrawUtil.bindingPointFromName(name);
     var arrayPointer = new gluDrawUtil.VertexArrayPointer(gluDrawUtil.VertexComponentType.VTX_COMP_FLOAT,
         gluDrawUtil.VertexComponentConversion.VTX_COMP_CONVERT_NONE, numComponents, numElements, stride, data);
