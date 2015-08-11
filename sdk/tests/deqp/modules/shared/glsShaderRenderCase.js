@@ -344,6 +344,8 @@ goog.scope(function() {
         for (var ndx = 0; ndx < bindings.length; ndx++) {
             /** @type {glsShaderRenderCase.TextureBinding} */ var binding = bindings[ndx];
 
+            this.textures[ndx] = new glsShaderRenderCase.ShaderSampler();
+            
             if (binding.getType() == gluTexture.Type.TYPE_NONE)
                 continue;
 
@@ -435,10 +437,10 @@ goog.scope(function() {
 
     /**
      * @constructor
-     * @param  {glsShaderRenderCase.ShaderEvalFunc=} evalFunc
+     * @param  {?glsShaderRenderCase.ShaderEvalFunc=} evalFunc
      */
     glsShaderRenderCase.ShaderEvaluator = function(evalFunc) {
-        /** @type {?glsShaderRenderCase.ShaderEvalFunc} */ this.m_evalFunc = evalFunc === undefined ? null :  evalFunc;
+        /** @type {?glsShaderRenderCase.ShaderEvalFunc} */ this.m_evalFunc = evalFunc || null;
     };
 
     /**
@@ -459,9 +461,9 @@ goog.scope(function() {
      */
     glsShaderRenderCase.ShaderRenderCase = function(name, description, isVertexCase, evalFunc) {
         tcuTestCase.DeqpTest.call(this, name, description);
-        evalFunc = evalFunc === undefined ? null : evalFunc;
+        // evalFunc = evalFunc || null;
         /** @type {boolean} */ this.m_isVertexCase = isVertexCase;
-        /** @type {?glsShaderRenderCase.ShaderEvalFunc} */ this.m_defaultEvaluator = evalFunc;
+        /** @type {?glsShaderRenderCase.ShaderEvalFunc} */ this.m_defaultEvaluator = evalFunc || null;
         /** @type {glsShaderRenderCase.ShaderEvaluator} */ this.m_evaluator = new glsShaderRenderCase.ShaderEvaluator(this.m_defaultEvaluator);
         /** @type {string} */ this.m_vertShaderSource;
         /** @type {string} */ this.m_fragShaderSource;
