@@ -23,6 +23,7 @@
 'use strict';
 goog.provide('modules.shared.glsShaderExecUtil');
 goog.require('framework.common.tcuMatrix');
+goog.require('framework.common.tcuMatrixUtil');
 goog.require('framework.common.tcuTexture');
 goog.require('framework.opengl.gluDrawUtil');
 goog.require('framework.opengl.gluShaderProgram');
@@ -41,6 +42,7 @@ goog.scope(function() {
     var gluTextureUtil = framework.opengl.gluTextureUtil;
     var tcuTexture = framework.common.tcuTexture;
     var tcuMatrix = framework.common.tcuMatrix;
+    var tcuMatrixUtil = framework.common.tcuMatrixUtil;
 
     var DE_ASSERT = function(x) {
         if (!x)
@@ -443,10 +445,9 @@ goog.scope(function() {
     		if (gluShaderUtil.isDataTypeFloatOrVec(basicType))
                 vertexArrays.push(gluDrawUtil.newFloatVertexArrayBinding(symbol.name, vecSize, numValues, 0, ptr));
     		else if (gluShaderUtil.isDataTypeIntOrIVec(basicType))
-    			vertexArrays.push(0);//glu::va::Int32(symbol.name, vecSize, numValues, 0, (const deInt32*)ptr));
+    			vertexArrays.push(gluDrawUtil.newInt32VertexArrayBinding(symbol.name, vecSize, numValues, 0, ptr));
     		else if (gluShaderUtil.isDataTypeUintOrUVec(basicType))
                 vertexArrays.push(gluDrawUtil.newUint32VertexArrayBinding(symbol.name, vecSize, numValues, 0, ptr));
-    			//vertexArrays.push(0);//glu::va::Uint32(symbol.name, vecSize, numValues, 0, (const deUint32*)ptr));
     		else if (gluShaderUtil.isDataTypeMatrix(basicType))	{
     			/** @type {number} */ var numRows	= gluShaderUtil.getDataTypeMatrixNumRows(basicType);
     			/** @type {number} */ var numCols	= gluShaderUtil.getDataTypeMatrixNumColumns(basicType);
@@ -626,11 +627,10 @@ glsShaderExecUtil.FragmentShaderExecutor.prototype.execute = function(numValues,
 
    if (gluShaderUtil.isDataTypeFloatOrVec(basicType))
      vertexArrays.push(gluDrawUtil.newFloatVertexArrayBinding(attribName, vecSize, numValues, 0, ptr));
-   //TODO: Add other types
-   // else if (gluShaderUtil.isDataTypeIntOrIVec(basicType))
-   //   vertexArrays.push(glu::va::Int32(attribName, vecSize, numValues, 0, (const deInt32*)ptr));
-   // else if (gluShaderUtil.isDataTypeUintOrUVec(basicType))
-   //   vertexArrays.push(glu::va::Uint32(attribName, vecSize, numValues, 0, (const deUint32*)ptr));
+   else if (gluShaderUtil.isDataTypeIntOrIVec(basicType))
+        vertexArrays.push(gluDrawUtil.newInt32VertexArrayBinding(attribName, vecSize, numValues, 0, ptr));
+   else if (gluShaderUtil.isDataTypeUintOrUVec(basicType))
+        vertexArrays.push(gluDrawUtil.newUint32VertexArrayBinding(attribName, vecSize, numValues, 0, ptr));
    else if (gluShaderUtil.isDataTypeMatrix(basicType))
    {
         var numRows = gluShaderUtil.getDataTypeMatrixNumRows(basicType);

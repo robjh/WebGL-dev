@@ -426,6 +426,21 @@ gluDrawUtil.bindingPointFromName = function(name, location) {
  * @param {Array<number>} data
  * @return {gluDrawUtil.VertexArrayBinding}
  */
+gluDrawUtil.newInt32VertexArrayBinding = function(name, numComponents, numElements, stride, data) {
+    var bindingPoint = gluDrawUtil.bindingPointFromName(name);
+    var arrayPointer = new gluDrawUtil.VertexArrayPointer(gluDrawUtil.VertexComponentType.VTX_COMP_SIGNED_INT32,
+        gluDrawUtil.VertexComponentConversion.VTX_COMP_CONVERT_NONE, numComponents, numElements, stride, data);
+    return gluDrawUtil.vabFromBindingPointAndArrayPointer(bindingPoint, arrayPointer, gl.INT);
+};
+
+/**
+ * @param {string} name
+ * @param {number} numComponents
+ * @param {number} numElements
+ * @param {number} stride
+ * @param {Array<number>} data
+ * @return {gluDrawUtil.VertexArrayBinding}
+ */
 gluDrawUtil.newUint32VertexArrayBinding = function(name, numComponents, numElements, stride, data) {
     var bindingPoint = gluDrawUtil.bindingPointFromName(name);
     var arrayPointer = new gluDrawUtil.VertexArrayPointer(gluDrawUtil.VertexComponentType.VTX_COMP_UNSIGNED_INT32,

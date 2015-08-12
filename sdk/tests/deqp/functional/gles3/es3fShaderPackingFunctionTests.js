@@ -21,6 +21,7 @@
 'use strict';
 goog.provide('functional.gles3.es3fShaderPackingFunctionTests');
 goog.require('framework.common.tcuFloat');
+goog.require('framework.common.tcuMatrixUtil');
 goog.require('framework.common.tcuTestCase');
 goog.require('framework.delibs.debase.deMath');
 goog.require('framework.delibs.debase.deRandom');
@@ -43,6 +44,7 @@ goog.scope(function() {
 	var gluShaderUtil = framework.opengl.gluShaderUtil;
 	var gluVarType = framework.opengl.gluVarType;
 	var glsShaderExecUtil = modules.shared.glsShaderExecUtil;
+	var tcuMatrixUtil = framework.common.tcuMatrixUtil;
 	/**
 	 * @param {number} a
 	 * @param {number} b
@@ -136,7 +138,7 @@ goog.scope(function() {
 	es3fShaderPackingFunctionTests.PackSnorm2x16Case.prototype.iterate = function() {
 		/** @type {deRandom.Random} */ var rnd = new deRandom.Random(deString.deStringHash(this.name) ^ 0x776002);
 		/** @type {Array<Array<number>>} */ var inputs = [];
-		/** @type {Array<number>} */ var outputs = [];
+		/** @type {Array<number>} */ var outputs = []; // deUint32
 		/** @type {number} */ var maxDiff = this.m_precision == gluShaderUtil.precision.PRECISION_HIGHP ? 1 : // Rounding only.
 											this.m_precision == gluShaderUtil.precision.PRECISION_MEDIUMP ? 33 : // (2^-10) * (2^15) + 1
 											this.m_precision == gluShaderUtil.precision.PRECISION_LOWP ? 129 : 0; // (2^-8) * (2^15) + 1
@@ -163,12 +165,10 @@ goog.scope(function() {
 			inputs.push([x, y]);
 		}
 
-		outputs.length = inputs.length;
-
 		bufferedLogToConsole('Executing shader for ' + inputs.length + ' input values');
 
 		this.m_executor.useProgram();
-		outputs = this.m_executor.execute(inputs.length, inputs)[0];
+		outputs = this.m_executor.execute(inputs.length, [tcuMatrixUtil.flatten(inputs)])[0]; // execute returns an Array containint a Uint32Array with 100 components.
 
 		// Verify
 		/** @type {number} */ var numValues = inputs.length;
@@ -176,12 +176,12 @@ goog.scope(function() {
 		/** @type {number} */ var numFailed = 0;
 
 		for (var valNdx = 0; valNdx < numValues; valNdx++) {
-			/** @type {number} */ var ref0 = deMath.clamp(Math.floor(deMath.clamp(inputs[valNdx][0], -1.0, 1.0) * 32767.0), -(1 << 15), (1 << 15) - 1);
-			/** @type {number} */ var ref1 = deMath.clamp(Math.floor(deMath.clamp(inputs[valNdx][1], -1.0, 1.0) * 32767.0), -(1 << 15), (1 << 15) - 1);
+			/** @type {number} */ var ref0 = (deMath.clamp(Math.floor(deMath.clamp(inputs[valNdx][0], -1.0, 1.0) * 32767.0), -(1 << 15), (1 << 15) - 1)) & 0xFFFF;
+			/** @type {number} */ var ref1 = (deMath.clamp(Math.floor(deMath.clamp(inputs[valNdx][1], -1.0, 1.0) * 32767.0), -(1 << 15), (1 << 15) - 1)) & 0xFFFF;
 			/** @type {number} */ var ref = (ref1 << 16) | ref0;
 			/** @type {number} */ var res = outputs[valNdx];
 			/** @type {number} */ var res0 = (res & 0xffff);
-			/** @type {number} */ var res1 = (res >> 16);
+			/** @type {number} */ var res1 = deMath.shiftRight(res, 16);
 			/** @type {number} */ var diff0 = Math.abs(ref0 - res0);
 			/** @type {number} */ var diff1 = Math.abs(ref1 - res1);
 
@@ -236,7 +236,7 @@ goog.scope(function() {
 		/** @type {number} */ var maxDiff = 1; // Rounding error.
 		/** @type {deRandom.Random} */ var rnd = new deRandom.Random(deString.deStringHash(this.name) ^ 0x776002);
 		/** @type {Array<number>} */ var inputs = [];
-		/** @type {Array<Array<number>>} */ var outputs = [];
+		/** @type {Array<Array<number>>} */ var outputs = []; //vector<vec2<float>>
 
 		inputs.push(0x00000000);
 		inputs.push(0x7fff8000);
@@ -248,12 +248,10 @@ goog.scope(function() {
 		for (var ndx = 0; ndx < 95; ndx++)
 			inputs.push(rnd.getInt());
 
-		outputs.length = inputs.length;
-
 		bufferedLogToConsole('Executing shader for ' + inputs.length + ' input values');
 
 		this.m_executor.useProgram();
-		outputs = this.m_executor.execute(inputs.length, inputs)[0];
+		outputs = this.m_executor.execute(inputs.length, [inputs])[0];
 
 		// Verify
 		/** @type {number} */ var numValues = inputs.length;
@@ -262,7 +260,7 @@ goog.scope(function() {
 
 		for (var valNdx = 0; valNdx < inputs.length; valNdx++) {
 			/** @type {number} */ var in0 = Math.floor(inputs[valNdx] & 0xffff);
-			/** @type {number} */ var in1 = Math.floor(inputs[valNdx] >> 16);
+			/** @type {number} */ var in1 = Math.floor(deMath.shiftRight(inputs[valNdx], 16));
 			/** @type {number} */ var ref0 = deMath.clamp(in0 / 32767., -1.0, 1.0);
 			/** @type {number} */ var ref1 = deMath.clamp(in1 / 32767., -1.0, 1.0);
 			/** @type {number} */ var res0 = outputs[valNdx][0];
@@ -323,7 +321,7 @@ goog.scope(function() {
 	es3fShaderPackingFunctionTests.PackUnorm2x16Case.prototype.iterate = function() {
 		/** @type {deRandom.Random} */ var rnd = new deRandom.Random(deString.deStringHash(this.name) ^ 0x776002);
 		/** @type {Array<Array<number>>} */ var inputs = [];
-		/** @type {Array<number>} */ var outputs = [];
+		/** @type {Array<number>} */ var outputs = []; // deUint32
 		/** @type {number} */ var maxDiff = this.m_precision == gluShaderUtil.precision.PRECISION_HIGHP ? 1 : // Rounding only.
 											this.m_precision == gluShaderUtil.precision.PRECISION_MEDIUMP ? 65 : // (2^-10) * (2^16) + 1
 											this.m_precision == gluShaderUtil.precision.PRECISION_LOWP ? 257 : 0; // (2^-8) * (2^16) + 1
@@ -350,12 +348,10 @@ goog.scope(function() {
 			inputs.push([x, y]);
 		}
 
-		outputs.length = inputs.length;
-
 		bufferedLogToConsole('Executing shader for ' + inputs.length + ' input values');
 
 		this.m_executor.useProgram();
-		outputs = this.m_executor.execute(inputs.length, inputs);
+		outputs = this.m_executor.execute(inputs.length, [tcuMatrixUtil.flatten(inputs)])[0];
 
 		// Verify
 		/** @type {number} */ var numValues = inputs.length;
@@ -363,12 +359,12 @@ goog.scope(function() {
 		/** @type {number} */ var numFailed = 0;
 
 		for (var valNdx = 0; valNdx < inputs.length; valNdx++) {
-			/** @type {number} */ var ref0 = deMath.clamp(Math.floor(deMath.clamp(inputs[valNdx][0], 0.0, 1.0) * 65535.0), 0, (1 << 16) - 1);
-			/** @type {number} */ var ref1 = deMath.clamp(Math.floor(deMath.clamp(inputs[valNdx][1], 0.0, 1.0) * 65535.0), 0, (1 << 16) - 1);
+			/** @type {number} */ var ref0 = deMath.clamp(Math.floor(deMath.clamp(inputs[valNdx][0], 0.0, 1.0) * 65535.0), 0, (1 << 16) - 1) & 0xFFFF;
+			/** @type {number} */ var ref1 = deMath.clamp(Math.floor(deMath.clamp(inputs[valNdx][1], 0.0, 1.0) * 65535.0), 0, (1 << 16) - 1) & 0xFFFF;
 			/** @type {number} */ var ref = (ref1 << 16) | ref0;
 			/** @type {number} */ var res = outputs[valNdx];
 			/** @type {number} */ var res0 = (res & 0xffff);
-			/** @type {number} */ var res1 = (res >> 16);
+			/** @type {number} */ var res1 = deMath.shiftRight(res, 16);
 			/** @type {number} */ var diff0 = Math.abs(ref0 - res0);
 			/** @type {number} */ var diff1 = Math.abs(ref1 - res1);
 
@@ -421,7 +417,7 @@ goog.scope(function() {
 		/** @type {number} */ var maxDiff = 1; // Rounding error.
 		/** @type {deRandom.Random} */ var rnd = new deRandom.Random(deString.deStringHash(this.name) ^ 0x776002);
 		/** @type {Array<number>} */ var inputs = [];
-		/** @type {Array<Array<number>>} */ var outputs = [];
+		/** @type {Array<Array<number>>} */ var outputs = []; //vector<vec2>
 
 		inputs.push(0x00000000);
 		inputs.push(0x7fff8000);
@@ -433,12 +429,10 @@ goog.scope(function() {
 		for (var ndx = 0; ndx < 95; ndx++)
 			inputs.push(rnd.getInt());
 
-		outputs.length = inputs.length;
-
 		bufferedLogToConsole('Executing shader for ' + inputs.length + ' input values');
 
 		this.m_executor.useProgram();
-		outputs = this.m_executor.execute(inputs.length, inputs)[0];
+		outputs = this.m_executor.execute(inputs.length, [inputs])[0];
 
 		// Verify
 		/** @type {number} */ var numValues = inputs.length;
@@ -447,7 +441,7 @@ goog.scope(function() {
 
 		for (var valNdx = 0; valNdx < inputs.length; valNdx++) {
 			/** @type {number} */ var in0 = Math.floor(inputs[valNdx] & 0xffff);
-			/** @type {number} */ var in1 = Math.floor(inputs[valNdx] >> 16);
+			/** @type {number} */ var in1 = Math.floor(deMath.shiftRight(inputs[valNdx], 16));
 			/** @type {number} */ var ref0 = in0 / 65535.0;
 			/** @type {number} */ var ref1 = in1 / 65535.0;
 			/** @type {number} */ var res0 = outputs[valNdx][0];
@@ -506,7 +500,7 @@ goog.scope(function() {
 		/** @type {number} */ var maxDiff = 0; // Values can be represented exactly in mediump.
 		/** @type {deRandom.Random} */ var rnd = new deRandom.Random(deString.deStringHash(this.name) ^ 0x776002);
 		/** @type {Array<Array<number>>} */ var inputs = [];
-		/** @type {Array<number>} */ var outputs = [];
+		/** @type {Array<number>} */ var outputs = []; // deUint32
 
 		// Special values to check.
 		inputs.push([0.0, 0.0]);
@@ -535,12 +529,10 @@ goog.scope(function() {
 		for (var inVal in inputs)
 			inputs[inVal] = [tcuFloat.newFloat16(inputs[inVal][0]).getValue(), tcuFloat.newFloat16(inputs[inVal][1]).getValue()];
 
-		outputs.length = inputs.length;
-
 		bufferedLogToConsole('Executing shader for ' + inputs.length + ' input values');
 
 		this.m_executor.useProgram();
-		outputs = this.m_executor.execute(inputs.length, inputs);
+		outputs = this.m_executor.execute(inputs.length, [tcuMatrixUtil.flatten(inputs)])[0];
 
 		// Verify
 		/** @type {number} */ var numValues = inputs.length;
@@ -553,7 +545,7 @@ goog.scope(function() {
 			/** @type {number} */ var ref = (ref1 << 16) | ref0;
 			/** @type {number} */ var res = outputs[valNdx];
 			/** @type {number} */ var res0 = (res & 0xffff);
-			/** @type {number} */ var res1 = (res >> 16);
+			/** @type {number} */ var res1 = deMath.shiftRight(res, 16);
 			/** @type {number} */ var diff0 = Math.abs(ref0 - res0);
 			/** @type {number} */ var diff1 = Math.abs(ref1 - res1);
 
@@ -607,7 +599,7 @@ goog.scope(function() {
 		/** @type {number} */ var maxDiff = 0; // All bits must be accurate.
 		/** @type {deRandom.Random} */ var rnd = new deRandom.Random(deString.deStringHash(this.name) ^ 0x776002);
 		/** @type {Array<number>} */ var inputs = [];
-		/** @type {Array<Array<number>>} */ var outputs = [];
+		/** @type {Array<Array<number>>} */ var outputs = []; // vector<vec2<float>>
 
 		// Special values.
 		inputs.push((tcuFloat.newFloat16(0.0).bits() << 16) | tcuFloat.newFloat16(1.0).bits());
@@ -633,8 +625,6 @@ goog.scope(function() {
 			inputs.push(inVal);
 		}
 
-		outputs.length = inputs.length;
-
 		bufferedLogToConsole('Executing shader for ' + inputs.length + ' input values');
 
 		this.m_executor.useProgram();
@@ -647,7 +637,7 @@ goog.scope(function() {
 
 		for (var valNdx = 0; valNdx < inputs.length; valNdx++) {
 			/** @type {number} */ var in0 = (inputs[valNdx] & 0xffff);
-			/** @type {number} */ var in1 = (inputs[valNdx] >> 16);
+			/** @type {number} */ var in1 = deMath.shiftRight(inputs[valNdx], 16);
 			/** @type {number} */ var ref0 = tcuFloat.newFloat16(in0).getValue();
 			/** @type {number} */ var ref1 = tcuFloat.newFloat16(in1).getValue();
 			/** @type {number} */ var res0 = outputs[valNdx][0];
