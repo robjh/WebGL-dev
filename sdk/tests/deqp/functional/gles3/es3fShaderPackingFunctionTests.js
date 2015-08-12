@@ -138,7 +138,8 @@ goog.scope(function() {
 	es3fShaderPackingFunctionTests.PackSnorm2x16Case.prototype.iterate = function() {
 		/** @type {deRandom.Random} */ var rnd = new deRandom.Random(deString.deStringHash(this.name) ^ 0x776002);
 		/** @type {Array<Array<number>>} */ var inputs = [];
-		/** @type {Array<number>} */ var outputs = []; // deUint32
+		/** @type {goog.TypedArray} */ var outputs; // deUint32
+		/** @type {goog.TypedArray} */ var shaderExecutorOutput;
 		/** @type {number} */ var maxDiff = this.m_precision == gluShaderUtil.precision.PRECISION_HIGHP ? 1 : // Rounding only.
 											this.m_precision == gluShaderUtil.precision.PRECISION_MEDIUMP ? 33 : // (2^-10) * (2^15) + 1
 											this.m_precision == gluShaderUtil.precision.PRECISION_LOWP ? 129 : 0; // (2^-8) * (2^15) + 1
@@ -168,7 +169,12 @@ goog.scope(function() {
 		bufferedLogToConsole('Executing shader for ' + inputs.length + ' input values');
 
 		this.m_executor.useProgram();
-		outputs = this.m_executor.execute(inputs.length, [tcuMatrixUtil.flatten(inputs)])[0]; // execute returns an Array containint a Uint32Array with 100 components.
+		shaderExecutorOutput = this.m_executor.execute(inputs.length, [tcuMatrixUtil.flatten(inputs)])[0];
+
+		// Convert outputs if we get them as Uint8Array.
+		// - VertexShaderExecutor.execute() returns either an array of Uint8Array
+		// - FragmentShaderExecutor.execute() returns either an array of Uint8Array or Uint32Array
+	    outputs = new Uint32Array(shaderExecutorOutput.buffer);
 
 		// Verify
 		/** @type {number} */ var numValues = inputs.length;
@@ -236,7 +242,8 @@ goog.scope(function() {
 		/** @type {number} */ var maxDiff = 1; // Rounding error.
 		/** @type {deRandom.Random} */ var rnd = new deRandom.Random(deString.deStringHash(this.name) ^ 0x776002);
 		/** @type {Array<number>} */ var inputs = [];
-		/** @type {Array<Array<number>>} */ var outputs = []; //vector<vec2<float>>
+		/** @type {goog.TypedArray} */ var shaderExecutorOutput; //vector<vec2<float>>
+		/** @type {goog.TypedArray} */ var outputs; //vector<vec2<float>>
 
 		inputs.push(0x00000000);
 		inputs.push(0x7fff8000);
@@ -251,7 +258,12 @@ goog.scope(function() {
 		bufferedLogToConsole('Executing shader for ' + inputs.length + ' input values');
 
 		this.m_executor.useProgram();
-		outputs = this.m_executor.execute(inputs.length, [inputs])[0];
+		shaderExecutorOutput = this.m_executor.execute(inputs.length, [inputs])[0]; // This test case only has one output
+
+		// Convert outputs if we get them as Uint8Array.
+		// - VertexShaderExecutor.execute() returns either an array of Uint8Array
+		// - FragmentShaderExecutor.execute() returns either an array of Uint8Array or Uint32Array
+		outputs = new Uint32Array(shaderExecutorOutput.buffer);
 
 		// Verify
 		/** @type {number} */ var numValues = inputs.length;
@@ -272,9 +284,9 @@ goog.scope(function() {
 			if (diff0 > maxDiff || diff1 > maxDiff) {
 				if (numFailed < maxPrints)
 					bufferedLogToConsole('ERROR: Mismatch in value ' + valNdx + ',\n' +
-				    	'  expected unpackSnorm2x16(' + parseInt(inputs[valNdx]).toString(16) + ') = ' +
-				    	'vec2(' + parseInt(ref0).toString(16) + ', ' + parseInt(ref1).toString(16) + ')' +
-				    	', got vec2(' + parseInt(res0).toString(16) + ', ' + parseInt(res1).toString(16) + ')' +
+				    	'  expected unpackSnorm2x16(' + inputs[valNdx].toString(16) + ') = ' +
+				    	'vec2(' + ref0.toString(16) + ', ' + ref1.toString(16) + ')' +
+				    	', got vec2(' + res0.toString(16) + ', ' + res1.toString(16) + ')' +
 				    	'\n  ULP diffs = (' + diff0 + ', ' + diff1 + '), max diff = ' + maxDiff);
 				else if (numFailed == maxPrints)
 					bufferedLogToConsole('...');
@@ -321,7 +333,8 @@ goog.scope(function() {
 	es3fShaderPackingFunctionTests.PackUnorm2x16Case.prototype.iterate = function() {
 		/** @type {deRandom.Random} */ var rnd = new deRandom.Random(deString.deStringHash(this.name) ^ 0x776002);
 		/** @type {Array<Array<number>>} */ var inputs = [];
-		/** @type {Array<number>} */ var outputs = []; // deUint32
+		/** @type {goog.TypedArray} */ var shaderExecutorOutput;
+		/** @type {goog.TypedArray} */ var outputs; // deUint32
 		/** @type {number} */ var maxDiff = this.m_precision == gluShaderUtil.precision.PRECISION_HIGHP ? 1 : // Rounding only.
 											this.m_precision == gluShaderUtil.precision.PRECISION_MEDIUMP ? 65 : // (2^-10) * (2^16) + 1
 											this.m_precision == gluShaderUtil.precision.PRECISION_LOWP ? 257 : 0; // (2^-8) * (2^16) + 1
@@ -351,7 +364,12 @@ goog.scope(function() {
 		bufferedLogToConsole('Executing shader for ' + inputs.length + ' input values');
 
 		this.m_executor.useProgram();
-		outputs = this.m_executor.execute(inputs.length, [tcuMatrixUtil.flatten(inputs)])[0];
+		shaderExecutorOutput  = this.m_executor.execute(inputs.length, [tcuMatrixUtil.flatten(inputs)])[0];
+
+		// Convert outputs if we get them as Uint8Array.
+		// - VertexShaderExecutor.execute() returns either an array of Uint8Array
+		// - FragmentShaderExecutor.execute() returns either an array of Uint8Array or Uint32Array
+	    outputs = new Uint32Array(shaderExecutorOutput.buffer);
 
 		// Verify
 		/** @type {number} */ var numValues = inputs.length;
@@ -417,7 +435,8 @@ goog.scope(function() {
 		/** @type {number} */ var maxDiff = 1; // Rounding error.
 		/** @type {deRandom.Random} */ var rnd = new deRandom.Random(deString.deStringHash(this.name) ^ 0x776002);
 		/** @type {Array<number>} */ var inputs = [];
-		/** @type {Array<Array<number>>} */ var outputs = []; //vector<vec2>
+		/** @type {goog.TypedArray} */ var shaderExecutorOutput;
+		/** @type {goog.TypedArray} */ var outputs; //vector<vec2>
 
 		inputs.push(0x00000000);
 		inputs.push(0x7fff8000);
@@ -432,7 +451,12 @@ goog.scope(function() {
 		bufferedLogToConsole('Executing shader for ' + inputs.length + ' input values');
 
 		this.m_executor.useProgram();
-		outputs = this.m_executor.execute(inputs.length, [inputs])[0];
+		shaderExecutorOutput  = this.m_executor.execute(inputs.length, [inputs])[0];
+
+		// Convert outputs if we get them as Uint8Array.
+		// - VertexShaderExecutor.execute() returns either an array of Uint8Array
+		// - FragmentShaderExecutor.execute() returns either an array of Uint8Array or Uint32Array
+	    outputs = new Uint32Array(shaderExecutorOutput.buffer);
 
 		// Verify
 		/** @type {number} */ var numValues = inputs.length;
@@ -453,9 +477,9 @@ goog.scope(function() {
 			if (diff0 > maxDiff || diff1 > maxDiff) {
 				if (numFailed < maxPrints)
 					bufferedLogToConsole('ERROR: Mismatch in value ' + valNdx + ',\n' +
-									     '  expected unpackUnorm2x16(' + parseInt(inputs[valNdx]).toString(16) + ') = ' +
-									     'vec2(' + parseInt(ref0).toString(16) + ', ' + parseInt(ref1).toString(16) + ')' +
-									     ', got vec2(' + parseInt(res0).toString(16) + ', ' + parseInt(res1).toString(16) + ')' +
+									     '  expected unpackUnorm2x16(' + inputs[valNdx].toString(16) + ') = ' +
+									     'vec2(' + ref0.toString(16) + ', ' + ref1.toString(16) + ')' +
+									     ', got vec2(' + res0.toString(16) + ', ' + res1.toString(16) + ')' +
 									     '\n  ULP diffs = (' + diff0 + ', ' + diff1 + '), max diff = ' + maxDiff);
 				else if (numFailed === maxPrints)
 					bufferedLogToConsole('...');
@@ -500,7 +524,8 @@ goog.scope(function() {
 		/** @type {number} */ var maxDiff = 0; // Values can be represented exactly in mediump.
 		/** @type {deRandom.Random} */ var rnd = new deRandom.Random(deString.deStringHash(this.name) ^ 0x776002);
 		/** @type {Array<Array<number>>} */ var inputs = [];
-		/** @type {Array<number>} */ var outputs = []; // deUint32
+		/** @type {goog.TypedArray} */ var shaderExecutorOutput;
+		/** @type {goog.TypedArray} */ var outputs; // deUint32
 
 		// Special values to check.
 		inputs.push([0.0, 0.0]);
@@ -532,7 +557,12 @@ goog.scope(function() {
 		bufferedLogToConsole('Executing shader for ' + inputs.length + ' input values');
 
 		this.m_executor.useProgram();
-		outputs = this.m_executor.execute(inputs.length, [tcuMatrixUtil.flatten(inputs)])[0];
+		shaderExecutorOutput  = this.m_executor.execute(inputs.length, [tcuMatrixUtil.flatten(inputs)])[0];
+
+		// Convert outputs if we get them as Uint8Array.
+		// - VertexShaderExecutor.execute() returns either an array of Uint8Array
+		// - FragmentShaderExecutor.execute() returns either an array of Uint8Array or Uint32Array
+	    outputs = new Uint32Array(shaderExecutorOutput.buffer);
 
 		// Verify
 		/** @type {number} */ var numValues = inputs.length;
@@ -599,7 +629,8 @@ goog.scope(function() {
 		/** @type {number} */ var maxDiff = 0; // All bits must be accurate.
 		/** @type {deRandom.Random} */ var rnd = new deRandom.Random(deString.deStringHash(this.name) ^ 0x776002);
 		/** @type {Array<number>} */ var inputs = [];
-		/** @type {Array<Array<number>>} */ var outputs = []; // vector<vec2<float>>
+		/** @type {goog.TypedArray} */ var outputs; // vector<vec2<float>>
+		/** @type {goog.TypedArray} */ var shaderExecutorOutput;
 
 		// Special values.
 		inputs.push((tcuFloat.newFloat16(0.0).bits() << 16) | tcuFloat.newFloat16(1.0).bits());
@@ -628,7 +659,12 @@ goog.scope(function() {
 		bufferedLogToConsole('Executing shader for ' + inputs.length + ' input values');
 
 		this.m_executor.useProgram();
-		outputs = this.m_executor.execute(inputs.length, [inputs]);
+		shaderExecutorOutput  = this.m_executor.execute(inputs.length, [inputs])[0];
+
+		// Convert outputs if we get them as Uint8Array.
+		// - VertexShaderExecutor.execute() returns either an array of Uint8Array
+		// - FragmentShaderExecutor.execute() returns either an array of Uint8Array or Uint32Array
+	    outputs = new Uint32Array(shaderExecutorOutput.buffer);
 
 		// Verify
 		/** @type {number} */ var numValues = inputs.length
