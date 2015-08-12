@@ -20,16 +20,20 @@
 
 'use strict';
 goog.provide('functional.gles3.es3fShaderCommonFunctionTests');
+goog.require('framework.common.tcuFloat');
 goog.require('framework.common.tcuTestCase');
 goog.require('framework.delibs.debase.deRandom');
+goog.require('framework.delibs.debase.deMath');
 goog.require('framework.opengl.gluShaderProgram');
 goog.require('framework.opengl.gluShaderUtil');
 goog.scope(function() {
     var es3fShaderCommonFunctionTests = functional.gles3.es3fShaderCommonFunctionTests;
+    var tcuFloat = framework.common.tcuFloat;
     var tcuTestCase = framework.common.tcuTestCase;
     var gluShaderProgram = framework.opengl.gluShaderProgram;
     var gluShaderUtil = framework.opengl.gluShaderUtil;
 	var deRandom = framework.delibs.debase.deRandom;
+	var deMath = framework.delibs.debase.deMath;
 
     /** @typedef {*} */ es3fShaderCommonFunctionTests.TestClass;
 
@@ -84,7 +88,7 @@ goog.scope(function() {
 	 * @param {Array<number>} maxValue
 	 * @param {number} numValues
 	 * @param {number=} offset
-	 * @return {Array<number>}
+	 * @return {Array<Array<number>>}
 	 */
 	es3fShaderCommonFunctionTests.fillRandomVectors = function(type, size, rnd, minValue, maxValue, numValues, offset) {
 		offset = offset === undefined ? 0 : offset;
@@ -93,6 +97,115 @@ goog.scope(function() {
 			access[offset + ndx] = es3fShaderCommonFunctionTests.randomVector(type, size, rnd, minValue, maxValue);
 		return access;
 	};
+
+
+	/**
+	 * @param {es3fShaderCommonFunctionTests.Types} type
+	 * @param {deRandom.Random} rnd
+	 * @param {number} minValue
+	 * @param {number} maxValue
+	 * @param {number} numValues
+	 * @param {number=} offset
+	 * @return {Array<number>}
+	 */
+	es3fShaderCommonFunctionTests.fillRandomScalars = function(type, rnd, minValue, maxValue, numValues, offset) {
+		offset = offset === undefined ? 0 : offset;
+		/** @type {Array<number>} */ var access;
+		for (var ndx = 0; ndx < numValues; ndx++)
+			access[offset + ndx] = es3fShaderCommonFunctionTests.randomScalar(type, rnd, minValue, maxValue);
+		return access;
+	};
+
+	/**
+	 * @param {number} input
+	 * @param {number} output
+	 * @return {number}
+	 */
+	es3fShaderCommonFunctionTests.numBitsLostInOp = function(input, output) {
+		/** @type {number} */ var inExp = tcuFloat.newFloat32(input).exponent();
+		/** @type {number} */ var outExp = tcuFloat.newFloat32(output).exponent();
+		return Math.max(0, inExp - outExp); // Lost due to mantissa shift.
+	};
+
+	/**
+	 * @param {number} a
+	 * @param {number} b
+	 * @return {number}
+	 */
+	es3fShaderCommonFunctionTests.getUlpDiff = function(a, b) {
+		/** @type {number} */ var aBits	= tcuFloat.newFloat32(a).bits();
+		/** @type {number} */ var bBits	= tcuFloat.newFloat32(b).bits();
+		return aBits > bBits ? aBits - bBits : bBits - aBits;
+	};
+
+	/**
+	 * @param {number} a
+	 * @param {number} b
+	 * @return {number}
+	 */
+	es3fShaderCommonFunctionTests.getUlpDiffIgnoreZeroSign = function(a, b) {
+		if (tcuFloat.newFloat32(a).isZero())
+			return es3fShaderCommonFunctionTests.getUlpDiff(new tcuFloat.deFloat().construct(tcuFloat.newFloat32(b).sign(), 0, 0).getValue(), b);
+		else if (tcuFloat.newFloat32(b).isZero())
+			return es3fShaderCommonFunctionTests.getUlpDiff(a, new tcuFloat.deFloat().construct(tcuFloat.newFloat32(a).sign(), 0, 0).getValue());
+		else
+			return es3fShaderCommonFunctionTests.getUlpDiff(a, b);
+	};
+
+	/**
+	 * @param {gluShaderUtil.precision} precision
+	 * @return {boolean}
+	 */
+	es3fShaderCommonFunctionTests.supportsSignedZero = function(precision) {
+		// \note GLSL ES 3.0 doesn't really require support for -0, but we require it for highp
+		//		 as it is very widely supported.
+		return precision == gluShaderUtil.precision.PRECISION_HIGHP;
+	};
+
+	/**
+	 * @param {number} value
+	 * @param {number} ulpDiff
+	 * @return {number}
+	 */
+	es3fShaderCommonFunctionTests.getEpsFromMaxUlpDiff = function(value, ulpDiff) {
+		/** @type {number} */ var exp = tcuFloat.newFloat32(value).exponent();
+		return new tcuFloat.deFloat().construct(+1, exp, (1 << 23) | ulpDiff).getValue() - new tcuFloat.deFloat().construct(+1, exp, 1 << 23).getValue();
+	};
+
+	/**
+	 * @param {number} numAccurateBits
+	 * @return {number}
+	 */
+	es3fShaderCommonFunctionTests.getMaxUlpDiffFromBits = function(numAccurateBits) {
+		/** @type {number} */ var numGarbageBits = 23 - numAccurateBits;
+		/** @type {number} */ var mask = (1 << numGarbageBits) - 1;
+
+		return mask;
+	};
+
+	/**
+	 * @param {number} value
+	 * @param {number} numAccurateBits
+	 * @return {number}
+	 */
+	es3fShaderCommonFunctionTests.getEpsFromBits = function(value, numAccurateBits) {
+		return es3fShaderCommonFunctionTests.getEpsFromMaxUlpDiff(value, es3fShaderCommonFunctionTests.getMaxUlpDiffFromBits(numAccurateBits));
+	};
+
+	/**
+	 * @param {gluShaderUtil.precision} precision
+	 * @return {number}
+	 */
+	es3fShaderCommonFunctionTests.getMinMantissaBits = function(precision) {
+		/** @type {Array<number>} */ var bits = [
+			7,		// lowp
+			10,		// mediump
+			23		// highp
+		];
+
+		assertMsgOptions(deMath.deInBounds32(precision, 0, bits.length), 'Unexpected precision option.', false, true);
+		return bits[precision];
+	}
 
     /**
      * @constructor
