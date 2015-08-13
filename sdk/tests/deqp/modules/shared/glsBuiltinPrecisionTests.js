@@ -77,7 +77,7 @@ glsBuiltinPrecisionTests.Typename;
 var ErrorCount = 0;
 
 //Change to 0 to GPU functional testing
-var f_UnitTest = 0;
+var f_UnitTest = false;
 
 glsBuiltinPrecisionTests.plainArray = function(input) {
     var ret = [];
@@ -2948,7 +2948,7 @@ glsBuiltinPrecisionTests.referenceComparison = function(reference, index, precis
     	/** @type {number} */ var maxQuantum	= deMath.deFloatLdExp(1.0, maxExp - fractionBits);
 
 //Include extact numbers for unit testing
-	if(f_UnitTest=1)
+	if(f_UnitTest)
 	{
 		dst.push(0.2);
 		dst.push(0.5);
@@ -3173,7 +3173,7 @@ glsBuiltinPrecisionTests.referenceComparison = function(reference, index, precis
     		case 1: DE_ASSERT(inputs.in0.length == numValues);
     		default: break;
     	}
-        if(f_UnitTest == 1)
+        if(f_UnitTest)
             numValues = 2;
             
         // TODO: Fix logging
@@ -3216,7 +3216,7 @@ glsBuiltinPrecisionTests.referenceComparison = function(reference, index, precis
 
     	spec.source = stmt;
 
-		if(f_UnitTest != 1)
+		if(f_UnitTest == false)
 		{
 			// Run the shader with inputs.
 			/** @type {glsShaderExecUtil.ShaderExecutor} */
@@ -3280,7 +3280,7 @@ glsBuiltinPrecisionTests.referenceComparison = function(reference, index, precis
     		switch (outCount) {
     			case 2:
     				reference1 = glsBuiltinPrecisionTests.convert(this.Out.Out1, highpFmt, env.lookup(variables.out1));
-					if(f_UnitTest == 1)
+					if(f_UnitTest)
 						result = glsBuiltinPrecisionTests.referenceComparison(reference1, valueNdx+outCount-1, this.m_ctx.floatFormat);
 					else
 					{
@@ -3292,7 +3292,7 @@ glsBuiltinPrecisionTests.referenceComparison = function(reference, index, precis
 					}
     			case 1:
                     reference0 = glsBuiltinPrecisionTests.convert(this.Out.Out0, highpFmt, env.lookup(variables.out0));
-					if(f_UnitTest == 1)
+					if(f_UnitTest)
 						result = glsBuiltinPrecisionTests.referenceComparison(reference0, valueNdx+outCount-1, this.m_ctx.floatFormat);
 					else
 					{
@@ -3333,7 +3333,7 @@ glsBuiltinPrecisionTests.referenceComparison = function(reference, index, precis
     						inputs.in3[valueNdx] + '\n';
     			}
 
-				if(f_UnitTest != 1)
+				if(f_UnitTest == false)
 				{
 					if (outCount > 0) {
 						builder += '\t' + variables.out0.getName() + ' = ' +
