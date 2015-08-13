@@ -826,6 +826,375 @@ goog.scope(function() {
         }
     };
 
+    // Basic TexImage2D() with 2D texture usage
+    /**
+     * @constructor
+     * @extends {es3fTextureSpecificationTests.BasicTexImage2DCase}
+     * @param {string} name
+     * @param {string} desc
+     * @param {number} format
+     * @param {number} dataType
+     * @param {number} width
+     * @param {number} height
+     */
+    es3fTextureSpecificationTests.BasicTexImage2DCase = function (
+        name, desc, format, dataType, width, height
+    ) {
+        // Unsized internal format.
+        es3fTextureSpecificationTests.Texture2DSpecCase.call(
+            this, name, desc, gluTextureUtil.mapGLTransferFormat(
+                format, dataType
+            ), width, height,
+            es3fTextureSpecificationTests.maxLevelCount(
+                width, height
+            )
+        );
+
+        this.m_internalFormat = format;
+        this.m_format = format;
+        this.m_dataType = dataType;
+    };
+
+    es3fTextureSpecificationTests.BasicTexImage2DCase.prototype = Object.create(
+        es3fTextureSpecificationTests.Texture2DSpecCase.prototype
+    );
+
+    es3fTextureSpecificationTests.
+    BasicTexImage2DCase.prototype.constructor =
+        es3fTextureSpecificationTests.BasicTexImage2DCase;
+
+    /**
+     * @param {string} name
+     * @param {string} desc
+     * @param {number} internalFormat
+     * @param {number} width
+     * @param {number} height
+     * @return {es3fTextureSpecificationTests.BasicTexImage2DCase}
+     */
+    es3fTextureSpecificationTests.newBasicTexImage2DCaseInternal = function(
+        name, desc, internalFormat, width, height
+    ) {
+        // Sized internal format.
+        var fmt = gluTextureUtil.getTransferFormat(
+            gluTextureUtil.mapGLInternalFormat(internalFormat)
+        );
+        return new es3fTextureSpecificationTests.BasicTexImage2DCase(
+            name, desc, fmt.format, fmt.dataType, width, height
+        );
+    };
+
+    /**
+     * createTexture
+     */
+    es3fTextureSpecificationTests.BasicTexImage2DCase.prototype.createTexture =
+    function () {
+        var tex = 0;
+        var levelData = new tcuTexture.LevelData(
+            this.m_texFormat, this.m_width, this.m_height
+        );
+        var rnd = new deRandom.Random(deString.deStringHash(this.fullName()));
+
+        tex = this.m_context.createTexture();
+        this.m_context.bindTexture(gl.TEXTURE_2D, tex);
+        this.m_context.pixelStorei(gl.UNPACK_ALIGNMENT, 1);
+
+        for (var ndx = 0; ndx < this.m_numLevels; ndx++) {
+            var levelW = Math.max(1, this.m_width >> ndx);
+            var levelH = Math.max(1, this.m_height >> ndx);
+            var gMin = es3fTextureSpecificationTests.randomVector(
+                rnd, this.m_texFormatInfo.valueMin,
+                this.m_texFormatInfo.valueMax, 4
+            );
+            var gMax = es3fTextureSpecificationTests.randomVector(
+                rnd, this.m_texFormatInfo.valueMin,
+                this.m_texFormatInfo.valueMax, 4
+            );
+
+            levelData.setSize(levelW, levelH);
+            tcuTextureUtil.fillWithComponentGradients(
+                levelData.getAccess(), gMin, gMax
+            );
+
+            this.m_context.texImage2D(
+                gl.TEXTURE_2D, ndx, this.m_internalFormat, levelW, levelH, 0,
+                this.m_format, this.m_dataType,
+                levelData.getAccess().getDataPtr()
+            );
+        }
+    };
+
+    // Basic TexImage2D() with cubemap usage
+    /**
+     * @constructor
+     * @extends {es3fTextureSpecificationTests.BasicTexImageCubeCase}
+     * @param {string} name
+     * @param {string} desc
+     * @param {number} format
+     * @param {number} dataType
+     * @param {number} size
+     */
+    es3fTextureSpecificationTests.BasicTexImageCubeCase = function (
+        name, desc, format, dataType, size
+    ) {
+        // Unsized internal format.
+        es3fTextureSpecificationTests.TextureCubeSpecCase.call(
+            this, name, desc, gluTextureUtil.mapGLTransferFormat(
+                format, dataType
+            ), size, deMath.logToFloor(size) + 1
+        );
+
+        this.m_internalFormat = format;
+        this.m_format = format;
+        this.m_dataType = dataType;
+        } else {
+            size = dataType;
+            // Sized internal format.
+            es3fTextureSpecificationTests.TextureCubeSpecCase.call(
+                this, name, desc, gluTextureUtil.mapGLInternalFormat(format),
+                size, deMath.logToFloor(width, height)
+            );
+
+            this.m_internalFormat = format;
+            /** @type {gluTextureUtil.TransferFormat} */
+            var fmt = gluTextureUtil.mapGLTransferFormat(this.m_texFormat);
+            this.m_format = fmt.format;
+            this.m_dataType = fmt.dataType;
+        }
+    };
+
+    es3fTextureSpecificationTests.BasicTexImageCubeCase.prototype =
+        Object.create(
+            es3fTextureSpecificationTests.TextureCubeSpecCase.prototype
+        );
+
+    es3fTextureSpecificationTests.
+    BasicTexImageCubeCase.prototype.constructor =
+        es3fTextureSpecificationTests.BasicTexImageCubeCase;
+
+    /**
+     * @param {string} name
+     * @param {string} desc
+     * @param {number} internalFormat
+     * @param {number} width
+     * @param {number} height
+     * @return {es3fTextureSpecificationTests.BasicTexImage2DCase}
+     */
+    es3fTextureSpecificationTests.newBasicTexImageCubeCaseInternal = function(
+        name, desc, internalFormat, size
+    ) {
+        // Sized internal format.
+        var fmt = gluTextureUtil.getTransferFormat(
+            gluTextureUtil.mapGLInternalFormat(internalFormat)
+        );
+        return new es3fTextureSpecificationTests.BasicTexImageCubeCase(
+            name, desc, fmt.format, fmt.dataType, size
+        );
+    };
+
+    /**
+     * createTexture
+     */
+    es3fTextureSpecificationTests.
+    BasicTexImageCubeCase.prototype.createTexture =
+    function () {
+        var tex = 0;
+        var levelData = new tcuTexture.LevelData(
+            this.m_texFormat, this.m_size, this.m_size
+        );
+        var rnd = new deRandom.Random(deString.deStringHash(this.fullName()));
+
+        tex = this.m_context.createTexture();
+        this.m_context.bindTexture(gl.TEXTURE_CUBE_MAP, tex);
+        this.m_context.pixelStorei(gl.UNPACK_ALIGNMENT, 1);
+
+        for (var ndx = 0; ndx < this.m_numLevels; ndx++) {
+            var levelSize = Math.max(1, this.m_size >> ndx);
+
+            levelData.setSize(levelSize, levelSize);
+
+            for (
+                var face = 0;
+                face < es3fTextureSpecificationTests.s_cubeMapFaces.length;
+                face ++
+            ) {
+                var gMin = es3fTextureSpecificationTests.randomVector(
+                    rnd, this.m_texFormatInfo.valueMin,
+                    this.m_texFormatInfo.valueMax, 4
+                );
+                var gMax = es3fTextureSpecificationTests.randomVector(
+                    rnd, this.m_texFormatInfo.valueMin,
+                    this.m_texFormatInfo.valueMax, 4
+                );
+
+                tcuTextureUtil.fillWithComponentGradients(
+                    levelData.getAccess(), gMin, gMax
+                );
+
+                this.m_context.texImage2D(
+                    es3fTextureSpecificationTests.s_cubeMapFaces[face],
+                    ndx, this.m_internalFormat, levelSize, levelSize, 0,
+                    this.m_format, this.m_dataType,
+                    levelData.getAccess().getDataPtr()
+                );
+            }
+        }
+    };
+
+    // Basic TexImage3D() with 2D array texture usage
+    /**
+     * @constructor
+     * @extends {es3fTextureSpecificationTests.Texture2DArraySpecCase}
+     * @param {string} name
+     * @param {string} desc
+     * @param {number} internalFormat
+     * @param {number} width
+     * @param {number} height
+     * @param {number} numLayers
+     */
+    es3fTextureSpecificationTests.BasicTexImage2DArrayCase = function (
+        name, desc, internalFormat, width, height, numLayers
+    ) {
+        es3fTextureSpecificationTests.Texture2DArraySpecCase.call(
+            this, name, desc,
+            gluTextureUtil.mapGLInternalFormat(internalFormat), width, height,
+            numLayers, es3fTextureSpecificationTests.maxLevelCount(
+                width, height
+            )
+        );
+
+        this.m_internalFormat = internalFormat;
+    };
+
+    es3fTextureSpecificationTests.BasicTexImage2DArrayCase.prototype =
+        Object.create(
+            es3fTextureSpecificationTests.Texture2DArraySpecCase.prototype
+        );
+
+    es3fTextureSpecificationTests.
+    BasicTexImage2DArrayCase.prototype.constructor =
+        es3fTextureSpecificationTests.BasicTexImage2DArrayCase;
+
+    /**
+     * createTexture
+     */
+    es3fTextureSpecificationTests.
+    BasicTexImage2DArrayCase.prototype.createTexture =
+    function () {
+        var tex = 0;
+        var levelData = new tcuTexture.LevelData(
+            this.m_texFormat, this.m_width, this.m_height
+        );
+        var rnd = new deRandom.Random(deString.deStringHash(this.fullName()));
+        var transferFmt = gluTextureUtil.getTransferFormat(this.m_texFormat);
+
+        tex = this.m_context.createTexture();
+        this.m_context.bindTexture(gl.TEXTURE_2D_ARRAY, tex);
+        this.m_context.pixelStorei(gl.UNPACK_ALIGNMENT, 1);
+
+        for (var ndx = 0; ndx < this.m_numLevels; ndx++) {
+            var levelW = Math.max(1, this.m_width >> ndx);
+            var levelH = Math.max(1, this.m_height >> ndx);
+
+            var gMin = es3fTextureSpecificationTests.randomVector(
+                rnd, this.m_texFormatInfo.valueMin,
+                this.m_texFormatInfo.valueMax, 4
+            );
+            var gMax = es3fTextureSpecificationTests.randomVector(
+                rnd, this.m_texFormatInfo.valueMin,
+                this.m_texFormatInfo.valueMax, 4
+            );
+
+            levelData.setSize(levelW, levelH, this.m_numLayers);
+            tcuTextureUtil.fillWithComponentGradients(
+                levelData.getAccess(), gMin, gMax
+            );
+
+            this.m_context.texImage3D(
+                gl.TEXTURE_2D_ARRAY, ndx, this.m_internalFormat, levelW, levelH,
+                this.m_numLayers, 0, transferFmt.m_format,
+                transferFmt.m_dataType, levelData.getAccess().getDataPtr()
+            );
+        }
+    };
+
+    // Basic TexImage3D() with 3D texture usage
+    /**
+     * @constructor
+     * @extends {es3fTextureSpecificationTests.Texture3DSpecCase}
+     * @param {string} name
+     * @param {string} desc
+     * @param {number} internalFormat
+     * @param {number} width
+     * @param {number} height
+     * @param {number} depth
+     */
+    es3fTextureSpecificationTests.BasicTexImage3DCase = function (
+        name, desc, internalFormat, width, height, depth
+    ) {
+        es3fTextureSpecificationTests.Texture3DSpecCase.call(
+            this, name, desc,
+            gluTextureUtil.mapGLInternalFormat(internalFormat), width, height,
+            depth, es3fTextureSpecificationTests.maxLevelCount(
+                width, height, depth
+            )
+        );
+
+        this.m_internalFormat = internalFormat;
+    };
+
+    es3fTextureSpecificationTests.BasicTexImage3DCase.prototype =
+        Object.create(
+            es3fTextureSpecificationTests.Texture3DSpecCase.prototype
+        );
+
+    es3fTextureSpecificationTests.
+    BasicTexImage3DCase.prototype.constructor =
+        es3fTextureSpecificationTests.BasicTexImage3DCase;
+
+    /**
+     * createTexture
+     */
+    es3fTextureSpecificationTests.
+    BasicTexImage3DCase.prototype.createTexture =
+    function () {
+        var tex = 0;
+        var levelData = new tcuTexture.LevelData(
+            this.m_texFormat, this.m_width, this.m_height
+        );
+        var rnd = new deRandom.Random(deString.deStringHash(this.fullName()));
+        var transferFmt = gluTextureUtil.getTransferFormat(this.m_texFormat);
+
+        tex = this.m_context.createTexture();
+        this.m_context.bindTexture(gl.TEXTURE_3D, tex);
+        this.m_context.pixelStorei(gl.UNPACK_ALIGNMENT, 1);
+
+        for (var ndx = 0; ndx < this.m_numLevels; ndx++) {
+            var levelW = Math.max(1, this.m_width >> ndx);
+            var levelH = Math.max(1, this.m_height >> ndx);
+            var levelD = Math.max(1, this.m_depth >> ndx);
+
+            var gMin = es3fTextureSpecificationTests.randomVector(
+                rnd, this.m_texFormatInfo.valueMin,
+                this.m_texFormatInfo.valueMax, 4
+            );
+            var gMax = es3fTextureSpecificationTests.randomVector(
+                rnd, this.m_texFormatInfo.valueMin,
+                this.m_texFormatInfo.valueMax, 4
+            );
+
+            levelData.setSize(levelW, levelH, levelD);
+            tcuTextureUtil.fillWithComponentGradients(
+                levelData.getAccess(), gMin, gMax
+            );
+
+            this.m_context.texImage3D(
+                gl.TEXTURE_3D, ndx, this.m_internalFormat, levelW, levelH,
+                levelD, 0, transferFmt.format, transferFmt.dataType,
+                levelData.getAccess().getDataPtr()
+            );
+        }
+    };
+
     /**
      * @constructor
      * @extends {tcuTestCase.DeqpTest}
