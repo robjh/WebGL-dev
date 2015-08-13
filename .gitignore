@@ -1,3 +1,5 @@
+*.dep
+*.compiled
 .htaccess
 *.Makefile
 *.gypcmd
@@ -48,3 +50,6 @@ extensions/registry.xml
 extensions/extension-schematron.xsl
 extensions/schematron/webgl_message.xsl
 
+*.compiled
+*.dep
+*.patch

@@ -24,6 +24,11 @@
 /* Author: Mobica LTD */
 
 /**
+ * @typedef {function(*): boolean}
+ */
+ArrayBuffer.isView;
+
+/**
  * @param {?string} msg
  */
 function description(msg){};
@@ -62,7 +67,7 @@ function checkMessage(exp, message) {};
 function assertMsgOptions(assertion, msg, verbose, exthrow) {};
 
 /**
- * @param {string} msg
+ * @param {Object|string} msg
  */
 function debug(msg){};
 
@@ -88,9 +93,18 @@ function testFailed(msg){};
  */
 function testPassed(msg){};
 
+/**
+ * Defines the exception type for a GL error.
+ * @constructor
+ * @param {string} message The error message.
+ * @param {number} error GL error code
+ */
+WebGLTestUtils.GLErrorException = function(message, error){ /** @type {string} */ this.message; };
+
 /** @type {WebGL2RenderingContext} */ var gl;
 /** @type {HTMLElement} */ var canvas;
+/** @type {Object} */ var wtu;
 
-/** @type {{create3DContext: function(string):WebGL2RenderingContext,
+/** @typedef {{create3DContext: function(string):WebGL2RenderingContext,
             loadTextFileAsync: function(string, function(boolean, string)),
             glEnumToString: function(WebGL2RenderingContext, number):string }} */ var WebGLTestUtils;
