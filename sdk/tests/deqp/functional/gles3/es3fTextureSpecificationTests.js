@@ -183,12 +183,16 @@ goog.scope(function() {
      * @extends {tcuTestCase.DeqpTest}
      * @param {string} name
      * @param {string} desc
-     * @param {?sglrGLContext.GLContext|sglrReferenceContext.ReferenceContext}
      * context
      */
-    es3fTextureSpecificationTests.TextureSpecCase = function (name, desc, context) {
+    es3fTextureSpecificationTests.TextureSpecCase = function (name, desc) {
         tcuTestCase.DeqpTest.call(this, name, desc);
-        this.m_context = context;
+        /**
+         * @type {
+         *     ?sglrGLContext.GLContext|sglrReferenceContext.ReferenceContext
+         * }
+         */
+         this.m_context = null;
     };
 
     /**
@@ -214,7 +218,7 @@ goog.scope(function() {
     /**
      * @return {tcuTestCase.IterateResult}
      */
-    es3fTextureSpecificationTests.TextureSpecCase.iterate = function () {
+    es3fTextureSpecificationTests.TextureSpecCase.prototype.iterate = function () {
         if (gl.canvas.width < VIEWPORT_WIDTH ||
             gl.canvas.height < VIEWPORT_HEIGHT)
             throw new Error('Too small viewport', "");
@@ -235,60 +239,592 @@ goog.scope(function() {
         /** @type {sglrReferenceContext.ReferenceContextBuffers} */
         var refBuffers = new sglrReferenceContext.ReferenceContextBuffers(
             new tcuPixelFormat.PixelFormat(
-                8, 8, 8, tcuPixelFormat.PixelFormatFromContext(),
-                renderTarget.getPixelFormat().alphaBits ? 8 : 0
+                8, 8, 8, gl.getParameter(gl.ALPHA_BITS) ? 8 : 0
             ), 0 /* depth */, 0 /* stencil */, width, height
         );
 
         /** @type {sglrReferenceContext.ReferenceContext} */
-        var sglrReferenceContext            refContext        (sglr::ReferenceContextLimits(renderCtx), refBuffers.getColorbuffer(), refBuffers.getDepthbuffer(), refBuffers.getStencilbuffer());
+        var refContext = new sglrReferenceContext.ReferenceContext(
+            new sglrReferenceContext.ReferenceContextLimits(gl),
+            refBuffers.getColorbuffer(), refBuffers.getDepthbuffer(),
+            refBuffers.getStencilbuffer()
+        );
 
         // Clear color buffer.
-        for (int ndx = 0; ndx < 2; ndx++)
+        for (var ndx = 0; ndx < 2; ndx++)
         {
-            setContext(ndx ? (sglr::Context*)&refContext : (sglr::Context*)&gles3Context);
-            glClearColor(0.125f, 0.25f, 0.5f, 1.0f);
-            glClear(GL_COLOR_BUFFER_BIT|GL_DEPTH_BUFFER_BIT|GL_STENCIL_BUFFER_BIT);
+            this.m_context = ndx ? refContext : webgl2Context;
+            glClearColor(0.125, 0.25, 0.5, 1.0);
+            glClear(
+                gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT |
+                gl.STENCIL_BUFFER_BIT
+            );
         }
 
         // Construct texture using both GLES3 and reference contexts.
-        for (int ndx = 0; ndx < 2; ndx++)
+        for (var ndx = 0; ndx < 2; ndx++)
         {
-            setContext(ndx ? (sglr::Context*)&refContext : (sglr::Context*)&gles3Context);
-            createTexture();
-            TCU_CHECK(glGetError() == GL_NO_ERROR);
+            this.m_context = ndx ? refContext : webgl2Context;
+            this.createTexture();
+            checkMessage(
+                this.m_context.getError() == gl.NO_ERROR,
+                'Problem creating texture.'
+            );
         }
 
         // Initialize case result to pass.
-        m_testCtx.setTestResult(QP_TEST_RESULT_PASS, "Pass");
+        // TODO: Determine when is a pass - m_testCtx.setTestResult(QP_TEST_RESULT_PASS, "Pass");
 
         // Disable logging.
-        gles3Context.enableLogging(0);
+        // TODO: Implement - webgl2Context.enableLogging(0);
 
         // Verify results.
-        verifyTexture(gles3Context, refContext);
+        this.verifyTexture(webgl2Context, refContext);
 
-        return STOP;
-    }
+        return tcuTestCase.IterateResult.STOP;
+    };
 
-    void TextureSpecCase::renderTex (tcu::Surface& dst, deUint32 program, int width, int height)
-    {
-        int        targetW        = getWidth();
-        int        targetH        = getHeight();
+    /**
+     * @param {tcuSurface.Surface} dst
+     * @param {number} program
+     * @param {number} width
+     * @param {number} height
+     */
+    es3fTextureSpecificationTests.TextureSpecCase.prototype.renderTex =
+    function (dst, program, width, height) {
+        var targetW = this.m_context.getWidth();
+        var targetH = this.m_context.getHeight();
 
-        float    w            = (float)width    / (float)targetW;
-        float    h            = (float)height    / (float)targetH;
+        var w = width / targetW;
+        var h = height / targetH;
 
-        sglr::drawQuad(*getCurrentContext(), program, tcu::Vec3(-1.0f, -1.0f, 0.0f), tcu::Vec3(-1.0f + w*2.0f, -1.0f + h*2.0f, 0.0f));
+        this.m_context.drawQuad(
+            program, [-1.0, -1.0, 0.0],
+            [-1.0 + w * 2.0, -1.0 + h * 2.0, 0.0]
+        );
 
         // Read pixels back.
-        readPixels(dst, 0, 0, width, height);
-    }
+        dst.readViewport(this.m_context, [0, 0, width, height]);
+    };
 
-    void TextureSpecCase::readPixels (tcu::Surface& dst, int x, int y, int width, int height)
-    {
-        dst.setSize(width, height);
-        glReadPixels(x, y, width, height, GL_RGBA, GL_UNSIGNED_BYTE, dst.getAccess().getDataPtr());
+    /**
+     * @constructor
+     * @extends {es3fTextureSpecificationTests.TextureSpecCase}
+     * @param {string} name
+     * @param {string} desc
+     * @param {number} format
+     * @param {number} width
+     * @param {number} height
+     * @param {number} numLevels
+     */
+    es3fTextureSpecificationTests.Texture2DSpecCase = function (
+        name, desc, format, width, height, numLevels
+    ) {
+        es3fTextureSpecificationTests.TextureSpecCase.call(this, name, desc);
+
+        this.m_texFormat = format;
+        this.m_texFormatInfo = tcuTextureUtil.getTextureFormatInfo(format);
+        this.m_width = width;
+        this.m_height = height;
+        this.m_numLevels = numLevels;
+    };
+
+    es3fTextureSpecificationTests.Texture2DSpecCase.prototype = Object.create(
+        es3fTextureSpecificationTests.TextureSpecCase.prototype
+    );
+
+    es3fTextureSpecificationTests.Texture2DSpecCase.prototype.constructor =
+        es3fTextureSpecificationTests.TextureSpecCase;
+
+    /**
+     * @param {sglrGLContext.GLContext} webgl2Context
+     * @param {sglrReferenceContext.ReferenceContext} refContext
+     */
+    es3fTextureSpecificationTests.Texture2DSpecCase.prototype.verifyTexture =
+    function (
+        webgl2Context, refContext
+    ) {
+        /** @type {es3fFboTestUtil.Texture2DShader} */
+        var shader = new es3fFboTestUtil.Texture2DShader(
+            [gluTextureUtil.getSampler2DType(this.m_texFormat)],
+            gluShaderUtil.DataType.FLOAT_VEC4
+        );
+
+        var shaderIDgles = webgl2Context.createProgram(shader);
+        var shaderIDRef = refContext.createProgram(shader);
+
+        shader.setTexScaleBias(
+            0, this.m_texFormatInfo.lookupScale,
+            this.m_texFormatInfo.lookupBias
+        );
+
+        // Set state.
+        for (var ndx = 0; ndx < 2; ndx++) {
+            var ctx = ndx ? refContext : webgl2Context;
+
+            this.m_context = ctx;
+
+            this.m_context.texParameteri(
+                gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.NEAREST_MIPMAP_NEAREST
+            );
+            this.m_context.texParameteri(
+                gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.NEAREST
+            );
+            this.m_context.texParameteri(
+                gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE
+            );
+            this.m_context.texParameteri(
+                gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE
+            );
+            this.m_context.texParameteri(
+                gl.TEXTURE_2D, gl.TEXTURE_MAX_LEVEL, this.m_numLevels - 1
+            );
+        }
+
+        for (var levelNdx = 0; levelNdx < this.m_numLevels; levelNdx++) {
+            levelW = Math.max(1, this.m_width >> levelNdx);
+            levelH = Math.max(1, this.m_height >> levelNdx);
+            /** @type {tcuSurface.Surface} */ var reference;
+            /** @type {tcuSurface.Surface} */ var result;
+
+            for (var ndx = 0; ndx < 2; ndx++) {
+                /** @type {tcuSurface.Surface} */
+                var dst = ndx ? reference : result;
+                ctx = ndx ? refContext : webgl2Context;
+                var shaderID = ndx ? shaderIDRef : shaderIDgles;
+
+                this.m_context = ctx;
+                shader.setUniforms(ctx, shaderID);
+                this.renderTex(dst, shaderID, levelW, levelH);
+            }
+
+            var threshold =
+            es3fTextureSpecificationTests.computeCompareThreshold(
+                tcuPixelFormat.PixelFormatFromContext(gl), this.m_texFormat
+            );
+            var levelStr = levelNdx.toString();
+            var name = "Level" + levelStr;
+            var desc = "Level " + levelStr;
+            var isOk = tcuImageCompare.intThresholdCompare(
+                name, desc, reference.getAccess(), result.getAccess(),
+                threshold, levelNdx == 0 ?
+                tcuImageCompare.CompareLogMode.RESULT :
+                tcuImageCompare.CompareLogMode.ERROR
+            );
+
+            if (!isOk)
+            {
+                testFailed("Image comparison failed");
+                break;
+            }
+        }
+    };
+
+    /**
+     * @constructor
+     * @extends {es3fTextureSpecificationTests.TextureSpecCase}
+     * @param {string} name
+     * @param {string} desc
+     * @param {tcuTexture.TextureFormat} format
+     * @param {number} size
+     * @param {number} numLevels
+     */
+    es3fTextureSpecificationTests.TextureCubeSpecCase = function (
+        name, desc, format, size, numLevels
+    ) {
+        es3fTextureSpecificationTests.TextureSpecCase.call(
+            this, name, desc
+        );
+        this.m_texFormat = format;
+        this.m_texFormatInfo = tcuTextureUtil.getTextureFormatInfo(format);
+        this.m_size = size;
+        this.m_numLevels = numLevels;
+    };
+
+    es3fTextureSpecificationTests.TextureCubeSpecCase.prototype = Object.create(
+        Object.create(es3fTextureSpecificationTests.TextureSpecCase.prototype);
+    );
+
+    es3fTextureSpecificationTests.TextureCubeSpecCase.prototype.constructor =
+        es3fTextureSpecificationTests.TextureCubeSpecCase;
+
+    /**
+     * @param {sglrGLContext.GLContext} webgl2Context
+     * @param {sglrReferenceContext.ReferenceContext} refContext
+     */
+    es3fTextureSpecificationTests.TextureCubeSpecCase.prototype.verifyTexture =
+    function(
+        webgl2Context, refContext
+    ) {
+        /** @type {es3fFboTestUtil.TextureCubeShader} */
+        var shader = new es3fFboTestUtil.TextureCubeShader(
+            [gluTextureUtil.getSamplerCubeType(this.m_texFormat)],
+            gluShaderUtil.DataType.FLOAT_VEC4
+        );
+        var shaderIDgles = webgl2Context.createProgram(shader);
+        var shaderIDRef = refContext.createProgram(shader);
+
+        shader.setTexScaleBias(
+            this.m_texFormatInfo.lookupScale, this.m_texFormatInfo.lookupBias
+        );
+
+        // Set state.
+        for (var ndx = 0; ndx < 2; ndx++)
+        {
+            var ctx = ndx ? refContext : webgl2Context;
+
+            this.m_context = ctx;
+
+            this.m_context.texParameteri(
+                gl.TEXTURE_CUBE_MAP, gl.TEXTURE_MIN_FILTER,
+                gl.NEAREST_MIPMAP_NEAREST
+            );
+            this.m_context.texParameteri(
+                gl.TEXTURE_CUBE_MAP, gl.TEXTURE_MAG_FILTER,
+                gl.NEAREST
+            );
+            this.m_context.texParameteri(
+                gl.TEXTURE_CUBE_MAP, gl.TEXTURE_WRAP_S,
+                gl.CLAMP_TO_EDGE
+            );
+            this.m_context.texParameteri(
+                gl.TEXTURE_CUBE_MAP, gl.TEXTURE_WRAP_T,
+                gl.CLAMP_TO_EDGE
+            );
+            this.m_context.texParameteri(
+                gl.TEXTURE_CUBE_MAP, gl.TEXTURE_MAX_LEVEL,
+                this.m_numLevels - 1
+            );
+        }
+
+        for (var levelNdx = 0; levelNdx < this.m_numLevels; levelNdx++) {
+            var levelSize = Math.max(1, this.m_size >> levelNdx);
+            var isOk = true;
+
+            for (
+                var face = 0;
+                face < Object.keys(tcuTexture.CubeFace).length;
+                face++
+            ) {
+                /** @type {tcuSurface.Surface} */
+                var reference = new tcuSurface.Surface();
+                /** @type {tcuSurface.Surface} */
+                var result = new tcuSurface.Surface();
+
+                if (levelSize <= 2)
+                    continue; // Fuzzy compare doesn't work for images this small.
+
+                shader.setFace(face);
+
+                for (var ndx = 0; ndx < 2; ndx++) {
+                    /** @type {tcuSurface.Surface} */
+                    var dst = ndx ? reference : result;
+                    ctx = ndx ? refContext : webgl2Context;
+                    var shaderID = ndx ? shaderIDRef : shaderIDgles;
+
+                    this.m_context = ctx;
+                    shader.setUniforms(ctx, shaderID);
+                    this.renderTex(dst, shaderID, levelSize, levelSize);
+                }
+
+                var threshold    = 0.02;
+                var faceStr = face.toString();
+                var levelStr = levelNdx.toString();
+                var name = "Level" + levelStr;
+                var desc = "Level " + levelStr + ", face " + faceStr;
+                var isFaceOk = tcuImageCompare.fuzzyCompare(
+                    name, desc, reference, result, threshold, levelNdx == 0 ?
+                    tcuImageCompare.CompareLogMode.RESULT :
+                    tcuImageCompare.CompareLogMode.ERROR
+                );
+
+                if (!isFaceOk)
+                {
+                    testFailed("Image comparison failed");
+                    isOk = false;
+                    break;
+                }
+            }
+
+            if (!isOk)
+                break;
+        }
+    };
+
+
+    /**
+     * @constructor
+     * @extends {es3fTextureSpecificationTests.TextureSpecCase}
+     * @param {string} name
+     * @param {string} desc
+     * @param {tcuTexture.TextureFormat} format
+     * @param {number} width
+     * @param {number} height
+     * @param {number} numLayers
+     * @param {number} numLevels
+     */
+    es3fTextureSpecificationTests.Texture2DArraySpecCase = function (
+        name, desc, format, size, numLayers, numLevels
+    ) {
+        es3fTextureSpecificationTests.TextureSpecCase.call(
+            this, name, desc
+        );
+        this.m_texFormat = format;
+        this.m_texFormatInfo = tcuTextureUtil.getTextureFormatInfo(format);
+        this.m_width = width;
+        this.m_height = height;
+        this.m_numLayers = numLayers;
+        this.m_numLevels = numLevels;
+    };
+
+    es3fTextureSpecificationTests.Texture2DArraySpecCase.prototype =
+        Object.create(es3fTextureSpecificationTests.TextureSpecCase.prototype);
+
+    es3fTextureSpecificationTests.Texture2DArraySpecCase.prototype.constructor =
+        es3fTextureSpecificationTests.Texture2DArraySpecCase;
+
+    /**
+     * @param {sglrGLContext.GLContext} webgl2Context
+     * @param {sglrReferenceContext.ReferenceContext} refContext
+     */
+    es3fTextureSpecificationTests.Texture2DArraySpecCase.prototype.verifyTexture =
+    function (
+        webgl2Context, refContext
+    ) {
+        /** @type {es3fFboTestUtil.Texture2DArrayShader} */
+        var shader = new es3fFboTestUtil.Texture2DArrayShader(
+            [gluTextureUtil.getSampler2DArrayType(this.m_texFormat)],
+            gluShaderUtil.DataType.FLOAT_VEC4
+        );
+        var shaderIDgles = webgl2Context.createProgram(shader);
+        var shaderIDRef = refContext.createProgram(shader);
+
+        shader.setTexScaleBias(
+            this.m_texFormatInfo.lookupScale, this.m_texFormatInfo.lookupBias
+        );
+
+        // Set state.
+        for (var ndx = 0; ndx < 2; ndx++) {
+            var ctx = ndx ? refContext : webgl2Context;
+
+            this.m_context = ctx;
+
+            this.m_context.texParameteri(
+                gl.TEXTURE_2D_ARRAY, gl.TEXTURE_MIN_FILTER,
+                gl.NEAREST_MIPMAP_NEAREST
+            );
+            this.m_context.texParameteri(
+                gl.TEXTURE_2D_ARRAY, gl.TEXTURE_MAG_FILTER,
+                gl.NEAREST
+            );
+            this.m_context.texParameteri(
+                gl.TEXTURE_2D_ARRAY, gl.TEXTURE_WRAP_S,
+                gl.CLAMP_TO_EDGE
+            );
+            this.m_context.texParameteri(
+                gl.TEXTURE_2D_ARRAY, gl.TEXTURE_WRAP_T,
+                gl.CLAMP_TO_EDGE
+            );
+            this.m_context.texParameteri(
+                gl.TEXTURE_2D_ARRAY, gl.TEXTURE_WRAP_R,
+                gl.CLAMP_TO_EDGE
+            );
+            this.m_context.texParameteri(
+                gl.TEXTURE_2D_ARRAY, gl.TEXTURE_MAX_LEVEL,
+                this.m_numLevels - 1
+            );
+        }
+
+        for (var layerNdx = 0; layerNdx < this.m_numLayers; layerNdx++) {
+            var layerOk = true;
+
+            shader.setLayer(layerNdx);
+            for (var levelNdx = 0; levelNdx < this.m_numLevels; levelNdx++) {
+                var levelW = Math.max(1, this.m_width >> levelNdx);
+                var levelH = Math.max(1, this.m_height >> levelNdx);
+                /** @type {tcuSurface.Surface} */
+                var reference = new tcuSurface.Surface();
+                /** @type {tcuSurface.Surface} */
+                var result = new tcuSurface.Surface();
+
+                var isOk = true;
+
+                for (var ndx = 0; ndx < 2; ndx++) {
+                    /** @type {tcuSurface.Surface} */
+                    var dst = ndx ? reference : result;
+                    ctx = ndx ? refContext : webgl2Context;
+                    var shaderID = ndx ? shaderIDRef : shaderIDgles;
+
+                    this.m_context = ctx;
+                    shader.setUniforms(ctx, shaderID);
+                    this.renderTex(dst, shaderID, levelSize, levelSize);
+                }
+
+                var threshold =
+                es3fTextureSpecificationTests.computeCompareThreshold(
+                    tcuPixelFormat.PixelFormatFromContext(gl), this.m_texFormat
+                );
+                var levelStr = levelNdx.toString();
+                var layerStr = layerNdx.toString();
+                var name = "Layer" + layerStr + "Level" + levelStr;
+                var desc = "Layer " + layerStr + ", Level " + levelStr;
+                var depthOk = tcuImageCompare.intThresholdCompare(
+                    name, desc, reference.getAccess(), result.getAccess(),
+                    threshold, (levelNdx == 0 && layerNdx == 0) ?
+                    tcuImageCompare.CompareLogMode.RESULT :
+                    tcuImageCompare.CompareLogMode.ERROR
+                );
+
+
+                if (!depthOk)
+                {
+                    testFailed("Image comparison failed");
+                    isOk = false;
+                    break;
+                }
+            }
+
+            if (!layerOk)
+                break;
+        }
+    };
+
+    /**
+     * @constructor
+     * @extends {es3fTextureSpecificationTests.TextureSpecCase}
+     * @param {string} name
+     * @param {string} desc
+     * @param {tcuTexture.TextureFormat} format
+     * @param {number} width
+     * @param {number} height
+     * @param {number} numLayers
+     * @param {number} numLevels
+     */
+    es3fTextureSpecificationTests.Texture3DSpecCase = function (
+        name, desc, format, size, numLayers, numLevels
+    ) {
+        es3fTextureSpecificationTests.TextureSpecCase.call(
+            this, name, desc
+        );
+        this.m_texFormat = format;
+        this.m_texFormatInfo = tcuTextureUtil.getTextureFormatInfo(format);
+        this.m_width = width;
+        this.m_height = height;
+        this.m_numLayers = numLayers;
+        this.m_numLevels = numLevels;
+    };
+
+    es3fTextureSpecificationTests.Texture3DSpecCase.prototype =
+        Object.create(es3fTextureSpecificationTests.TextureSpecCase.prototype);
+
+    es3fTextureSpecificationTests.Texture3DSpecCase.prototype.constructor =
+        es3fTextureSpecificationTests.Texture3DSpecCase;
+
+    /**
+     * @param {sglrGLContext.GLContext} webgl2Context
+     * @param {sglrReferenceContext.ReferenceContext} refContext
+     */
+    es3fTextureSpecificationTests.Texture3DSpecCase.prototype.verifyTexture =
+    function (
+        webgl2Context, refContext
+    ) {
+        /** @type {es3fFboTestUtil.Texture3DShader} */
+        var shader = new es3fFboTestUtil.Texture3DShader(
+            [gluTextureUtil.getSampler3DType(this.m_texFormat)],
+            gluShaderUtil.DataType.FLOAT_VEC4
+        );
+        var shaderIDgles = webgl2Context.createProgram(shader);
+        var shaderIDRef = refContext.createProgram(shader);
+
+        shader.setTexScaleBias(
+            this.m_texFormatInfo.lookupScale, this.m_texFormatInfo.lookupBias
+        );
+
+        // Set state.
+        for (var ndx = 0; ndx < 2; ndx++) {
+            var ctx = ndx ? refContext : webgl2Context;
+
+            this.m_context = ctx;
+
+            this.m_context.texParameteri(
+                gl.TEXTURE_3D, gl.TEXTURE_MIN_FILTER,
+                gl.NEAREST_MIPMAP_NEAREST
+            );
+            this.m_context.texParameteri(
+                gl.TEXTURE_3D, gl.TEXTURE_MAG_FILTER,
+                gl.NEAREST
+            );
+            this.m_context.texParameteri(
+                gl.TEXTURE_3D, gl.TEXTURE_WRAP_S,
+                gl.CLAMP_TO_EDGE
+            );
+            this.m_context.texParameteri(
+                gl.TEXTURE_3D, gl.TEXTURE_WRAP_T,
+                gl.CLAMP_TO_EDGE
+            );
+            this.m_context.texParameteri(
+                gl.TEXTURE_3D, gl.TEXTURE_WRAP_R,
+                gl.CLAMP_TO_EDGE
+            );
+            this.m_context.texParameteri(
+                gl.TEXTURE_3D, gl.TEXTURE_MAX_LEVEL,
+                this.m_numLevels - 1
+            );
+        }
+
+        for (var layerNdx = 0; layerNdx < this.m_numLayers; layerNdx++) {
+            var layerOk = true;
+
+            shader.setLayer(layerNdx);
+            for (var levelNdx = 0; levelNdx < this.m_numLevels; levelNdx++) {
+                var levelW = Math.max(1, this.m_width >> levelNdx);
+                var levelH = Math.max(1, this.m_height >> levelNdx);
+                // TODO: Implement differences for this class
+                /** @type {tcuSurface.Surface} */
+                var reference = new tcuSurface.Surface();
+                /** @type {tcuSurface.Surface} */
+                var result = new tcuSurface.Surface();
+
+                var isOk = true;
+
+                for (var ndx = 0; ndx < 2; ndx++) {
+                    /** @type {tcuSurface.Surface} */
+                    var dst = ndx ? reference : result;
+                    ctx = ndx ? refContext : webgl2Context;
+                    var shaderID = ndx ? shaderIDRef : shaderIDgles;
+
+                    this.m_context = ctx;
+                    shader.setUniforms(ctx, shaderID);
+                    this.renderTex(dst, shaderID, levelSize, levelSize);
+                }
+
+                var threshold =
+                es3fTextureSpecificationTests.computeCompareThreshold(
+                    tcuPixelFormat.PixelFormatFromContext(gl), this.m_texFormat
+                );
+                var levelStr = levelNdx.toString();
+                var layerStr = layerNdx.toString();
+                var name = "Layer" + layerStr + "Level" + levelStr;
+                var desc = "Layer " + layerStr + ", Level " + levelStr;
+                var depthOk = tcuImageCompare.intThresholdCompare(
+                    name, desc, reference.getAccess(), result.getAccess(),
+                    threshold, (levelNdx == 0 && layerNdx == 0) ?
+                    tcuImageCompare.CompareLogMode.RESULT :
+                    tcuImageCompare.CompareLogMode.ERROR
+                );
+
+
+                if (!depthOk)
+                {
+                    testFailed("Image comparison failed");
+                    isOk = false;
+                    break;
+                }
+            }
+
+            if (!layerOk)
+                break;
+        }
     };
 
     /**
