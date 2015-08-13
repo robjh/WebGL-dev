@@ -772,20 +772,19 @@ goog.scope(function() {
             );
         }
 
-        for (var layerNdx = 0; layerNdx < this.m_numLayers; layerNdx++) {
-            var layerOk = true;
+        for (var levelNdx = 0; levelNdx < this.m_numLevels; levelNdx++) {
+            var levelW = Math.max(1, this.m_width >> levelNdx);
+            var levelH = Math.max(1, this.m_height >> levelNdx);
+            var levelD = Math.max(1, this.m_depth >> levelNdx);
+            var levelOk = true;
 
-            shader.setLayer(layerNdx);
-            for (var levelNdx = 0; levelNdx < this.m_numLevels; levelNdx++) {
-                var levelW = Math.max(1, this.m_width >> levelNdx);
-                var levelH = Math.max(1, this.m_height >> levelNdx);
-                // TODO: Implement differences for this class
+            for (var depth = 0; depth < this.levelD; depth++) {
                 /** @type {tcuSurface.Surface} */
                 var reference = new tcuSurface.Surface();
                 /** @type {tcuSurface.Surface} */
                 var result = new tcuSurface.Surface();
 
-                var isOk = true;
+                shader.setDepth((depth + 0.5) / levelD);
 
                 for (var ndx = 0; ndx < 2; ndx++) {
                     /** @type {tcuSurface.Surface} */
@@ -795,7 +794,7 @@ goog.scope(function() {
 
                     this.m_context = ctx;
                     shader.setUniforms(ctx, shaderID);
-                    this.renderTex(dst, shaderID, levelSize, levelSize);
+                    this.renderTex(dst, shaderID, levelW, levelH);
                 }
 
                 var threshold =
@@ -803,12 +802,12 @@ goog.scope(function() {
                     tcuPixelFormat.PixelFormatFromContext(gl), this.m_texFormat
                 );
                 var levelStr = levelNdx.toString();
-                var layerStr = layerNdx.toString();
-                var name = "Layer" + layerStr + "Level" + levelStr;
-                var desc = "Layer " + layerStr + ", Level " + levelStr;
+                var sliceStr = depth.toString();
+                var name = "Layer" + layerStr + "Slice" + sliceStr;
+                var desc = "Layer " + layerStr + ", Slice " + sliceStr;
                 var depthOk = tcuImageCompare.intThresholdCompare(
                     name, desc, reference.getAccess(), result.getAccess(),
-                    threshold, (levelNdx == 0 && layerNdx == 0) ?
+                    threshold, (levelNdx == 0 && depth == 0) ?
                     tcuImageCompare.CompareLogMode.RESULT :
                     tcuImageCompare.CompareLogMode.ERROR
                 );
@@ -822,7 +821,7 @@ goog.scope(function() {
                 }
             }
 
-            if (!layerOk)
+            if (!levelOk)
                 break;
         }
     };
