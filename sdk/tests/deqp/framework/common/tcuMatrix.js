@@ -90,7 +90,8 @@ goog.scope(function() {
             throw new Error('Rows out of range');
         if (values.length > this.cols)
             throw new Error('Too many columns');
-        this.matrix[row] = values;
+        for (var col = 0; col < values.length; col++)
+            this.matrix[col][row] = values[col];
     };
 
     tcuMatrix.Matrix.prototype.get = function(x, y) {

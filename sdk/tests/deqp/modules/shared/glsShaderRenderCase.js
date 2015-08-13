@@ -465,8 +465,8 @@ goog.scope(function() {
         /** @type {boolean} */ this.m_isVertexCase = isVertexCase;
         /** @type {?glsShaderRenderCase.ShaderEvalFunc} */ this.m_defaultEvaluator = evalFunc || null;
         /** @type {glsShaderRenderCase.ShaderEvaluator} */ this.m_evaluator = new glsShaderRenderCase.ShaderEvaluator(this.m_defaultEvaluator);
-        /** @type {string} */ this.m_vertShaderSource;
-        /** @type {string} */ this.m_fragShaderSource;
+        /** @type {string} */ this.m_vertShaderSource = '';
+        /** @type {string} */ this.m_fragShaderSource = '';
         /** @type {Array<number>} */ this.m_clearColor = glsShaderRenderCase.DEFAULT_CLEAR_COLOR;
         /** @type {Array<tcuMatrix.Matrix>} */ this.m_userAttribTransforms = [];
         /** @type {Array<glsShaderRenderCase.TextureBinding>} */ this.m_textures = [];
