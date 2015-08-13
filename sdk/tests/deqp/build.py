@@ -76,7 +76,23 @@ targets = {
     'negativefragmentapi': 'functional.gles3.es3fNegativeFragmentApiTests',
     'negativevertexarrayapi': 'functional.gles3.es3fNegativeVertexArrayApiTests',
     'negativestateapi' : 'functional.gles3.es3fNegativeStateApiTests',
-    'negativeshaderapi' : 'functional.gles3.es3fNegativeShaderApiTests'
+    'negativeshaderapi' : 'functional.gles3.es3fNegativeShaderApiTests',
+    'rasterizerdiscard' : 'functional.gles3.es3fRasterizerDiscardTests',
+    'buffercopy' : 'functional.gles3.es3fBufferCopyTests',
+    'shaderindexing' : 'functional.gles3.es3fShaderIndexingTests',
+    'shaderloop' : 'functional.gles3.es3fShaderLoopTests',
+    'shaderstruct' : 'functional.gles3.es3fShaderStructTests',
+    'shaderswitch' : 'functional.gles3.es3fShaderSwitchTests',
+    'fborender' : 'functional.gles3.es3fFboRenderTest',
+    'shaderderivate' : 'functional.gles3.es3fShaderDerivateTests',
+    'builtinprecision' : 'functional.gles3.es3fBuiltinPrecisionTests',
+    'shaderbuiltinvar' : 'functional.gles3.es3fShaderBuiltinVarTests',
+    'texturefiltering' : 'functional.gles3.es3fTextureFilteringTests',
+    'fbocolor' : 'functional.gles3.es3fFboColorbufferTests',
+    'fragdepth' : 'functional.gles3.es3fFragDepthTests',
+    'shaderop' : 'functional.gles3.es3fShaderOperatorTests',
+    'shaderpackingfunction' : 'functional.gles3.es3fShaderPackingFunctionTests',
+    'shadercommonfunction' : 'functional.gles3.es3fShaderCommonFunctionTests'
 }
 
 total_errors = 0
@@ -241,4 +257,3 @@ def main(argv):
 
 if __name__ == '__main__':
     main(sys.argv[1:])
-
