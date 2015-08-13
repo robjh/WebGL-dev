@@ -254,6 +254,14 @@ goog.scope(function() {
         tcuMatrix.Matrix.call(this, 3, 3);
     };
 
+    /**
+     * @constructor
+     * @extends {tcuMatrix.Matrix}
+     */
+    tcuMatrix.Mat4 = function() {
+        tcuMatrix.Matrix.call(this, 4, 4);
+    };
+
     tcuMatrix.Mat3.prototype = Object.create(tcuMatrix.Matrix.prototype);
     tcuMatrix.Mat3.prototype.constructor = tcuMatrix.Mat3;
 
