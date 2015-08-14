@@ -303,19 +303,11 @@ goog.scope(function() {
 		/** @type {*} */ var inputData; // = new Uint32Array(numInputScalars * this.m_numValues);
 		/** @type {*} */ var outputData; // = new Uint32Array(numInputScalars * this.m_numValues);
 
-		// TODO: will attempt to implement this without input/output pointers. Commenting related code with tag [ptr]
-		// /** @type {Array<*>} */ var inputPointers = es3fShaderCommonFunctionTests.getInputOutputPointers(this.m_spec.inputs, inputData, this.m_numValues); // TODO !!!!
-		// /** @type {Array<*>} */ var outputPointers = es3fShaderCommonFunctionTests.getInputOutputPointers(this.m_spec.outputs, outputData, this.m_numValues); // TODO !!!!
-debugger;
-		// Initialize input data.
-		// [ptr] this.getInputValues(this.m_numValues, inputPointers); // TODO !!!
-		//          new Uint32Array(new Float32Array(this.getInputValues(this.m_numValues)).buffer); // this was yielding values more similar to the dEQP code
-		inputData = new Uint32Array(this.getInputValues(this.m_numValues)); // TODO !!!
+		inputData = new Float32Array(this.getInputValues(this.m_numValues)); // TODO !!!
 
 		// Execute shader.
 		this.m_executor.useProgram();
-		// [ptr] outputPointers = this.m_executor.execute(this.m_numValues, inputPointers);
-		outputData = this.m_executor.execute(this.m_numValues, [inputData])[0];
+		outputData = new Float32Array(this.m_executor.execute(this.m_numValues, [inputData])[0].buffer);
 
 		// Compare results.
 		/** @type {Array<number>} */ var inScalarSizes = es3fShaderCommonFunctionTests.getScalarSizes(this.m_spec.inputs);
@@ -324,22 +316,17 @@ debugger;
 		/** @type {Array<*>} */ var curOutputPtr = [];
 		/** @type {number} */ var numFailed = 0;
 
+		for (var inNdx = 0; inNdx < inputData.length; inNdx += inScalarSizes[0])
+			curInputPtr.push(inputData.slice(inNdx, inNdx + inScalarSizes[0]));
+
+		for (var outNdx = 0; outNdx < outputData.length; outNdx += outScalarSizes[0])
+			curOutputPtr.push(outputData.slice(outNdx, outNdx + outScalarSizes[0]));
+
 		for (var valNdx = 0; valNdx < this.m_numValues; valNdx++) {
 			// Set up pointers for comparison.
-			// [ptr]
-			// for (var inNdx = 0; inNdx < curInputPtr.length; ++inNdx)
-			// 	curInputPtr[inNdx] = (deUint32*)inputPointers[inNdx] + inScalarSizes[inNdx] * valNdx;
-			//
-			// for (int outNdx = 0; outNdx < curOutputPtr.length; ++outNdx)
-			// 	curOutputPtr[outNdx] = (deUint32*)outputPointers[outNdx] + outScalarSizes[outNdx] * valNdx;
-			for (var inNdx = 0; inNdx < this.m_spec.inputs.length; ++inNdx)
-				curInputPtr[inNdx] = inputData[inNdx] + inScalarSizes[0] * valNdx;
 
-			for (var outNdx = 0; outNdx < this.m_spec.outputs.length; ++outNdx)
-				curOutputPtr[outNdx] = outputData[outNdx] + outScalarSizes[0] * valNdx;
-debugger;
-			// [ptr] if (!this.compare(&curInputPtr[0], &curOutputPtr[0])) {
-			if (!this.compare([curInputPtr], [curOutputPtr])) {
+			console.log("DAGTAG: " + curInputPtr[valNdx] + " / " + curOutputPtr[valNdx]);
+			if (!this.compare([curInputPtr[valNdx]], [curOutputPtr[valNdx]])) {
 				// \todo [2013-08-08 pyry] We probably want to log reference value as well?
 
 				bufferedLogToConsole("ERROR: comparison failed for value " + valNdx + ":\n  " + this.m_failMsg);
