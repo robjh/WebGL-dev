@@ -300,14 +300,26 @@ goog.scope(function() {
 	es3fShaderCommonFunctionTests.CommonFunctionCase.prototype.iterate = function() {
 		/** @type {number} */ var numInputScalars = es3fShaderCommonFunctionTests.computeTotalScalarSize(this.m_spec.inputs);
 		/** @type {number} */ var numOutputScalars = es3fShaderCommonFunctionTests.computeTotalScalarSize(this.m_spec.outputs);
-		/** @type {*} */ var inputData; // = new Uint32Array(numInputScalars * this.m_numValues);
-		/** @type {*} */ var outputData; // = new Uint32Array(numInputScalars * this.m_numValues);
+		/** @type {goog.TypedArray} */ var inputData; // = new Uint32Array(numInputScalars * this.m_numValues);
+		/** @type {goog.TypedArray} */ var outputData; // = new Uint32Array(numInputScalars * this.m_numValues);
+		/** @type {gluShaderUtil.DataType} */ var inputType = this.m_spec.inputs[0].varType.getBasicType();
+		/** @type {gluShaderUtil.DataType} */ var outputType = this.m_spec.outputs[0].varType.getBasicType();
+		/** @type {Array<number>} */ var inputValues;
+		/** @type {ArrayBuffer} */ var outputValues;
+		inputValues = this.getInputValues(this.m_numValues);
 
-		inputData = new Float32Array(this.getInputValues(this.m_numValues)); // TODO !!!
+		inputData = inputType >= gluShaderUtil.DataType.FLOAT && inputType <= gluShaderUtil.DataType.FLOAT_VEC4 ? new Float32Array(inputValues) :
+					inputType >= gluShaderUtil.DataType.INT && inputType <= gluShaderUtil.DataType.INT_VEC4 ? new Int32Array(inputValues) :
+					inputType >= gluShaderUtil.DataType.UINT && inputType <= gluShaderUtil.DataType.UINT_VEC4 ? new Uint32Array(inputValues) :
+					null;
 
 		// Execute shader.
 		this.m_executor.useProgram();
-		outputData = new Float32Array(this.m_executor.execute(this.m_numValues, [inputData])[0].buffer);
+		outputValues = this.m_executor.execute(this.m_numValues, [inputData])[0].buffer;
+		outputData = outputType >= gluShaderUtil.DataType.FLOAT && outputType <= gluShaderUtil.DataType.FLOAT_VEC4 ? new Float32Array(outputValues) :
+					outputType >= gluShaderUtil.DataType.INT && outputType <= gluShaderUtil.DataType.INT_VEC4 ? new Int32Array(outputValues) :
+					outputType >= gluShaderUtil.DataType.UINT && outputType <= gluShaderUtil.DataType.UINT_VEC4 ? new Uint32Array(outputValues) :
+					null;
 
 		// Compare results.
 		/** @type {Array<number>} */ var inScalarSizes = es3fShaderCommonFunctionTests.getScalarSizes(this.m_spec.inputs);
