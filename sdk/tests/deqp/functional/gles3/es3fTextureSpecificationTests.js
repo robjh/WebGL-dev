@@ -878,9 +878,11 @@ goog.scope(function() {
         var fmt = gluTextureUtil.getTransferFormat(
             gluTextureUtil.mapGLInternalFormat(internalFormat)
         );
-        return new es3fTextureSpecificationTests.BasicTexImage2DCase(
+        var testcase = new es3fTextureSpecificationTests.BasicTexImage2DCase(
             name, desc, fmt.format, fmt.dataType, width, height
         );
+        testcase.m_internalFormat = internalFormat;
+        return testcase;
     };
 
     /**
@@ -946,20 +948,6 @@ goog.scope(function() {
         this.m_internalFormat = format;
         this.m_format = format;
         this.m_dataType = dataType;
-        } else {
-            size = dataType;
-            // Sized internal format.
-            es3fTextureSpecificationTests.TextureCubeSpecCase.call(
-                this, name, desc, gluTextureUtil.mapGLInternalFormat(format),
-                size, deMath.logToFloor(width, height)
-            );
-
-            this.m_internalFormat = format;
-            /** @type {gluTextureUtil.TransferFormat} */
-            var fmt = gluTextureUtil.mapGLTransferFormat(this.m_texFormat);
-            this.m_format = fmt.format;
-            this.m_dataType = fmt.dataType;
-        }
     };
 
     es3fTextureSpecificationTests.BasicTexImageCubeCase.prototype =
@@ -986,9 +974,11 @@ goog.scope(function() {
         var fmt = gluTextureUtil.getTransferFormat(
             gluTextureUtil.mapGLInternalFormat(internalFormat)
         );
-        return new es3fTextureSpecificationTests.BasicTexImageCubeCase(
+        var testcase = new es3fTextureSpecificationTests.BasicTexImageCubeCase(
             name, desc, fmt.format, fmt.dataType, size
         );
+        testcase.m_internalFormat = internalFormat;
+        return testcase;
     };
 
     /**
@@ -1246,9 +1236,11 @@ goog.scope(function() {
         var fmt = gluTextureUtil.getTransferFormat(
             gluTextureUtil.mapGLInternalFormat(internalFormat)
         );
-        return new es3fTextureSpecificationTests.RandomOrderTexImage2DCase(
+        var testcase = new es3fTextureSpecificationTests.RandomOrderTexImage2DCase(
             name, desc, fmt.format, fmt.dataType, width, height
         );
+        testcase.m_internalFormat;
+        return testcase;
     };
 
     /**
@@ -1320,20 +1312,6 @@ goog.scope(function() {
         this.m_internalFormat = format;
         this.m_format = format;
         this.m_dataType = dataType;
-        } else {
-            size = dataType;
-            // Sized internal format.
-            es3fTextureSpecificationTests.TextureCubeSpecCase.call(
-                this, name, desc, gluTextureUtil.mapGLInternalFormat(format),
-                size, deMath.logToFloor(width, height)
-            );
-
-            this.m_internalFormat = format;
-            /** @type {gluTextureUtil.TransferFormat} */
-            var fmt = gluTextureUtil.mapGLTransferFormat(this.m_texFormat);
-            this.m_format = fmt.format;
-            this.m_dataType = fmt.dataType;
-        }
     };
 
     es3fTextureSpecificationTests.RandomOrderTexImageCubeCase.prototype =
@@ -1359,9 +1337,11 @@ goog.scope(function() {
         var fmt = gluTextureUtil.getTransferFormat(
             gluTextureUtil.mapGLInternalFormat(internalFormat)
         );
-        return new es3fTextureSpecificationTests.RandomOrderTexImageCubeCase(
+        var testcase = new es3fTextureSpecificationTests.RandomOrderTexImageCubeCase(
             name, desc, fmt.format, fmt.dataType, size
         );
+        testcase.m_internalFormat = internalFormat;
+        return testcase;
     };
 
     /**
@@ -1419,6 +1399,433 @@ goog.scope(function() {
                 levelData.getAccess().getDataPtr()
             );
         }
+    };
+
+    // TexImage2D() unpack alignment case.
+    /**
+     * @constructor
+     * @extends {es3fTextureSpecificationTests.Texture2DSpecCase}
+     * @param {string} name
+     * @param {string} desc
+     * @param {number} format
+     * @param {number} dataType
+     * @param {number} width
+     * @param {number} height
+     * @param {number} numLevels
+     * @param {number} alignment
+     */
+    es3fTextureSpecificationTests.TexImage2DAlignCase = function (
+        name, desc, format, dataType, width, height, numLevels, alignment
+    ) {
+        // Unsized internal format.
+        es3fTextureSpecificationTests.Texture2DSpecCase.call(
+            this, name, desc, gluTextureUtil.mapGLTransferFormat(
+                format, dataType
+            ), width, height,
+            es3fTextureSpecificationTests.maxLevelCount(
+                width, height
+            )
+        );
+
+        this.m_internalFormat = format;
+        this.m_format = format;
+        this.m_dataType = dataType;
+        this.m_alignment = alignment;
+    };
+
+    es3fTextureSpecificationTests.TexImage2DAlignCase.prototype = Object.create(
+        es3fTextureSpecificationTests.Texture2DSpecCase.prototype
+    );
+
+    es3fTextureSpecificationTests.
+    TexImage2DAlignCase.prototype.constructor =
+        es3fTextureSpecificationTests.TexImage2DAlignCase;
+
+    /**
+    * @param {string} name
+    * @param {string} desc
+    * @param {number} internalFormat
+    * @param {number} width
+    * @param {number} height
+    * @param {number} numLevels
+    * @param {number} alignment
+     * @return {es3fTextureSpecificationTests.TexImage2DAlignCase}
+     */
+    es3fTextureSpecificationTests.newTexImage2DAlignCaseInternal = function(
+        name, desc, internalFormat, width, height, numLevels, alignment
+    ) {
+        // Sized internal format.
+        var fmt = gluTextureUtil.getTransferFormat(
+            gluTextureUtil.mapGLInternalFormat(internalFormat)
+        );
+        var testcase = new es3fTextureSpecificationTests.TexImage2DAlignCase(
+            name, desc, fmt.format, fmt.dataType,
+            width, height, numLevels, alignment
+        );
+        testcase.m_internalFormat = internalFormat;
+        return testcase;
+    };
+
+    /**
+     * createTexture
+     */
+    es3fTextureSpecificationTests.TexImage2DAlignCase.prototype.createTexture =
+    function () {
+        var tex = 0;
+        /** @type {ArrayBuffer} */ var data;
+
+        tex = this.m_context.createTexture();
+        this.m_context.bindTexture(gl.TEXTURE_2D, tex);
+        this.m_context.pixelStorei(gl.UNPACK_ALIGNMENT, this.m_alignment);
+
+        for (var ndx = 0; ndx < this.m_numLevels; ndx++) {
+            var levelW = Math.max(1, this.m_width >> ndx);
+            var levelH = Math.max(1, this.m_height >> ndx);
+            var colorA = deMath.add(
+                deMath.multiply(
+                    [1.0, 0.0, 0.0, 1.0],
+                    deMath.subtract(
+                        this.m_texFormatInfo.valueMax,
+                        this.m_texFormatInfo.valueMin
+                    )
+                ), this.m_texFormatInfo.valueMin
+            );
+            var colorB = deMath.add(
+                deMath.multiply(
+                    [0.0, 1.0, 0.0, 1.0],
+                    deMath.subtract(
+                        this.m_texFormatInfo.valueMax,
+                        this.m_texFormatInfo.valueMin
+                    )
+                ), this.m_texFormatInfo.valueMin
+            );
+            var rowPitch = deMath.deAlign32(
+                levelW * this.m_texFormat.getPixelSize(), this.m_alignment
+            );
+            var cellSize = Math.max(1, Math.min(levelW >> 2, levelH >> 2));
+            data = new ArrayBuffer(rowPitch * levelH);
+            tcuTextureUtil.fillWithGrid(
+                new tcuTexture.PixelBufferAccess(this.m_texFormat, levelW,
+                    levelH, 1, rowPitch, 0, new Uint8Array(data)
+                ), cellSize, colorA, colorB
+            );
+
+            this.m_context.texImage2D(
+                gl.TEXTURE_2D, ndx, this.m_internalFormat, levelW, levelH, 0,
+                this.m_format, this.m_dataType,
+                new Uint8Array(data)
+            );
+        }
+    };
+
+    // TexImageCube unpack alignment case.
+    /**
+     * @constructor
+     * @extends {es3fTextureSpecificationTests.TextureCubeSpecCase}
+     * @param {string} name
+     * @param {string} desc
+     * @param {number} format
+     * @param {number} dataType
+     * @param {number} size
+     * @param {number} numLevels
+     * @param {number} alignment
+     */
+    es3fTextureSpecificationTests.TexImageCubeAlignCase = function (
+        name, desc, format, dataType, size, numLevels, alignment
+    ) {
+        // Unsized internal format.
+        es3fTextureSpecificationTests.TextureCubeSpecCase.call(
+            this, name, desc, gluTextureUtil.mapGLTransferFormat(
+                format, dataType
+            ), size, numLevels
+        );
+
+        this.m_internalFormat = format;
+        this.m_format = format;
+        this.m_dataType = dataType;
+        this.m_alignment = alignment;
+    };
+
+    es3fTextureSpecificationTests.TexImageCubeAlignCase.prototype =
+        Object.create(
+            es3fTextureSpecificationTests.TextureCubeSpecCase.prototype
+        );
+
+    es3fTextureSpecificationTests.
+    TexImageCubeAlignCase.prototype.constructor =
+        es3fTextureSpecificationTests.TexImageCubeAlignCase;
+
+    /**
+     * @param {string} name
+     * @param {string} desc
+     * @param {number} internalFormat
+     * @param {number} size
+     * @param {number} numLevels
+     * @return {es3fTextureSpecificationTests.TexImageCubeAlignCase}
+     */
+    es3fTextureSpecificationTests.newTexImageCubeAlignCaseInternal =
+    function(name, desc, internalFormat, size, numLevels) {
+        // Sized internal format.
+        var fmt = gluTextureUtil.getTransferFormat(
+            gluTextureUtil.mapGLInternalFormat(internalFormat)
+        );
+        var testcase = new es3fTextureSpecificationTests.TexImageCubeAlignCase(
+            name, desc, fmt.format, fmt.dataType, size, numLevels
+        );
+        testcase.m_internalFormat = internalFormat;
+        return testcase;
+    };
+
+    /**
+     * createTexture
+     */
+    es3fTextureSpecificationTests.
+    TexImageCubeAlignCase.prototype.createTexture =
+    function () {
+        var tex = 0;
+        /** @type {ArrayBuffer} */ var data;
+
+        tex = this.m_context.createTexture();
+        this.m_context.bindTexture(gl.TEXTURE_CUBE_MAP, tex);
+        this.m_context.pixelStorei(gl.UNPACK_ALIGNMENT, this.m_alignment);
+
+        for (var ndx = 0; ndx < this.m_numLevels; ndx++)
+
+                images[ndx * 6 + face] = {ndx: ndx, face: face};
+
+        images = rnd.shuffle(images);
+
+        for (var ndx = 0; ndx < this.m_numLevels; ndx++) {
+            var levelSize = Math.max(1, this.m_size >> ndx);
+            var rowPitch = deMath.deAlign32(
+                this.m_texFormat.getPixelSize() * levelSize, this.m_alignment
+            )
+            var colorA = deMath.add(deMath.multiply(
+                [1.0, 0.0, 0.0, 1.0], deMath.subtract(
+                    this.m_texFormatInfo.valueMax, this.m_texFormatInfo.valueMin
+                ), this.m_texFormatInfo.valueMin
+            ));
+            var colorB = deMath.add(deMath.multiply(
+                [0.0, 1.0, 0.0, 1.0], deMath.subtract(
+                    this.m_texFormatInfo.valueMax, this.m_texFormatInfo.valueMin
+                ), this.m_texFormatInfo.valueMin
+            ));
+
+            data = new ArrayBuffer(rowPitch * levelSize);
+            tcuTextureUtil.fillWithGrid(
+                new tcuTexture.PixelBufferAccess(this.m_texFormat, levelW,
+                    levelH, 1, rowPitch, 0, new Uint8Array(data)
+                ), cellSize, colorA, colorB
+            );
+
+            for (
+                var face = 0;
+                face < es3fTextureSpecificationTests.s_cubeMapFaces.length;
+                face++
+            )
+                this.m_context.texImage2D(
+                    es3fTextureSpecificationTests.s_cubeMapFaces[face],
+                    ndx, this.m_internalFormat, levelSize, levelSize, 0,
+                    this.m_format, this.m_dataType,
+                    new Uint8Array(data)
+                );
+        }
+    };
+
+
+    // TexImage2D() unpack parameters case.
+    /**
+     * @constructor
+     * @extends {Texture2DSpecCase}
+     * @param {string} name
+     * @param {string} desc
+     * @param {number} internalFormat
+     * @param {number} width
+     * @param {number} height
+     * @param {number} rowLength
+     * @param {number} skipRows
+     * @param {number} skipPixels
+     * @param {number} alignment
+     */
+    es3fTextureSpecificationTests.TexImage2DParamsCase = function (
+        name, desc, internalFormat, width, height, rowLength, skipRows,
+        skipPixels, alignment
+    ) {
+        es3fTextureSpecificationTests.Texture2DSpecCase.call(
+            this, name, desc,
+            gluTextureUtil.mapGLInternalFormat(internalFormat),
+            width, height, 1
+        );
+        this.m_internalFormat = internalFormat;
+        this.m_rowLength = rowLength;
+        this.m_skipRows = skipRows;
+        this.m_skipPixels = skipPixels;
+        this.m_alignment = alignment;
+    };
+
+    /**
+     * createTexture
+     */
+    es3fTextureSpecificationTests.TexImage2DParamsCase.prototype.createTexture =
+    function () {
+        var transferFmt = gluTextureUtil.getTransferFormat(this.m_texFormat);
+        var pixelSize = this.m_texFormat.getPixelSize();
+        var rowLength = this.m_rowLength > 0 ? this.m_rowLength : this.m_width;
+        var rowPitch = deAlign32(rowLength*pixelSize, this.m_alignment);
+        var height = this.m_height + this.m_skipRows;
+        var tex = 0;
+        /** @type {ArrayBuffer} */ var data;
+
+        assertMsgOptions(
+            this.m_numLevels == 1, 'Number of levels different to 1',
+            false, true
+        );
+
+        // Fill data with grid.
+        data = new ArrayBuffer(rowPitch * height);
+
+        var cScale = deMath.subtract(
+            this.m_texFormatInfo.valueMax, this.m_texFormatInfo.valueMin
+        );
+        var cBias = this.m_texFormatInfo.valueMin;
+        var colorA = deMath.add(
+            deMath.multiply(
+                [1.0, 0.0, 0.0, 1.0], cScale
+            ), cBias
+        );
+        var colorB = deMath.add(
+            deMath.multiply(
+                [0.0, 1.0, 0.0, 1.0], cScale
+            ), cBias
+        );
+
+        tcuTextureUtil.fillWithGrid(
+            tcuTexture.PixelBufferAccess(
+                this.m_texFormat, this.m_width, this.m_height, 1,
+                rowPitch, 0, new Uint8Array(
+                    data,
+                    this.m_skipRows * rowPitch +
+                    this.m_skipPixels * pixelSize
+                )
+            ), 4, colorA, colorB
+        );
+
+        this.m_context.pixelStorei(gl.UNPACK_ROW_LENGTH, this.m_rowLength);
+        this.m_context.pixelStorei(gl.UNPACK_SKIP_ROWS, this.m_skipRows);
+        this.m_context.pixelStorei(gl.UNPACK_SKIP_PIXELS, this.m_skipPixels);
+        this.m_context.pixelStorei(gl.UNPACK_ALIGNMENT, this.m_alignment);
+
+        tex = this.m_context.createTexture();
+        this.m_context.bindTexture(gl.TEXTURE_2D, tex);
+        this.m_context.texImage2D(
+            gl.TEXTURE_2D, 0, this.m_internalFormat,
+            this.m_width, this.m_height, 0,
+            transferFmt.format, transferFmt.dataType, new Uint8Array(data)
+        );
+    };
+
+    // TexImage3D() unpack parameters case.
+    /**
+     * @constructor
+     * @extends {es3fTextureSpecificationTests.Texture2DSpecCase}
+     * @param {string} name
+     * @param {string} desc
+     * @param {number} internalFormat
+     * @param {number} dataType
+     * @param {number} width
+     * @param {number} height
+     * @param {number} depth
+     * @param {number} imageHeight
+     * @param {number} rowLength
+     * @param {number} skipImages
+     * @param {number} skipRows
+     * @param {number} skipPixels
+     * @param {number} alignment
+     */
+    es3fTextureSpecificationTests.TexImage3DParamsCase = function (
+        name, desc, internalFormat, width, height, depth, imageHeight,
+        rowLength, skipImages, skipRows, skipPixels, alignment
+    ) {
+        es3fTextureSpecificationTests.Texture3DSpecCase.call(
+            this, name, desc,
+            gluTextureUtil.mapGLInternalFormat(internalFormat),
+            width, height, depth, 1
+        );
+
+        this.m_internalFormat = internalFormat;
+        this.m_imageHeight = imageHeight;
+        this.m_rowLength = rowLength;
+        this.m_skipImages = skipImages;
+        this.m_skipRows = skipRows;
+        this.m_skipPixels = skipPixels;
+        this.m_alignment = alignment;
+    };
+
+    /**
+     * createTexture
+     */
+    es3fTextureSpecificationTests.TexImage3DParamsCase.prototype.createTexture =
+    function() {
+        var transferFmt = gluTextureUtil.getTransferFormat(this.m_texFormat);
+        var pixelSize = this.m_texFormat.getPixelSize();
+        var rowLength = this.m_rowLength > 0 ? this.m_rowLength : this.m_width;
+        var rowPitch = deAlign32(rowLength*pixelSize, this.m_alignment);
+        var imageHeight = this.m_imageHeight > 0 ?
+            this.m_imageHeight : this.m_height;
+        var slicePitch = imageHeight*rowPitch;
+
+        var                tex                = 0;
+        /** @type {ArrayBuffer} */ var data;
+
+        assertMsgOptions(
+            this.m_numLevels == 1, 'Number of levels different to 1',
+            false, true
+        );
+
+        // Fill data with grid.
+        data = new ArrayBuffer(slicePitch * (this.m_depth + this.m_skipImages));
+
+        var cScale = deMath.subtract(
+            this.m_texFormatInfo.valueMax, this.m_texFormatInfo.valueMin
+        );
+        var cBias = this.m_texFormatInfo.valueMin;
+        var colorA = deMath.add(
+            deMath.multiply(
+                [1.0, 0.0, 0.0, 1.0], cScale
+            ), cBias
+        );
+        var colorB = deMath.add(
+            deMath.multiply(
+                [0.0, 1.0, 0.0, 1.0], cScale
+            ), cBias
+        );
+
+        tcuTextureUtil.fillWithGrid(
+            tcuTexture.PixelBufferAccess(
+                this.m_texFormat, this.m_width, this.m_height, this.m_depth,
+                rowPitch, slicePitch, new Uint8Array(
+                    data,
+                    this.m_skipImages * slicePitch +
+                    this.m_skipRows * rowPitch +
+                    this.m_skipPixels * pixelSize
+                )
+            ), 4, colorA, colorB
+        );
+
+        this.m_context.pixelStorei(gl.UNPACK_IMAGE_HEIGHT, this.m_imageHeight);
+        this.m_context.pixelStorei(gl.UNPACK_ROW_LENGTH, this.m_rowLength);
+        this.m_context.pixelStorei(gl.UNPACK_SKIP_IMAGES, this.m_skipImages);
+        this.m_context.pixelStorei(gl.UNPACK_SKIP_ROWS, this.m_skipRows);
+        this.m_context.pixelStorei(gl.UNPACK_SKIP_PIXELS, this.m_skipPixels);
+        this.m_context.pixelStorei(gl.UNPACK_ALIGNMENT, this.m_alignment);
+
+        tex = this.m_context.createTexture();
+        this.m_context.bindTexture(gl.TEXTURE_3D, tex);
+        this.m_context.texImage3D(
+            gl.TEXTURE_3D, 0, this.m_internalFormat,
+            this.m_width, this.m_height, this.m_depth, 0,
+            transferFmt.format, transferFmt.dataType, new Uint8Array(data)
+        );
     };
 
     /**
