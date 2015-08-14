@@ -272,10 +272,21 @@ gluDrawUtil.indexBuffer = function(gl, primitives) {
  * @return {WebGLBuffer} buffer of vertices
  */
 gluDrawUtil.vertexBuffer = function(gl, vertexArray) {
+    /** @type {goog.TypedArray} */ var typedArray;
+    switch (vertexArray.type) {
+        case gl.BYTE: typedArray = new Int8Array(vertexArray.data); break;
+        case gl.UNSIGNED_BYTE: typedArray = new Uint8Array(vertexArray.data); break;
+        case gl.SHORT: typedArray = new Int16Array(vertexArray.data); break;
+        case gl.UNSIGNED_SHORT: typedArray = new Uint16Array(vertexArray.data); break;
+        case gl.INT: typedArray = new Int16Array(vertexArray.data); break;
+        case gl.UNSIGNED_INT: typedArray = new Uint16Array(vertexArray.data); break;
+        default: typedArray = new Float32Array(vertexArray.data); break;
+    }
+
     /** @type {WebGLBuffer} */ var buffer = gl.createBuffer();
     gl.bindBuffer(gl.ARRAY_BUFFER, buffer);
     assertMsgOptions(gl.getError() === gl.NO_ERROR, 'bindBuffer', false, true);
-    gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(vertexArray.data), gl.STATIC_DRAW);
+    gl.bufferData(gl.ARRAY_BUFFER, typedArray, gl.STATIC_DRAW);
     assertMsgOptions(gl.getError() === gl.NO_ERROR, 'bufferData', false, true);
     gl.enableVertexAttribArray(vertexArray.location);
     assertMsgOptions(gl.getError() === gl.NO_ERROR, 'enableVertexAttribArray', false, true);
