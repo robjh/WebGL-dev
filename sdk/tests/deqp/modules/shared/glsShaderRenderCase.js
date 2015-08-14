@@ -169,6 +169,8 @@ goog.scope(function() {
         /** @type {Array<Array<number>>} */ this.m_unitCoords = [];        //!< Positive-only coordinates [0.0 .. 1.5].
         /** @type {Array<number>} */ this.m_attribOne = [];
         /** @type {Array<Array<number>>} */ this.m_userAttribs = [];
+        for (var attribNdx = 0; attribNdx < this.getNumUserAttribs(); attribNdx++)
+            this.m_userAttribs[attribNdx] = [];
         /** @type {Array<number>} */ this.m_indices = [];
 
         /** @type Array<number>} */ var viewportScale = [width, height, 0, 0];
