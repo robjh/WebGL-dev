@@ -367,6 +367,13 @@ deMath.rint = function(a) {
     return floorVal + (roundUp ? 1 : 0);
 };
 
+// Round number to int by dropping fractional part
+deMath.intCast = function(a) {
+    if (a >= 0)
+        return Math.floor(a);
+    return Math.ceil(a);
+};
+
 /**
  * @param {number} a
  * @return {number}
