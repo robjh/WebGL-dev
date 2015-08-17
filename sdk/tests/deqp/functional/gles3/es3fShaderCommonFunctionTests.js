@@ -22,20 +22,26 @@
 goog.provide('functional.gles3.es3fShaderCommonFunctionTests');
 goog.require('framework.common.tcuFloat');
 goog.require('framework.common.tcuTestCase');
-goog.require('framework.delibs.debase.deRandom');
 goog.require('framework.delibs.debase.deMath');
+goog.require('framework.delibs.debase.deRandom');
+goog.require('framework.delibs.debase.deString');
 goog.require('framework.opengl.gluShaderProgram');
 goog.require('framework.opengl.gluShaderUtil');
+goog.require('framework.opengl.gluVarType');
+goog.require('modules.shared.glsShaderExecUtil');
 goog.scope(function() {
     var es3fShaderCommonFunctionTests = functional.gles3.es3fShaderCommonFunctionTests;
     var tcuFloat = framework.common.tcuFloat;
     var tcuTestCase = framework.common.tcuTestCase;
     var gluShaderProgram = framework.opengl.gluShaderProgram;
     var gluShaderUtil = framework.opengl.gluShaderUtil;
+    var gluVarType = framework.opengl.gluVarType;
 	var deRandom = framework.delibs.debase.deRandom;
 	var deMath = framework.delibs.debase.deMath;
+	var deString = framework.delibs.debase.deString;
+	var glsShaderExecUtil = modules.shared.glsShaderExecUtil;
 
-    /** @typedef {*} */ es3fShaderCommonFunctionTests.TestClass;
+    /** @typedef {(es3fShaderCommonFunctionTests.AbsCase)} */ es3fShaderCommonFunctionTests.TestClass;
 
 	// VecArrayAccess
 	// Won't need this, but just in case.
@@ -110,7 +116,7 @@ goog.scope(function() {
 	 */
 	es3fShaderCommonFunctionTests.fillRandomScalars = function(type, rnd, minValue, maxValue, numValues, offset) {
 		offset = offset === undefined ? 0 : offset;
-		/** @type {Array<number>} */ var access;
+		/** @type {Array<number>} */ var access = [];
 		for (var ndx = 0; ndx < numValues; ndx++)
 			access[offset + ndx] = es3fShaderCommonFunctionTests.randomScalar(type, rnd, minValue, maxValue);
 		return access;
@@ -207,6 +213,532 @@ goog.scope(function() {
 		return bits[precision];
 	}
 
+	/**
+	 * @constructor
+	 * @extends {tcuTestCase.DeqpTest}
+	 * @param {string} name
+	 * @param {string} description
+	 * @param {gluShaderProgram.shaderType} shaderType
+	 */
+	es3fShaderCommonFunctionTests.CommonFunctionCase = function(name, description, shaderType) {
+		tcuTestCase.DeqpTest.call(this, name, description);
+		/** @type {gluShaderProgram.shaderType} */ this.m_shaderType = shaderType;
+		/** @type {number} */ this.m_numValues = 100;
+		/** @type {glsShaderExecUtil.ShaderExecutor} */ this.m_executor = null;
+		/** @type {glsShaderExecUtil.ShaderSpec} */ this.m_spec = new glsShaderExecUtil.ShaderSpec();
+		this.m_spec.version = gluShaderUtil.GLSLVersion.V300_ES;
+		/** @type {string} */ this.m_failMsg; //!< Comparison failure help message.
+	};
+
+	es3fShaderCommonFunctionTests.CommonFunctionCase.prototype = Object.create(tcuTestCase.DeqpTest.prototype);
+	es3fShaderCommonFunctionTests.CommonFunctionCase.prototype.constructor = es3fShaderCommonFunctionTests.CommonFunctionCase;
+
+	es3fShaderCommonFunctionTests.CommonFunctionCase.prototype.init = function() {
+		assertMsgOptions(!this.m_executor, "Shader executor should be null at this point", false, true);
+		this.m_executor = glsShaderExecUtil.createExecutor(this.m_shaderType, this.m_spec);
+		if (!this.m_executor.isOk())
+			throw new Error("Compile failed");
+	};
+
+	es3fShaderCommonFunctionTests.CommonFunctionCase.prototype.deinit = function() {
+		this.m_executor = null;
+	};
+
+	/**
+	 * @param {Array<glsShaderExecUtil.Symbol>} symbols
+	 * @return {Array<number>}
+	 */
+	es3fShaderCommonFunctionTests.getScalarSizes = function(symbols) {
+		/** @type {Array<number>} */ var sizes = [];
+		for (var ndx = 0; ndx < symbols.length; ++ndx)
+			sizes.push(symbols[ndx].varType.getScalarSize());
+		return sizes;
+	};
+
+	/**
+	 * @param {Array<glsShaderExecUtil.Symbol>} symbols
+	 * @return {number}
+	 */
+	es3fShaderCommonFunctionTests.computeTotalScalarSize = function(symbols) {
+		/** @type {number} */ var totalSize = 0;
+		for (var sym in symbols)
+			totalSize += symbols[sym].varType.getScalarSize();
+		return totalSize;
+	};
+
+	/**
+	 * @param {Array<glsShaderExecUtil.Symbol>} symbols
+	 * @param {ArrayBuffer} data
+	 * @param {number} numValues
+	 * @return {Array<*>}
+	 */
+	es3fShaderCommonFunctionTests.getInputOutputPointers = function(symbols, data, numValues) {
+		/** @type {Array<goog.TypedArray>} */ var pointers = [];
+		/** @type {number} */ var curScalarOffset	= 0;
+
+		for (var varNdx = 0; varNdx < symbols.length; ++varNdx) {
+			/** @type {glsShaderExecUtil.Symbol} */ var var_ = symbols[varNdx];
+			/** @type {number} */ var scalarSize = var_.varType.getScalarSize();
+
+			// Uses planar layout as input/output specs do not support strides.
+			pointers[varNdx] = new ArrayBuffer(data, curScalarOffset);
+			curScalarOffset += scalarSize * numValues;
+		}
+
+		assertMsgOptions(curScalarOffset === data.length, 'Size mismatch.', false, true);
+
+		return pointers;
+	};
+
+	// HexFloat
+	// HexBool
+	// VarValue
+
+	/**
+	 * @return {tcuTestCase.IterateResult}
+	 */
+	es3fShaderCommonFunctionTests.CommonFunctionCase.prototype.iterate = function() {
+		/** @type {number} */ var numInputScalars = es3fShaderCommonFunctionTests.computeTotalScalarSize(this.m_spec.inputs);
+		/** @type {number} */ var numOutputScalars = es3fShaderCommonFunctionTests.computeTotalScalarSize(this.m_spec.outputs);
+		/** @type {goog.TypedArray} */ var inputData; // = new Uint32Array(numInputScalars * this.m_numValues);
+		/** @type {goog.TypedArray} */ var outputData; // = new Uint32Array(numInputScalars * this.m_numValues);
+		/** @type {gluShaderUtil.DataType} */ var inputType = this.m_spec.inputs[0].varType.getBasicType();
+		/** @type {gluShaderUtil.DataType} */ var outputType = this.m_spec.outputs[0].varType.getBasicType();
+		/** @type {Array<number>} */ var inputValues;
+		/** @type {ArrayBuffer} */ var outputValues;
+		inputValues = this.getInputValues(this.m_numValues);
+
+		inputData = inputType >= gluShaderUtil.DataType.FLOAT && inputType <= gluShaderUtil.DataType.FLOAT_VEC4 ? new Float32Array(inputValues) :
+					inputType >= gluShaderUtil.DataType.INT && inputType <= gluShaderUtil.DataType.INT_VEC4 ? new Int32Array(inputValues) :
+					inputType >= gluShaderUtil.DataType.UINT && inputType <= gluShaderUtil.DataType.UINT_VEC4 ? new Uint32Array(inputValues) :
+					null;
+debugger;
+		// Execute shader.
+		this.m_executor.useProgram();
+		outputValues = this.m_executor.execute(this.m_numValues, [inputData])[0].buffer;
+		outputData = outputType >= gluShaderUtil.DataType.FLOAT && outputType <= gluShaderUtil.DataType.FLOAT_VEC4 ? new Float32Array(outputValues) :
+					outputType >= gluShaderUtil.DataType.INT && outputType <= gluShaderUtil.DataType.INT_VEC4 ? new Int32Array(outputValues) :
+					outputType >= gluShaderUtil.DataType.UINT && outputType <= gluShaderUtil.DataType.UINT_VEC4 ? new Uint32Array(outputValues) :
+					null;
+
+		// Compare results.
+		/** @type {Array<number>} */ var inScalarSizes = es3fShaderCommonFunctionTests.getScalarSizes(this.m_spec.inputs);
+		/** @type {Array<number>} */ var outScalarSizes = es3fShaderCommonFunctionTests.getScalarSizes(this.m_spec.outputs);
+		/** @type {Array<*>} */ var curInputPtr = [];
+		/** @type {Array<*>} */ var curOutputPtr = [];
+		/** @type {number} */ var numFailed = 0;
+
+		for (var inNdx = 0; inNdx < inputData.length; inNdx += inScalarSizes[0])
+			curInputPtr.push(inputData.slice(inNdx, inNdx + inScalarSizes[0]));
+
+		for (var outNdx = 0; outNdx < outputData.length; outNdx += outScalarSizes[0])
+			curOutputPtr.push(outputData.slice(outNdx, outNdx + outScalarSizes[0]));
+
+		for (var valNdx = 0; valNdx < this.m_numValues; valNdx++) {
+			if (!this.compare([curInputPtr[valNdx]], [curOutputPtr[valNdx]])) {
+				// \todo [2013-08-08 pyry] We probably want to log reference value as well?
+
+				bufferedLogToConsole("ERROR: comparison failed for value " + valNdx + ":\n  " + this.m_failMsg);
+				bufferedLogToConsole("  inputs:");
+				bufferedLogToConsole("    " + this.m_spec.inputs[0].name + " = " + this.m_spec.inputs[0].varType.toString() + "  " + curInputPtr[valNdx]);
+				bufferedLogToConsole("  outputs:");
+				bufferedLogToConsole("    " + this.m_spec.outputs[0].name + " = " + this.m_spec.outputs[0].varType.toString() + " " + curOutputPtr[valNdx]);
+
+				this.m_failMsg = ""
+				numFailed += 1;
+			}
+		}
+
+		bufferedLogToConsole((this.m_numValues - numFailed) + " / " + this.m_numValues + " values passed");
+
+		/** @type {boolean} */ var isOk = numFailed === 0;
+
+		if (!isOk)
+			testFailedOptions('Result comparison failed', false);
+		else
+			testPassedOptions('Pass', true);
+
+		return tcuTestCase.IterateResult.STOP;
+	};
+
+	/**
+	 * @param {gluShaderUtil.precision} precision
+	 * @return {string}
+	 */
+	es3fShaderCommonFunctionTests.getPrecisionPostfix = function(precision) {
+		/** @type {Array<string>} */ var s_postfix = [
+			'_lowp',
+			'_mediump',
+			'_highp'
+		];
+		assertMsgOptions(0 <= precision && precision < s_postfix.length, 'Error: Out of range', false, true);
+		return s_postfix[precision];
+	};
+
+	/**
+	 * @param {gluShaderProgram.shaderType} shaderType
+	 * @return {string}
+	 */
+	es3fShaderCommonFunctionTests.getShaderTypePostfix = function(shaderType) {
+		/** @type {Array<string>} */ var s_postfix = [
+			'_vertex',
+			'_fragment'
+		];
+		assertMsgOptions(0 <= shaderType && shaderType < s_postfix.length, 'Error Out of range', false, true);
+		return s_postfix[shaderType];
+	};
+
+	/**
+	 * @param {gluShaderUtil.DataType} baseType
+	 * @param {gluShaderUtil.precision} precision
+	 * @param {gluShaderProgram.shaderType} shaderType
+	 * @return {string}
+	 */
+	es3fShaderCommonFunctionTests.getCommonFuncCaseName = function(baseType, precision, shaderType) {
+		return gluShaderUtil.getDataTypeName(baseType) +
+			es3fShaderCommonFunctionTests.getPrecisionPostfix(precision) +
+			es3fShaderCommonFunctionTests.getShaderTypePostfix(shaderType);
+	};
+
+	/**
+	 * @constructor
+	 * @extends {es3fShaderCommonFunctionTests.CommonFunctionCase}
+	 * @param {gluShaderUtil.DataType} baseType
+	 * @param {gluShaderUtil.precision} precision
+	 * @param {gluShaderProgram.shaderType} shaderType
+	 */
+	es3fShaderCommonFunctionTests.AbsCase = function(baseType, precision, shaderType) {
+		es3fShaderCommonFunctionTests.CommonFunctionCase.call(this,
+			es3fShaderCommonFunctionTests.getCommonFuncCaseName(baseType, precision, shaderType),
+			'abs', shaderType);
+		this.m_spec.inputs.push(new glsShaderExecUtil.Symbol('in0', gluVarType.newTypeBasic(baseType, precision)));
+		this.m_spec.outputs.push(new glsShaderExecUtil.Symbol('out0', gluVarType.newTypeBasic(baseType, precision)));
+		this.m_spec.source = 'out0 = abs(in0);';
+	};
+
+	es3fShaderCommonFunctionTests.AbsCase.prototype = Object.create(es3fShaderCommonFunctionTests.CommonFunctionCase.prototype);
+	es3fShaderCommonFunctionTests.AbsCase.prototype.constructor = es3fShaderCommonFunctionTests.AbsCase;
+
+	/**
+	 * @param {number} numValues
+	 * @return {*}
+	 */
+	es3fShaderCommonFunctionTests.AbsCase.prototype.getInputValues = function(numValues) {
+		/** @type {Array<Array<number>>} */ var floatRanges = [
+			[-2.0, 2.0], // lowp
+			[-1e3, 1e3], // mediump
+			[-1e7, 1e7] // highp
+		];
+
+		/** @type {Array<Array<number>>} */ var intRanges = [
+			[-(1 << 7) + 1, (1 << 7) - 1],
+			[-(1 << 15) + 1, (1 << 15) - 1],
+			[0x80000001, 0x7fffffff]
+		];
+
+		/** @type {deRandom.Random} */ var rnd = new deRandom.Random(deString.deStringHash(this.name) ^ 0x235fac);
+
+		/** @type {gluShaderUtil.DataType} */ var type = this.m_spec.inputs[0].varType.getBasicType();
+		/** @type {gluShaderUtil.precision} */ var precision = this.m_spec.inputs[0].varType.getPrecision();
+		/** @type {number} */ var scalarSize = gluShaderUtil.getDataTypeScalarSize(type);
+
+		if (gluShaderUtil.isDataTypeFloatOrVec(type))
+			return es3fShaderCommonFunctionTests.fillRandomScalars(es3fShaderCommonFunctionTests.Types.FLOAT, rnd, floatRanges[precision][0], floatRanges[precision][1], numValues * scalarSize);
+		else
+			return es3fShaderCommonFunctionTests.fillRandomScalars(es3fShaderCommonFunctionTests.Types.INT, rnd, intRanges[precision][0], intRanges[precision][1], numValues * scalarSize);
+	};
+
+	/**
+	 * @param {*} inputs
+	 * @param {*} outputs
+	 * @return {boolean}
+	 */
+	es3fShaderCommonFunctionTests.AbsCase.prototype.compare = function(inputs, outputs) {
+		/** @type {gluShaderUtil.DataType} */ var type = this.m_spec.inputs[0].varType.getBasicType();
+		/** @type {gluShaderUtil.precision} */ var precision = this.m_spec.inputs[0].varType.getPrecision();
+		/** @type {number} */ var scalarSize = gluShaderUtil.getDataTypeScalarSize(type);
+
+		/** @type {number} */ var in0;
+		/** @type {number} */ var out0;
+		/** @type {number} */ var ref0;
+
+		if (gluShaderUtil.isDataTypeFloatOrVec(type)) {
+			/** @type {number} */ var mantissaBits = es3fShaderCommonFunctionTests.getMinMantissaBits(precision);
+			/** @type {number} */ var maxUlpDiff = (1 << (23 - mantissaBits)) - 1;
+
+			for (var compNdx = 0; compNdx < scalarSize; compNdx++) {
+				in0 = inputs[0][compNdx];
+				out0 = outputs[0][compNdx];
+				ref0 = Math.abs(in0);
+				/** @type {number} */ var ulpDiff0 = es3fShaderCommonFunctionTests.getUlpDiff(out0, ref0);
+
+				if (ulpDiff0 > maxUlpDiff) {
+					this.m_failMsg += "Expected [" + compNdx + "] = " + ref0 /*HexFloat(ref0)*/ + " with ULP threshold " + maxUlpDiff + ", got ULP diff " + ulpDiff0;
+					return false;
+				}
+			}
+		}
+		else
+			for (var compNdx = 0; compNdx < scalarSize; compNdx++) {
+				in0 = inputs[0][compNdx];
+				out0 = outputs[0][compNdx];
+				ref0 = Math.abs(in0);
+
+				if (out0 != ref0) {
+					this.m_failMsg += "Expected [" + compNdx + "] = " + ref0;
+					return false;
+				}
+			}
+
+		return true;
+	};
+
+	/**
+	 * @constructor
+	 * @extends {es3fShaderCommonFunctionTests.CommonFunctionCase}
+	 * @param {gluShaderUtil.DataType} baseType
+	 * @param {gluShaderUtil.precision} precision
+	 * @param {gluShaderProgram.shaderType} shaderType
+	 */
+	es3fShaderCommonFunctionTests.SignCase = function(baseType, precision, shaderType) {
+		es3fShaderCommonFunctionTests.CommonFunctionCase.call(this,
+			es3fShaderCommonFunctionTests.getCommonFuncCaseName(baseType, precision, shaderType),
+			'sign', shaderType);
+		this.m_spec.inputs.push(new glsShaderExecUtil.Symbol('in0', gluVarType.newTypeBasic(baseType, precision)));
+		this.m_spec.outputs.push(new glsShaderExecUtil.Symbol('out0', gluVarType.newTypeBasic(baseType, precision)));
+		this.m_spec.source = 'out0 = sign(in0);';
+	};
+
+	es3fShaderCommonFunctionTests.SignCase.prototype = Object.create(es3fShaderCommonFunctionTests.CommonFunctionCase.prototype);
+	es3fShaderCommonFunctionTests.SignCase.prototype.constructor = es3fShaderCommonFunctionTests.SignCase;
+
+	/**
+	 * @param {number} numValues
+	 * @return {*}
+	 */
+	es3fShaderCommonFunctionTests.SignCase.prototype.getInputValues = function(numValues) {
+		/** @type {Array<Array<number>>} */ var floatRanges = [
+			[-2.0, 2.0], // lowp
+			[-1e4, 1e4], // mediump
+			[-1e8, 1e8] // highp
+		];
+
+		/** @type {Array<Array<number>>} */ var intRanges = [
+			[-(1 << 7), (1 << 7) - 1],
+			[-(1 << 15), (1 << 15) - 1],
+			[0x80000000, 0x7fffffff]
+		];
+
+		/** @type {deRandom.Random} */ var rnd = new deRandom.Random(deString.deStringHash(this.name) ^ 0x324);
+
+		/** @type {gluShaderUtil.DataType} */ var type = this.m_spec.inputs[0].varType.getBasicType();
+		/** @type {gluShaderUtil.precision} */ var precision = this.m_spec.inputs[0].varType.getPrecision();
+		/** @type {number} */ var scalarSize = gluShaderUtil.getDataTypeScalarSize(type);
+
+		if (gluShaderUtil.isDataTypeFloatOrVec(type)) {
+			// Special cases.
+			// std::fill((float*)values[0], (float*)values[0] + scalarSize, +1.0f);
+			// std::fill((float*)values[0], (float*)values[0] + scalarSize, -1.0f);
+			// std::fill((float*)values[0], (float*)values[0] + scalarSize,  0.0f);
+			// [dag 2015-08-13] was this indended, or should it have been [1.0, -1.0, 0.0]?
+			return [0, 0, 0].concat(es3fShaderCommonFunctionTests.fillRandomScalars(es3fShaderCommonFunctionTests.Types.FLOAT, rnd, floatRanges[precision][0], floatRanges[precision][1], (numValues - 3) * scalarSize));
+		}
+		else {
+			// std::fill((int*)values[0], (int*)values[0] + scalarSize, +1);
+			// std::fill((int*)values[0], (int*)values[0] + scalarSize, -1);
+			// std::fill((int*)values[0], (int*)values[0] + scalarSize,  0);
+			// [dag 2015-08-13] was this indended, or should it have been [1, -1, 0]?
+			return [0, 0, 0].concat(es3fShaderCommonFunctionTests.fillRandomScalars(es3fShaderCommonFunctionTests.Types.INT, rnd, intRanges[precision][0], intRanges[precision][1], (numValues - 3) * scalarSize));
+		}
+	};
+
+	/**
+	 * @param {*} inputs
+	 * @param {*} outputs
+	 * @return {boolean}
+	 */
+	es3fShaderCommonFunctionTests.SignCase.prototype.compare = function(inputs, outputs) {
+		/** @type {gluShaderUtil.DataType} */ var type = this.m_spec.inputs[0].varType.getBasicType();
+		/** @type {gluShaderUtil.precision} */ var precision = this.m_spec.inputs[0].varType.getPrecision();
+		/** @type {number} */ var scalarSize = gluShaderUtil.getDataTypeScalarSize(type);
+
+		/** @type {number} */ var in0;
+		/** @type {number} */ var out0;
+		/** @type {number} */ var ref0;
+
+		if (gluShaderUtil.isDataTypeFloatOrVec(type)) {
+			// Both highp and mediump should be able to represent -1, 0, and +1 exactly
+			/** @type {number} */ var maxUlpDiff = precision === gluShaderUtil.precision.PRECISION_LOWP ?
+				es3fShaderCommonFunctionTests.getMaxUlpDiffFromBits(es3fShaderCommonFunctionTests.getMinMantissaBits(precision)) :
+				0;
+
+			for (var compNdx = 0; compNdx < scalarSize; compNdx++) {
+				in0 = inputs[0][compNdx];
+				out0 = outputs[0][compNdx];
+				ref0 = in0 < 0.0 ? -1.0 :
+					   in0 > 0.0 ? 1.0 : 0.0;
+				/** @type {number} */ var ulpDiff0	= es3fShaderCommonFunctionTests.getUlpDiff(out0, ref0);
+
+				if (ulpDiff0 > maxUlpDiff) {
+					this.m_failMsg += "Expected [" + compNdx + "] = " + HexFloat(ref0) + " with ULP threshold " + maxUlpDiff + ", got ULP diff " + ulpDiff0;
+					return false;
+				}
+			}
+		}
+		else {
+			for (var compNdx = 0; compNdx < scalarSize; compNdx++) {
+				in0 = inputs[0][compNdx];
+				out0 = outputs[0][compNdx];
+				ref0 = in0 < 0 ? -1 :
+					   in0 > 0 ? 1 : 0;
+
+				if (out0 != ref0) {
+					this.m_failMsg += "Expected [" + compNdx + "] = " + ref0;
+					return false;
+				}
+			}
+		}
+
+		return true;
+	};
+
+	/**
+	 * @param {number} v
+	 * @return {number}
+	 */
+	es3fShaderCommonFunctionTests.roundEven = function(v) {
+		/** @type {number} */ var q = deMath.deFloatFrac(v);
+		/** @type {number} */ var truncated = Math.floor(v - q);
+		/** @type {number} */ var rounded = (q > 0.5) ? (truncated + 1) : // Rounded up
+			(q == 0.5 && (truncated % 2 != 0))	? (truncated + 1) :	// Round to nearest even at 0.5
+			truncated; // Rounded down
+		return rounded;
+	};
+
+	/**
+	 * @constructor
+	 * @extends {es3fShaderCommonFunctionTests.CommonFunctionCase}
+	 * @param {gluShaderUtil.DataType} baseType
+	 * @param {gluShaderUtil.precision} precision
+	 * @param {gluShaderProgram.shaderType} shaderType
+	 */
+	es3fShaderCommonFunctionTests.RoundEvenCase = function(baseType, precision, shaderType) {
+		es3fShaderCommonFunctionTests.CommonFunctionCase.call(this,
+			es3fShaderCommonFunctionTests.getCommonFuncCaseName(baseType, precision, shaderType),
+			'roundEven', shaderType);
+		this.m_spec.inputs.push(new glsShaderExecUtil.Symbol('in0', gluVarType.newTypeBasic(baseType, precision)));
+		this.m_spec.outputs.push(new glsShaderExecUtil.Symbol('out0', gluVarType.newTypeBasic(baseType, precision)));
+		this.m_spec.source = 'out0 = roundEven(in0);';
+	};
+
+	es3fShaderCommonFunctionTests.RoundEvenCase.prototype = Object.create(es3fShaderCommonFunctionTests.CommonFunctionCase.prototype);
+	es3fShaderCommonFunctionTests.RoundEvenCase.prototype.constructor = es3fShaderCommonFunctionTests.RoundEvenCase;
+
+	/**
+	 * @param {number} numValues
+	 * @return {*}
+	 */
+	es3fShaderCommonFunctionTests.RoundEvenCase.prototype.getInputValues = function(numValues) {
+		/** @type {Array<Array<number>>} */ var ranges = [
+			[-2.0, 2.0], // lowp
+			[-1e3, 1e3], // mediump
+			[-1e7, 1e7] // highp
+		];
+
+		/** @type {deRandom.Random} */ var rnd = new deRandom.Random(deString.deStringHash(this.name) ^ 0xac23f);
+
+		/** @type {gluShaderUtil.DataType} */ var type = this.m_spec.inputs[0].varType.getBasicType();
+		/** @type {gluShaderUtil.precision} */ var precision = this.m_spec.inputs[0].varType.getPrecision();
+		/** @type {number} */ var scalarSize = gluShaderUtil.getDataTypeScalarSize(type);
+		/** @type {number} */ var numSpecialCases = 0;
+		/** @type {Array<number>} */ var values = []
+		// Special cases.
+		if (precision !== gluShaderUtil.precision.PRECISION_LOWP) {
+			assertMsgOptions(numValues >= 20, 'numValues should be greater or equal than 20', false, true);
+			for (var ndx = 0; ndx < 20; ndx++) {
+				/** @type {number} */ var v = deMath.clamp(ndx - 10.5, ranges[precision][0], ranges[precision][1]);
+				// std::fill((float*)values[0], (float*)values[0] + scalarSize, v);
+				values.push(v);
+				numSpecialCases += 1;
+			}
+		}
+
+		// Random cases.
+		values = values.concat(es3fShaderCommonFunctionTests.fillRandomScalars(es3fShaderCommonFunctionTests.Types.FLOAT, rnd, ranges[precision][0], ranges[precision][1], (numValues - numSpecialCases) * scalarSize));
+
+		// If precision is mediump, make sure values can be represented in fp16 exactly
+		if (precision === gluShaderUtil.precision.PRECISION_MEDIUMP) {
+			//for (var ndx = 0; ndx < numValues * scalarSize; ndx++)
+			for (var ndx = 0; ndx < values.length; ndx++) {
+				// ((float*)values[0])[ndx] = tcu::Float16(((float*)values[0])[ndx]).asFloat();
+				tcuFloat.newFloat16(values[ndx]).getValue();
+			}
+		}
+
+		return values;
+	};
+
+	/**
+	 * @param {*} inputs
+	 * @param {*} outputs
+	 * @return {boolean}
+	 */
+	es3fShaderCommonFunctionTests.RoundEvenCase.prototype.compare = function(inputs, outputs) {
+		/** @type {gluShaderUtil.DataType} */ var type = this.m_spec.inputs[0].varType.getBasicType();
+		/** @type {gluShaderUtil.precision} */ var precision = this.m_spec.inputs[0].varType.getPrecision();
+		/** @type {boolean} */ var hasSignedZero = es3fShaderCommonFunctionTests.supportsSignedZero(precision);
+		/** @type {number} */ var scalarSize = gluShaderUtil.getDataTypeScalarSize(type);
+		/** @type {number} */ var in0;
+		/** @type {number} */ var out0;
+
+		if (precision == gluShaderUtil.precision.PRECISION_HIGHP || precision == gluShaderUtil.precision.PRECISION_MEDIUMP) {
+			// Require exact rounding result.
+			for (var compNdx = 0; compNdx < scalarSize; compNdx++) {
+				in0 = inputs[0][compNdx];
+				out0 = outputs[0][compNdx];
+				/** @type {number} */ var ref = es3fShaderCommonFunctionTests.roundEven(in0);
+
+				/** @type {number} */ var ulpDiff = hasSignedZero ?
+					es3fShaderCommonFunctionTests.getUlpDiff(out0, ref) :
+					es3fShaderCommonFunctionTests.getUlpDiffIgnoreZeroSign(out0, ref);
+
+				if (ulpDiff > 0) {
+					this.m_failMsg += "Expected [" + compNdx + "] = " + HexFloat(ref) + ", got ULP diff " + ulpDiff /*tcu::toHex(ulpDiff)*/;
+					return false;
+				}
+			}
+		}
+		else {
+			/** @type {number} */ var mantissaBits = es3fShaderCommonFunctionTests.getMinMantissaBits(precision);
+			/** @type {number} */ var maxUlpDiff = es3fShaderCommonFunctionTests.getMaxUlpDiffFromBits(mantissaBits);	// ULP diff for rounded integer value.
+			/** @type {number} */ var eps = es3fShaderCommonFunctionTests.getEpsFromBits(1.0, mantissaBits);	// epsilon for rounding bounds
+
+			for (var compNdx = 0; compNdx < scalarSize; compNdx++) {
+				in0 = inputs[0][compNdx];
+				out0 = outputs[0][compNdx];
+				/** @type {number} */ var minRes = Math.floor(es3fShaderCommonFunctionTests.roundEven(in0 - eps));
+				/** @type {number} */ var maxRes = Math.floor(es3fShaderCommonFunctionTests.roundEven(in0 + eps));
+				/** @type {boolean} */ var anyOk = false;
+
+				for (var roundedVal = minRes; roundedVal <= maxRes; roundedVal++) {
+					/** @type {number} */ var ulpDiff = es3fShaderCommonFunctionTests.getUlpDiffIgnoreZeroSign(out0, roundedVal);
+
+					if (ulpDiff <= maxUlpDiff) {
+						anyOk = true;
+						break;
+					}
+				}
+
+				if (!anyOk) {
+					this.m_failMsg += "Expected [" + compNdx + "] = [" + minRes + ", " + maxRes + "] with ULP threshold " + maxUlpDiff /*tcu::toHex(maxUlpDiff)*/;
+					return false;
+				}
+			}
+		}
+
+		return true;
+	};
+
     /**
      * @constructor
      * @extends {tcuTestCase.DeqpTest}
@@ -247,19 +779,20 @@ goog.scope(function() {
             for (var vecSize = 1; vecSize <= 4; vecSize++)
             for (var prec = gluShaderUtil.precision.PRECISION_LOWP; prec <= gluShaderUtil.precision.PRECISION_HIGHP; prec++)
             for (var shaderType = gluShaderProgram.shaderType.VERTEX; shaderType <= gluShaderProgram.shaderType.FRAGMENT; shaderType++)
-                group.addChild(new testClass(gluShaderUtil.DataType[scalarType + vecSize - 1], gluShaderUtil.precision[prec], gluShaderProgram.shaderType[shaderType]));
+                group.addChild(new testClass(scalarType + vecSize - 1, prec, shaderType));
+                // group.addChild(new testClass(gluShaderUtil.DataType[scalarType + vecSize - 1], gluShaderUtil.precision[prec], gluShaderProgram.shaderType[shaderType]));
         }
     };
 
     es3fShaderCommonFunctionTests.ShaderCommonFunctionTests.prototype.init = function() {
         var testGroup = tcuTestCase.runner.testCases;
 
-        // es3fShaderCommonFunctionTests.addFunctionCases(testGroup, es3fShaderCommonFunctionTests.AbsCase, 'abs', true, true, false);
-        // es3fShaderCommonFunctionTests.addFunctionCases(testGroup, es3fShaderCommonFunctionTests.SignCase, 'sign', true, true, false);
+        es3fShaderCommonFunctionTests.addFunctionCases(testGroup, es3fShaderCommonFunctionTests.AbsCase, 'abs', true, true, false);
+        es3fShaderCommonFunctionTests.addFunctionCases(testGroup, es3fShaderCommonFunctionTests.SignCase, 'sign', true, true, false);
         // es3fShaderCommonFunctionTests.addFunctionCases(testGroup, es3fShaderCommonFunctionTests.FloorCase, 'floor', true, false, false);
         // es3fShaderCommonFunctionTests.addFunctionCases(testGroup, es3fShaderCommonFunctionTests.TruncCase, 'trunc', true, false, false);
         // es3fShaderCommonFunctionTests.addFunctionCases(testGroup, es3fShaderCommonFunctionTests.RoundCase, 'round', true, false, false);
-        // es3fShaderCommonFunctionTests.addFunctionCases(testGroup, es3fShaderCommonFunctionTests.RoundEvenCase, 'roundeven', true, false, false);
+        es3fShaderCommonFunctionTests.addFunctionCases(testGroup, es3fShaderCommonFunctionTests.RoundEvenCase, 'roundeven', true, false, false);
         // es3fShaderCommonFunctionTests.addFunctionCases(testGroup, es3fShaderCommonFunctionTests.CeilCase, 'ceil', true, false, false);
         // es3fShaderCommonFunctionTests.addFunctionCases(testGroup, es3fShaderCommonFunctionTests.FractCase, 'fract', true, false, false);
         // // mod
@@ -271,28 +804,27 @@ goog.scope(function() {
         // es3fShaderCommonFunctionTests.addFunctionCases(testGroup, es3fShaderCommonFunctionTests.FloatBitsToUintCase, 'floatbitstouint', true, false, false);
 
         // (u)intBitsToFloat()
-        /** @type {tcuTestCase.DeqpTest} */ var intGroup = tcuTestCase.newTest('intbitstofloat', 'intBitsToFloat() Tests');
-        /** @type {tcuTestCase.DeqpTest} */ var uintGroup = tcuTestCase.newTest('uintbitstofloat', 'uintBitsToFloat() Tests');
-
-        testGroup.addChild(intGroup);
-        testGroup.addChild(uintGroup);
-
-        for (var vecSize = 1; vecSize < 4; vecSize++) {
-            /** @type {gluShaderUtil.DataType} */ var intType = vecSize > 1 ?
-                gluShaderUtil.getDataTypeVector(gluShaderUtil.DataType.INT, vecSize) :
-                gluShaderUtil.DataType.INT;
-
-            /** @type {gluShaderUtil.DataType} */ var uintType = vecSize > 1 ?
-                gluShaderUtil.getDataTypeVector(gluShaderUtil.DataType.UINT, vecSize) :
-                gluShaderUtil.DataType.UINT;
-
-            for (var shaderType = gluShaderProgram.shaderType.VERTEX; shaderType <= gluShaderProgram.shaderType.FRAGMENT; shaderType++) {
-                // intGroup.addChild(new BitsToFloatCase(intType, gluShaderProgram.shaderType[shaderType]));
-                // uintGroup.addChild(new BitsToFloatCase(uintType, gluShaderProgram.shaderType[shaderType]));
-            }
-        }
+        // /** @type {tcuTestCase.DeqpTest} */ var intGroup = tcuTestCase.newTest('intbitstofloat', 'intBitsToFloat() Tests');
+        // /** @type {tcuTestCase.DeqpTest} */ var uintGroup = tcuTestCase.newTest('uintbitstofloat', 'uintBitsToFloat() Tests');
+		//
+        // testGroup.addChild(intGroup);
+        // testGroup.addChild(uintGroup);
+		//
+        // for (var vecSize = 1; vecSize < 4; vecSize++) {
+        //     /** @type {gluShaderUtil.DataType} */ var intType = vecSize > 1 ?
+        //         gluShaderUtil.getDataTypeVector(gluShaderUtil.DataType.INT, vecSize) :
+        //         gluShaderUtil.DataType.INT;
+		//
+        //     /** @type {gluShaderUtil.DataType} */ var uintType = vecSize > 1 ?
+        //         gluShaderUtil.getDataTypeVector(gluShaderUtil.DataType.UINT, vecSize) :
+        //         gluShaderUtil.DataType.UINT;
+		//
+        //     for (var shaderType = gluShaderProgram.shaderType.VERTEX; shaderType <= gluShaderProgram.shaderType.FRAGMENT; shaderType++) {
+        //         // intGroup.addChild(new BitsToFloatCase(intType, gluShaderProgram.shaderType[shaderType]));
+        //         // uintGroup.addChild(new BitsToFloatCase(uintType, gluShaderProgram.shaderType[shaderType]));
+        //     }
+        // }
     };
-
 
     /**
     * Run test

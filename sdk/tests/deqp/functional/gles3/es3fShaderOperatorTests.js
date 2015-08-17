@@ -63,8 +63,37 @@ var setParentClass = function(child, parent) {
 };
 
 var negate = function(x) {
-    // TODO: add vertex and matrix ops if required
     return -x;
+};
+
+var addOne = function(x) {
+    return x + 1;
+};
+
+var add = function(a, b) {
+    return a + b;
+};
+
+var lessThan = function(a, b) {
+    return a < b ? 1 : 0;
+}
+
+var addScalarVec = function(a, b) {
+    return deMath.addScalar(b, a);
+};
+
+var length = function(a) {
+    if (a instanceof Array) {
+        var squareSum = 0;
+        for (var i = 0; i < a.length; i++)
+            squareSum += a[i] * a[i];
+        return Math.sqrt(squareSum);
+    };
+    return Math.abs(a);
+};
+
+var selection = function(cond, a, b) {
+    return cond ? a : b;
 };
 
 /**
@@ -159,19 +188,181 @@ es3fShaderOperatorTests.OperationType = {
 };
 
 /**
- * Copy array b over a
+ * swizzling indices for assigning the tested function output to the correct color channel
  */
-var cp = function(a, b) {
-    for (var i = 0; i < b.length; i++)
-        a[i] = b[i];
+es3fShaderOperatorTests.outIndices = [];
+es3fShaderOperatorTests.outIndices[2] = [1, 2];
+es3fShaderOperatorTests.outIndices[3] = [0, 1, 2];
+es3fShaderOperatorTests.outIndices[4] = [0, 1, 2, 3];
+
+var convert = function(input, dataType) {
+    switch (dataType) {
+        case gluShaderUtil.DataType.INT:
+        case gluShaderUtil.DataType.UINT:
+            if (input instanceof Array) {
+                var ret = [];
+                for (var i = 0; i < input.length; i++)
+                    ret[i] = deMath.intCast(input[i]);
+                return ret;
+            }
+            return deMath.intCast(input);
+        case gluShaderUtil.DataType.BOOL:
+            if (input instanceof Array) {
+                var ret = [];
+                for (var i = 0; i < input.length; i++)
+                    ret[i] = input[i] > 0 ? 1 : 0;
+                return ret;
+            }
+            return input > 0 ? 1 : 0;
+
+    }
+    return input;
 };
 
-es3fShaderOperatorTests.unaryGenTypeFuncs = function(func) {
+/**
+ * Generate unary functions which have the same input and return type
+ * @param {function(number): number} func
+ * @param {gluShaderUtil.DataType=} dataTypeIn
+ * @param {gluShaderUtil.DataType=} dataTypeOut
+ */ 
+es3fShaderOperatorTests.unaryGenTypeFuncs = function(func, dataTypeOut, dataTypeIn) {
+    var run = function(output, func, input) {
+        if (input instanceof Array) {
+            var len = input.length;
+            var indices = es3fShaderOperatorTests.outIndices[len];
+            for (var i = 0; i < input.length; i++)
+                 output[indices[i]] = convert(func(convert(input[i], dataTypeIn)), dataTypeOut); 
+        } else
+            output[0] = convert(func(convert(input, dataTypeIn)), dataTypeOut);
+    };
+
     var functions = {};
-    functions.scalar = function(c) { cp(c.color, func(c.in_[0][2])); };
-    functions.vec2 = function(c) { cp(c.color, func(deMath.swizzle(c.in_[0], [3, 1]))); };
-    functions.vec3 = function(c) { cp(c.color, func(deMath.swizzle(c.in_[0], [2, 0, 1]))); };
-    functions.vec4 = function(c) { cp(c.color, func(deMath.swizzle(c.in_[0], [1, 2, 3, 0]))); };
+    functions.scalar = function(c) { run(c.color, func, c.in_[0][2]); };
+    functions.vec2 = function(c) { run(c.color, func, deMath.swizzle(c.in_[0], [3, 1])); };
+    functions.vec3 = function(c) { run(c.color, func, deMath.swizzle(c.in_[0], [2, 0, 1])); };
+    functions.vec4 = function(c) { run(c.color, func, deMath.swizzle(c.in_[0], [1, 2, 3, 0])); };
+    return functions;
+};
+
+/**
+ * Generate unary functions which always have scalar return type
+ * @param {function(number): number} func
+ * @param {gluShaderUtil.DataType=} dataTypeIn
+ * @param {gluShaderUtil.DataType=} dataTypeOut
+ */ 
+es3fShaderOperatorTests.unaryScalarGenTypeFuncs = function(func, dataTypeOut, dataTypeIn) {
+    var run = function(output, func, input) {
+        output[0] = convert(func(convert(input, dataTypeIn)), dataTypeOut);
+    };
+
+    var functions = {};
+    functions.scalar = function(c) { run(c.color, func, c.in_[0][2]); };
+    functions.vec2 = function(c) { run(c.color, func, deMath.swizzle(c.in_[0], [3, 1])); };
+    functions.vec3 = function(c) { run(c.color, func, deMath.swizzle(c.in_[0], [2, 0, 1])); };
+    functions.vec4 = function(c) { run(c.color, func, deMath.swizzle(c.in_[0], [1, 2, 3, 0])); };
+    return functions;
+};
+
+/**
+ * Generate binary functions which have the same input and return type
+ * @param {function(number, number): number} func
+ * @param {gluShaderUtil.DataType=} dataTypeIn
+ * @param {gluShaderUtil.DataType=} dataTypeOut
+ */ 
+es3fShaderOperatorTests.binaryGenTypeFuncs = function(func, dataTypeOut, dataTypeIn) {
+    var run = function(output, func, input1, input2) {
+        if (input1 instanceof Array) {
+            var len = input1.length;
+            var indices = es3fShaderOperatorTests.outIndices[len];
+            for (var i = 0; i < input1.length; i++)
+                 output[indices[i]] = convert(func(convert(input1[i], dataTypeIn), convert(input2[i], dataTypeIn)), dataTypeOut); 
+        } else {
+            var value = convert(func(convert(input1, dataTypeIn), convert(input2, dataTypeIn)), dataTypeOut);
+            output[0] = value;
+        }
+    };
+
+    var functions = {};
+    functions.scalar = function(c) { run(c.color, func, c.in_[0][2], c.in_[1][0]); };
+    functions.vec2 = function(c) { run(c.color, func, deMath.swizzle(c.in_[0], [3, 1]), deMath.swizzle(c.in_[1], [1, 0])); };
+    functions.vec3 = function(c) { run(c.color, func, deMath.swizzle(c.in_[0], [2, 0, 1]), deMath.swizzle(c.in_[1], [1, 2, 0])); };
+    functions.vec4 = function(c) { run(c.color, func, deMath.swizzle(c.in_[0], [1, 2, 3, 0]), deMath.swizzle(c.in_[1], [3, 2, 1, 0])); };
+    return functions;
+};
+
+/**
+ * Generate (cond ? a : b) functions
+ * @param {gluShaderUtil.DataType} dataType
+ * Returns an array of functions, indexed by datatype size
+ */ 
+es3fShaderOperatorTests.selectionFuncs = function(dataType) {
+    var run = function(output, input0, input1, input2) {
+        var value = selection(input0, input1, input2);
+        value = convert(value, dataType);
+        if (value instanceof Array) {
+            var len = value.length;
+            var indices = es3fShaderOperatorTests.outIndices[len];
+            for (var i = 0; i < len; i++)
+                output[indices[i]] = value[i];
+        } else
+            output[0] = value;
+    };
+
+    var functions = [];
+    functions[1] = function(c) { run(c.color, c.in_[0][2] > 0,      c.in_[1][0],                    c.in_[2][1]); };
+    functions[2] = function(c) { run(c.color, c.in_[0][2] > 0, deMath.swizzle(c.in_[1], [1, 0]), deMath.swizzle(c.in_[2], [2, 1])); };
+    functions[3] = function(c) { run(c.color, c.in_[0][2] > 0, deMath.swizzle(c.in_[1], [1, 2, 0]), deMath.swizzle(c.in_[2], [3, 1, 2])); };
+    functions[4] = function(c) { run(c.color, c.in_[0][2] > 0, deMath.swizzle(c.in_[1], [3, 2, 1, 0]), deMath.swizzle(c.in_[2], [0, 3, 2, 1])); };
+    return functions;
+};
+
+
+var cp = function(dst, src) {
+    var len = src.length;
+    var indices = es3fShaderOperatorTests.outIndices[len];
+    for (var i = 0; i < len; i++)
+        dst[indices[i]] = src[i];
+};
+
+/**
+ * Generate binary functions of form: vec = func(scalar, vec)
+ * @param {function(number, Array<number>): Array<number>} func
+ * @param {gluShaderUtil.DataType=} dataTypeIn
+ * @param {gluShaderUtil.DataType=} dataTypeOut
+ */ 
+es3fShaderOperatorTests.binaryScalarVecFuncs = function(func, dataTypeOut, dataTypeIn) {
+    var run = function(output, func, input1, input2) {
+        var in1 = convert(input1, dataTypeIn);
+        var in2 = convert(input2, dataTypeIn);
+        var value = func(in1, in2);
+        value = convert(value, dataTypeOut);
+        cp(output, value);
+    };    
+    var functions = {};
+    functions.vec2 = function(c) { run(c.color, func, c.in_[0][2], deMath.swizzle(c.in_[1], [1, 0])); };
+    functions.vec3 = function(c) { run(c.color, func, c.in_[0][2], deMath.swizzle(c.in_[1], [1, 2, 0])); };
+    functions.vec4 = function(c) { run(c.color, func, c.in_[0][2], deMath.swizzle(c.in_[1], [3, 2, 1, 0])); };
+    return functions;    
+};
+
+/**
+ * Generate binary functions of form: vec = func(vec, scalar)
+ * @param {function(Array<number>, number): Array<number>} func
+ * @param {gluShaderUtil.DataType=} dataTypeIn
+ * @param {gluShaderUtil.DataType=} dataTypeOut
+ */ 
+es3fShaderOperatorTests.binaryVecScalarFuncs = function(func, dataTypeOut, dataTypeIn) {
+    var run = function(output, func, input1, input2) {
+        var in1 = convert(input1, dataTypeIn);
+        var in2 = convert(input2, dataTypeIn);
+        var value = func(in1, in2);
+        value = convert(value, dataTypeOut);
+        cp(output, value);
+    };    
+    var functions = {};
+    functions.vec2 = function(c) { cp(c.color, func(deMath.swizzle(c.in_[0], [3, 1]), c.in_[1][0])); };
+    functions.vec3 = function(c) { cp(c.color, func(deMath.swizzle(c.in_[0], [2, 0, 1]), c.in_[1][0])); };
+    functions.vec4 = function(c) { cp(c.color, func(deMath.swizzle(c.in_[0], [1, 2, 3, 0]), c.in_[1][0])); };
     return functions;
 };
 
@@ -294,6 +485,37 @@ es3fShaderOperatorTests.builtinOperInfo = function(caseName, shaderFuncName, out
                                                    es3fShaderOperatorTests.OperationType.OPERATOR);
 };
 
+es3fShaderOperatorTests.builtinFunctionInfo = function(caseName, shaderFuncName, outValue, inputs, scale, bias, precision, functions)
+{
+    return new es3fShaderOperatorTests.BuiltinFuncInfo(caseName,
+                                                   shaderFuncName,
+                                                   outValue,
+                                                   inputs,
+                                                   scale,
+                                                   bias,
+                                                   scale,
+                                                   bias,
+                                                   precision,
+                                                   functions,
+                                                   es3fShaderOperatorTests.OperationType.FUNCTION);
+};
+
+
+es3fShaderOperatorTests.builtinSideEffOperInfo = function(caseName, shaderFuncName, outValue, inputs, scale, bias, precision, functions)
+{
+    return new es3fShaderOperatorTests.BuiltinFuncInfo(caseName,
+                                                   shaderFuncName,
+                                                   outValue,
+                                                   inputs,
+                                                   scale,
+                                                   bias,
+                                                   scale,
+                                                   bias,
+                                                   precision,
+                                                   functions,
+                                                   es3fShaderOperatorTests.OperationType.SIDE_EFFECT_OPERATOR);
+};
+
 /**
  * @constructor
  * @param {string} name
@@ -325,6 +547,41 @@ var s_outSwizzleChannelMasks = [
 
 /**
  * @constructor
+ * @extends {glsShaderRenderCase.ShaderEvaluator}
+ * @param {gluShaderProgram.shaderType} shaderType
+ * @param {glsShaderRenderCase.ShaderEvalFunc} evalFunc
+ * @param {es3fShaderOperatorTests.FloatScalar} scale
+ * @param {es3fShaderOperatorTests.FloatScalar} bias
+ * @param {number} resultScalarSize
+ */
+es3fShaderOperatorTests.OperatorShaderEvaluator = function(shaderType, evalFunc, scale, bias, resultScalarSize) {
+    glsShaderRenderCase.ShaderEvaluator.call(this, evalFunc);
+    this.m_shaderType = shaderType;
+    this.m_scale = scale;
+    this.m_bias = bias;
+    this.m_resultScalarSize = resultScalarSize;
+    this.m_areScaleAndBiasEvaluated = false;
+};
+
+setParentClass(es3fShaderOperatorTests.OperatorShaderEvaluator, glsShaderRenderCase.ShaderEvaluator);
+
+es3fShaderOperatorTests.OperatorShaderEvaluator.prototype.evaluate = function(ctx) {
+    this.m_evalFunc(ctx);
+
+    if (!this.m_areScaleAndBiasEvaluated)
+    {
+        this.m_evaluatedScale    = this.m_scale.getValue(this.m_shaderType);
+        this.m_evaluatedBias     = this.m_bias.getValue(this.m_shaderType);
+        this.m_areScaleAndBiasEvaluated = true;
+    }
+
+    for (var i = 0; i < 4; i++)
+        if (s_outSwizzleChannelMasks[this.m_resultScalarSize-1][i])
+            ctx.color[i] = ctx.color[i] * this.m_evaluatedScale + this.m_evaluatedBias;
+};
+
+/**
+ * @constructor
  * @extends {glsShaderRenderCase.ShaderRenderCase}
  * @param {string} caseName
  * @param {string} description
@@ -337,13 +594,18 @@ es3fShaderOperatorTests.ShaderOperatorCase = function(caseName, description, isV
     glsShaderRenderCase.ShaderRenderCase.call(this, caseName, description, isVertexCase, evalFunc);
     this.m_spec = spec;
     this.m_shaderOp = shaderOp;
-    this.m_evaluator; // TODO
+    var shaderType = isVertexCase ? gluShaderProgram.shaderType.VERTEX : gluShaderProgram.shaderType.FRAGMENT;
+    this.m_evaluator = new es3fShaderOperatorTests.OperatorShaderEvaluator(shaderType,
+                                                                           evalFunc,
+                                                                           spec.referenceScale,
+                                                                           spec.referenceBias,
+                                                                           gluShaderUtil.getDataTypeScalarSize(spec.output));
 };
 
 setParentClass(es3fShaderOperatorTests.ShaderOperatorCase, glsShaderRenderCase.ShaderRenderCase);
 
 es3fShaderOperatorTests.ShaderOperatorCase.prototype.setupShaderData = function() {
-    var  shaderType  = this.m_isVertexCase ? gluShaderProgram.shaderType.VERTEX : gluShaderProgram.shaderType.FRAGMENT;
+    var shaderType  = this.m_isVertexCase ? gluShaderProgram.shaderType.VERTEX : gluShaderProgram.shaderType.FRAGMENT;
     var precision   = this.m_spec.precision !== undefined ? gluShaderUtil.getPrecisionName(this.m_spec.precision) : null;
     var inputPrecision = [];
     var sources = [];
@@ -543,8 +805,16 @@ setParentClass(es3fShaderOperatorTests.ShaderOperatorTests, tcuTestCase.DeqpTest
 
 es3fShaderOperatorTests.ShaderOperatorTests.prototype.init = function() {
     var op = es3fShaderOperatorTests.builtinOperInfo;
+    var side = es3fShaderOperatorTests.builtinSideEffOperInfo;
     var all = es3fShaderOperatorTests.Precision.All;
+    var highp = es3fShaderOperatorTests.Precision.High;
+    var mediump = es3fShaderOperatorTests.Precision.Medium;
+    var lowp = es3fShaderOperatorTests.Precision.Low;
     var GT = es3fShaderOperatorTests.ValueType.FLOAT_GENTYPE;
+    var IGT = es3fShaderOperatorTests.ValueType.INT_GENTYPE;
+    var F = es3fShaderOperatorTests.ValueType.FLOAT;
+    var FV = es3fShaderOperatorTests.ValueType.FLOAT_VEC;
+    var B = es3fShaderOperatorTests.ValueType.BOOL;
     var f = function(value) {
         return new es3fShaderOperatorTests.FloatScalar(value);
     };
@@ -554,9 +824,67 @@ es3fShaderOperatorTests.ShaderOperatorTests.prototype.init = function() {
     var funcInfoGroups = [];
     var unary = new es3fShaderOperatorTests.BuiltinFuncGroup("unary_operator", "Unary operator tests");
 
-    unary.push(op("minus",            "-",    GT,    [v(GT,  -1.0, 1.0)],   f(0.5),   f(0.5),   all, es3fShaderOperatorTests.unaryGenTypeFuncs(negate)));
+    unary.push(op("minus", "-", GT, [v(GT, -1.0, 1.0)], f(0.5), f(0.5), all, es3fShaderOperatorTests.unaryGenTypeFuncs(negate)));
+    unary.push(side("pre_increment_effect", "++",   GT,     [v(GT,   -1.0, 1.0)], f(0.5), f(0.0),     all,   es3fShaderOperatorTests.unaryGenTypeFuncs(addOne)));
+
     funcInfoGroups.push(unary);
 
+    var binary = new es3fShaderOperatorTests.BuiltinFuncGroup("binary_operator", "Binary operator tests");
+
+    // Normal binary operations and their corresponding assignment operations have lots in common; generate both in the following loop.
+    // 0: normal op test, 1: assignment op side-effect test, 2: assignment op result test
+    for (var binaryOperatorType = 0; binaryOperatorType <= 2; binaryOperatorType++) {
+        var isNormalOp      = binaryOperatorType == 0;
+        var isAssignEff     = binaryOperatorType == 1;
+        var isAssignRes     = binaryOperatorType == 2;
+
+        var addName         = isNormalOp ? "add"            : isAssignEff ? "add_assign_effect"         : "add_assign_result";
+        var subName         = isNormalOp ? "sub"            : isAssignEff ? "sub_assign_effect"         : "sub_assign_result";
+        var mulName         = isNormalOp ? "mul"            : isAssignEff ? "mul_assign_effect"         : "mul_assign_result";
+        var divName         = isNormalOp ? "div"            : isAssignEff ? "div_assign_effect"         : "div_assign_result";
+        var modName         = isNormalOp ? "mod"            : isAssignEff ? "mod_assign_effect"         : "mod_assign_result";
+        var andName         = isNormalOp ? "bitwise_and"    : isAssignEff ? "bitwise_and_assign_effect" : "bitwise_and_assign_result";
+        var orName          = isNormalOp ? "bitwise_or"     : isAssignEff ? "bitwise_or_assign_effect"  : "bitwise_or_assign_result";
+        var xorName         = isNormalOp ? "bitwise_xor"    : isAssignEff ? "bitwise_xor_assign_effect" : "bitwise_xor_assign_result";
+        var leftShiftName   = isNormalOp ? "left_shift"     : isAssignEff ? "left_shift_assign_effect"  : "left_shift_assign_result";
+        var rightShiftName  = isNormalOp ? "right_shift"    : isAssignEff ? "right_shift_assign_effect" : "right_shift_assign_result";
+        var addOp           = isNormalOp ? "+" : "+=";
+        var subOp           = isNormalOp ? "-" : "-=";
+        var mulOp           = isNormalOp ? "*" : "*=";
+        var divOp           = isNormalOp ? "/" : "/=";
+        var modOp           = isNormalOp ? "%" : "%=";
+        var andOp           = isNormalOp ? "&" : "&=";
+        var orOp            = isNormalOp ? "|" : "|=";
+        var xorOp           = isNormalOp ? "^" : "^=";
+        var leftShiftOp     = isNormalOp ? "<<" : "<<=";
+        var rightShiftOp    = isNormalOp ? ">>" : ">>=";
+
+        op = isAssignEff ? es3fShaderOperatorTests.builtinSideEffOperInfo : es3fShaderOperatorTests.builtinOperInfo;
+        binary.push(op(addName, addOp,  GT,    [v(GT,  -1.0, 1.0),   v(GT,  -1.0, 1.0)],    f(1.0),   f(0.0),   all, es3fShaderOperatorTests.binaryGenTypeFuncs(add)));
+        binary.push(op(addName, addOp,  IGT,   [v(IGT, -4.0, 6.0),   v(IGT, -6.0, 5.0)],    f(0.1),   f(0.5),   mediump, es3fShaderOperatorTests.binaryGenTypeFuncs(add, gluShaderUtil.DataType.INT, gluShaderUtil.DataType.INT)));
+        binary.push(op(addName, addOp,  FV,    [v(FV,  -1.0, 1.0),   v(F,   -1.0, 1.0)],    f(1.0),   f(0.0),   all, es3fShaderOperatorTests.binaryVecScalarFuncs(deMath.addScalar)));
+
+        if (isNormalOp) {
+            binary.push(op(addName, addOp,  FV, [v(F,   -1.0, 1.0),    v(FV,  -1.0, 1.0)],    f(1.0),   f(0.0),   all,  es3fShaderOperatorTests.binaryScalarVecFuncs(addScalarVec)));
+        }
+    }
+
+    // Rest of binary operators.
+    var lessThanFuncs = es3fShaderOperatorTests.binaryGenTypeFuncs(lessThan);
+    binary.push(op("less", "<", B, [v(F,   -1.0, 1.0),    v(F,   -1.0, 1.0)],    f(1.0), f(0.0),     all,   {scalar: lessThanFuncs.scalar}));
+
+    funcInfoGroups.push(binary);
+
+    var trig = new es3fShaderOperatorTests.BuiltinFuncGroup("angle_and_trigonometry", "Angle and trigonometry function tests.");
+    op = es3fShaderOperatorTests.builtinFunctionInfo;
+    trig.push(op("sin",         "sin",          GT, [v(GT, -5.0, 5.0)], f(0.5), f(0.5),     highp, es3fShaderOperatorTests.unaryGenTypeFuncs(Math.sin)));
+
+    funcInfoGroups.push(trig);
+
+    var geom = new es3fShaderOperatorTests.BuiltinFuncGroup("geometric", "Geometric function tests.");
+    geom.push(op("length",      "length",       F,  [v(GT, -5.0, 5.0)], f(0.1), f(0.5),     highp, es3fShaderOperatorTests.unaryScalarGenTypeFuncs(length)));
+
+    funcInfoGroups.push(geom);
 
     var s_shaderTypes = [
         gluShaderProgram.shaderType.VERTEX,
@@ -763,6 +1091,93 @@ es3fShaderOperatorTests.ShaderOperatorTests.prototype.init = function() {
                         }
                     }
                 }
+            }
+        }
+    }
+
+    // The ?: selection operator.
+
+    var s_selectionInfo = [
+        gluShaderUtil.DataType.FLOAT,     
+        gluShaderUtil.DataType.FLOAT_VEC2,
+        gluShaderUtil.DataType.FLOAT_VEC3,
+        gluShaderUtil.DataType.FLOAT_VEC4,
+        gluShaderUtil.DataType.INT,       
+        gluShaderUtil.DataType.INT_VEC2,  
+        gluShaderUtil.DataType.INT_VEC3,  
+        gluShaderUtil.DataType.INT_VEC4,  
+        gluShaderUtil.DataType.UINT,      
+        gluShaderUtil.DataType.UINT_VEC2, 
+        gluShaderUtil.DataType.UINT_VEC3, 
+        gluShaderUtil.DataType.UINT_VEC4, 
+        gluShaderUtil.DataType.BOOL,      
+        gluShaderUtil.DataType.BOOL_VEC2, 
+        gluShaderUtil.DataType.BOOL_VEC3, 
+        gluShaderUtil.DataType.BOOL_VEC4
+    ];
+
+    var selectionEvalFuncsFloat = es3fShaderOperatorTests.selectionFuncs(gluShaderUtil.DataType.FLOAT);
+    var selectionEvalFuncsInt = es3fShaderOperatorTests.selectionFuncs(gluShaderUtil.DataType.INT);
+    var selectionEvalFuncsUint = es3fShaderOperatorTests.selectionFuncs(gluShaderUtil.DataType.UINT);
+    var selectionEvalFuncsBool = es3fShaderOperatorTests.selectionFuncs(gluShaderUtil.DataType.BOOL);
+
+    var selectionGroup = new tcuTestCase.DeqpTest("selection", "Selection operator tests");
+    this.addChild(selectionGroup);
+
+    for (var typeNdx = 0; typeNdx < s_selectionInfo.length; typeNdx++)
+    {
+        var curType         = s_selectionInfo[typeNdx];
+        var scalarSize = gluShaderUtil.getDataTypeScalarSize(curType);
+        var isBoolCase      = gluShaderUtil.isDataTypeBoolOrBVec(curType);
+        var isFloatCase     = gluShaderUtil.isDataTypeFloatOrVec(curType);
+        var isIntCase       = gluShaderUtil.isDataTypeIntOrIVec(curType);
+        var isUintCase      = gluShaderUtil.isDataTypeUintOrUVec(curType);
+        var dataTypeStr     = gluShaderUtil.getDataTypeName(curType);
+
+        var evalFuncs = selectionEvalFuncsFloat;
+        if (isBoolCase)
+            evalFuncs = selectionEvalFuncsBool;
+        else if (isIntCase)
+            evalFuncs = selectionEvalFuncsInt;
+        else if (isUintCase)
+            evalFuncs = selectionEvalFuncsUint;
+
+        var evalFunc        = evalFuncs[scalarSize];
+
+        for (var prec in gluShaderUtil.precision)
+        {
+            var precision = gluShaderUtil.precision[prec];
+            if (isBoolCase && precision != gluShaderUtil.precision.PRECISION_MEDIUMP) // Use mediump interpolators for booleans.
+                continue;
+
+            var precisionStr    = gluShaderUtil.getPrecisionName(precision);
+            var precisionPrefix = isBoolCase ? "" : (precisionStr + "_");
+
+            for (var shaderTypeNdx = 0; shaderTypeNdx < s_shaderTypes.length; shaderTypeNdx++)
+            {
+                var shaderType      = s_shaderTypes[shaderTypeNdx];
+                var shaderSpec = new es3fShaderOperatorTests.ShaderDataSpec();
+                var shaderTypeName  = gluShaderProgram.getShaderTypeName(shaderType);
+                var isVertexCase    = shaderType == gluShaderProgram.shaderType.VERTEX;
+
+                var name = precisionPrefix + dataTypeStr + "_" + shaderTypeName;
+
+                shaderSpec.numInputs        = 3;
+                shaderSpec.precision        = isBoolCase ? undefined : precision;
+                shaderSpec.output           = curType;
+                shaderSpec.resultScale      = isBoolCase ? f(1.0) : isFloatCase ? f(0.5) : isUintCase ? f(0.5) : f(0.1);
+                shaderSpec.resultBias       = isBoolCase ? f(0.0) : isFloatCase ? f(0.5) : isUintCase ? f(0.0) : f(0.5);
+                shaderSpec.referenceScale   = shaderSpec.resultScale;
+                shaderSpec.referenceBias    = shaderSpec.resultBias;
+
+                var rangeMin = isBoolCase ? -1.0 : isFloatCase ? -1.0 : isUintCase ? 0.0 : -5.0;
+                var rangeMax = isBoolCase ?  1.0 : isFloatCase ?  1.0 : isUintCase ? 2.0 :  5.0;
+
+                shaderSpec.inputs[0] = new es3fShaderOperatorTests.ShaderValue(gluShaderUtil.DataType.BOOL, f(-1.0), f(1.0));
+                shaderSpec.inputs[1] = new es3fShaderOperatorTests.ShaderValue(curType, f(rangeMin), f(rangeMax));
+                shaderSpec.inputs[2] = new es3fShaderOperatorTests.ShaderValue(curType, f(rangeMin), f(rangeMax));
+
+                selectionGroup.addChild(new es3fShaderOperatorTests.ShaderOperatorCase(name, "", isVertexCase, evalFunc, "res = in0 ? in1 : in2;", shaderSpec));
             }
         }
     }
