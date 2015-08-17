@@ -321,7 +321,7 @@ goog.scope(function() {
 					outputType >= gluShaderUtil.DataType.UINT && outputType <= gluShaderUtil.DataType.UINT_VEC4 ? new Uint32Array(outputValues) :
 					outputType >= gluShaderUtil.DataType.BOOL && outputType <= gluShaderUtil.DataType.BOOL_VEC4 ? new Int32Array(outputValues) :
 					null;
-        // TODO: verify proper TypedArray for BOOL types; defaulting ti Int32Array in the mean time (outputValues returns 400 bytes, we need 100 elements)
+        // TODO: verify proper TypedArray for BOOL types; defaulting to Int32Array in the mean time (outputValues returns 400 bytes, we need 100 elements)
 		// Compare results.
 		/** @type {Array<number>} */ var inScalarSizes = es3fShaderCommonFunctionTests.getScalarSizes(this.m_spec.inputs);
 		/** @type {Array<number>} */ var outScalarSizes = es3fShaderCommonFunctionTests.getScalarSizes(this.m_spec.outputs);
@@ -538,18 +538,11 @@ goog.scope(function() {
 
 		if (gluShaderUtil.isDataTypeFloatOrVec(type)) {
 			// Special cases.
-			// std::fill((float*)values[0], (float*)values[0] + scalarSize, +1.0f);
-			// std::fill((float*)values[0], (float*)values[0] + scalarSize, -1.0f);
-			// std::fill((float*)values[0], (float*)values[0] + scalarSize,  0.0f);
-			// [dag 2015-08-13] was this indended, or should it have been [1.0, -1.0, 0.0]?
-			return [0, 0, 0].concat(es3fShaderCommonFunctionTests.fillRandomScalars(es3fShaderCommonFunctionTests.Types.FLOAT, rnd, floatRanges[precision][0], floatRanges[precision][1], (numValues - 3) * scalarSize));
+			// [dag] The special cases are 1, -1, and 0
+			return [1.0, -1.0, 0.0].concat(es3fShaderCommonFunctionTests.fillRandomScalars(es3fShaderCommonFunctionTests.Types.FLOAT, rnd, floatRanges[precision][0], floatRanges[precision][1], (numValues - 3) * scalarSize));
 		}
 		else {
-			// std::fill((int*)values[0], (int*)values[0] + scalarSize, +1);
-			// std::fill((int*)values[0], (int*)values[0] + scalarSize, -1);
-			// std::fill((int*)values[0], (int*)values[0] + scalarSize,  0);
-			// [dag 2015-08-13] was this indended, or should it have been [1, -1, 0]?
-			return [0, 0, 0].concat(es3fShaderCommonFunctionTests.fillRandomScalars(es3fShaderCommonFunctionTests.Types.INT, rnd, intRanges[precision][0], intRanges[precision][1], (numValues - 3) * scalarSize));
+			return [1, -1, 0].concat(es3fShaderCommonFunctionTests.fillRandomScalars(es3fShaderCommonFunctionTests.Types.INT, rnd, intRanges[precision][0], intRanges[precision][1], (numValues - 3) * scalarSize));
 		}
 	};
 
@@ -1016,6 +1009,182 @@ goog.scope(function() {
 
     /**
      * @constructor
+     * @extends {es3fShaderCommonFunctionTests.CommonFunctionCase}
+     * @param {gluShaderUtil.DataType} baseType
+     * @param {gluShaderUtil.precision} precision
+     * @param {gluShaderProgram.shaderType} shaderType
+     * @param {boolean} outIsSigned
+     */
+    es3fShaderCommonFunctionTests.FloatBitsToUintIntCase = function(baseType, precision, shaderType, outIsSigned) {
+    	es3fShaderCommonFunctionTests.CommonFunctionCase.call(this,
+    		es3fShaderCommonFunctionTests.getCommonFuncCaseName(baseType, precision, shaderType),
+    		outIsSigned ? "floatBitsToInt" : "floatBitsToUint", shaderType);
+
+    	/** @type {number} */ var vecSize = gluShaderUtil.getDataTypeScalarSize(baseType);
+    	/** @type {gluShaderUtil.DataType} */ var intType = outIsSigned ?
+    		(vecSize > 1 ? gluShaderUtil.getDataTypeVector(gluShaderUtil.DataType.INT, vecSize) : gluShaderUtil.DataType.INT) :
+    		(vecSize > 1 ? gluShaderUtil.getDataTypeVector(gluShaderUtil.DataType.UINT, vecSize) : gluShaderUtil.DataType.UINT);
+
+    	this.m_spec.inputs.push(new glsShaderExecUtil.Symbol('in0', gluVarType.newTypeBasic(baseType, precision)));
+    	this.m_spec.outputs.push(new glsShaderExecUtil.Symbol('out0', gluVarType.newTypeBasic(intType, gluShaderUtil.precision.PRECISION_HIGHP)));
+    	this.m_spec.source = outIsSigned ? 'out0 = floatBitsToInt(in0);' : 'out0 = floatBitsToUint(in0);';
+    };
+
+    es3fShaderCommonFunctionTests.FloatBitsToUintIntCase.prototype = Object.create(es3fShaderCommonFunctionTests.CommonFunctionCase.prototype);
+    es3fShaderCommonFunctionTests.FloatBitsToUintIntCase.prototype.constructor = es3fShaderCommonFunctionTests.FloatBitsToUintIntCase;
+
+    /**
+     * @param {number} numValues
+     * @return {*}
+     */
+    es3fShaderCommonFunctionTests.FloatBitsToUintIntCase.prototype.getInputValues = function(numValues) {
+
+    	/** @type {Array<number>} */ var ranges = [
+    			[-2.0, 2.0], // lowp
+    			[-1e3, 1e3], // mediump
+    			[-1e7, 1e7]	// highp
+    	];
+
+    	/** @type {deRandom.Random} */ var rnd = new deRandom.Random(deString.deStringHash(this.name) ^ 0x2790a);
+
+    	/** @type {gluShaderUtil.DataType} */ var type = this.m_spec.inputs[0].varType.getBasicType();
+    	/** @type {gluShaderUtil.precision} */ var precision = this.m_spec.inputs[0].varType.getPrecision();
+    	/** @type {number} */ var scalarSize = gluShaderUtil.getDataTypeScalarSize(type);
+
+    	return es3fShaderCommonFunctionTests.fillRandomScalars(es3fShaderCommonFunctionTests.Types.FLOAT, rnd, ranges[precision][0], ranges[precision][1], numValues * scalarSize);
+    };
+
+    /**
+     * @param {*} inputs
+     * @param {*} outputs
+     * @return {boolean}
+     */
+    es3fShaderCommonFunctionTests.FloatBitsToUintIntCase.prototype.compare = function(inputs, outputs) {
+    	/** @type {gluShaderUtil.DataType} */ var type = this.m_spec.inputs[0].varType.getBasicType();
+    	/** @type {gluShaderUtil.precision} */ var precision = this.m_spec.inputs[0].varType.getPrecision();
+    	/** @type {number} */ var scalarSize = gluShaderUtil.getDataTypeScalarSize(type);
+    	/** @type {number} */ var mantissaBits = es3fShaderCommonFunctionTests.getMinMantissaBits(precision);
+    	/** @type {number} */ var maxUlpDiff = es3fShaderCommonFunctionTests.getMaxUlpDiffFromBits(mantissaBits);
+
+
+    	/** @type {number} */ var in0;
+    	/** @type {number} */ var out0;
+    	/** @type {number} */ var refOut0;
+    	/** @type {number} */ var ulpDiff;
+
+    	for (var compNdx = 0; compNdx < scalarSize; compNdx++) {
+    		in0 = inputs[0][compNdx];
+    		out0 = outputs[0][compNdx];
+    		refOut0 = tcuFloat.newFloat32(in0).bits();
+    		ulpDiff = Math.abs(Math.floor(out0) - Math.floor(refOut0));
+    		if (ulpDiff > maxUlpDiff) {
+    			this.m_failMsg += "Expected [" + compNdx + "] = " + refOut0 /*tcu::toHex(refOut0)*/ + " with threshold "
+    						+ maxUlpDiff /*tcu::toHex(maxUlpDiff)*/ + ", got diff " + ulpDiff /*tcu::toHex(ulpDiff)*/;
+    			return false;
+    		}
+    	}
+    	return true;
+    };
+
+    /**
+      * @constructor
+      * @extends {es3fShaderCommonFunctionTests.FloatBitsToUintIntCase}
+      * @param {gluShaderUtil.DataType} baseType
+      * @param {gluShaderUtil.precision} precision
+      * @param {gluShaderProgram.shaderType} shaderType
+      */
+    es3fShaderCommonFunctionTests.FloatBitsToIntCase = function(baseType, precision, shaderType) {
+        es3fShaderCommonFunctionTests.FloatBitsToUintIntCase.call(this, baseType, precision, shaderType, true);
+    };
+
+    es3fShaderCommonFunctionTests.FloatBitsToIntCase.prototype = Object.create(es3fShaderCommonFunctionTests.FloatBitsToUintIntCase.prototype);
+    es3fShaderCommonFunctionTests.FloatBitsToIntCase.prototype.constructor = es3fShaderCommonFunctionTests.FloatBitsToIntCase;
+
+    /**
+      * @constructor
+      * @extends {es3fShaderCommonFunctionTests.FloatBitsToUintIntCase}
+      * @param {gluShaderUtil.DataType} baseType
+      * @param {gluShaderUtil.precision} precision
+      * @param {gluShaderProgram.shaderType} shaderType
+      */
+    es3fShaderCommonFunctionTests.FloatBitsToUintCase = function(baseType, precision, shaderType) {
+        es3fShaderCommonFunctionTests.FloatBitsToUintIntCase.call(this, baseType, precision, shaderType, false);
+    };
+
+    es3fShaderCommonFunctionTests.FloatBitsToUintCase.prototype = Object.create(es3fShaderCommonFunctionTests.FloatBitsToUintIntCase.prototype);
+    es3fShaderCommonFunctionTests.FloatBitsToUintCase.prototype.constructor = es3fShaderCommonFunctionTests.FloatBitsToUintCase;
+
+    /**
+     * @constructor
+     * @extends {es3fShaderCommonFunctionTests.CommonFunctionCase}
+     * @param {gluShaderUtil.DataType} baseType
+     * @param {gluShaderProgram.shaderType} shaderType
+     */
+    es3fShaderCommonFunctionTests.BitsToFloatCase = function(baseType, shaderType) {
+        debugger;
+    	es3fShaderCommonFunctionTests.CommonFunctionCase.call(this,
+    		es3fShaderCommonFunctionTests.getCommonFuncCaseName(baseType, gluShaderUtil.precision.PRECISION_HIGHP, shaderType),
+    		gluShaderUtil.isDataTypeIntOrIVec(baseType) ? 'intBitsToFloat' : 'uintBitsToFloat', shaderType);
+    	/** @type {boolean} */ var inIsSigned = gluShaderUtil.isDataTypeIntOrIVec(baseType);
+    	/** @type {number} */ var vecSize = gluShaderUtil.getDataTypeScalarSize(baseType);
+    	/** @type {gluShaderUtil.DataType} */ var floatType = vecSize > 1 ? gluShaderUtil.getDataTypeFloatVec(vecSize) : gluShaderUtil.DataType.FLOAT;
+
+
+    	this.m_spec.inputs.push(new glsShaderExecUtil.Symbol('in0', gluVarType.newTypeBasic(baseType, gluShaderUtil.precision.PRECISION_HIGHP)));
+    	this.m_spec.outputs.push(new glsShaderExecUtil.Symbol('out0', gluVarType.newTypeBasic(floatType, gluShaderUtil.precision.PRECISION_HIGHP)));
+    	this.m_spec.source = inIsSigned ? 'out0 = intBitsToFloat(in0);' : 'out0 = uintBitsToFloat(in0);';
+    };
+
+    es3fShaderCommonFunctionTests.BitsToFloatCase.prototype = Object.create(es3fShaderCommonFunctionTests.CommonFunctionCase.prototype);
+    es3fShaderCommonFunctionTests.BitsToFloatCase.prototype.constructor = es3fShaderCommonFunctionTests.BitsToFloatCase;
+
+    /**
+     * @param {number} numValues
+     * @return {*}
+     */
+    es3fShaderCommonFunctionTests.BitsToFloatCase.prototype.getInputValues = function(numValues) {
+    	/** @type {deRandom.Random} */ var rnd = new deRandom.Random(deString.deStringHash(this.name) ^ 0xbbb225);
+
+    	/** @type {gluShaderUtil.DataType} */ var type = this.m_spec.inputs[0].varType.getBasicType();
+    	/** @type {number} */ var scalarSize = gluShaderUtil.getDataTypeScalarSize(type);
+    	/** @type {Array<number>} */ var range = [-1e8, 1e8];
+
+    	return es3fShaderCommonFunctionTests.fillRandomScalars(es3fShaderCommonFunctionTests.Types.FLOAT, rnd, range[0], range[1], numValues * scalarSize);
+    };
+
+    /**
+     * @param {*} inputs
+     * @param {*} outputs
+     * @return {boolean}
+     */
+    es3fShaderCommonFunctionTests.BitsToFloatCase.prototype.compare = function(inputs, outputs) {
+    	/** @type {gluShaderUtil.DataType} */ var type = this.m_spec.inputs[0].varType.getBasicType();
+    	/** @type {number} */ var scalarSize = gluShaderUtil.getDataTypeScalarSize(type);
+    	/** @type {number} */ var mantissaBits = es3fShaderCommonFunctionTests.getMinMantissaBits(precision);
+    	/** @type {number} */ var maxUlpDiff = 0;
+
+
+    	/** @type {number} */ var in0;
+    	/** @type {number} */ var out0;
+    	/** @type {number} */ var ulpDiff;
+
+    	for (var compNdx = 0; compNdx < scalarSize; compNdx++) {
+    		in0 = inputs[0][compNdx];
+    		out0 = outputs[0][compNdx];
+    		refOut0 = tcuFloat.newFloat32(in0).bits();
+    		ulpDiff = Math.abs(Math.floor(in0) - Math.floor(out0));
+
+    		if (ulpDiff > maxUlpDiff) {
+    			this.m_failMsg += "Expected [" + compNdx + "] = " + in0 /*tcu::toHex(in0)*/ + " with ULP threshold "
+    						+ maxUlpDiff /*tcu::toHex(maxUlpDiff)*/ + ", got ULP diff " + ulpDiff /*tcu::toHex(ulpDiff)*/;
+    			return false;
+    		}
+    	}
+    	return true;
+    };
+
+    /**
+     * @constructor
      * @extends {tcuTestCase.DeqpTest}
      */
     es3fShaderCommonFunctionTests.ShaderCommonFunctionTests = function() {
@@ -1075,30 +1244,35 @@ goog.scope(function() {
         // // min, max, clamp, mix, step, smoothstep
         es3fShaderCommonFunctionTests.addFunctionCases(testGroup, es3fShaderCommonFunctionTests.IsnanCase, 'isnan', true, false, false);
         es3fShaderCommonFunctionTests.addFunctionCases(testGroup, es3fShaderCommonFunctionTests.IsinfCase, 'isinf', true, false, false);
-        // es3fShaderCommonFunctionTests.addFunctionCases(testGroup, es3fShaderCommonFunctionTests.FloatBitsToIntCase, 'floatbitstoint', true, false, false);
-        // es3fShaderCommonFunctionTests.addFunctionCases(testGroup, es3fShaderCommonFunctionTests.FloatBitsToUintCase, 'floatbitstouint', true, false, false);
+        es3fShaderCommonFunctionTests.addFunctionCases(testGroup, es3fShaderCommonFunctionTests.FloatBitsToIntCase, 'floatbitstoint', true, false, false);
+        es3fShaderCommonFunctionTests.addFunctionCases(testGroup, es3fShaderCommonFunctionTests.FloatBitsToUintCase, 'floatbitstouint', true, false, false);
 
         // (u)intBitsToFloat()
-        // /** @type {tcuTestCase.DeqpTest} */ var intGroup = tcuTestCase.newTest('intbitstofloat', 'intBitsToFloat() Tests');
-        // /** @type {tcuTestCase.DeqpTest} */ var uintGroup = tcuTestCase.newTest('uintbitstofloat', 'uintBitsToFloat() Tests');
-		//
-        // testGroup.addChild(intGroup);
-        // testGroup.addChild(uintGroup);
-		//
-        // for (var vecSize = 1; vecSize < 4; vecSize++) {
-        //     /** @type {gluShaderUtil.DataType} */ var intType = vecSize > 1 ?
-        //         gluShaderUtil.getDataTypeVector(gluShaderUtil.DataType.INT, vecSize) :
-        //         gluShaderUtil.DataType.INT;
-		//
-        //     /** @type {gluShaderUtil.DataType} */ var uintType = vecSize > 1 ?
-        //         gluShaderUtil.getDataTypeVector(gluShaderUtil.DataType.UINT, vecSize) :
-        //         gluShaderUtil.DataType.UINT;
-		//
-        //     for (var shaderType = gluShaderProgram.shaderType.VERTEX; shaderType <= gluShaderProgram.shaderType.FRAGMENT; shaderType++) {
-        //         // intGroup.addChild(new BitsToFloatCase(intType, gluShaderProgram.shaderType[shaderType]));
-        //         // uintGroup.addChild(new BitsToFloatCase(uintType, gluShaderProgram.shaderType[shaderType]));
-        //     }
-        // }
+        /** @type {tcuTestCase.DeqpTest} */ var intGroup = tcuTestCase.newTest('intbitstofloat', 'intBitsToFloat() Tests');
+        /** @type {tcuTestCase.DeqpTest} */ var uintGroup = tcuTestCase.newTest('uintbitstofloat', 'uintBitsToFloat() Tests');
+
+        testGroup.addChild(intGroup);
+        testGroup.addChild(uintGroup);
+
+        /** @type {Array<gluShaderProgram.shaderType>} */ var shaderTypes = [
+            gluShaderProgram.shaderType.VERTEX,
+            gluShaderProgram.shaderType.FRAGMENT
+        ];
+
+        for (var vecSize = 1; vecSize < 4; vecSize++) {
+            /** @type {gluShaderUtil.DataType} */ var intType = vecSize > 1 ?
+                gluShaderUtil.getDataTypeVector(gluShaderUtil.DataType.INT, vecSize) :
+                gluShaderUtil.DataType.INT;
+
+            /** @type {gluShaderUtil.DataType} */ var uintType = vecSize > 1 ?
+                gluShaderUtil.getDataTypeVector(gluShaderUtil.DataType.UINT, vecSize) :
+                gluShaderUtil.DataType.UINT;
+
+            for (var shaderType in shaderTypes) {
+                intGroup.addChild(new es3fShaderCommonFunctionTests.BitsToFloatCase(intType, shaderTypes[shaderType]));
+                uintGroup.addChild(new es3fShaderCommonFunctionTests.BitsToFloatCase(uintType, shaderTypes[shaderType]));
+            }
+        }
     };
 
     /**
