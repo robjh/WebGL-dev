@@ -33,13 +33,13 @@ goog.require('framework.opengl.gluShaderUtil');
 goog.require('framework.opengl.gluVarType');
 goog.require('framework.opengl.simplereference.sglrGLContext');
 goog.require('modules.shared.glsShaderExecUtil');
-goog.require('modules.shared.glsBuiltinPrecisionTestsAddon');
+goog.require('modules.shared.glsBuiltinPrecisionTestsUnitTests');
 
 
 goog.scope(function() {
 
-var glsBuiltinPrecisionTests = modules.shared.glsBuiltinPrecisionTests;
-var tcuTestCase = framework.common.tcuTestCase;
+	var glsBuiltinPrecisionTests = modules.shared.glsBuiltinPrecisionTests;
+	var tcuTestCase = framework.common.tcuTestCase;
     var gluShaderProgram = framework.opengl.gluShaderProgram;
     var gluShaderUtil = framework.opengl.gluShaderUtil;
     var tcuInterval = framework.common.tcuInterval;
@@ -52,8 +52,8 @@ var tcuTestCase = framework.common.tcuTestCase;
     var gluVarType = framework.opengl.gluVarType;
     var tcuMatrix = framework.common.tcuMatrix;
     var tcuMatrixUtil = framework.common.tcuMatrixUtil;
-	var ref = modules.shared.glsBuiltinPrecisionTestsAddon.cppreference;
-
+	var ref = modules.shared.glsBuiltinPrecisionTestsUnitTests.cppreference;
+	var referenceComparison = modules.shared.glsBuiltinPrecisionTestsUnitTests.referenceComparison;
 
     var DE_ASSERT = function(x) {
         if (!x)
@@ -65,148 +65,17 @@ var setParentClass = function(child, parent) {
     child.prototype.constructor = child;
 };
 
-/** @typedef {(tcuInterval.Interval|Array<tcuInterval.Interval>|tcuMatrix.Matrix)} */
-glsBuiltinPrecisionTests.Intervals;
+	/** @typedef {(tcuInterval.Interval|Array<tcuInterval.Interval>|tcuMatrix.Matrix)} */
+	glsBuiltinPrecisionTests.Intervals;
 
-/** @typedef {(number|Array<number>|tcuMatrix.Matrix)} */
-glsBuiltinPrecisionTests.Value;
+	/** @typedef {(number|Array<number>|tcuMatrix.Matrix)} */
+	glsBuiltinPrecisionTests.Value;
 
-/** @typedef {(string)} */
-glsBuiltinPrecisionTests.Typename;
+	/** @typedef {(string)} */
+	glsBuiltinPrecisionTests.Typename;
 
-var ErrorCount = 0;
-
-//Change to 0 to GPU functional testing
-var f_UnitTest = false;
-
-glsBuiltinPrecisionTests.plainArray = function(input) {
-    var ret = [];
-	
-    if (input instanceof tcuInterval.Interval) {
-        var i = 0
-        ret[i] = input.m_hasNaN;
-        i++;
-        ret[i] = input.m_lo;
-        i++;
-        ret[i] = input.m_hi;
-        return ret;
-    }
-	
-	if (input instanceof tcuMatrix.Matrix) {
-		for (var i = 0, l=0; i < input.cols; i++)
-			for (var j = 0; j < input.rows; j++, l++)
-			{
-				ret[l]=input.matrix[i][j].m_hasNaN;
-				l++;
-				ret[l]=input.matrix[i][j].m_lo;
-				l++;
-				ret[l]=input.matrix[i][j].m_hi;
-			}
-		return ret;
-	}
-	
-    if (input instanceof Array) {
-        var size = input.length;
-        for(var i=0, j=0; j<size; j++, i++)
-        {
-            ret[i] = input[j].m_hasNaN;
-            i++;
-            ret[i] = input[j].m_lo;
-            i++;
-            ret[i] = input[j].m_hi;       
-        }
-        return ret;
-    }
-	return ret;
-};
-
-glsBuiltinPrecisionTests.Compare = function(num1, num2, diff)
-{
-	if(isFinite(num1))
-		if(Math.abs(Math.abs(num1) - Math.abs(num2)) <= diff )
-			return true;
-		else
-			return false;
-	else
-		if(isFinite(num2))
-			return false;
-		else
-			return true;
-}
-
-
-glsBuiltinPrecisionTests.referenceComparison = function(reference, index, precision) {
-	if(index > 1 )
-		return true;
-	
-	var TestName = _currentTestName;
-	var message1 = ''
-	var ref1 = glsBuiltinPrecisionTests.plainArray(reference);
-	var a = ref.length;
-	var len ;
-	var ref_len = ref1.length;
-	var cpp_nan;
-	var ref_nan;
-	var ref_lo;
-	var ref_hi;
-	var cpp_lo;
-	var cpp_hi;
-	var str;
-	var ret1;
-	var ret2;
-	var varfix = Math.max(0.0001,precision.ulp(0,2));
-	var error=0;
-
-	for(var i=0; i < a; i++)
-	{
-		str = ref[i].testName
-
-		if( TestName == str )
-		{
-			len = ref[i].reference.length;
-			
-		    if(len != ref_len)
-				return false;
-			
-		    for(var j=0; j < len; j++)
-		    {
-				cpp_nan = ref[i+index].reference[j];
-				ref_nan = ref1[j];
-				j++;
-				cpp_lo = ref[i+index].reference[j];
-				ref_lo = ref1[j];
-				j++;
-				cpp_hi = ref[i+index].reference[j];
-				ref_hi = ref1[j];
-
-				if(ref_nan == cpp_nan)
-				{
-					ret1 = glsBuiltinPrecisionTests.Compare(ref_lo, cpp_lo, varfix);
-					ret2 = glsBuiltinPrecisionTests.Compare(ref_hi, ref_hi, varfix);
-
-					if((ret1 != true) || (ret2 != true))
-					{
-						ErrorCount ++;
-						message1 = 'Error: ' + varfix
-						bufferedLogToConsole(message1);
-						message1 = 'C++ Reference values:	' + cpp_nan + ',	' +cpp_lo + ',	' + cpp_hi;
-						bufferedLogToConsole(message1);
-						message1 = 'JS values: 		' + ref_nan + ',	' + ref_lo + ',	' + ref_hi;
-						bufferedLogToConsole(message1);
-						message1 = 'Total Error: ' + ErrorCount;
-						bufferedLogToConsole(message1);
-						error++;
-					}
-				}
-			}
-			if(error>0)
-				return false;
-			else
-				return true;
-		}
-	}
-	return true;
-}
+	//Change to true for WebGL unit testing
+	var enableUnittests = true;
 
 	/**
      * @param {number} value
@@ -1136,7 +1005,7 @@ glsBuiltinPrecisionTests.referenceComparison = function(reference, index, precis
      * @return {glsBuiltinPrecisionTests.Intervals}
      */
     glsBuiltinPrecisionTests.Apply.prototype.doEvaluate = function(ctx) {
-		var debug = 0;
+		var debug = false;
 		glsBuiltinPrecisionTests.Apply.prototype.doEvaluate.level = glsBuiltinPrecisionTests.Apply.prototype.doEvaluate.level || 0;
 		var level = glsBuiltinPrecisionTests.Apply.prototype.doEvaluate.level;
 		glsBuiltinPrecisionTests.Apply.prototype.doEvaluate.level++;
@@ -1144,7 +1013,7 @@ glsBuiltinPrecisionTests.referenceComparison = function(reference, index, precis
         name = name.replace(/[\s\S]*glsBuiltinPrecisionTests\./m, '').replace(/\.call[\s\S]*/m, '');
         if (this.m_func.getName)
             name += ' ' + this.m_func.getName();
-		if(debug == 1)
+		if(debug)
 			console.log('<' + level + '> Function ' + name);
 
 		var a = this.m_args.a.evaluate(ctx);
@@ -1152,16 +1021,16 @@ glsBuiltinPrecisionTests.referenceComparison = function(reference, index, precis
 		var c = this.m_args.c.evaluate(ctx);
 		var d = this.m_args.d.evaluate(ctx);
 
-		if(debug == 1)
+		if(debug)
 		{
 			console.log('<' + level + '> a: ' + a);
 			console.log('<' + level + '> b: ' + b);
 		}
-		var ret1 = this.m_func.applyFunction(ctx, a, b, c, d)
-		if(debug == 1)
-			console.log('<' + level + '> returning: ' + ret1);
+		var retVal = this.m_func.applyFunction(ctx, a, b, c, d)
+		if(debug)
+			console.log('<' + level + '> returning: ' + retVal);
 		glsBuiltinPrecisionTests.Apply.prototype.doEvaluate.level--;
-        return ret1;
+        return retVal;
     };
 
     /**
@@ -1202,7 +1071,7 @@ glsBuiltinPrecisionTests.referenceComparison = function(reference, index, precis
     setParentClass(glsBuiltinPrecisionTests.ApplyScalar, glsBuiltinPrecisionTests.Apply);
 
     glsBuiltinPrecisionTests.ApplyScalar.prototype.doEvaluate = function(ctx) {
-		var debug = 0;
+		var debug = false;
 		glsBuiltinPrecisionTests.ApplyScalar.prototype.doEvaluate.level = glsBuiltinPrecisionTests.ApplyScalar.prototype.doEvaluate.level || 0;
 		var level = glsBuiltinPrecisionTests.ApplyScalar.prototype.doEvaluate.level;
 		glsBuiltinPrecisionTests.ApplyScalar.prototype.doEvaluate.level++;
@@ -1210,7 +1079,7 @@ glsBuiltinPrecisionTests.referenceComparison = function(reference, index, precis
         name = name.replace(/[\s\S]*glsBuiltinPrecisionTests\./m, '').replace(/\.call[\s\S]*/m, '');
         if (this.m_func.getName)
             name += ' ' + this.m_func.getName();
-		if(debug == 1)
+		if(debug)
 			console.log('scalar<' + level + '> Function ' + name);
 
 	    var a = this.m_args.a.evaluate(ctx);
@@ -1229,16 +1098,16 @@ glsBuiltinPrecisionTests.referenceComparison = function(reference, index, precis
             return ret;
         }
 
-		if(debug == 1)
+		if(debug)
 		{
 			console.log('scalar<' + level + '> a: ' + a);
 			console.log('scalar<' + level + '> b: ' + b);
 		}
-		var ret1 = this.m_func.applyFunction(ctx, a, b, c, d);
-		if(debug == 1)
-			console.log('scalar<' + level + '> returning: ' + ret1);
+		var retVal = this.m_func.applyFunction(ctx, a, b, c, d);
+		if(debug)
+			console.log('scalar<' + level + '> returning: ' + retVal);
 		glsBuiltinPrecisionTests.Apply.prototype.doEvaluate.level--;
-        return ret1
+        return retVal;
     };
 
     /**
@@ -2047,8 +1916,8 @@ glsBuiltinPrecisionTests.referenceComparison = function(reference, index, precis
         var a = /** @type {tcuInterval.Interval} */ (iargs.a);
         var b = /** @type {tcuInterval.Interval} */ (iargs.b);
         var c = /** @type {tcuInterval.Interval} */ (iargs.c);
-        var ret1 = this.applyMonotone(ctx, a, b, c);
-		return ret1;
+        var retVal = this.applyMonotone(ctx, a, b, c);
+		return retVal;
 	};
 
     /**
@@ -2072,14 +1941,14 @@ glsBuiltinPrecisionTests.referenceComparison = function(reference, index, precis
             return this.applyPoint(ctx, x, y, z);
         };
         var ret = tcuInterval.applyMonotone3(xi, yi, zi, body.bind(this));
-		var ret1;
+		var retVal;
 
         ret.operatorOrAssignBinary(this.innerExtrema(ctx, xi, yi, zi));
 
         ret.operatorAndAssignBinary(this.getCodomain().operatorOrBinary(new tcuInterval.Interval(NaN)));
 
-		ret1 = ctx.format.convert(ret);
-        return ret1;
+		retVal = ctx.format.convert(ret);
+        return retVal;
 	};
 
     /**
@@ -2154,35 +2023,35 @@ glsBuiltinPrecisionTests.referenceComparison = function(reference, index, precis
 
     glsBuiltinPrecisionTests.Clamp.prototype.applyExact = function(x, minVal, maxVal) {
 		var debug = 0;
-		var ret1;
+		var retVal;
 
-		ret1 = deMath.clamp(x, minVal, maxVal);
+		retVal = deMath.clamp(x, minVal, maxVal);
 		if(debug == 1)
 		{
 			console.log('> minVal: ' + minVal);
 			console.log('> maxVal: ' + maxVal);
 			console.log('> x: ' + x);
-			console.log('> ret1: ' + ret1);
+			console.log('> ret: ' + retVal);
 		}
-        return ret1;
+        return retVal;
 
     };
 
     glsBuiltinPrecisionTests.Clamp.prototype.precision = function(ctx, result, x, minVal, maxVal) {
 		var debug = 0;
-		var ret1;
+		var retVal;
 
-		ret1 = minVal > maxVal ? NaN : 0;
+		retVal = minVal > maxVal ? NaN : 0;
 
 		if(debug == 1)
 		{
 			console.log('precision> minVal: ' + minVal);
 			console.log('precision> maxVal: ' + maxVal);
 			console.log('precision> x: ' + x);
-			console.log('precision> ret1: ' + ret1);
+			console.log('precision> ret: ' + retVal);
 		}
 
-        return ret1;
+        return retVal;
     };
 
     /**
@@ -2275,7 +2144,7 @@ glsBuiltinPrecisionTests.referenceComparison = function(reference, index, precis
     glsBuiltinPrecisionTests.Sub.prototype.doApply = function(ctx, iargs) {
         var a = /** @type {tcuInterval.Interval} */ (iargs.a);
         var b = /** @type {tcuInterval.Interval} */ (iargs.b);
-		var ret1;
+		var retVal;
 
         // Fast-path for common case
         if (iargs.a.isOrdinary() && iargs.b.isOrdinary()) {
@@ -2289,8 +2158,8 @@ glsBuiltinPrecisionTests.referenceComparison = function(reference, index, precis
                 });
             return ctx.format.convert(ctx.format.roundOut(ret, true));
         }
-		ret1 = this.applyMonotone(ctx, a, b);
-        return ret1;
+		retVal = this.applyMonotone(ctx, a, b);
+        return retVal;
     };
 
     /**
@@ -2372,8 +2241,6 @@ glsBuiltinPrecisionTests.referenceComparison = function(reference, index, precis
                     });
                 return ctx.format.convert(ctx.format.roundOut(ret, true));
             }
-
-//            return ctx.format.convert(ctx.format.roundOut(ret, true));
         }
 
         return this.applyMonotone(ctx, a, b);
@@ -2947,8 +2814,8 @@ glsBuiltinPrecisionTests.referenceComparison = function(reference, index, precis
     	/** @type {number} */ var minNormalized	= deMath.deFloatLdExp(1.0, minExp);
     	/** @type {number} */ var maxQuantum	= deMath.deFloatLdExp(1.0, maxExp - fractionBits);
 
-//Include extact numbers for unit testing
-	if(f_UnitTest)
+	// If unit testing is enabled, include exact numbers
+	if(enableUnittests)
 	{
 		dst.push(0.2);
 		dst.push(0.5);
@@ -3173,7 +3040,7 @@ glsBuiltinPrecisionTests.referenceComparison = function(reference, index, precis
     		case 1: DE_ASSERT(inputs.in0.length == numValues);
     		default: break;
     	}
-        if(f_UnitTest)
+        if(enableUnittests)
             numValues = 2;
             
         // TODO: Fix logging
@@ -3216,7 +3083,7 @@ glsBuiltinPrecisionTests.referenceComparison = function(reference, index, precis
 
     	spec.source = stmt;
 
-		if(f_UnitTest == false)
+		if(enableUnittests == false)
 		{
 			// Run the shader with inputs.
 			/** @type {glsShaderExecUtil.ShaderExecutor} */
@@ -3280,8 +3147,8 @@ glsBuiltinPrecisionTests.referenceComparison = function(reference, index, precis
     		switch (outCount) {
     			case 2:
     				reference1 = glsBuiltinPrecisionTests.convert(this.Out.Out1, highpFmt, env.lookup(variables.out1));
-					if(f_UnitTest)
-						result = glsBuiltinPrecisionTests.referenceComparison(reference1, valueNdx+outCount-1, this.m_ctx.floatFormat);
+					if(enableUnittests)
+						result = referenceComparison(reference1, valueNdx+outCount-1, this.m_ctx.floatFormat);
 					else
 					{
 						value1 = glsBuiltinPrecisionTests.getOutput(outputs[1], valueNdx, reference1);
@@ -3292,8 +3159,8 @@ glsBuiltinPrecisionTests.referenceComparison = function(reference, index, precis
 					}
     			case 1:
                     reference0 = glsBuiltinPrecisionTests.convert(this.Out.Out0, highpFmt, env.lookup(variables.out0));
-					if(f_UnitTest)
-						result = glsBuiltinPrecisionTests.referenceComparison(reference0, valueNdx+outCount-1, this.m_ctx.floatFormat);
+					if(enableUnittests)
+						result = referenceComparison(reference0, valueNdx+outCount-1, this.m_ctx.floatFormat);
 					else
 					{
 						value0 = glsBuiltinPrecisionTests.getOutput(outputs[0], valueNdx, reference0);
@@ -3333,7 +3200,7 @@ glsBuiltinPrecisionTests.referenceComparison = function(reference, index, precis
     						inputs.in3[valueNdx] + '\n';
     			}
 
-				if(f_UnitTest == false)
+				if(enableUnittests == false)
 				{
 					if (outCount > 0) {
 						builder += '\t' + variables.out0.getName() + ' = ' +
@@ -3522,8 +3389,8 @@ glsBuiltinPrecisionTests.referenceComparison = function(reference, index, precis
         var variables = new glsBuiltinPrecisionTests.Variables(this.In, this.Out);
         // Variables<In, Out>   variables;
         //
-        variables.out0 = new glsBuiltinPrecisionTests.Variable(this.Ret, 'out0');
-        variables.out1 = new glsBuiltinPrecisionTests.Variable('void', 'out1');
+        variables.out0 = new glsBuiltinPrecisionTests.Variable(this.Out.Out0, 'out0');
+        variables.out1 = new glsBuiltinPrecisionTests.Variable(this.Out.Out1, 'out1');
         variables.in0 = new glsBuiltinPrecisionTests.Variable(this.Arg0, 'in0');
         variables.in1 = new glsBuiltinPrecisionTests.Variable(this.Arg1, 'in1');
         variables.in2 = new glsBuiltinPrecisionTests.Variable(this.Arg2, 'in2');
@@ -4829,9 +4696,6 @@ glsBuiltinPrecisionTests.referenceComparison = function(reference, index, precis
         var two = new glsBuiltinPrecisionTests.Constant(2);
         var three = new glsBuiltinPrecisionTests.Constant(3);
         var v4 = app(new glsBuiltinPrecisionTests.Mul(), v3, v3);
-        //var v5 = app(new glsBuiltinPrecisionTests.Mul(), v4, three);
-        //var v6 = app(new glsBuiltinPrecisionTests.Mul(), two, v2);
-        //var v7 = app(new glsBuiltinPrecisionTests.Sub(), v5, v6);
 		var v5 = app(new glsBuiltinPrecisionTests.Mul(), two, v3);
 		var v6 = app(new glsBuiltinPrecisionTests.Sub(), three, v5);
 		var v7 = app(new glsBuiltinPrecisionTests.Mul(), v4, v6);

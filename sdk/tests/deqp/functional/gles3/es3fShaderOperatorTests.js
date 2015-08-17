@@ -203,15 +203,17 @@ var convert = function(input, dataType) {
                 var ret = [];
                 for (var i = 0; i < input.length; i++)
                     ret[i] = deMath.intCast(input[i]);
+                return ret;
             }
             return deMath.intCast(input);
         case gluShaderUtil.DataType.BOOL:
             if (input instanceof Array) {
                 var ret = [];
                 for (var i = 0; i < input.length; i++)
-                    ret[i] = input[i] != 0;
+                    ret[i] = input[i] > 0 ? 1 : 0;
+                return ret;
             }
-            return input != 0;
+            return input > 0 ? 1 : 0;
 
     }
     return input;
@@ -290,17 +292,27 @@ es3fShaderOperatorTests.binaryGenTypeFuncs = function(func, dataTypeOut, dataTyp
 
 /**
  * Generate (cond ? a : b) functions
+ * @param {gluShaderUtil.DataType} dataType
+ * Returns an array of functions, indexed by datatype size
  */ 
-es3fShaderOperatorTests.selectionFuncs = function() {
+es3fShaderOperatorTests.selectionFuncs = function(dataType) {
     var run = function(output, input0, input1, input2) {
-        output[0] = selection(input0, input1, input2);
+        var value = selection(input0, input1, input2);
+        value = convert(value, dataType);
+        if (value instanceof Array) {
+            var len = value.length;
+            var indices = es3fShaderOperatorTests.outIndices[len];
+            for (var i = 0; i < len; i++)
+                output[indices[i]] = value[i];
+        } else
+            output[0] = value;
     };
 
-    var functions = {};
-    functions.scalar = function(c) { run(c.color, c.in_[0][2] > 0,      c.in_[1][0],                    c.in_[2][1]); };
-    functions.vec2 = function(c) { run(c.color, c.in_[0][2] > 0, deMath.swizzle(c.in_[1], [1, 0]), deMath.swizzle(c.in_[2], [2, 1])); };
-    functions.vec3 = function(c) { run(c.color, c.in_[0][2] > 0, deMath.swizzle(c.in_[1], [1, 2, 0]), deMath.swizzle(c.in_[2], [3, 1, 2])); };
-    functions.vec4 = function(c) { run(c.color, c.in_[0][2] > 0, deMath.swizzle(c.in_[1], [3, 2, 1, 0]), deMath.swizzle(c.in_[2], [0, 3, 2, 1])); };
+    var functions = [];
+    functions[1] = function(c) { run(c.color, c.in_[0][2] > 0,      c.in_[1][0],                    c.in_[2][1]); };
+    functions[2] = function(c) { run(c.color, c.in_[0][2] > 0, deMath.swizzle(c.in_[1], [1, 0]), deMath.swizzle(c.in_[2], [2, 1])); };
+    functions[3] = function(c) { run(c.color, c.in_[0][2] > 0, deMath.swizzle(c.in_[1], [1, 2, 0]), deMath.swizzle(c.in_[2], [3, 1, 2])); };
+    functions[4] = function(c) { run(c.color, c.in_[0][2] > 0, deMath.swizzle(c.in_[1], [3, 2, 1, 0]), deMath.swizzle(c.in_[2], [0, 3, 2, 1])); };
     return functions;
 };
 
@@ -312,15 +324,41 @@ var cp = function(dst, src) {
         dst[indices[i]] = src[i];
 };
 
-es3fShaderOperatorTests.binaryScalarVecFuncs = function(func) {
+/**
+ * Generate binary functions of form: vec = func(scalar, vec)
+ * @param {function(number, Array<number>): Array<number>} func
+ * @param {gluShaderUtil.DataType=} dataTypeIn
+ * @param {gluShaderUtil.DataType=} dataTypeOut
+ */ 
+es3fShaderOperatorTests.binaryScalarVecFuncs = function(func, dataTypeOut, dataTypeIn) {
+    var run = function(output, func, input1, input2) {
+        var in1 = convert(input1, dataTypeIn);
+        var in2 = convert(input2, dataTypeIn);
+        var value = func(in1, in2);
+        value = convert(value, dataTypeOut);
+        cp(output, value);
+    };    
     var functions = {};
-    functions.vec2 = function(c) { cp(c.color, func(c.in_[0][2], deMath.swizzle(c.in_[1], [1, 0]))); };
-    functions.vec3 = function(c) { cp(c.color, func(c.in_[0][2], deMath.swizzle(c.in_[1], [1, 2, 0]))); };
-    functions.vec4 = function(c) { cp(c.color, func(c.in_[0][2], deMath.swizzle(c.in_[1], [3, 2, 1, 0]))); };
+    functions.vec2 = function(c) { run(c.color, func, c.in_[0][2], deMath.swizzle(c.in_[1], [1, 0])); };
+    functions.vec3 = function(c) { run(c.color, func, c.in_[0][2], deMath.swizzle(c.in_[1], [1, 2, 0])); };
+    functions.vec4 = function(c) { run(c.color, func, c.in_[0][2], deMath.swizzle(c.in_[1], [3, 2, 1, 0])); };
     return functions;    
 };
 
-es3fShaderOperatorTests.binaryVecScalarFuncs = function(func) {
+/**
+ * Generate binary functions of form: vec = func(vec, scalar)
+ * @param {function(Array<number>, number): Array<number>} func
+ * @param {gluShaderUtil.DataType=} dataTypeIn
+ * @param {gluShaderUtil.DataType=} dataTypeOut
+ */ 
+es3fShaderOperatorTests.binaryVecScalarFuncs = function(func, dataTypeOut, dataTypeIn) {
+    var run = function(output, func, input1, input2) {
+        var in1 = convert(input1, dataTypeIn);
+        var in2 = convert(input2, dataTypeIn);
+        var value = func(in1, in2);
+        value = convert(value, dataTypeOut);
+        cp(output, value);
+    };    
     var functions = {};
     functions.vec2 = function(c) { cp(c.color, func(deMath.swizzle(c.in_[0], [3, 1]), c.in_[1][0])); };
     functions.vec3 = function(c) { cp(c.color, func(deMath.swizzle(c.in_[0], [2, 0, 1]), c.in_[1][0])); };
@@ -1053,6 +1091,93 @@ es3fShaderOperatorTests.ShaderOperatorTests.prototype.init = function() {
                         }
                     }
                 }
+            }
+        }
+    }
+
+    // The ?: selection operator.
+
+    var s_selectionInfo = [
+        gluShaderUtil.DataType.FLOAT,     
+        gluShaderUtil.DataType.FLOAT_VEC2,
+        gluShaderUtil.DataType.FLOAT_VEC3,
+        gluShaderUtil.DataType.FLOAT_VEC4,
+        gluShaderUtil.DataType.INT,       
+        gluShaderUtil.DataType.INT_VEC2,  
+        gluShaderUtil.DataType.INT_VEC3,  
+        gluShaderUtil.DataType.INT_VEC4,  
+        gluShaderUtil.DataType.UINT,      
+        gluShaderUtil.DataType.UINT_VEC2, 
+        gluShaderUtil.DataType.UINT_VEC3, 
+        gluShaderUtil.DataType.UINT_VEC4, 
+        gluShaderUtil.DataType.BOOL,      
+        gluShaderUtil.DataType.BOOL_VEC2, 
+        gluShaderUtil.DataType.BOOL_VEC3, 
+        gluShaderUtil.DataType.BOOL_VEC4
+    ];
+
+    var selectionEvalFuncsFloat = es3fShaderOperatorTests.selectionFuncs(gluShaderUtil.DataType.FLOAT);
+    var selectionEvalFuncsInt = es3fShaderOperatorTests.selectionFuncs(gluShaderUtil.DataType.INT);
+    var selectionEvalFuncsUint = es3fShaderOperatorTests.selectionFuncs(gluShaderUtil.DataType.UINT);
+    var selectionEvalFuncsBool = es3fShaderOperatorTests.selectionFuncs(gluShaderUtil.DataType.BOOL);
+
+    var selectionGroup = new tcuTestCase.DeqpTest("selection", "Selection operator tests");
+    this.addChild(selectionGroup);
+
+    for (var typeNdx = 0; typeNdx < s_selectionInfo.length; typeNdx++)
+    {
+        var curType         = s_selectionInfo[typeNdx];
+        var scalarSize = gluShaderUtil.getDataTypeScalarSize(curType);
+        var isBoolCase      = gluShaderUtil.isDataTypeBoolOrBVec(curType);
+        var isFloatCase     = gluShaderUtil.isDataTypeFloatOrVec(curType);
+        var isIntCase       = gluShaderUtil.isDataTypeIntOrIVec(curType);
+        var isUintCase      = gluShaderUtil.isDataTypeUintOrUVec(curType);
+        var dataTypeStr     = gluShaderUtil.getDataTypeName(curType);
+
+        var evalFuncs = selectionEvalFuncsFloat;
+        if (isBoolCase)
+            evalFuncs = selectionEvalFuncsBool;
+        else if (isIntCase)
+            evalFuncs = selectionEvalFuncsInt;
+        else if (isUintCase)
+            evalFuncs = selectionEvalFuncsUint;
+
+        var evalFunc        = evalFuncs[scalarSize];
+
+        for (var prec in gluShaderUtil.precision)
+        {
+            var precision = gluShaderUtil.precision[prec];
+            if (isBoolCase && precision != gluShaderUtil.precision.PRECISION_MEDIUMP) // Use mediump interpolators for booleans.
+                continue;
+
+            var precisionStr    = gluShaderUtil.getPrecisionName(precision);
+            var precisionPrefix = isBoolCase ? "" : (precisionStr + "_");
+
+            for (var shaderTypeNdx = 0; shaderTypeNdx < s_shaderTypes.length; shaderTypeNdx++)
+            {
+                var shaderType      = s_shaderTypes[shaderTypeNdx];
+                var shaderSpec = new es3fShaderOperatorTests.ShaderDataSpec();
+                var shaderTypeName  = gluShaderProgram.getShaderTypeName(shaderType);
+                var isVertexCase    = shaderType == gluShaderProgram.shaderType.VERTEX;
+
+                var name = precisionPrefix + dataTypeStr + "_" + shaderTypeName;
+
+                shaderSpec.numInputs        = 3;
+                shaderSpec.precision        = isBoolCase ? undefined : precision;
+                shaderSpec.output           = curType;
+                shaderSpec.resultScale      = isBoolCase ? f(1.0) : isFloatCase ? f(0.5) : isUintCase ? f(0.5) : f(0.1);
+                shaderSpec.resultBias       = isBoolCase ? f(0.0) : isFloatCase ? f(0.5) : isUintCase ? f(0.0) : f(0.5);
+                shaderSpec.referenceScale   = shaderSpec.resultScale;
+                shaderSpec.referenceBias    = shaderSpec.resultBias;
+
+                var rangeMin = isBoolCase ? -1.0 : isFloatCase ? -1.0 : isUintCase ? 0.0 : -5.0;
+                var rangeMax = isBoolCase ?  1.0 : isFloatCase ?  1.0 : isUintCase ? 2.0 :  5.0;
+
+                shaderSpec.inputs[0] = new es3fShaderOperatorTests.ShaderValue(gluShaderUtil.DataType.BOOL, f(-1.0), f(1.0));
+                shaderSpec.inputs[1] = new es3fShaderOperatorTests.ShaderValue(curType, f(rangeMin), f(rangeMax));
+                shaderSpec.inputs[2] = new es3fShaderOperatorTests.ShaderValue(curType, f(rangeMin), f(rangeMax));
+
+                selectionGroup.addChild(new es3fShaderOperatorTests.ShaderOperatorCase(name, "", isVertexCase, evalFunc, "res = in0 ? in1 : in2;", shaderSpec));
             }
         }
     }

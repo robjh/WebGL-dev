@@ -92,7 +92,8 @@ targets = {
     'fragdepth' : 'functional.gles3.es3fFragDepthTests',
     'shaderop' : 'functional.gles3.es3fShaderOperatorTests',
     'shaderpackingfunction' : 'functional.gles3.es3fShaderPackingFunctionTests',
-    'shadercommonfunction' : 'functional.gles3.es3fShaderCommonFunctionTests'
+    'shadercommonfunction' : 'functional.gles3.es3fShaderCommonFunctionTests',
+    'shadermatrix' : 'functional.gles3.es3fShaderMatrixTest'
 }
 
 total_errors = 0

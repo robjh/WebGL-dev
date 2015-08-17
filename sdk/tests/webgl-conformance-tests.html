@@ -165,8 +165,7 @@ var DEFAULT_CONFORMANCE_TEST_VERSION = "1.0.4 (beta)";
 var OPTIONS = {
   version: DEFAULT_CONFORMANCE_TEST_VERSION,
   frames: 1,
-  allowSkip: 0,
-  root: null
+  allowSkip: 0
 };
 
 var testVersions = [
@@ -891,15 +890,10 @@ function start() {
   };
   var iframes = makeIFrames();
 
-  var testPath = "00_test_list.txt";
-  if (OPTIONS.root) {
-    testPath = OPTIONS.root + "/" + testPath;
-  }
-
   var reporter = new Reporter(iframes);
   var testHarness = new WebGLTestHarnessModule.TestHarness(
       iframes,
-      testPath,
+      '00_test_list.txt',
       function(type, url, msg, success, skipped) {
         return reporter.reportFunc(type, url, msg, success, skipped);
       },
