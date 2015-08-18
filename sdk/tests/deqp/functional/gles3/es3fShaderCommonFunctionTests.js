@@ -53,6 +53,14 @@ goog.scope(function() {
     };
 
     /**
+     * @param {Array<number>} values
+     */
+    es3fShaderCommonFunctionTests.vecToFloat16 = function(values) {
+        for (var ndx = 0; ndx < values.length; ndx++)
+            values[ndx] = tcuFloat.newFloat16(values[ndx]).getValue();
+    };
+
+    /**
      * @param {es3fShaderCommonFunctionTests.Types} type
      * @param {deRandom.Random} rnd
      * @param {number} minValue
@@ -630,13 +638,8 @@ goog.scope(function() {
         values = values.concat(es3fShaderCommonFunctionTests.fillRandomScalars(es3fShaderCommonFunctionTests.Types.FLOAT, rnd, ranges[precision][0], ranges[precision][1], (numValues - numSpecialCases) * scalarSize));
 
         // If precision is mediump, make sure values can be represented in fp16 exactly
-        if (precision === gluShaderUtil.precision.PRECISION_MEDIUMP) {
-            //for (var ndx = 0; ndx < numValues * scalarSize; ndx++)
-            for (var ndx = 0; ndx < values.length; ndx++) {
-                // ((float*)values[0])[ndx] = tcu::Float16(((float*)values[0])[ndx]).asFloat();
-                tcuFloat.newFloat16(values[ndx]).getValue();
-            }
-        }
+        if (precision === gluShaderUtil.precision.PRECISION_MEDIUMP)
+            es3fShaderCommonFunctionTests.vecToFloat16(values);
 
         return values;
     };
@@ -1089,7 +1092,6 @@ goog.scope(function() {
      * @param {gluShaderProgram.shaderType} shaderType
      */
     es3fShaderCommonFunctionTests.BitsToFloatCase = function(baseType, shaderType) {
-        debugger;
         es3fShaderCommonFunctionTests.CommonFunctionCase.call(this,
             es3fShaderCommonFunctionTests.getCommonFuncCaseName(baseType, gluShaderUtil.precision.PRECISION_HIGHP, shaderType),
             gluShaderUtil.isDataTypeIntOrIVec(baseType) ? 'intBitsToFloat' : 'uintBitsToFloat', shaderType);
@@ -1192,8 +1194,7 @@ goog.scope(function() {
 
         // If precision is mediump, make sure values can be represented in fp16 exactly
         if (precision === gluShaderUtil.precision.PRECISION_MEDIUMP)
-            for (var ndx = 0; ndx < numValues * scalarSize; ndx++)
-                values[ndx] = tcuFloat.newFloat16(values[ndx]).getValue();
+            es3fShaderCommonFunctionTests.vecToFloat16(values);
 
         return values;
     };
@@ -1308,8 +1309,7 @@ goog.scope(function() {
 
         // If precision is mediump, make sure values can be represented in fp16 exactly
         if (precision === gluShaderUtil.precision.PRECISION_MEDIUMP)
-            for (var ndx = 0; ndx < numValues * scalarSize; ndx++)
-                values[ndx] = tcuFloat.newFloat16(values[ndx]).getValue();
+            es3fShaderCommonFunctionTests.vecToFloat16(values);
 
         return values;
     };
@@ -1431,8 +1431,7 @@ goog.scope(function() {
 
         // If precision is mediump, make sure values can be represented in fp16 exactly
         if (precision === gluShaderUtil.precision.PRECISION_MEDIUMP)
-            for (var ndx = 0; ndx < numValues * scalarSize; ndx++)
-                values.push(tcuFloat.newFloat16(values[ndx]).getValue());
+            es3fShaderCommonFunctionTests.vecToFloat16(values);
 
         return values;
     };
@@ -1554,8 +1553,7 @@ goog.scope(function() {
 
         // If precision is mediump, make sure values can be represented in fp16 exactly
         if (precision === gluShaderUtil.precision.PRECISION_MEDIUMP)
-            for (var ndx = 0; ndx < numValues * scalarSize; ndx++)
-                values.push(tcuFloat.newFloat16(values[ndx]).getValue());
+            es3fShaderCommonFunctionTests.vecToFloat16(values);
 
         return values;
     };
@@ -1680,8 +1678,7 @@ goog.scope(function() {
 
         // If precision is mediump, make sure values can be represented in fp16 exactly
         if (precision === gluShaderUtil.precision.PRECISION_MEDIUMP)
-            for (var ndx = 0; ndx < numValues * scalarSize; ndx++)
-                values.push(tcuFloat.newFloat16(values[ndx]).getValue());
+            es3fShaderCommonFunctionTests.vecToFloat16(values)
 
         return values;
     };
