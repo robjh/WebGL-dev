@@ -41,7 +41,23 @@ goog.scope(function() {
     var deString = framework.delibs.debase.deString;
     var glsShaderExecUtil = modules.shared.glsShaderExecUtil;
 
-    /** @typedef {(es3fShaderCommonFunctionTests.AbsCase)} */ es3fShaderCommonFunctionTests.TestClass;
+    // /** @typedef {(es3fShaderCommonFunctionTests.AbsCase|
+    //     es3fShaderCommonFunctionTests.AbsCase|
+    //     es3fShaderCommonFunctionTests.SignCase|
+    //     es3fShaderCommonFunctionTests.FloorCase|
+    //     es3fShaderCommonFunctionTests.TruncCase|
+    //     es3fShaderCommonFunctionTests.RoundCase|
+    //     es3fShaderCommonFunctionTests.RoundEvenCase|
+    //     es3fShaderCommonFunctionTests.CeilCase|
+    //     es3fShaderCommonFunctionTests.FractCase|
+    //     es3fShaderCommonFunctionTests.ModfCase|
+    //     es3fShaderCommonFunctionTests.IsnanCase|
+    //     es3fShaderCommonFunctionTests.IsinfCase|
+    //     es3fShaderCommonFunctionTests.FloatBitsToIntCase|
+    //     es3fShaderCommonFunctionTests.FloatBitsToUintCase|
+    //     es3fShaderCommonFunctionTests.BitsToFloatCase)} */ es3fShaderCommonFunctionTests.TestClass;
+
+    /** @typedef {function(gluShaderUtil.DataType, gluShaderUtil.precision, gluShaderProgram.shaderType)} */ es3fShaderCommonFunctionTests.TestClass;
 
     // VecArrayAccess
     // Won't need this, but just in case.
@@ -266,30 +282,7 @@ goog.scope(function() {
         return totalSize;
     };
 
-    /**
-     * @param {Array<glsShaderExecUtil.Symbol>} symbols
-     * @param {ArrayBuffer} data
-     * @param {number} numValues
-     * @return {Array<*>}
-     */
-    es3fShaderCommonFunctionTests.getInputOutputPointers = function(symbols, data, numValues) {
-        /** @type {Array<goog.TypedArray>} */ var pointers = [];
-        /** @type {number} */ var curScalarOffset    = 0;
-
-        for (var varNdx = 0; varNdx < symbols.length; ++varNdx) {
-            /** @type {glsShaderExecUtil.Symbol} */ var var_ = symbols[varNdx];
-            /** @type {number} */ var scalarSize = var_.varType.getScalarSize();
-
-            // Uses planar layout as input/output specs do not support strides.
-            pointers[varNdx] = new ArrayBuffer(data, curScalarOffset);
-            curScalarOffset += scalarSize * numValues;
-        }
-
-        assertMsgOptions(curScalarOffset === data.length, 'Size mismatch.', false, true);
-
-        return pointers;
-    };
-
+    // getInputOutputPointers
     // HexFloat
     // HexBool
     // VarValue
@@ -574,7 +567,7 @@ goog.scope(function() {
                 /** @type {number} */ var ulpDiff0    = es3fShaderCommonFunctionTests.getUlpDiff(out0, ref0);
 
                 if (ulpDiff0 > maxUlpDiff) {
-                    this.m_failMsg += "Expected [" + compNdx + "] = " + HexFloat(ref0) + " with ULP threshold " + maxUlpDiff + ", got ULP diff " + ulpDiff0;
+                    this.m_failMsg += "Expected [" + compNdx + "] = " + ref0 /*HexFloat(ref0)*/ + " with ULP threshold " + maxUlpDiff + ", got ULP diff " + ulpDiff0;
                     return false;
                 }
             }
@@ -697,7 +690,7 @@ goog.scope(function() {
                     es3fShaderCommonFunctionTests.getUlpDiffIgnoreZeroSign(out0, ref);
 
                 if (ulpDiff > 0) {
-                    this.m_failMsg += "Expected [" + compNdx + "] = " + HexFloat(ref) + ", got ULP diff " + ulpDiff /*tcu::toHex(ulpDiff)*/;
+                    this.m_failMsg += "Expected [" + compNdx + "] = " + ref /*HexFloat(ref)*/ + ", got ULP diff " + ulpDiff /*tcu::toHex(ulpDiff)*/;
                     return false;
                 }
             }
@@ -715,7 +708,7 @@ goog.scope(function() {
                 /** @type {boolean} */ var anyOk = false;
 
                 for (var roundedVal = minRes; roundedVal <= maxRes; roundedVal++) {
-                    /** @type {number} */ var ulpDiff = es3fShaderCommonFunctionTests.getUlpDiffIgnoreZeroSign(out0, roundedVal);
+                    ulpDiff = es3fShaderCommonFunctionTests.getUlpDiffIgnoreZeroSign(out0, roundedVal);
 
                     if (ulpDiff <= maxUlpDiff) {
                         anyOk = true;
@@ -783,7 +776,7 @@ goog.scope(function() {
     es3fShaderCommonFunctionTests.ModfCase.prototype.compare = function(inputs, outputs) {
         /** @type {gluShaderUtil.DataType} */ var type = this.m_spec.inputs[0].varType.getBasicType();
         /** @type {gluShaderUtil.precision} */ var precision = this.m_spec.inputs[0].varType.getPrecision();
-        /** @type {boolean} */ var hasSignedZero = es3fShaderCommonFunctionTests.supportsSignedZero(precision);
+        /** @type {boolean} */ var hasZeroSign = es3fShaderCommonFunctionTests.supportsSignedZero(precision);
         /** @type {number} */ var scalarSize = gluShaderUtil.getDataTypeScalarSize(type);
         /** @type {number} */ var mantissaBits = es3fShaderCommonFunctionTests.getMinMantissaBits(precision);
         /** @type {number} */ var in0;
@@ -803,7 +796,7 @@ goog.scope(function() {
 
             /** @type {number} */ var  resSum = out0 + out1;
 
-            /** @type {number} */ var  ulpDiff = hasZeroSign ? es3fShaderCommonFunctionTestsgetUlpDiff(resSum, in0) : es3fShaderCommonFunctionTests.getUlpDiffIgnoreZeroSign(resSum, in0);
+            /** @type {number} */ var  ulpDiff = hasZeroSign ? es3fShaderCommonFunctionTests.getUlpDiff(resSum, in0) : es3fShaderCommonFunctionTests.getUlpDiffIgnoreZeroSign(resSum, in0);
 
             if (ulpDiff > maxUlpDiff) {
                 this.m_failMsg += "Expected [" + compNdx + "] = (" + refOut0 /*HexFloat(refOut0)*/ + ") + (" + refOut1 /*HexFloat(refOut1)*/ + ") = " + in0 /*HexFloat(in0)*/ + " with ULP threshold "
@@ -1160,13 +1153,13 @@ goog.scope(function() {
     es3fShaderCommonFunctionTests.BitsToFloatCase.prototype.compare = function(inputs, outputs) {
         /** @type {gluShaderUtil.DataType} */ var type = this.m_spec.inputs[0].varType.getBasicType();
         /** @type {number} */ var scalarSize = gluShaderUtil.getDataTypeScalarSize(type);
-        /** @type {number} */ var mantissaBits = es3fShaderCommonFunctionTests.getMinMantissaBits(precision);
         /** @type {number} */ var maxUlpDiff = 0;
 
 
         /** @type {number} */ var in0;
         /** @type {number} */ var out0;
         /** @type {number} */ var ulpDiff;
+        /** @type {number} */ var refOut0;
 
         for (var compNdx = 0; compNdx < scalarSize; compNdx++) {
             in0 = inputs[0][compNdx];
