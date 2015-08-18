@@ -475,12 +475,12 @@ gluDrawUtil.newFloatVertexArrayBinding = function(name, numComponents, numElemen
 };
 
 /**
- * @param  {string} name
- * @param  {number} column
- * @param  {number} rows
- * @param  {number} numElements
- * @param  {number} stride
- * @param  {Array<number>} data
+ * @param {string} name
+ * @param {number} column
+ * @param {number} rows
+ * @param {number} numElements
+ * @param {number} stride
+ * @param {Array<number>} data
  * @return {gluDrawUtil.VertexArrayBinding}
  */
 gluDrawUtil.newFloatColumnVertexArrayBinding = function(name, column, rows, numElements, stride, data) {

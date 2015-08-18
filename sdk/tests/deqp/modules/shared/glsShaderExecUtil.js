@@ -678,7 +678,7 @@ glsShaderExecUtil.FragmentShaderExecutor.prototype.execute = function(numValues,
 
        if (outSize == 4 && outNumLocs == 1)
          outputs[outNdx] = new Uint8Array(tmpBuf.getAccess().getBuffer());
-       else{
+       else {
          outputs[outNdx] = new Uint32Array(numValues * outVecSize);
          var srcPtr = new Uint32Array(tmpBuf.getAccess().getBuffer());
          for (var valNdx = 0; valNdx < numValues; valNdx++) {

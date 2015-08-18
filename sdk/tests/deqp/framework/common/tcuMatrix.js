@@ -70,7 +70,7 @@ goog.scope(function() {
      * @param {Array<number>} src
      * @return {tcuMatrix.Matrix}
      */
-    tcuMatrix.matrixFromDataArray = function (rows, cols, src) {
+    tcuMatrix.matrixFromDataArray = function(rows, cols, src) {
         var matrix = new tcuMatrix.Matrix(rows, cols);
         for (var row = 0; row < rows; row++) {
             for (var col = 0; col < cols; col++) {
@@ -154,8 +154,8 @@ goog.scope(function() {
     tcuMatrix.add = function(matrixA, matrixB) {
         var res = new tcuMatrix.Matrix(matrixA.rows, matrixB.cols);
         for (var col = 0; col < matrixA.cols; col++)
-        	for (var row = 0; row < matrixA.rows; row++)
-        		res.set(row, col, matrixA.get(row, col) + matrixB.get(row, col));
+            for (var row = 0; row < matrixA.rows; row++)
+                res.set(row, col, matrixA.get(row, col) + matrixB.get(row, col));
         return res;
     };
 
@@ -167,8 +167,8 @@ goog.scope(function() {
     tcuMatrix.subtract = function(matrixA, matrixB) {
         var res = new tcuMatrix.Matrix(matrixA.rows, matrixB.cols);
         for (var col = 0; col < matrixA.cols; col++)
-        	for (var row = 0; row < matrixA.rows; row++)
-        		res.set(row, col, matrixA.get(row, col) - matrixB.get(row, col));
+            for (var row = 0; row < matrixA.rows; row++)
+                res.set(row, col, matrixA.get(row, col) - matrixB.get(row, col));
         return res;
     };
 
@@ -200,8 +200,8 @@ goog.scope(function() {
     tcuMatrix.divide = function(matrixA, matrixB) {
         var res = new tcuMatrix.Matrix(matrixA.rows, matrixA.cols);
         for (var col = 0; col < matrixA.cols; col++)
-        	for (var row = 0; row < matrixA.rows; row++)
-        		res.set(row, col, matrixA.get(row, col) / matrixB.get(row, col));
+            for (var row = 0; row < matrixA.rows; row++)
+                res.set(row, col, matrixA.get(row, col) / matrixB.get(row, col));
         return res;
     };
 
@@ -267,11 +267,11 @@ goog.scope(function() {
      * @param {number} scalar
      * @return {tcuMatrix.Matrix}
      */
-    tcuMatrix.subtractMatScal = function (mtx, scalar) {
+    tcuMatrix.subtractMatScal = function(mtx, scalar) {
         /** @type {tcuMatrix.Matrix} */ var res = new tcuMatrix.Matrix(mtx.rows, mtx.cols);
         for (var col = 0; col < mtx.cols; col++)
-        	for (var row = 0; row < mtx.rows; row++)
-        		res.set(row, col, mtx.get(row, col) - scalar);
+            for (var row = 0; row < mtx.rows; row++)
+                res.set(row, col, mtx.get(row, col) - scalar);
 
         return res;
     };
@@ -281,7 +281,7 @@ goog.scope(function() {
      * @param {number} scalar
      * @return {tcuMatrix.Matrix}
      */
-    tcuMatrix.addMatScal = function (mtx, scalar) {
+    tcuMatrix.addMatScal = function(mtx, scalar) {
         /** @type {tcuMatrix.Matrix} */ var res = new tcuMatrix.Matrix(mtx.rows, mtx.cols);
         for (var col = 0; col < mtx.cols; col++)
             for (var row = 0; row < mtx.rows; row++)
@@ -295,11 +295,11 @@ goog.scope(function() {
      * @param {number} scalar
      * @return {tcuMatrix.Matrix}
      */
-    tcuMatrix.multiplyMatScal = function (mtx, scalar) {
+    tcuMatrix.multiplyMatScal = function(mtx, scalar) {
         /** @type {tcuMatrix.Matrix} */ var res = new tcuMatrix.Matrix(mtx.rows, mtx.cols);
         for (var col = 0; col < mtx.cols; col++)
-        	for (var row = 0; row < mtx.rows; row++)
-        		res.set(row, col, mtx.get(row, col) * scalar);
+            for (var row = 0; row < mtx.rows; row++)
+                res.set(row, col, mtx.get(row, col) * scalar);
 
         return res;
     };
@@ -309,7 +309,7 @@ goog.scope(function() {
      * @param {number} scalar
      * @return {tcuMatrix.Matrix}
      */
-    tcuMatrix.divideMatScal = function (mtx, scalar) {
+    tcuMatrix.divideMatScal = function(mtx, scalar) {
         /** @type {tcuMatrix.Matrix} */ var res = new tcuMatrix.Matrix(mtx.rows, mtx.cols);
         for (var col = 0; col < mtx.cols; col++)
             for (var row = 0; row < mtx.rows; row++)
