@@ -1006,31 +1006,29 @@ var setParentClass = function(child, parent) {
      */
     glsBuiltinPrecisionTests.Apply.prototype.doEvaluate = function(ctx) {
 		var debug = false;
-		glsBuiltinPrecisionTests.Apply.prototype.doEvaluate.level = glsBuiltinPrecisionTests.Apply.prototype.doEvaluate.level || 0;
-		var level = glsBuiltinPrecisionTests.Apply.prototype.doEvaluate.level;
-		glsBuiltinPrecisionTests.Apply.prototype.doEvaluate.level++;
-		var name = this.m_func.constructor.toString();
-        name = name.replace(/[\s\S]*glsBuiltinPrecisionTests\./m, '').replace(/\.call[\s\S]*/m, '');
-        if (this.m_func.getName)
-            name += ' ' + this.m_func.getName();
-		if(debug)
-			console.log('<' + level + '> Function ' + name);
 
 		var a = this.m_args.a.evaluate(ctx);
 		var b = this.m_args.b.evaluate(ctx);
 		var c = this.m_args.c.evaluate(ctx);
 		var d = this.m_args.d.evaluate(ctx);
+		var retVal = this.m_func.applyFunction(ctx, a, b, c, d);
 
 		if(debug)
 		{
+			glsBuiltinPrecisionTests.Apply.prototype.doEvaluate.level = glsBuiltinPrecisionTests.Apply.prototype.doEvaluate.level || 0;
+			var level = glsBuiltinPrecisionTests.Apply.prototype.doEvaluate.level;
+			glsBuiltinPrecisionTests.Apply.prototype.doEvaluate.level++;
+			var name = this.m_func.constructor.toString();
+			name = name.replace(/[\s\S]*glsBuiltinPrecisionTests\./m, '').replace(/\.call[\s\S]*/m, '');
+			if (this.m_func.getName)
+				name += ' ' + this.m_func.getName();
+			console.log('<' + level + '> Function ' + name);
 			console.log('<' + level + '> a: ' + a);
 			console.log('<' + level + '> b: ' + b);
-		}
-		var retVal = this.m_func.applyFunction(ctx, a, b, c, d)
-		if(debug)
 			console.log('<' + level + '> returning: ' + retVal);
-		glsBuiltinPrecisionTests.Apply.prototype.doEvaluate.level--;
-        return retVal;
+			glsBuiltinPrecisionTests.Apply.prototype.doEvaluate.level--;
+		}
+		return retVal;
     };
 
     /**
@@ -1072,15 +1070,6 @@ var setParentClass = function(child, parent) {
 
     glsBuiltinPrecisionTests.ApplyScalar.prototype.doEvaluate = function(ctx) {
 		var debug = false;
-		glsBuiltinPrecisionTests.ApplyScalar.prototype.doEvaluate.level = glsBuiltinPrecisionTests.ApplyScalar.prototype.doEvaluate.level || 0;
-		var level = glsBuiltinPrecisionTests.ApplyScalar.prototype.doEvaluate.level;
-		glsBuiltinPrecisionTests.ApplyScalar.prototype.doEvaluate.level++;
-		var name = this.m_func.constructor.toString();
-        name = name.replace(/[\s\S]*glsBuiltinPrecisionTests\./m, '').replace(/\.call[\s\S]*/m, '');
-        if (this.m_func.getName)
-            name += ' ' + this.m_func.getName();
-		if(debug)
-			console.log('scalar<' + level + '> Function ' + name);
 
 	    var a = this.m_args.a.evaluate(ctx);
         var b = this.m_args.b.evaluate(ctx);
@@ -1098,15 +1087,24 @@ var setParentClass = function(child, parent) {
             return ret;
         }
 
-		if(debug)
-		{
-			console.log('scalar<' + level + '> a: ' + a);
-			console.log('scalar<' + level + '> b: ' + b);
-		}
 		var retVal = this.m_func.applyFunction(ctx, a, b, c, d);
 		if(debug)
-			console.log('scalar<' + level + '> returning: ' + retVal);
-		glsBuiltinPrecisionTests.Apply.prototype.doEvaluate.level--;
+		{
+			glsBuiltinPrecisionTests.ApplyScalar.prototype.doEvaluate.level = glsBuiltinPrecisionTests.ApplyScalar.prototype.doEvaluate.level || 0;
+			var level = glsBuiltinPrecisionTests.ApplyScalar.prototype.doEvaluate.level;
+			glsBuiltinPrecisionTests.ApplyScalar.prototype.doEvaluate.level++;
+			var name = this.m_func.constructor.toString();
+			name = name.replace(/[\s\S]*glsBuiltinPrecisionTests\./m, '').replace(/\.call[\s\S]*/m, '');
+			if (this.m_func.getName)
+            	name += ' ' + this.m_func.getName();
+			console.log('scalar<' + level + '> Function ' + name);
+			console.log('scalar<' + level + '> a: ' + a);
+			console.log('scalar<' + level + '> b: ' + b);
+			console.log('scalar<' + level + '> return1: ' + ret);
+			console.log('scalar<' + level + '> return2: ' + retVal);
+			glsBuiltinPrecisionTests.Apply.prototype.doEvaluate.level--;
+		}
+
         return retVal;
     };
 
@@ -3042,7 +3040,7 @@ var setParentClass = function(child, parent) {
     	}
         if(enableUnittests)
             numValues = 2;
-            
+
         // TODO: Fix logging
     	//Print out the statement and its definitions
         // bufferedLogToConsole("Statement: " + stmt);
