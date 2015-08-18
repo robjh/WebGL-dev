@@ -262,11 +262,6 @@ goog.scope(function() {
         return totalSize;
     };
 
-    // getInputOutputPointers
-    // HexFloat
-    // HexBool
-    // VarValue
-
     /**
      * @return {tcuTestCase.IterateResult}
      */

@@ -59,9 +59,26 @@ js_header = '''/*---------------------------------------------------------------
 'use strict';
 '''
 js_body = """goog.provide('functional.gles3.{module_name}');
+goog.require('framework.common.tcuTestCase');
 
 goog.scope(function() {{
 	var {module_name} = functional.gles3.{module_name};
+    var tcuTestCase = framework.common.tcuTestCase;
+
+    /**
+    * @constructor
+    * @extends {{tcuTestCase.DeqpTest}}
+    */
+    {module_name}.{test_constructor} = function() {{
+        tcuTestCase.DeqpTest.call(this, 'NAME', 'DESCRIPTION'); // TODO: replace NAME and DESCRIPTION
+    }};
+
+    {module_name}.{test_constructor}.prototype = Object.create(tcuTestCase.DeqpTest.prototype);
+    {module_name}.{test_constructor}.prototype.constructor = {module_name}.{test_constructor};
+
+    {module_name}.{test_constructor}.prototype.init = function() {{
+
+    }};
 
     /**
     * Run test
@@ -92,11 +109,12 @@ goog.scope(function() {{
 
 def new_test(test, module):
     base_dir = os.path.join(os.getcwd(),'functional','gles3')
+    main_test_name = module.replace('es3f','')
     with open( os.path.join(base_dir, module+".js"),'w') as f:
         f.write(js_header)
-        f.write(js_body.format(module_name=module, test_constructor=module.replace('es3f','')))
+        f.write(js_body.format(module_name=module, test_constructor=main_test_name))
 
-    html_name = module.replace('es3f','').replace('Tests','').lower()
+    html_name = main_test_name.replace('Tests','').lower()
     with open(os.path.join(base_dir, html_name+".html"),'w') as f:
         f.write(html_body.format(test_name=test, module_name=module))
 
