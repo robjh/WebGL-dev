@@ -41,26 +41,7 @@ goog.scope(function() {
     var deString = framework.delibs.debase.deString;
     var glsShaderExecUtil = modules.shared.glsShaderExecUtil;
 
-    // /** @typedef {(es3fShaderCommonFunctionTests.AbsCase|
-    //     es3fShaderCommonFunctionTests.AbsCase|
-    //     es3fShaderCommonFunctionTests.SignCase|
-    //     es3fShaderCommonFunctionTests.FloorCase|
-    //     es3fShaderCommonFunctionTests.TruncCase|
-    //     es3fShaderCommonFunctionTests.RoundCase|
-    //     es3fShaderCommonFunctionTests.RoundEvenCase|
-    //     es3fShaderCommonFunctionTests.CeilCase|
-    //     es3fShaderCommonFunctionTests.FractCase|
-    //     es3fShaderCommonFunctionTests.ModfCase|
-    //     es3fShaderCommonFunctionTests.IsnanCase|
-    //     es3fShaderCommonFunctionTests.IsinfCase|
-    //     es3fShaderCommonFunctionTests.FloatBitsToIntCase|
-    //     es3fShaderCommonFunctionTests.FloatBitsToUintCase|
-    //     es3fShaderCommonFunctionTests.BitsToFloatCase)} */ es3fShaderCommonFunctionTests.TestClass;
-
     /** @typedef {function(gluShaderUtil.DataType, gluShaderUtil.precision, gluShaderProgram.shaderType)} */ es3fShaderCommonFunctionTests.TestClass;
-
-    // VecArrayAccess
-    // Won't need this, but just in case.
 
     /**
      * @enum
@@ -281,11 +262,6 @@ goog.scope(function() {
             totalSize += symbols[sym].varType.getScalarSize();
         return totalSize;
     };
-
-    // getInputOutputPointers
-    // HexFloat
-    // HexBool
-    // VarValue
 
     /**
      * @return {tcuTestCase.IterateResult}
@@ -804,7 +780,6 @@ goog.scope(function() {
                 return false;
             }
         }
-
 
         return true;
     };
