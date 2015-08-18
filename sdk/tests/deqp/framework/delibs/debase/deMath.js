@@ -90,7 +90,7 @@ deMath.dePop32 = function(a) {
 };
 
 deMath.clamp = function(val, minParm, maxParm) {
-	return Math.min(Math.max(val, minParm), maxParm)
+    return Math.min(Math.max(val, minParm), maxParm);
  //   return Math.max(minParm, Math.min(val, maxParm));
 };
 

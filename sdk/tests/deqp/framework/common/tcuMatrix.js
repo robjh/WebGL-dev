@@ -74,7 +74,7 @@ goog.scope(function() {
         var matrix = new tcuMatrix.Matrix(rows, cols);
         for (var row = 0; row < rows; row++) {
             for (var col = 0; col < cols; col++) {
-                matrix.matrix[row][col] = src[row * cols + col];
+                matrix.matrix[col][row] = src[row * cols + col];
             }
         }
         return matrix;
@@ -198,9 +198,7 @@ goog.scope(function() {
      * @return {tcuMatrix.Matrix}
      */
     tcuMatrix.divide = function(matrixA, matrixB) {
-        if (matrixA.cols != matrixB.rows)
-            throw new Error('Wrong matrices sizes');
-        var res = new tcuMatrix.Matrix(matrixA.rows, matrixB.cols);
+        var res = new tcuMatrix.Matrix(matrixA.rows, matrixA.cols);
         for (var col = 0; col < matrixA.cols; col++)
         	for (var row = 0; row < matrixA.rows; row++)
         		res.set(row, col, matrixA.get(row, col) / matrixB.get(row, col));
@@ -270,7 +268,7 @@ goog.scope(function() {
      * @return {tcuMatrix.Matrix}
      */
     tcuMatrix.subtractMatScal = function (mtx, scalar) {
-        /** @type {tcuMatrix.Matrix} */ var res = new tcuMatrix.Matrix(mtx.cols, mtx.rows);
+        /** @type {tcuMatrix.Matrix} */ var res = new tcuMatrix.Matrix(mtx.rows, mtx.cols);
         for (var col = 0; col < mtx.cols; col++)
         	for (var row = 0; row < mtx.rows; row++)
         		res.set(row, col, mtx.get(row, col) - scalar);
@@ -283,11 +281,39 @@ goog.scope(function() {
      * @param {number} scalar
      * @return {tcuMatrix.Matrix}
      */
+    tcuMatrix.addMatScal = function (mtx, scalar) {
+        /** @type {tcuMatrix.Matrix} */ var res = new tcuMatrix.Matrix(mtx.rows, mtx.cols);
+        for (var col = 0; col < mtx.cols; col++)
+            for (var row = 0; row < mtx.rows; row++)
+                res.set(row, col, mtx.get(row, col) + scalar);
+
+        return res;
+    };
+
+    /**
+     * @param {tcuMatrix.Matrix} mtx
+     * @param {number} scalar
+     * @return {tcuMatrix.Matrix}
+     */
     tcuMatrix.multiplyMatScal = function (mtx, scalar) {
-        /** @type {tcuMatrix.Matrix} */ var res = new tcuMatrix.Matrix(mtx.cols, mtx.rows);
+        /** @type {tcuMatrix.Matrix} */ var res = new tcuMatrix.Matrix(mtx.rows, mtx.cols);
         for (var col = 0; col < mtx.cols; col++)
         	for (var row = 0; row < mtx.rows; row++)
         		res.set(row, col, mtx.get(row, col) * scalar);
+
+        return res;
+    };
+
+    /**
+     * @param {tcuMatrix.Matrix} mtx
+     * @param {number} scalar
+     * @return {tcuMatrix.Matrix}
+     */
+    tcuMatrix.divideMatScal = function (mtx, scalar) {
+        /** @type {tcuMatrix.Matrix} */ var res = new tcuMatrix.Matrix(mtx.rows, mtx.cols);
+        for (var col = 0; col < mtx.cols; col++)
+            for (var row = 0; row < mtx.rows; row++)
+                res.set(row, col, mtx.get(row, col) / scalar);
 
         return res;
     };
@@ -300,6 +326,9 @@ goog.scope(function() {
         tcuMatrix.Matrix.call(this, 2, 2);
     };
 
+    tcuMatrix.Mat2.prototype = Object.create(tcuMatrix.Matrix.prototype);
+    tcuMatrix.Mat2.prototype.constructor = tcuMatrix.Mat2;
+
     /**
      * @constructor
      * @extends {tcuMatrix.Matrix}
@@ -307,6 +336,9 @@ goog.scope(function() {
     tcuMatrix.Mat3 = function() {
         tcuMatrix.Matrix.call(this, 3, 3);
     };
+
+    tcuMatrix.Mat3.prototype = Object.create(tcuMatrix.Matrix.prototype);
+    tcuMatrix.Mat3.prototype.constructor = tcuMatrix.Mat3;
 
     /**
      * @constructor
@@ -316,7 +348,7 @@ goog.scope(function() {
         tcuMatrix.Matrix.call(this, 4, 4);
     };
 
-    tcuMatrix.Mat3.prototype = Object.create(tcuMatrix.Matrix.prototype);
-    tcuMatrix.Mat3.prototype.constructor = tcuMatrix.Mat3;
+    tcuMatrix.Mat4.prototype = Object.create(tcuMatrix.Matrix.prototype);
+    tcuMatrix.Mat4.prototype.constructor = tcuMatrix.Mat4;
 
 });

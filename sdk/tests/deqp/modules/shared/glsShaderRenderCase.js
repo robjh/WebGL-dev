@@ -1191,8 +1191,10 @@ goog.scope(function() {
             /** @type {number} */ var numRows = matrices[matNdx].numRows;
             /** @type {number} */ var numCols = matrices[matNdx].numCols;
 
-            for (var colNdx = 0; colNdx < numCols; colNdx++)
-                vertexArrays.push(new gluDrawUtil.VertexArrayBinding(loc + colNdx, numRows, numElements, 4 * 4, quadGrid.getUserAttribByIndex(colNdx)));
+            for (var colNdx = 0; colNdx < numCols; colNdx++) {
+                var data = [].concat.apply([], quadGrid.getUserAttribByIndex(colNdx));
+                vertexArrays.push(gluDrawUtil.newFloatColumnVertexArrayBinding(matrices[matNdx].name, colNdx, numRows, numElements, 4 * 4, data));
+            }
         }
     };
 });
