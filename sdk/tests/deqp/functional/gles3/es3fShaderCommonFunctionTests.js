@@ -1421,7 +1421,7 @@ goog.scope(function() {
             assertMsgOptions(numValues >= 10, 'Sample too small.', false, true);
             for (var ndx = 0; ndx < 10; ndx++) {
                 /** @type {number} */ var v = deMath.clamp(ndx - 5.5, ranges[precision][0], ranges[precision][1]);
-                values.push(v); // TODO [dag] bug in dEQP code. Come back and fix
+                for (var iter = 1; iter <= scalarSize; iter++) values.push(v);
                 numSpecialCases += 1;
             }
         }
