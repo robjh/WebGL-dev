@@ -75,7 +75,7 @@ var setParentClass = function(child, parent) {
 	glsBuiltinPrecisionTests.Typename;
 
 	//Change to true for WebGL unit testing
-	var enableUnittests = true;
+	var enableUnittests = false;
 
 	/**
      * @param {number} value
@@ -1007,6 +1007,18 @@ var setParentClass = function(child, parent) {
     glsBuiltinPrecisionTests.Apply.prototype.doEvaluate = function(ctx) {
 		var debug = false;
 
+        if(debug)
+        {
+            glsBuiltinPrecisionTests.Apply.prototype.doEvaluate.level = glsBuiltinPrecisionTests.Apply.prototype.doEvaluate.level || 0;
+            var level = glsBuiltinPrecisionTests.Apply.prototype.doEvaluate.level;
+            glsBuiltinPrecisionTests.Apply.prototype.doEvaluate.level++;
+            var name = this.m_func.constructor.toString();
+            name = name.replace(/[\s\S]*glsBuiltinPrecisionTests\./m, '').replace(/\.call[\s\S]*/m, '');
+            if (this.m_func.getName)
+                name += ' ' + this.m_func.getName();
+            console.log('<' + level + '> Function ' + name);
+        }
+
 		var a = this.m_args.a.evaluate(ctx);
 		var b = this.m_args.b.evaluate(ctx);
 		var c = this.m_args.c.evaluate(ctx);
@@ -1015,14 +1027,6 @@ var setParentClass = function(child, parent) {
 
 		if(debug)
 		{
-			glsBuiltinPrecisionTests.Apply.prototype.doEvaluate.level = glsBuiltinPrecisionTests.Apply.prototype.doEvaluate.level || 0;
-			var level = glsBuiltinPrecisionTests.Apply.prototype.doEvaluate.level;
-			glsBuiltinPrecisionTests.Apply.prototype.doEvaluate.level++;
-			var name = this.m_func.constructor.toString();
-			name = name.replace(/[\s\S]*glsBuiltinPrecisionTests\./m, '').replace(/\.call[\s\S]*/m, '');
-			if (this.m_func.getName)
-				name += ' ' + this.m_func.getName();
-			console.log('<' + level + '> Function ' + name);
 			console.log('<' + level + '> a: ' + a);
 			console.log('<' + level + '> b: ' + b);
 			console.log('<' + level + '> returning: ' + retVal);
@@ -1071,6 +1075,19 @@ var setParentClass = function(child, parent) {
     glsBuiltinPrecisionTests.ApplyScalar.prototype.doEvaluate = function(ctx) {
 		var debug = false;
 
+        if(debug)
+        {
+            glsBuiltinPrecisionTests.ApplyScalar.prototype.doEvaluate.level = glsBuiltinPrecisionTests.ApplyScalar.prototype.doEvaluate.level || 0;
+            var level = glsBuiltinPrecisionTests.ApplyScalar.prototype.doEvaluate.level;
+            glsBuiltinPrecisionTests.ApplyScalar.prototype.doEvaluate.level++;
+            var name = this.m_func.constructor.toString();
+            name = name.replace(/[\s\S]*glsBuiltinPrecisionTests\./m, '').replace(/\.call[\s\S]*/m, '');
+            if (this.m_func.getName)
+                name += ' ' + this.m_func.getName();
+            console.log('scalar<' + level + '> Function ' + name);
+        }
+
+
 	    var a = this.m_args.a.evaluate(ctx);
         var b = this.m_args.b.evaluate(ctx);
         var c = this.m_args.c.evaluate(ctx);
@@ -1088,16 +1105,9 @@ var setParentClass = function(child, parent) {
         }
 
 		var retVal = this.m_func.applyFunction(ctx, a, b, c, d);
+
 		if(debug)
 		{
-			glsBuiltinPrecisionTests.ApplyScalar.prototype.doEvaluate.level = glsBuiltinPrecisionTests.ApplyScalar.prototype.doEvaluate.level || 0;
-			var level = glsBuiltinPrecisionTests.ApplyScalar.prototype.doEvaluate.level;
-			glsBuiltinPrecisionTests.ApplyScalar.prototype.doEvaluate.level++;
-			var name = this.m_func.constructor.toString();
-			name = name.replace(/[\s\S]*glsBuiltinPrecisionTests\./m, '').replace(/\.call[\s\S]*/m, '');
-			if (this.m_func.getName)
-            	name += ' ' + this.m_func.getName();
-			console.log('scalar<' + level + '> Function ' + name);
 			console.log('scalar<' + level + '> a: ' + a);
 			console.log('scalar<' + level + '> b: ' + b);
 			console.log('scalar<' + level + '> return1: ' + ret);
@@ -2020,11 +2030,11 @@ var setParentClass = function(child, parent) {
     };
 
     glsBuiltinPrecisionTests.Clamp.prototype.applyExact = function(x, minVal, maxVal) {
-		var debug = 0;
+		var debug = false;
 		var retVal;
 
 		retVal = deMath.clamp(x, minVal, maxVal);
-		if(debug == 1)
+		if (debug)
 		{
 			console.log('> minVal: ' + minVal);
 			console.log('> maxVal: ' + maxVal);
@@ -2036,12 +2046,12 @@ var setParentClass = function(child, parent) {
     };
 
     glsBuiltinPrecisionTests.Clamp.prototype.precision = function(ctx, result, x, minVal, maxVal) {
-		var debug = 0;
+		var debug = false;
 		var retVal;
 
 		retVal = minVal > maxVal ? NaN : 0;
 
-		if(debug == 1)
+		if(debug)
 		{
 			console.log('precision> minVal: ' + minVal);
 			console.log('precision> maxVal: ' + maxVal);
@@ -2207,9 +2217,6 @@ var setParentClass = function(child, parent) {
         var a = /** @type {tcuInterval.Interval} */ (iargs.a);
         var b = /** @type {tcuInterval.Interval} */ (iargs.b);
         // Fast-path for common case
-        if (!iargs.a) {
-            debugger;
-        }
         if (iargs.a.isOrdinary() && iargs.b.isOrdinary()) {
             /** type{tcuInterval.Interval} */ var ret = new tcuInterval.Interval();
             if (glsBuiltinPrecisionTests.isNegative(a.hi()))
@@ -2806,18 +2813,17 @@ var setParentClass = function(child, parent) {
     	/** @type {number} */ var minExp	= format.getMinExp();
     	/** @type {number} */ var maxExp	= format.getMaxExp();
     	/** @type {number} */ var fractionBits	= format.getFractionBits();
-        // DE_INLINE double	deMath.deCbrt	(double a)	{ return deSign(a) * dePow(deAbs(a), 1.0 / 3.0); }
-        // DE_INLINE double	deSign				(double x)						{ return deIsNaN(x) ? x : (double)((x > 0.0) - (x < 0.0)); }
     	/** @type {number} */ var minQuantum	= deMath.deFloatLdExp(1.0, minExp - fractionBits);
     	/** @type {number} */ var minNormalized	= deMath.deFloatLdExp(1.0, minExp);
     	/** @type {number} */ var maxQuantum	= deMath.deFloatLdExp(1.0, maxExp - fractionBits);
 
-	// If unit testing is enabled, include exact numbers
-	if(enableUnittests)
-	{
-		dst.push(0.2);
-		dst.push(0.5);
-	}
+        // If unit testing is enabled, include exact numbers
+        if(enableUnittests)
+        {
+        	dst.push(0.2);
+        	dst.push(0.5);
+        }
+
     	// NaN
     	dst.push(NaN);
     	// Zero
