@@ -41,26 +41,7 @@ goog.scope(function() {
     var deString = framework.delibs.debase.deString;
     var glsShaderExecUtil = modules.shared.glsShaderExecUtil;
 
-    // /** @typedef {(es3fShaderCommonFunctionTests.AbsCase|
-    //     es3fShaderCommonFunctionTests.AbsCase|
-    //     es3fShaderCommonFunctionTests.SignCase|
-    //     es3fShaderCommonFunctionTests.FloorCase|
-    //     es3fShaderCommonFunctionTests.TruncCase|
-    //     es3fShaderCommonFunctionTests.RoundCase|
-    //     es3fShaderCommonFunctionTests.RoundEvenCase|
-    //     es3fShaderCommonFunctionTests.CeilCase|
-    //     es3fShaderCommonFunctionTests.FractCase|
-    //     es3fShaderCommonFunctionTests.ModfCase|
-    //     es3fShaderCommonFunctionTests.IsnanCase|
-    //     es3fShaderCommonFunctionTests.IsinfCase|
-    //     es3fShaderCommonFunctionTests.FloatBitsToIntCase|
-    //     es3fShaderCommonFunctionTests.FloatBitsToUintCase|
-    //     es3fShaderCommonFunctionTests.BitsToFloatCase)} */ es3fShaderCommonFunctionTests.TestClass;
-
-    /** @typedef {function(gluShaderUtil.DataType, gluShaderUtil.precision, gluShaderProgram.shaderType)} */ es3fShaderCommonFunctionTests.TestClass;
-
-    // VecArrayAccess
-    // Won't need this, but just in case.
+    /** @typedef {function(new: es3fShaderCommonFunctionTests.CommonFunctionCase, gluShaderUtil.DataType, gluShaderUtil.precision, gluShaderProgram.shaderType)} */ es3fShaderCommonFunctionTests.TestClass;
 
     /**
      * @enum
@@ -79,11 +60,11 @@ goog.scope(function() {
      * @return {number}
      */
     es3fShaderCommonFunctionTests.randomScalar = function(type, rnd, minValue, maxValue) {
-        switch(type) {
+        switch (type) {
             case es3fShaderCommonFunctionTests.Types.FLOAT: return rnd.getFloat(minValue, maxValue);
             case es3fShaderCommonFunctionTests.Types.INT: return rnd.getInt(minValue, maxValue);
             case es3fShaderCommonFunctionTests.Types.UINT: return Math.abs(rnd.getInt(minValue, maxValue));
-            default: throw new Error("Only FLOAT, INT, and UINT are supported.");
+            default: throw new Error('Only FLOAT, INT, and UINT are supported.');
         }
     };
 
@@ -120,7 +101,6 @@ goog.scope(function() {
         return access;
     };
 
-
     /**
      * @param {es3fShaderCommonFunctionTests.Types} type
      * @param {deRandom.Random} rnd
@@ -155,8 +135,8 @@ goog.scope(function() {
      * @return {number}
      */
     es3fShaderCommonFunctionTests.getUlpDiff = function(a, b) {
-        /** @type {number} */ var aBits    = tcuFloat.newFloat32(a).bits();
-        /** @type {number} */ var bBits    = tcuFloat.newFloat32(b).bits();
+        /** @type {number} */ var aBits = tcuFloat.newFloat32(a).bits();
+        /** @type {number} */ var bBits = tcuFloat.newFloat32(b).bits();
         return aBits > bBits ? aBits - bBits : bBits - aBits;
     };
 
@@ -220,14 +200,14 @@ goog.scope(function() {
      */
     es3fShaderCommonFunctionTests.getMinMantissaBits = function(precision) {
         /** @type {Array<number>} */ var bits = [
-            7,        // lowp
-            10,        // mediump
-            23        // highp
+            7, // lowp
+            10, // mediump
+            23 // highp
         ];
 
         assertMsgOptions(deMath.deInBounds32(precision, 0, bits.length), 'Unexpected precision option.', false, true);
         return bits[precision];
-    }
+    };
 
     /**
      * @constructor
@@ -250,10 +230,10 @@ goog.scope(function() {
     es3fShaderCommonFunctionTests.CommonFunctionCase.prototype.constructor = es3fShaderCommonFunctionTests.CommonFunctionCase;
 
     es3fShaderCommonFunctionTests.CommonFunctionCase.prototype.init = function() {
-        assertMsgOptions(!this.m_executor, "Shader executor should be null at this point", false, true);
+        assertMsgOptions(!this.m_executor, 'Shader executor should be null at this point', false, true);
         this.m_executor = glsShaderExecUtil.createExecutor(this.m_shaderType, this.m_spec);
         if (!this.m_executor.isOk())
-            throw new Error("Compile failed");
+            throw new Error('Compile failed');
     };
 
     es3fShaderCommonFunctionTests.CommonFunctionCase.prototype.deinit = function() {
@@ -293,8 +273,8 @@ goog.scope(function() {
     es3fShaderCommonFunctionTests.CommonFunctionCase.prototype.iterate = function() {
         /** @type {number} */ var numInputScalars = es3fShaderCommonFunctionTests.computeTotalScalarSize(this.m_spec.inputs);
         /** @type {number} */ var numOutputScalars = es3fShaderCommonFunctionTests.computeTotalScalarSize(this.m_spec.outputs);
-        /** @type {goog.TypedArray} */ var inputData; // = new Uint32Array(numInputScalars * this.m_numValues);
-        /** @type {goog.TypedArray} */ var outputData; // = new Uint32Array(numInputScalars * this.m_numValues);
+        /** @type {goog.TypedArray} */ var inputData;
+        /** @type {goog.TypedArray} */ var outputData;
         /** @type {gluShaderUtil.DataType} */ var inputType = this.m_spec.inputs[0].varType.getBasicType();
         /** @type {gluShaderUtil.DataType} */ var outputType = this.m_spec.outputs[0].varType.getBasicType();
         /** @type {Array<number>} */ var inputValues;
@@ -332,18 +312,18 @@ goog.scope(function() {
             if (!this.compare([curInputPtr[valNdx]], [curOutputPtr[valNdx]])) {
                 // \todo [2013-08-08 pyry] We probably want to log reference value as well?
 
-                bufferedLogToConsole("ERROR: comparison failed for value " + valNdx + ":\n  " + this.m_failMsg);
-                bufferedLogToConsole("  inputs:");
-                bufferedLogToConsole("    " + this.m_spec.inputs[0].name + " = " + this.m_spec.inputs[0].varType.toString() + "  " + curInputPtr[valNdx]);
-                bufferedLogToConsole("  outputs:");
-                bufferedLogToConsole("    " + this.m_spec.outputs[0].name + " = " + this.m_spec.outputs[0].varType.toString() + " " + curOutputPtr[valNdx]);
+                bufferedLogToConsole('ERROR: comparison failed for value ' + valNdx + ':\n ' + this.m_failMsg);
+                bufferedLogToConsole(' inputs:');
+                bufferedLogToConsole(' ' + this.m_spec.inputs[0].name + ' = ' + this.m_spec.inputs[0].varType.toString() + ' ' + curInputPtr[valNdx]);
+                bufferedLogToConsole(' outputs:');
+                bufferedLogToConsole(' ' + this.m_spec.outputs[0].name + ' = ' + this.m_spec.outputs[0].varType.toString() + ' ' + curOutputPtr[valNdx]);
 
-                this.m_failMsg = ""
+                this.m_failMsg = '';
                 numFailed += 1;
             }
         }
 
-        bufferedLogToConsole((this.m_numValues - numFailed) + " / " + this.m_numValues + " values passed");
+        bufferedLogToConsole((this.m_numValues - numFailed) + ' / ' + this.m_numValues + ' values passed');
 
         /** @type {boolean} */ var isOk = numFailed === 0;
 
@@ -467,19 +447,18 @@ goog.scope(function() {
                 /** @type {number} */ var ulpDiff0 = es3fShaderCommonFunctionTests.getUlpDiff(out0, ref0);
 
                 if (ulpDiff0 > maxUlpDiff) {
-                    this.m_failMsg += "Expected [" + compNdx + "] = " + ref0 /*HexFloat(ref0)*/ + " with ULP threshold " + maxUlpDiff + ", got ULP diff " + ulpDiff0;
+                    this.m_failMsg += 'Expected [' + compNdx + '] = ' + ref0 /*HexFloat(ref0)*/ + ' with ULP threshold ' + maxUlpDiff + ', got ULP diff ' + ulpDiff0;
                     return false;
                 }
             }
-        }
-        else
+        } else
             for (var compNdx = 0; compNdx < scalarSize; compNdx++) {
                 in0 = inputs[0][compNdx];
                 out0 = outputs[0][compNdx];
                 ref0 = Math.abs(in0);
 
                 if (out0 != ref0) {
-                    this.m_failMsg += "Expected [" + compNdx + "] = " + ref0;
+                    this.m_failMsg += 'Expected [' + compNdx + '] = ' + ref0;
                     return false;
                 }
             }
@@ -533,8 +512,7 @@ goog.scope(function() {
             // Special cases.
             // [dag] The special cases are 1, -1, and 0
             return [1.0, -1.0, 0.0].concat(es3fShaderCommonFunctionTests.fillRandomScalars(es3fShaderCommonFunctionTests.Types.FLOAT, rnd, floatRanges[precision][0], floatRanges[precision][1], (numValues - 3) * scalarSize));
-        }
-        else {
+        } else {
             return [1, -1, 0].concat(es3fShaderCommonFunctionTests.fillRandomScalars(es3fShaderCommonFunctionTests.Types.INT, rnd, intRanges[precision][0], intRanges[precision][1], (numValues - 3) * scalarSize));
         }
     };
@@ -564,15 +542,14 @@ goog.scope(function() {
                 out0 = outputs[0][compNdx];
                 ref0 = in0 < 0.0 ? -1.0 :
                        in0 > 0.0 ? 1.0 : 0.0;
-                /** @type {number} */ var ulpDiff0    = es3fShaderCommonFunctionTests.getUlpDiff(out0, ref0);
+                /** @type {number} */ var ulpDiff0 = es3fShaderCommonFunctionTests.getUlpDiff(out0, ref0);
 
                 if (ulpDiff0 > maxUlpDiff) {
-                    this.m_failMsg += "Expected [" + compNdx + "] = " + ref0 /*HexFloat(ref0)*/ + " with ULP threshold " + maxUlpDiff + ", got ULP diff " + ulpDiff0;
+                    this.m_failMsg += 'Expected [' + compNdx + '] = ' + ref0 /*HexFloat(ref0)*/ + ' with ULP threshold ' + maxUlpDiff + ', got ULP diff ' + ulpDiff0;
                     return false;
                 }
             }
-        }
-        else {
+        } else {
             for (var compNdx = 0; compNdx < scalarSize; compNdx++) {
                 in0 = inputs[0][compNdx];
                 out0 = outputs[0][compNdx];
@@ -580,7 +557,7 @@ goog.scope(function() {
                        in0 > 0 ? 1 : 0;
 
                 if (out0 != ref0) {
-                    this.m_failMsg += "Expected [" + compNdx + "] = " + ref0;
+                    this.m_failMsg += 'Expected [' + compNdx + '] = ' + ref0;
                     return false;
                 }
             }
@@ -597,7 +574,7 @@ goog.scope(function() {
         /** @type {number} */ var q = deMath.deFloatFrac(v);
         /** @type {number} */ var truncated = Math.floor(v - q);
         /** @type {number} */ var rounded = (q > 0.5) ? (truncated + 1) : // Rounded up
-            (q == 0.5 && (truncated % 2 != 0))    ? (truncated + 1) :    // Round to nearest even at 0.5
+            (q == 0.5 && (truncated % 2 != 0)) ? (truncated + 1) : // Round to nearest even at 0.5
             truncated; // Rounded down
         return rounded;
     };
@@ -638,13 +615,12 @@ goog.scope(function() {
         /** @type {gluShaderUtil.precision} */ var precision = this.m_spec.inputs[0].varType.getPrecision();
         /** @type {number} */ var scalarSize = gluShaderUtil.getDataTypeScalarSize(type);
         /** @type {number} */ var numSpecialCases = 0;
-        /** @type {Array<number>} */ var values = []
+        /** @type {Array<number>} */ var values = [];
         // Special cases.
         if (precision !== gluShaderUtil.precision.PRECISION_LOWP) {
             assertMsgOptions(numValues >= 20, 'numValues should be greater or equal than 20', false, true);
             for (var ndx = 0; ndx < 20; ndx++) {
                 /** @type {number} */ var v = deMath.clamp(ndx - 10.5, ranges[precision][0], ranges[precision][1]);
-                // std::fill((float*)values[0], (float*)values[0] + scalarSize, v);
                 values.push(v);
                 numSpecialCases += 1;
             }
@@ -657,7 +633,6 @@ goog.scope(function() {
         if (precision === gluShaderUtil.precision.PRECISION_MEDIUMP) {
             //for (var ndx = 0; ndx < numValues * scalarSize; ndx++)
             for (var ndx = 0; ndx < values.length; ndx++) {
-                // ((float*)values[0])[ndx] = tcu::Float16(((float*)values[0])[ndx]).asFloat();
                 tcuFloat.newFloat16(values[ndx]).getValue();
             }
         }
@@ -690,15 +665,14 @@ goog.scope(function() {
                     es3fShaderCommonFunctionTests.getUlpDiffIgnoreZeroSign(out0, ref);
 
                 if (ulpDiff > 0) {
-                    this.m_failMsg += "Expected [" + compNdx + "] = " + ref /*HexFloat(ref)*/ + ", got ULP diff " + ulpDiff /*tcu::toHex(ulpDiff)*/;
+                    this.m_failMsg += 'Expected [' + compNdx + '] = ' + ref + ', got ULP diff ' + ulpDiff;
                     return false;
                 }
             }
-        }
-        else {
+        } else {
             /** @type {number} */ var mantissaBits = es3fShaderCommonFunctionTests.getMinMantissaBits(precision);
-            /** @type {number} */ var maxUlpDiff = es3fShaderCommonFunctionTests.getMaxUlpDiffFromBits(mantissaBits);    // ULP diff for rounded integer value.
-            /** @type {number} */ var eps = es3fShaderCommonFunctionTests.getEpsFromBits(1.0, mantissaBits);    // epsilon for rounding bounds
+            /** @type {number} */ var maxUlpDiff = es3fShaderCommonFunctionTests.getMaxUlpDiffFromBits(mantissaBits); // ULP diff for rounded integer value.
+            /** @type {number} */ var eps = es3fShaderCommonFunctionTests.getEpsFromBits(1.0, mantissaBits); // epsilon for rounding bounds
 
             for (var compNdx = 0; compNdx < scalarSize; compNdx++) {
                 in0 = inputs[0][compNdx];
@@ -717,7 +691,7 @@ goog.scope(function() {
                 }
 
                 if (!anyOk) {
-                    this.m_failMsg += "Expected [" + compNdx + "] = [" + minRes + ", " + maxRes + "] with ULP threshold " + maxUlpDiff /*tcu::toHex(maxUlpDiff)*/;
+                    this.m_failMsg += 'Expected [' + compNdx + '] = [' + minRes + ', ' + maxRes + '] with ULP threshold ' + maxUlpDiff;
                     return false;
                 }
             }
@@ -762,7 +736,7 @@ goog.scope(function() {
         /** @type {gluShaderUtil.DataType} */ var type = this.m_spec.inputs[0].varType.getBasicType();
         /** @type {gluShaderUtil.precision} */ var precision = this.m_spec.inputs[0].varType.getPrecision();
         /** @type {number} */ var scalarSize = gluShaderUtil.getDataTypeScalarSize(type);
-        /** @type {Array<number>} */ var values = []
+        /** @type {Array<number>} */ var values = [];
         values = values.concat(es3fShaderCommonFunctionTests.fillRandomScalars(es3fShaderCommonFunctionTests.Types.FLOAT, rnd, ranges[precision][0], ranges[precision][1], numValues * scalarSize));
 
         return values;
@@ -788,23 +762,22 @@ goog.scope(function() {
             out0 = outputs[0][compNdx];
             out1 = outputs[1][compNdx];
 
-            /** @type {number} */ var  refOut1 = Math.floor(in0);
-            /** @type {number} */ var  refOut0 = in0 - refOut1;
+            /** @type {number} */ var refOut1 = Math.floor(in0);
+            /** @type {number} */ var refOut0 = in0 - refOut1;
 
-            /** @type {number} */ var  bitsLost = precision != gluShaderUtil.precision.PRECISION_HIGHP ? es3fShaderCommonFunctionTests.numBitsLostInOp(in0, refOut0) : 0;
-            /** @type {number} */ var  maxUlpDiff = es3fShaderCommonFunctionTests.getMaxUlpDiffFromBits(Math.max(mantissaBits - bitsLost, 0));
+            /** @type {number} */ var bitsLost = precision != gluShaderUtil.precision.PRECISION_HIGHP ? es3fShaderCommonFunctionTests.numBitsLostInOp(in0, refOut0) : 0;
+            /** @type {number} */ var maxUlpDiff = es3fShaderCommonFunctionTests.getMaxUlpDiffFromBits(Math.max(mantissaBits - bitsLost, 0));
 
-            /** @type {number} */ var  resSum = out0 + out1;
+            /** @type {number} */ var resSum = out0 + out1;
 
-            /** @type {number} */ var  ulpDiff = hasZeroSign ? es3fShaderCommonFunctionTests.getUlpDiff(resSum, in0) : es3fShaderCommonFunctionTests.getUlpDiffIgnoreZeroSign(resSum, in0);
+            /** @type {number} */ var ulpDiff = hasZeroSign ? es3fShaderCommonFunctionTests.getUlpDiff(resSum, in0) : es3fShaderCommonFunctionTests.getUlpDiffIgnoreZeroSign(resSum, in0);
 
             if (ulpDiff > maxUlpDiff) {
-                this.m_failMsg += "Expected [" + compNdx + "] = (" + refOut0 /*HexFloat(refOut0)*/ + ") + (" + refOut1 /*HexFloat(refOut1)*/ + ") = " + in0 /*HexFloat(in0)*/ + " with ULP threshold "
-                            + maxUlpDiff /*tcu::toHex(maxUlpDiff)*/ + ", got ULP diff " + ulpDiff /*tcu::toHex(ulpDiff)*/;
+                this.m_failMsg += 'Expected [' + compNdx + '] = (' + refOut0 + ') + (' + refOut1 + ') = ' + in0 + ' with ULP threshold ' +
+                            maxUlpDiff + ', got ULP diff ' + ulpDiff;
                 return false;
             }
         }
-
 
         return true;
     };
@@ -823,7 +796,7 @@ goog.scope(function() {
         assertMsgOptions(gluShaderUtil.isDataTypeFloatOrVec(baseType), 'Assert error.', false, true);
 
         /** @type {number} */ var vecSize = gluShaderUtil.getDataTypeScalarSize(baseType);
-        /** @type {gluShaderUtil.DataType} */ var boolType    = vecSize > 1 ?
+        /** @type {gluShaderUtil.DataType} */ var boolType = vecSize > 1 ?
             gluShaderUtil.getDataTypeVector(gluShaderUtil.DataType.BOOL, vecSize) :
             gluShaderUtil.DataType.BOOL;
 
@@ -846,8 +819,8 @@ goog.scope(function() {
         /** @type {gluShaderUtil.precision} */ var precision = this.m_spec.inputs[0].varType.getPrecision();
         /** @type {number} */ var scalarSize = gluShaderUtil.getDataTypeScalarSize(type);
         /** @type {number} */ var mantissaBits = es3fShaderCommonFunctionTests.getMinMantissaBits(precision);
-        /** @type {number} */ var mantissaMask    = (~es3fShaderCommonFunctionTests.getMaxUlpDiffFromBits(mantissaBits)) & ((1 << 23) - 1);
-        /** @type {Array<number>} */ var values = []
+        /** @type {number} */ var mantissaMask = (~es3fShaderCommonFunctionTests.getMaxUlpDiffFromBits(mantissaBits)) & ((1 << 23) - 1);
+        /** @type {Array<number>} */ var values = [];
 
         for (var valNdx = 0; valNdx < numValues * scalarSize; valNdx++) {
             /** @type {boolean} */ var isNan = rnd.getFloat() > 0.3;
@@ -887,17 +860,16 @@ goog.scope(function() {
                 ref = tcuFloat.newFloat32(in0).isNaN() ? 1 : 0;
 
                 if (out0 !== ref) {
-                    this.m_failMsg += "Expected [" + compNdx + "] = " + ref /*HexBool(ref)*/;
+                    this.m_failMsg += 'Expected [' + compNdx + '] = ' + ref;
                     return false;
                 }
             }
-        }
-        else {
+        } else {
             for (var compNdx = 0; compNdx < scalarSize; compNdx++) {
                 out0 = outputs[0][compNdx];
 
                 if (out0 !== 0 && out0 !== 1) {
-                    this.m_failMsg += "Expected [" + compNdx + "] = 0 / 1";
+                    this.m_failMsg += 'Expected [' + compNdx + '] = 0 / 1';
                     return false;
                 }
             }
@@ -919,7 +891,7 @@ goog.scope(function() {
         assertMsgOptions(gluShaderUtil.isDataTypeFloatOrVec(baseType), 'Assert error.', false, true);
 
         /** @type {number} */ var vecSize = gluShaderUtil.getDataTypeScalarSize(baseType);
-        /** @type {gluShaderUtil.DataType} */ var boolType    = vecSize > 1 ?
+        /** @type {gluShaderUtil.DataType} */ var boolType = vecSize > 1 ?
             gluShaderUtil.getDataTypeVector(gluShaderUtil.DataType.BOOL, vecSize) :
             gluShaderUtil.DataType.BOOL;
 
@@ -942,8 +914,8 @@ goog.scope(function() {
         /** @type {gluShaderUtil.precision} */ var precision = this.m_spec.inputs[0].varType.getPrecision();
         /** @type {number} */ var scalarSize = gluShaderUtil.getDataTypeScalarSize(type);
         /** @type {number} */ var mantissaBits = es3fShaderCommonFunctionTests.getMinMantissaBits(precision);
-        /** @type {number} */ var mantissaMask    = (~es3fShaderCommonFunctionTests.getMaxUlpDiffFromBits(mantissaBits)) & ((1 << 23) - 1);
-        /** @type {Array<number>} */ var values = []
+        /** @type {number} */ var mantissaMask = (~es3fShaderCommonFunctionTests.getMaxUlpDiffFromBits(mantissaBits)) & ((1 << 23) - 1);
+        /** @type {Array<number>} */ var values = [];
 
         for (var valNdx = 0; valNdx < numValues * scalarSize; valNdx++) {
             /** @type {boolean} */ var isInf = rnd.getFloat() > 0.3;
@@ -982,17 +954,16 @@ goog.scope(function() {
                 ref = tcuFloat.newFloat32(in0).isInf() ? 1 : 0;
 
                 if (out0 !== ref) {
-                    this.m_failMsg += "Expected [" + compNdx + "] = " + ref /*HexBool(ref)*/;
+                    this.m_failMsg += 'Expected [' + compNdx + '] = ' + ref;
                     return false;
                 }
             }
-        }
-        else {
+        } else {
             for (var compNdx = 0; compNdx < scalarSize; compNdx++) {
                 out0 = outputs[0][compNdx];
 
                 if (out0 !== 0 && out0 !== 1) {
-                    this.m_failMsg += "Expected [" + compNdx + "] = 0 / 1";
+                    this.m_failMsg += 'Expected [' + compNdx + '] = 0 / 1';
                     return false;
                 }
             }
@@ -1011,7 +982,7 @@ goog.scope(function() {
     es3fShaderCommonFunctionTests.FloatBitsToUintIntCase = function(baseType, precision, shaderType, outIsSigned) {
         es3fShaderCommonFunctionTests.CommonFunctionCase.call(this,
             es3fShaderCommonFunctionTests.getCommonFuncCaseName(baseType, precision, shaderType),
-            outIsSigned ? "floatBitsToInt" : "floatBitsToUint", shaderType);
+            outIsSigned ? 'floatBitsToInt' : 'floatBitsToUint', shaderType);
 
         /** @type {number} */ var vecSize = gluShaderUtil.getDataTypeScalarSize(baseType);
         /** @type {gluShaderUtil.DataType} */ var intType = outIsSigned ?
@@ -1035,7 +1006,7 @@ goog.scope(function() {
         /** @type {Array<number>} */ var ranges = [
                 [-2.0, 2.0], // lowp
                 [-1e3, 1e3], // mediump
-                [-1e7, 1e7]    // highp
+                [-1e7, 1e7] // highp
         ];
 
         /** @type {deRandom.Random} */ var rnd = new deRandom.Random(deString.deStringHash(this.name) ^ 0x2790a);
@@ -1059,7 +1030,6 @@ goog.scope(function() {
         /** @type {number} */ var mantissaBits = es3fShaderCommonFunctionTests.getMinMantissaBits(precision);
         /** @type {number} */ var maxUlpDiff = es3fShaderCommonFunctionTests.getMaxUlpDiffFromBits(mantissaBits);
 
-
         /** @type {number} */ var in0;
         /** @type {number} */ var out0;
         /** @type {number} */ var refOut0;
@@ -1071,8 +1041,8 @@ goog.scope(function() {
             refOut0 = tcuFloat.newFloat32(in0).bits();
             ulpDiff = Math.abs(Math.floor(out0) - Math.floor(refOut0));
             if (ulpDiff > maxUlpDiff) {
-                this.m_failMsg += "Expected [" + compNdx + "] = " + refOut0 /*tcu::toHex(refOut0)*/ + " with threshold "
-                            + maxUlpDiff /*tcu::toHex(maxUlpDiff)*/ + ", got diff " + ulpDiff /*tcu::toHex(ulpDiff)*/;
+                this.m_failMsg += 'Expected [' + compNdx + '] = ' + refOut0 + ' with threshold ' +
+                            maxUlpDiff + ', got diff ' + ulpDiff;
                 return false;
             }
         }
@@ -1122,7 +1092,6 @@ goog.scope(function() {
         /** @type {number} */ var vecSize = gluShaderUtil.getDataTypeScalarSize(baseType);
         /** @type {gluShaderUtil.DataType} */ var floatType = vecSize > 1 ? gluShaderUtil.getDataTypeFloatVec(vecSize) : gluShaderUtil.DataType.FLOAT;
 
-
         this.m_spec.inputs.push(new glsShaderExecUtil.Symbol('in0', gluVarType.newTypeBasic(baseType, gluShaderUtil.precision.PRECISION_HIGHP)));
         this.m_spec.outputs.push(new glsShaderExecUtil.Symbol('out0', gluVarType.newTypeBasic(floatType, gluShaderUtil.precision.PRECISION_HIGHP)));
         this.m_spec.source = inIsSigned ? 'out0 = intBitsToFloat(in0);' : 'out0 = uintBitsToFloat(in0);';
@@ -1155,7 +1124,6 @@ goog.scope(function() {
         /** @type {number} */ var scalarSize = gluShaderUtil.getDataTypeScalarSize(type);
         /** @type {number} */ var maxUlpDiff = 0;
 
-
         /** @type {number} */ var in0;
         /** @type {number} */ var out0;
         /** @type {number} */ var ulpDiff;
@@ -1168,8 +1136,8 @@ goog.scope(function() {
             ulpDiff = Math.abs(Math.floor(in0) - Math.floor(out0));
 
             if (ulpDiff > maxUlpDiff) {
-                this.m_failMsg += "Expected [" + compNdx + "] = " + in0 /*tcu::toHex(in0)*/ + " with ULP threshold "
-                            + maxUlpDiff /*tcu::toHex(maxUlpDiff)*/ + ", got ULP diff " + ulpDiff /*tcu::toHex(ulpDiff)*/;
+                this.m_failMsg += 'Expected [' + compNdx + '] = ' + in0 + ' with ULP threshold ' +
+                            maxUlpDiff + ', got ULP diff ' + ulpDiff;
                 return false;
             }
         }
@@ -1248,12 +1216,11 @@ goog.scope(function() {
                 ulpDiff = es3fShaderCommonFunctionTests.getUlpDiff(out0, ref);
 
                 if (ulpDiff > 0) {
-                    this.m_failMsg += "Expected [" + compNdx + "] = " + ref /*HexFloat(ref)*/ + ", got ULP diff " + ulpDiff /*tcu::toHex(ulpDiff)*/;
+                    this.m_failMsg += 'Expected [' + compNdx + '] = ' + ref + ', got ULP diff ' + ulpDiff;
                     return false;
                 }
             }
-        }
-        else {
+        } else {
             /** @type {number} */ var mantissaBits = es3fShaderCommonFunctionTests.getMinMantissaBits(precision);
             /** @type {number} */ var maxUlpDiff = es3fShaderCommonFunctionTests.getMaxUlpDiffFromBits(mantissaBits); // ULP diff for rounded integer value.
             /** @type {number} */ var eps = es3fShaderCommonFunctionTests.getEpsFromBits(1.0, mantissaBits); // epsilon for rounding bounds
@@ -1275,7 +1242,7 @@ goog.scope(function() {
                 }
 
                 if (!anyOk) {
-                    this.m_failMsg += "Expected [" + compNdx + "] = [" + minRes + ", " + maxRes + "] with ULP threshold " + maxUlpDiff /*tcu::toHex(maxUlpDiff)*/;
+                    this.m_failMsg += 'Expected [' + compNdx + '] = [' + minRes + ', ' + maxRes + '] with ULP threshold ' + maxUlpDiff;
                     return false;
                 }
             }
@@ -1366,12 +1333,11 @@ goog.scope(function() {
                 ulpDiff = es3fShaderCommonFunctionTests.getUlpDiffIgnoreZeroSign(out0, ref);
 
                 if (ulpDiff > 0) {
-                    this.m_failMsg += "Expected [" + compNdx + "] = " + ref /*HexFloat(ref)*/ + ", got ULP diff " + ulpDiff /*tcu::toHex(ulpDiff)*/;
+                    this.m_failMsg += 'Expected [' + compNdx + '] = ' + ref + ', got ULP diff ' + ulpDiff;
                     return false;
                 }
             }
-        }
-        else {
+        } else {
             /** @type {number} */ var mantissaBits = es3fShaderCommonFunctionTests.getMinMantissaBits(precision);
             /** @type {number} */ var maxUlpDiff = es3fShaderCommonFunctionTests.getMaxUlpDiffFromBits(mantissaBits); // ULP diff for rounded integer value.
             /** @type {number} */ var eps = es3fShaderCommonFunctionTests.getEpsFromBits(1.0, mantissaBits); // epsilon for rounding bounds
@@ -1393,7 +1359,7 @@ goog.scope(function() {
                 }
 
                 if (!anyOk) {
-                    this.m_failMsg += "Expected [" + compNdx + "] = [" + minRes + ", " + maxRes + "] with ULP threshold " + maxUlpDiff /*tcu::toHex(maxUlpDiff)*/;
+                    this.m_failMsg += 'Expected [' + compNdx + '] = [' + minRes + ', ' + maxRes + '] with ULP threshold ' + maxUlpDiff;
                     return false;
                 }
             }
@@ -1489,23 +1455,21 @@ goog.scope(function() {
                     /** @type {number} */ var ulpDiff0 = hasZeroSign ? es3fShaderCommonFunctionTests.getUlpDiff(out0, ref0) : es3fShaderCommonFunctionTests.getUlpDiffIgnoreZeroSign(out0, ref0);
                     /** @type {number} */ var ulpDiff1 = hasZeroSign ? es3fShaderCommonFunctionTests.getUlpDiff(out0, ref1) : es3fShaderCommonFunctionTests.getUlpDiffIgnoreZeroSign(out0, ref1);
                     if (ulpDiff0 > 0 && ulpDiff1 > 0) {
-                        this.m_failMsg += "Expected [" + compNdx + "] = " + ref0 /*HexFloat(ref0)*/ + " or " + ref1 /*HexFloat(ref1)*/ + ", got ULP diff " + Math.min(ulpDiff0, ulpDiff1) /*tcu::toHex(de::min(ulpDiff0, ulpDiff1))*/;
+                        this.m_failMsg += 'Expected [' + compNdx + '] = ' + ref0 + ' or ' + ref1 + ', got ULP diff ' + Math.min(ulpDiff0, ulpDiff1);
                         return false;
                     }
-                }
-                else {
+                } else {
                     // Require exact result
                     /** @type {number} */ var ref = es3fShaderCommonFunctionTests.roundEven(in0);
                     ulpDiff = hasZeroSign ? es3fShaderCommonFunctionTests.getUlpDiff(out0, ref) : es3fShaderCommonFunctionTests.getUlpDiffIgnoreZeroSign(out0, ref);
 
                     if (ulpDiff > 0) {
-                        this.m_failMsg += "Expected [" + compNdx + "] = " + ref /*HexFloat(ref)*/ + ", got ULP diff " + ulpDiff /*tcu::toHex(ulpDiff)*/;
+                        this.m_failMsg += 'Expected [' + compNdx + '] = ' + ref + ', got ULP diff ' + ulpDiff;
                         return false;
                     }
                 }
             }
-        }
-        else {
+        } else {
             /** @type {number} */ var mantissaBits = es3fShaderCommonFunctionTests.getMinMantissaBits(precision);
             /** @type {number} */ var maxUlpDiff = es3fShaderCommonFunctionTests.getMaxUlpDiffFromBits(mantissaBits); // ULP diff for rounded integer value.
             /** @type {number} */ var eps = es3fShaderCommonFunctionTests.getEpsFromBits(1.0, mantissaBits); // epsilon for rounding bounds
@@ -1527,7 +1491,7 @@ goog.scope(function() {
                 }
 
                 if (!anyOk) {
-                    this.m_failMsg += "Expected [" + compNdx + "] = [" + minRes + ", " + maxRes + "] with ULP threshold " + maxUlpDiff /*tcu::toHex(maxUlpDiff)*/;
+                    this.m_failMsg += 'Expected [' + compNdx + '] = [' + minRes + ', ' + maxRes + '] with ULP threshold ' + maxUlpDiff;
                     return false;
                 }
             }
@@ -1610,12 +1574,11 @@ goog.scope(function() {
                 ulpDiff = hasZeroSign ? es3fShaderCommonFunctionTests.getUlpDiff(out0, ref) : es3fShaderCommonFunctionTests.getUlpDiffIgnoreZeroSign(out0, ref);
 
                 if (ulpDiff > 0) {
-                    this.m_failMsg += "Expected [" + compNdx + "] = " + ref /*HexFloat(ref0)*/ + ", got ULP diff " + ulpDiff /*tcu::toHex(ulpDiff)*/;
+                    this.m_failMsg += 'Expected [' + compNdx + '] = ' + ref + ', got ULP diff ' + ulpDiff;
                     return false;
                 }
             }
-        }
-        else {
+        } else {
             /** @type {number} */ var mantissaBits = es3fShaderCommonFunctionTests.getMinMantissaBits(precision);
             /** @type {number} */ var maxUlpDiff = es3fShaderCommonFunctionTests.getMaxUlpDiffFromBits(mantissaBits); // ULP diff for rounded integer value.
             /** @type {number} */ var eps = es3fShaderCommonFunctionTests.getEpsFromBits(1.0, mantissaBits); // epsilon for rounding bounds
@@ -1642,7 +1605,7 @@ goog.scope(function() {
                 }
 
                 if (!anyOk) {
-                    this.m_failMsg += "Expected [" + compNdx + "] = [" + minRes + ", " + maxRes + "] with ULP threshold " + maxUlpDiff /*tcu::toHex(maxUlpDiff)*/;
+                    this.m_failMsg += 'Expected [' + compNdx + '] = [' + minRes + ', ' + maxRes + '] with ULP threshold ' + maxUlpDiff;
                     return false;
                 }
             }
@@ -1736,12 +1699,11 @@ goog.scope(function() {
                 ulpDiff = hasZeroSign ? es3fShaderCommonFunctionTests.getUlpDiff(out0, ref) : es3fShaderCommonFunctionTests.getUlpDiffIgnoreZeroSign(out0, ref);
 
                 if (ulpDiff > 0) {
-                    this.m_failMsg += "Expected [" + compNdx + "] = " + ref /*HexFloat(ref0)*/ + ", got ULP diff " + ulpDiff /*tcu::toHex(ulpDiff)*/;
+                    this.m_failMsg += 'Expected [' + compNdx + '] = ' + ref + ', got ULP diff ' + ulpDiff;
                     return false;
                 }
             }
-        }
-        else {
+        } else {
             /** @type {number} */ var mantissaBits = es3fShaderCommonFunctionTests.getMinMantissaBits(precision);
             /** @type {number} */ var eps = es3fShaderCommonFunctionTests.getEpsFromBits(1.0, mantissaBits); // epsilon for rounding bounds
 
@@ -1755,13 +1717,12 @@ goog.scope(function() {
                     /** @type {number} */ var maxUlpDiff = es3fShaderCommonFunctionTests.getMaxUlpDiffFromBits(Math.max(0, mantissaBits - bitsLost)); // ULP diff for rounded integer value.
                     ulpDiff = es3fShaderCommonFunctionTests.getUlpDiffIgnoreZeroSign(out0, ref);
                     if (ulpDiff > maxUlpDiff) {
-                        this.m_failMsg += "Expected [" + compNdx + "] = " + ref /*HexFloat(ref)*/ + " with ULP threshold " + maxUlpDiff /*tcu::toHex(maxUlpDiff)*/ + ", got diff " + ulpDiff /*tcu::toHex(ulpDiff)*/;
+                        this.m_failMsg += 'Expected [' + compNdx + '] = ' + ref + ' with ULP threshold ' + maxUlpDiff + ', got diff ' + ulpDiff;
                         return false;
                     }
-                }
-                else {
+                } else {
                     if (out0 >= 1.0) {
-                        this.m_failMsg += "Expected [" + compNdx + "] < 1.0";
+                        this.m_failMsg += 'Expected [' + compNdx + '] < 1.0';
                         return false;
                     }
                 }
@@ -1811,8 +1772,7 @@ goog.scope(function() {
             for (var vecSize = 1; vecSize <= 4; vecSize++)
             for (var prec = gluShaderUtil.precision.PRECISION_LOWP; prec <= gluShaderUtil.precision.PRECISION_HIGHP; prec++)
             for (var shaderType = gluShaderProgram.shaderType.VERTEX; shaderType <= gluShaderProgram.shaderType.FRAGMENT; shaderType++)
-                group.addChild(new testClass(scalarType + vecSize - 1, prec, shaderType));
-                // group.addChild(new testClass(gluShaderUtil.DataType[scalarType + vecSize - 1], gluShaderUtil.precision[prec], gluShaderProgram.shaderType[shaderType]));
+                group.addChild(new testClass(/** @type {gluShaderUtil.DataType} */ (scalarType + vecSize - 1), prec, shaderType));
         }
     };
 
