@@ -213,7 +213,7 @@ goog.scope(function() {
 
         // Create program.
         this.m_program = es3fShaderPrecisionTests.createFloatPrecisionEvalProgram(this.m_precision, this.m_op, this.m_isVertexCase);
-        _bufferedLogToConsole(this.m_program.getProgramInfo().infoLog);
+        bufferedLogToConsole(this.m_program.getProgramInfo().infoLog);
 
 		if (!this.m_program.isOk())
 			assertMsgOptions(false, 'Compile failed', false, true);
@@ -274,7 +274,7 @@ goog.scope(function() {
 		/** @type {number} */ var  roundingUlpError = this.m_precision == gluShaderUtil.precision.PRECISION_HIGHP ? 1 : 3;
 		/** @type {number} */ var  maskBits = numLostBits + numPrecBits;
 
-		_bufferedLogToConsole("Assuming " + mantissaBits + " mantissa bits, " + numLostBits + " bits lost in operation, and " + roundingUlpError + " ULP rounding error.")
+		bufferedLogToConsole("Assuming " + mantissaBits + " mantissa bits, " + numLostBits + " bits lost in operation, and " + roundingUlpError + " ULP rounding error.")
 
 		/** @type {number} */ var refBits = tcuFloat.newFloat64(reference).bits();
 		/** @type {number} */ var resBits = tcuFloat.newFloat64(result).bits();
@@ -283,7 +283,7 @@ goog.scope(function() {
 		/** @type {number} */ var ulpDiff = Math.abs(accurateRefBits - accurateResBits);
 
 		if (ulpDiff > roundingUlpError) {
-			_bufferedLogToConsole("ERROR: comparison failed! ULP diff (ignoring lost/undefined bits) = " + ulpDiff );
+			bufferedLogToConsole("ERROR: comparison failed! ULP diff (ignoring lost/undefined bits) = " + ulpDiff );
 			return false;
 		}
 		else
@@ -332,7 +332,7 @@ goog.scope(function() {
 			/** @type {number} */ var refD = this.m_evalFunc(in0, in1);
 			// [dag] only used for logging. /** @type {number} */ var refF = tcuFloat.newFloat64(refD).getValue(); // Uses RTE rounding mode.
 
-			_bufferedLogToConsole("iter " + this.m_iterNdx + ", test " + testNdx + ": "+
+			bufferedLogToConsole("iter " + this.m_iterNdx + ", test " + testNdx + ": "+
 				"in0 = " + in0 + " / " + tcuFloat.newFloat32(in0).bits() +
 				", in1 = " + in1 + " / " + tcuFloat.newFloat32(in1).bits() +
 				"  reference = " + refD + " / " + tcuFloat.newFloat32(refD).bits());
@@ -351,7 +351,7 @@ goog.scope(function() {
 				gl.RGBA_INTEGER, gl.UNSIGNED_INT, pixels_uint);
 			//GLU_EXPECT_NO_ERROR(gl.getError(), "After render");
 			var pixels = new Float32Array(pixels_uint.buffer);
-			_bufferedLogToConsole("  result = " + pixels[0] + " / " + tcuFloat.newFloat32(pixels[0]).bits());
+			bufferedLogToConsole("  result = " + pixels[0] + " / " + tcuFloat.newFloat32(pixels[0]).bits());
 			// Verify results
 			/** @type {boolean} */ var firstPixelOk = this.compare(in0, in1, refD, pixels[0]);
 
@@ -365,7 +365,7 @@ goog.scope(function() {
 						/** @type {number} */ var pixelBits = tcuFloat.newFloat32(pixels[(y * es3fShaderPrecisionTests.FRAMEBUFFER_WIDTH + x) * 4]).bits();
 
 						if (pixelBits != firstPixelBits) {
-							_bufferedLogToConsole("ERROR: Inconsistent results, got " + pixelBits + " at (" + x + ", " + y + ")")
+							bufferedLogToConsole("ERROR: Inconsistent results, got " + pixelBits + " at (" + x + ", " + y + ")")
 							allPixelsOk = false;
 						}
 					}
@@ -402,6 +402,356 @@ goog.scope(function() {
 		this.m_iterNdx += 1;
 		return (this.m_iterNdx < this.m_numIters) ? tcuTestCase.IterateResult.CONTINUE : tcuTestCase.IterateResult.STOP;
 	};
+
+	/**
+	  * @constructor
+	  * @extends {tcuTestCase.DeqpTest}
+	  * @param {string} name
+	  * @param {string} desc
+	  * @param {string} op
+	  * @param {es3fShaderPrecisionTests.EvalFunc} evalFunc
+	  * @param {gluShaderUtil.precision} precision
+	  * @param {number} bits
+	  * @param {Array<number>} rangeA
+	  * @param {Array<number>} rangeB
+	  * @param {boolean} isVertexCase
+	 */
+	es3fShaderPrecisionTests.ShaderIntPrecisionCase = function(name, desc, op, evalFunc, precision, bits, rangeA, rangeB, isVertexCase) {
+		tcuTestCase.DeqpTest.call(this, name, desc);
+		// Case parameters.
+		/** @type {string} */ this.m_op = op;
+		/** @type {es3fShaderPrecisionTests.EvalFunc} */ this.m_evalFunc = evalFunc;
+		/** @type {gluShaderUtil.precision} */ this.m_precision = precision;
+		/** @type {number} */ this.m_bits = bits;
+		/** @type {Array<number>} */ this.m_rangeA = rangeA;
+		/** @type {Array<number>} */ this.m_rangeB = rangeB;
+		/** @type {boolean} */ this.m_isVertexCase = isVertexCase;
+
+		/** @type {number} */ this.m_numTestsPerIter = 32;
+		/** @type {number} */ this.m_numIters = 4;
+		/** @type {deRandom.Random} */ this.m_rnd = new deRandom.Random(deString.deStringHash(this.name));
+
+		// Iteration state.
+		/** @type {gluShaderProgram.ShaderProgram} */ this.m_program = null;
+		/** @type {WebGLFramebuffer} */ this.m_framebuffer = null;
+		/** @type {WebGLRenderbuffer} */ this.m_renderbuffer = null;
+		/** @type {number} */ this.m_iterNdx = 0;
+	};
+
+	es3fShaderPrecisionTests.ShaderIntPrecisionCase.prototype = Object.create(tcuTestCase.DeqpTest.prototype);
+	es3fShaderPrecisionTests.ShaderIntPrecisionCase.prototype.constructor = es3fShaderPrecisionTests.ShaderIntPrecisionCase;
+
+	es3fShaderPrecisionTests.ShaderIntPrecisionCase.prototype.init = function() {
+		assertMsgOptions(!this.m_program && !this.m_framebuffer && !this.m_renderbuffer, 'Program/Framebuffer/Renderbuffer should be null at this point.', false, true);
+		// Create program.
+		this.m_program = es3fShaderPrecisionTests.createIntUintPrecisionEvalProgram(gluShaderUtil.DataType.INT, this.m_precision, this.m_op, this.m_isVertexCase);
+
+		bufferedLogToConsole(this.m_program.getProgramInfo().infoLog);
+
+		if (!this.m_program.isOk())
+			assertMsgOptions(false, 'Compile failed', false, true);
+
+        // Create framebuffer.
+        this.m_framebuffer = gl.createFramebuffer();
+        this.m_renderbuffer = gl.createRenderbuffer();
+
+		gl.bindRenderbuffer(gl.RENDERBUFFER, this.m_renderbuffer);
+		gl.renderbufferStorage(gl.RENDERBUFFER, gl.R32I, es3fShaderPrecisionTests.FRAMEBUFFER_WIDTH, es3fShaderPrecisionTests.FRAMEBUFFER_HEIGHT);
+
+		gl.bindFramebuffer(gl.FRAMEBUFFER, this.m_framebuffer);
+		gl.framebufferRenderbuffer(gl.FRAMEBUFFER, gl.COLOR_ATTACHMENT0, gl.RENDERBUFFER, this.m_renderbuffer);
+
+		// GLU_EXPECT_NO_ERROR(gl.getError(), "Post framebuffer setup");
+		assertMsgOptions(gl.checkFramebufferStatus(gl.FRAMEBUFFER) === gl.FRAMEBUFFER_COMPLETE, 'Framebuffer is incomplete', false, true);
+
+		gl.bindFramebuffer(gl.FRAMEBUFFER, null);
+
+		// Initialize test result to pass.
+		// m_testCtx.setTestResult(QP_TEST_RESULT_PASS, "Pass");
+		this.m_iterNdx = 0;
+
+		bufferedLogToConsole("Number of accurate bits assumed = " + this.m_bits);
+	};
+
+	es3fShaderPrecisionTests.ShaderIntPrecisionCase.prototype.deinit = function() {
+		if(this.m_framebuffer)
+			gl.deleteFramebuffer(this.m_framebuffer);
+		if(this.m_renderbuffer)
+			gl.deleteRenderbuffer(this.m_renderbuffer);
+		this.m_program = null;
+		this.m_framebuffer = null;
+		this.m_renderbuffer = null;
+	};
+
+	/**
+	 * @param {number} value
+	 * @param {number} bits
+	 * @return {number}
+	 */
+
+	es3fShaderPrecisionTests.extendTo32Bit = function(value, bits) {
+		return (value & ((1 << (bits - 1)) - 1)) | deMath.shiftRight(((value & (1 << (bits - 1))) << (32 - bits)), (32 - bits));
+	};
+
+	/**
+	 * @return {tcuTestCase.IterateResult}
+	 */
+	es3fShaderPrecisionTests.ShaderIntPrecisionCase.prototype.iterate = function() {
+		var testPassed = true;
+		var testPassedMsg = 'Pass';
+		// Constant data.
+		/** @type {Array<number>} */ var position = [
+			-1.0, -1.0, 0.0, 1.0,
+			-1.0, 1.0, 0.0, 1.0,
+			1.0, -1.0, 0.0, 1.0,
+			1.0, 1.0, 0.0, 1.0
+		]
+		/** @type {Array<number>} */ var indices = [0, 1, 2, 2, 1, 3];
+
+		/** @type {number} */ var numVertices	= 4;
+		/** @type {Array<number>} */ var in0Arr = [0, 0, 0, 0];
+		/** @type {Array<number>} */ var in1Arr = [0, 0, 0, 0];
+
+		/** @type {number} */ var mask = this.m_bits === 32 ? 0xffffffff : ((1 << this.m_bits) - 1);
+		/** @type {goog.TypedArray} */ var pixels = new Int32Array(es3fShaderPrecisionTests.FRAMEBUFFER_WIDTH * es3fShaderPrecisionTests.FRAMEBUFFER_HEIGHT * 4);
+		/** @type {Array<gluDrawUtil.VertexArrayBinding>} */ var vertexArrays = [];
+
+		/** @type {WebGLProgram} */ var prog = this.m_program.getProgram();
+
+		// \todo [2012-05-03 pyry] A bit hacky. getInt() should work fine with ranges like this.
+		/** @type {boolean} */ var isMaxRangeA = this.m_rangeA[0] === 0x80000000 && this.m_rangeA[1] === 0x7fffffff;
+		/** @type {boolean} */ var isMaxRangeB = this.m_rangeB[0] === 0x80000000 && this.m_rangeB[1] === 0x7fffffff;
+
+		gl.useProgram(prog);
+		gl.bindFramebuffer(gl.FRAMEBUFFER, this.m_framebuffer);
+
+		vertexArrays[0] = gluDrawUtil.newFloatVertexArrayBinding("a_position", 4, numVertices, 0, position);
+
+		// Compute values and reference.
+		for (var testNdx = 0; testNdx < this.m_numTestsPerIter; testNdx++) {
+			/** @type {number} */ var in0 = es3fShaderPrecisionTests.extendTo32Bit(((isMaxRangeA ? Math.abs(this.m_rnd.getInt()) : this.m_rnd.getInt(this.m_rangeA[0], this.m_rangeA[1])) & mask), this.m_bits);
+			/** @type {number} */ var in1 = es3fShaderPrecisionTests.extendTo32Bit(((isMaxRangeB ? Math.abs(this.m_rnd.getInt()) : this.m_rnd.getInt(this.m_rangeB[0], this.m_rangeB[1])) & mask), this.m_bits);
+			/** @type {number} */ var refMasked = this.m_evalFunc(in0, in1) & mask;
+			/** @type {number} */ var refOut = es3fShaderPrecisionTests.extendTo32Bit(refMasked, this.m_bits);
+
+			bufferedLogToConsole("iter " + this.m_iterNdx + ", test " + testNdx + ": " +
+			 	"in0 = " + in0 + ", in1 = " + in1 + ", ref out = " + refOut + " / " + refMasked /*tcu::toHex(refMasked)*/);
+
+			in0Arr = [in0, in0, in0, in0];
+			in1Arr = [in1, in1, in1, in1];
+
+			vertexArrays[1] = gluDrawUtil.newInt32VertexArrayBinding("a_in0", 1, numVertices, 0, in0Arr);
+			vertexArrays[2] = gluDrawUtil.newInt32VertexArrayBinding("a_in1", 1, numVertices, 0, in1Arr);
+
+			gluDrawUtil.draw(gl, prog, vertexArrays, gluDrawUtil.triangles(indices));
+
+			gl.readPixels(0, 0, es3fShaderPrecisionTests.FRAMEBUFFER_WIDTH,
+				es3fShaderPrecisionTests.FRAMEBUFFER_HEIGHT,
+				gl.RGBA_INTEGER, gl.INT, pixels);
+
+			// Compare pixels.
+			for (var y = 0; y < es3fShaderPrecisionTests.FRAMEBUFFER_HEIGHT; y++) {
+				for (var x = 0; x < es3fShaderPrecisionTests.FRAMEBUFFER_WIDTH; x++) {
+					/** @type {number} */ var cmpOut = pixels[(y * es3fShaderPrecisionTests.FRAMEBUFFER_WIDTH + x) * 4];
+					/** @type {number} */ var cmpMasked = cmpOut & mask;
+
+					if (cmpMasked != refMasked) {
+						bufferedLogToConsole("Comparison failed (at " + x + ", " + y + "): " +
+							+ "got " + cmpOut + " / " + cmpOut /*tcu::toHex(cmpOut)*/);
+						// m_testCtx.setTestResult(QP_TEST_RESULT_FAIL, "Fail");
+						testPassed = false;
+						testPassedMsg = 'Comparison failed';
+						//return tcuTestCase.IterateResult.STOP;
+					}
+				}
+			}
+		}
+
+		// GLU_EXPECT_NO_ERROR(gl.getError(), "After iteration");
+		// return (this.m_iterNdx < this.m_numIters) ? tcuTestCase.IterateResult.CONTINUE : tcuTestCase.IterateResult.STOP;
+		gl.bindFramebuffer(gl.FRAMEBUFFER, null);
+
+		this.m_iterNdx += 1;
+		if (!testPassed) {
+			testFailedOptions(testPassedMsg, false);
+			return tcuTestCase.IterateResult.STOP;
+		} else if (testPassed && this.m_iterNdx < this.m_numIters) {
+			return tcuTestCase.IterateResult.CONTINUE;
+		} else {
+			testPassedOptions(testPassedMsg, true);
+			return tcuTestCase.IterateResult.STOP;
+		}
+	};
+
+	/**
+	  * @constructor
+	  * @extends {tcuTestCase.DeqpTest}
+	  * @param {string} name
+	  * @param {string} desc
+	  * @param {string} op
+	  * @param {es3fShaderPrecisionTests.EvalFunc} evalFunc
+	  * @param {gluShaderUtil.precision} precision
+	  * @param {number} bits
+	  * @param {Array<number>} rangeA
+	  * @param {Array<number>} rangeB
+	  * @param {boolean} isVertexCase
+	 */
+	es3fShaderPrecisionTests.ShaderUintPrecisionCase = function(name, desc, op, evalFunc, precision, bits, rangeA, rangeB, isVertexCase) {
+		tcuTestCase.DeqpTest.call(this, name, desc);
+		// Case parameters.
+		/** @type {string} */ this.m_op = op;
+		/** @type {es3fShaderPrecisionTests.EvalFunc} */ this.m_evalFunc = evalFunc;
+		/** @type {gluShaderUtil.precision} */ this.m_precision = precision;
+		/** @type {number} */ this.m_bits = bits;
+		/** @type {Array<number>} */ this.m_rangeA = rangeA;
+		/** @type {Array<number>} */ this.m_rangeB = rangeB;
+		/** @type {boolean} */ this.m_isVertexCase = isVertexCase;
+
+		/** @type {number} */ this.m_numTestsPerIter = 32;
+		/** @type {number} */ this.m_numIters = 4;
+		/** @type {deRandom.Random} */ this.m_rnd = new deRandom.Random(deString.deStringHash(this.name));
+
+		// Iteration state.
+		/** @type {gluShaderProgram.ShaderProgram} */ this.m_program = null;
+		/** @type {WebGLFramebuffer} */ this.m_framebuffer = null;
+		/** @type {WebGLRenderbuffer} */ this.m_renderbuffer = null;
+		/** @type {number} */ this.m_iterNdx = 0;
+	};
+
+	es3fShaderPrecisionTests.ShaderUintPrecisionCase.prototype = Object.create(tcuTestCase.DeqpTest.prototype);
+	es3fShaderPrecisionTests.ShaderUintPrecisionCase.prototype.constructor = es3fShaderPrecisionTests.ShaderUintPrecisionCase;
+
+	es3fShaderPrecisionTests.ShaderUintPrecisionCase.prototype.init = function() {
+		assertMsgOptions(!this.m_program && !this.m_framebuffer && !this.m_renderbuffer, 'Program/Framebuffer/Renderbuffer should be null at this point.', false, true);
+		// Create program.
+		this.m_program = es3fShaderPrecisionTests.createIntUintPrecisionEvalProgram(gluShaderUtil.DataType.UINT, this.m_precision, this.m_op, this.m_isVertexCase);
+
+		bufferedLogToConsole(this.m_program.getProgramInfo().infoLog);
+
+		if (!this.m_program.isOk())
+			assertMsgOptions(false, 'Compile failed', false, true);
+
+        // Create framebuffer.
+        this.m_framebuffer = gl.createFramebuffer();
+        this.m_renderbuffer = gl.createRenderbuffer();
+
+		gl.bindRenderbuffer(gl.RENDERBUFFER, this.m_renderbuffer);
+		gl.renderbufferStorage(gl.RENDERBUFFER, gl.R32UI, es3fShaderPrecisionTests.FRAMEBUFFER_WIDTH, es3fShaderPrecisionTests.FRAMEBUFFER_HEIGHT);
+
+		gl.bindFramebuffer(gl.FRAMEBUFFER, this.m_framebuffer);
+		gl.framebufferRenderbuffer(gl.FRAMEBUFFER, gl.COLOR_ATTACHMENT0, gl.RENDERBUFFER, this.m_renderbuffer);
+
+		assertMsgOptions(gl.checkFramebufferStatus(gl.FRAMEBUFFER) === gl.FRAMEBUFFER_COMPLETE, 'Framebuffer is incomplete', false, true);
+
+		gl.bindFramebuffer(gl.FRAMEBUFFER, null);
+
+		// Initialize test result to pass.
+		//m_testCtx.setTestResult(QP_TEST_RESULT_PASS, "Pass");
+		this.m_iterNdx = 0;
+
+		bufferedLogToConsole("Number of accurate bits assumed = " + this.m_bits);
+	};
+
+	es3fShaderPrecisionTests.ShaderUintPrecisionCase.prototype.deinit = function() {
+		if(this.m_framebuffer)
+			gl.deleteFramebuffer(this.m_framebuffer);
+		if(this.m_renderbuffer)
+			gl.deleteRenderbuffer(this.m_renderbuffer);
+		this.m_program = null;
+		this.m_framebuffer = null;
+		this.m_renderbuffer = null;
+	};
+
+	/**
+	 * @return {tcuTestCase.IterateResult}
+	 */
+	 es3fShaderPrecisionTests.ShaderUintPrecisionCase.prototype.iterate = function() {
+		 var testPassed = true;
+		 var testPassedMsg = 'Pass';
+
+		// Constant data.
+		/** @type {Array<number>} */ var position = [
+			-1.0, -1.0, 0.0, 1.0,
+			-1.0, 1.0, 0.0, 1.0,
+			1.0, -1.0, 0.0, 1.0,
+			1.0, 1.0, 0.0, 1.0
+		];
+		/** @type {Array<number>} */ var indices = [0, 1, 2, 2, 1, 3];
+
+		/** @type {number} */ var numVertices = 4;
+		/** @type {Array<number>} */ var in0Arr = [0, 0, 0, 0];
+		/** @type {Array<number>} */ var in1Arr = [0, 0, 0, 0];
+
+		/** @type {number} */ var mask = this.m_bits === 32 ? 0xffffffff : ((1 << this.m_bits) - 1);
+		/** @type {goog.TypedArray} */ var pixels = new Uint32Array(es3fShaderPrecisionTests.FRAMEBUFFER_WIDTH * es3fShaderPrecisionTests.FRAMEBUFFER_HEIGHT * 4);
+		/** @type {Array<gluDrawUtil.VertexArrayBinding>} */ var vertexArrays = [];
+
+		/** @type {WebGLProgram} */ var prog = this.m_program.getProgram();
+
+		// \todo [2012-05-03 pyry] A bit hacky.
+		/** @type {boolean} */ var isMaxRangeA = this.m_rangeA[0] === 0 && this.m_rangeA[1] === 0xffffffff;
+		/** @type {boolean} */ var isMaxRangeB = this.m_rangeB[0] === 0 && this.m_rangeB[1] === 0xffffffff;
+
+		gl.useProgram(prog);
+		gl.bindFramebuffer(gl.FRAMEBUFFER, this.m_framebuffer);
+
+		vertexArrays[0] = gluDrawUtil.newFloatVertexArrayBinding("a_position", 4, numVertices, 0, position);
+
+		// Compute values and reference.
+		for (var testNdx = 0; testNdx < this.m_numTestsPerIter; testNdx++) {
+			/** @type {number} */ var in0 = (isMaxRangeA ? Math.abs(this.m_rnd.getInt()) : (this.m_rangeA[0] + Math.abs(this.m_rnd.getInt()) % (this.m_rangeA[1] - this.m_rangeA[0] + 1))) & mask;
+			/** @type {number} */ var in1 = (isMaxRangeB ? Math.abs(this.m_rnd.getInt()) : (this.m_rangeB[0] + Math.abs(this.m_rnd.getInt()) % (this.m_rangeB[1] - this.m_rangeB[0] + 1))) & mask;
+			/** @type {number} */ var refOut = this.m_evalFunc(in0, in1) & mask;
+
+			bufferedLogToConsole("iter " + this.m_iterNdx + ", test " + testNdx + ": " +
+				+ "in0 = " + in0 + ", in1 = " + in1 + ", ref out = " + refOut)
+
+			in0Arr = [in0, in0, in0, in0];
+			in1Arr = [in1, in1, in1, in1];
+			vertexArrays[1] = gluDrawUtil.newUint32VertexArrayBinding("a_in0", 1, numVertices, 0, in0Arr);
+			vertexArrays[2] = gluDrawUtil.newUint32VertexArrayBinding("a_in1", 1, numVertices, 0, in1Arr);
+			gluDrawUtil.draw(gl, prog, vertexArrays, gluDrawUtil.triangles(indices));
+			//glu::draw(m_context.getRenderContext(), prog, (int)vertexArrays.size(), &vertexArrays[0],
+			//		  glu::pr::Triangles(DE_LENGTH_OF_ARRAY(indices), &indices[0]));
+			// gl.readPixels(0, 0, FRAMEBUFFER_WIDTH, FRAMEBUFFER_HEIGHT, GL_RGBA_INTEGER, GL_UNSIGNED_INT, &pixels[0]);
+			// GLU_EXPECT_NO_ERROR(gl.getError(), "After render");
+			gl.readPixels(0, 0, es3fShaderPrecisionTests.FRAMEBUFFER_WIDTH,
+				es3fShaderPrecisionTests.FRAMEBUFFER_HEIGHT,
+				gl.RGBA_INTEGER, gl.UNSIGNED_INT, pixels);
+			// Compare pixels.
+			for (var y = 0; y < es3fShaderPrecisionTests.FRAMEBUFFER_HEIGHT; y++) {
+				for (var x = 0; x < es3fShaderPrecisionTests.FRAMEBUFFER_WIDTH; x++) {
+					/** @type {number} */ var cmpOut = pixels[(y*es3fShaderPrecisionTests.FRAMEBUFFER_WIDTH + x) * 4];
+					/** @type {number} */ var cmpMasked = cmpOut & mask;
+
+					if (cmpMasked != refOut) {
+						bufferedLogToConsole("Comparison failed (at " + x + ", " + y + "): " + "got " + cmpOut)
+						//m_testCtx.setTestResult(QP_TEST_RESULT_FAIL, "Fail");
+						testPassed = false;
+						testPassedMsg = 'Comparison failed';
+						//return tcuTestCase.IterateResult.STOP;
+					}
+				}
+			}
+		}
+
+
+		// GLU_EXPECT_NO_ERROR(gl.getError(), "After iteration");
+		// return (this.m_iterNdx < this.m_numIters) ? tcuTestCase.IterateResult.CONTINUE : tcuTestCase.IterateResult.STOP;
+
+		gl.bindFramebuffer(gl.FRAMEBUFFER, null);
+
+		this.m_iterNdx += 1;
+		if (!testPassed) {
+			testFailedOptions(testPassedMsg, false);
+			return tcuTestCase.IterateResult.STOP;
+		} else if (testPassed && this.m_iterNdx < this.m_numIters) {
+			return tcuTestCase.IterateResult.CONTINUE;
+		} else {
+			testPassedOptions(testPassedMsg, true);
+			return tcuTestCase.IterateResult.STOP;
+		}
+	 };
 
     /**
     * @constructor
@@ -468,73 +818,77 @@ goog.scope(function() {
             new FloatCase('mediump_div', 'in0 / in1', es3fShaderPrecisionTests.div, gluShaderUtil.precision.PRECISION_MEDIUMP, [-1e2, 1e2], [-1e2, 1e2])
         ];
 
-        // /**
-        //  * @constructor
-        //  * @struct
-        //  * @param {string} name
-        //  * @param {string} op
-        //  * @param {es3fShaderPrecisionTests.ShaderFloatPrecisionCase.EvalFunc} evalFunc
-        //  * @param {gluShaderUtil.precision} precision
-        //  * @param {Array<number>} rangeA
-        //  * @param {Array<number>} rangeB
-        //  */
-        // var IntCase = function(name, op, evalFunc, precision, rangeA, rangeB) {
-        //     /** @type {string} */ this.name = name;
-        //        /** @type {string} */ this.op = op;
-        //        /** @type {es3fShaderPrecisionTests.ShaderFloatPrecisionCase.EvalFunc} */ this.evalFunc = evalFunc;
-        //        /** @type {gluShaderUtil.precision} */ this.precision = precision;
-        //        /** @type {Array<number>} */ this.rangeA = rangeA;
-        //        /** @type {Array<number>} */ this.rangeB = rangeB;
-        // };
-		//
-        // /** @type {Array<IntCase>} */ var intCases = [
-        //     new IntCase('highp_add', 'in0 + in1', es3fShaderPrecisionTests.ShaderIntPrecisionCase.add, gluShaderUtil.precision.PRECISION_HIGHP,    32, fullRange32I, fullRange32I),
-        //     new IntCase('highp_sub', 'in0 - in1', es3fShaderPrecisionTests.ShaderIntPrecisionCase.sub, gluShaderUtil.precision.PRECISION_HIGHP,    32, fullRange32I, fullRange32I),
-        //     new IntCase('highp_mul', 'in0 * in1', es3fShaderPrecisionTests.ShaderIntPrecisionCase.mul, gluShaderUtil.precision.PRECISION_HIGHP,    32, fullRange32I, fullRange32I),
-        //     new IntCase('highp_div', 'in0 / in1', es3fShaderPrecisionTests.ShaderIntPrecisionCase.div, gluShaderUtil.precision.PRECISION_HIGHP,    32, fullRange32I, [-10000, -1]),
-        //     new IntCase('mediump_add', 'in0 + in1', es3fShaderPrecisionTests.ShaderIntPrecisionCase.add, gluShaderUtil.precision.PRECISION_MEDIUMP,    16, fullRange16I, fullRange16I),
-        //     new IntCase('mediump_sub', 'in0 - in1', es3fShaderPrecisionTests.ShaderIntPrecisionCase.sub, gluShaderUtil.precision.PRECISION_MEDIUMP,    16, fullRange16I, fullRange16I),
-        //     new IntCase('mediump_mul', 'in0 * in1', es3fShaderPrecisionTests.ShaderIntPrecisionCase.mul, gluShaderUtil.precision.PRECISION_MEDIUMP,    16, fullRange16I, fullRange16I),
-        //     new IntCase('mediump_div', 'in0 / in1', es3fShaderPrecisionTests.ShaderIntPrecisionCase.div, gluShaderUtil.precision.PRECISION_MEDIUMP,    16, fullRange16I, [1, 1000]),
-        //     new IntCase('lowp_add', 'in0 + in1', es3fShaderPrecisionTests.ShaderIntPrecisionCase.add, gluShaderUtil.precision.PRECISION_LOWP,    8, fullRange8I, fullRange8I),
-        //     new IntCase('lowp_sub', 'in0 - in1', es3fShaderPrecisionTests.ShaderIntPrecisionCase.sub, gluShaderUtil.precision.PRECISION_LOWP,    8, fullRange8I, fullRange8I),
-        //     new IntCase('lowp_mul', 'in0 * in1', es3fShaderPrecisionTests.ShaderIntPrecisionCase.mul, gluShaderUtil.precision.PRECISION_LOWP,    8, fullRange8I, fullRange8I),
-        //     new IntCase('lowp_div', 'in0 / in1', es3fShaderPrecisionTests.ShaderIntPrecisionCase.div, gluShaderUtil.precision.PRECISION_LOWP,    8, fullRange8I, [-50, -1])
-        // ];
+        /**
+         * @constructor
+         * @struct
+         * @param {string} name
+         * @param {string} op
+         * @param {es3fShaderPrecisionTests.EvalFunc} evalFunc
+         * @param {gluShaderUtil.precision} precision
+         * @param {number} bits
+         * @param {Array<number>} rangeA
+         * @param {Array<number>} rangeB
+         */
+        var IntCase = function(name, op, evalFunc, precision, bits, rangeA, rangeB) {
+            /** @type {string} */ this.name = name;
+               /** @type {string} */ this.op = op;
+               /** @type {es3fShaderPrecisionTests.EvalFunc} */ this.evalFunc = evalFunc;
+               /** @type {gluShaderUtil.precision} */ this.precision = precision;
+			   /** @type {number} */ this.bits = bits;
+               /** @type {Array<number>} */ this.rangeA = rangeA;
+               /** @type {Array<number>} */ this.rangeB = rangeB;
+        };
 
-        // /**
-        //  * @constructor
-        //  * @struct
-        //  * @param {string} name
-        //  * @param {string} op
-        //  * @param {es3fShaderPrecisionTests.ShaderFloatPrecisionCase.EvalFunc} evalFunc
-        //  * @param {gluShaderUtil.precision} precision
-        //  * @param {Array<number>} rangeA
-        //  * @param {Array<number>} rangeB
-        //  */
-        // var UintCase = function(name, op, evalFunc, precision, rangeA, rangeB) {
-        //     /** @type {string} */ this.name = name;
-        //        /** @type {string} */ this.op = op;
-        //        /** @type {es3fShaderPrecisionTests.ShaderFloatPrecisionCase.EvalFunc} */ this.evalFunc = evalFunc;
-        //        /** @type {gluShaderUtil.precision} */ this.precision = precision;
-        //        /** @type {Array<number>} */ this.rangeA = rangeA;
-        //        /** @type {Array<number>} */ this.rangeB = rangeB;
-        // };
-		//
-        // /** @type {Array<UintCase>} */ var uintCases = [
-        //     new UintCase('highp_add', 'in0 + in1', add, gluShaderUtil.precision.PRECISION_HIGHP, 32, fullRange32U, fullRange32U),
-        //     new UintCase('highp_sub', 'in0 - in1', sub, gluShaderUtil.precision.PRECISION_HIGHP, 32, fullRange32U, fullRange32U),
-        //     new UintCase('highp_mul', 'in0 * in1', mul, gluShaderUtil.precision.PRECISION_HIGHP, 32, fullRange32U, fullRange32U),
-        //     new UintCase('highp_div', 'in0 / in1', div, gluShaderUtil.precision.PRECISION_HIGHP, 32, fullRange32U, [1, 10000]),
-        //     new UintCase('mediump_add', 'in0 + in1', add, gluShaderUtil.precision.PRECISION_MEDIUMP, 16, fullRange16U, fullRange16U),
-        //     new UintCase('mediump_sub', 'in0 - in1', sub, gluShaderUtil.precision.PRECISION_MEDIUMP, 16, fullRange16U, fullRange16U),
-        //     new UintCase('mediump_mul', 'in0 * in1', mul, gluShaderUtil.precision.PRECISION_MEDIUMP, 16, fullRange16U, fullRange16U),
-        //     new UintCase('mediump_div', 'in0 / in1', div, gluShaderUtil.precision.PRECISION_MEDIUMP, 16, fullRange16U, [1, 1000]),
-        //     new UintCase('lowp_add', 'in0 + in1', add, gluShaderUtil.precision.PRECISION_LOWP, 8, fullRange8U, fullRange8U),
-        //     new UintCase('lowp_sub', 'in0 - in1', sub, gluShaderUtil.precision.PRECISION_LOWP, 8, fullRange8U, fullRange8U),
-        //     new UintCase('lowp_mul', 'in0 * in1', mul, gluShaderUtil.precision.PRECISION_LOWP, 8, fullRange8U, fullRange8U),
-        //     new UintCase('lowp_div', 'in0 / in1', div, gluShaderUtil.precision.PRECISION_LOWP, 8, fullRange8U, [1, 50])
-        // ];
+        /** @type {Array<IntCase>} */ var intCases = [
+            new IntCase('highp_add', 'in0 + in1', es3fShaderPrecisionTests.add, gluShaderUtil.precision.PRECISION_HIGHP, 32, fullRange32I, fullRange32I),
+            new IntCase('highp_sub', 'in0 - in1', es3fShaderPrecisionTests.sub, gluShaderUtil.precision.PRECISION_HIGHP, 32, fullRange32I, fullRange32I),
+            new IntCase('highp_mul', 'in0 * in1', es3fShaderPrecisionTests.mul, gluShaderUtil.precision.PRECISION_HIGHP, 32, fullRange32I, fullRange32I),
+            new IntCase('highp_div', 'in0 / in1', es3fShaderPrecisionTests.div, gluShaderUtil.precision.PRECISION_HIGHP, 32, fullRange32I, [-10000, -1]),
+            new IntCase('mediump_add', 'in0 + in1', es3fShaderPrecisionTests.add, gluShaderUtil.precision.PRECISION_MEDIUMP, 16, fullRange16I, fullRange16I),
+            new IntCase('mediump_sub', 'in0 - in1', es3fShaderPrecisionTests.sub, gluShaderUtil.precision.PRECISION_MEDIUMP, 16, fullRange16I, fullRange16I),
+            new IntCase('mediump_mul', 'in0 * in1', es3fShaderPrecisionTests.mul, gluShaderUtil.precision.PRECISION_MEDIUMP, 16, fullRange16I, fullRange16I),
+            new IntCase('mediump_div', 'in0 / in1', es3fShaderPrecisionTests.div, gluShaderUtil.precision.PRECISION_MEDIUMP, 16, fullRange16I, [1, 1000]),
+            new IntCase('lowp_add', 'in0 + in1', es3fShaderPrecisionTests.add, gluShaderUtil.precision.PRECISION_LOWP, 8, fullRange8I, fullRange8I),
+            new IntCase('lowp_sub', 'in0 - in1', es3fShaderPrecisionTests.sub, gluShaderUtil.precision.PRECISION_LOWP, 8, fullRange8I, fullRange8I),
+            new IntCase('lowp_mul', 'in0 * in1', es3fShaderPrecisionTests.mul, gluShaderUtil.precision.PRECISION_LOWP, 8, fullRange8I, fullRange8I),
+            new IntCase('lowp_div', 'in0 / in1', es3fShaderPrecisionTests.div, gluShaderUtil.precision.PRECISION_LOWP, 8, fullRange8I, [-50, -1])
+        ];
+
+        /**
+         * @constructor
+         * @struct
+         * @param {string} name
+         * @param {string} op
+         * @param {es3fShaderPrecisionTests.EvalFunc} evalFunc
+         * @param {gluShaderUtil.precision} precision
+         * @param {number} bits
+         * @param {Array<number>} rangeA
+         * @param {Array<number>} rangeB
+         */
+        var UintCase = function(name, op, evalFunc, precision, bits, rangeA, rangeB) {
+            /** @type {string} */ this.name = name;
+               /** @type {string} */ this.op = op;
+               /** @type {es3fShaderPrecisionTests.EvalFunc} */ this.evalFunc = evalFunc;
+               /** @type {gluShaderUtil.precision} */ this.precision = precision;
+			   /** @type {number} */ this.bits = bits;
+               /** @type {Array<number>} */ this.rangeA = rangeA;
+               /** @type {Array<number>} */ this.rangeB = rangeB;
+        };
+
+        /** @type {Array<UintCase>} */ var uintCases = [
+            new UintCase('highp_add', 'in0 + in1', es3fShaderPrecisionTests.add, gluShaderUtil.precision.PRECISION_HIGHP, 32, fullRange32U, fullRange32U),
+            new UintCase('highp_sub', 'in0 - in1', es3fShaderPrecisionTests.sub, gluShaderUtil.precision.PRECISION_HIGHP, 32, fullRange32U, fullRange32U),
+            new UintCase('highp_mul', 'in0 * in1', es3fShaderPrecisionTests.mul, gluShaderUtil.precision.PRECISION_HIGHP, 32, fullRange32U, fullRange32U),
+            new UintCase('highp_div', 'in0 / in1', es3fShaderPrecisionTests.div, gluShaderUtil.precision.PRECISION_HIGHP, 32, fullRange32U, [1, 10000]),
+            new UintCase('mediump_add', 'in0 + in1', es3fShaderPrecisionTests.add, gluShaderUtil.precision.PRECISION_MEDIUMP, 16, fullRange16U, fullRange16U),
+            new UintCase('mediump_sub', 'in0 - in1', es3fShaderPrecisionTests.sub, gluShaderUtil.precision.PRECISION_MEDIUMP, 16, fullRange16U, fullRange16U),
+            new UintCase('mediump_mul', 'in0 * in1', es3fShaderPrecisionTests.mul, gluShaderUtil.precision.PRECISION_MEDIUMP, 16, fullRange16U, fullRange16U),
+            new UintCase('mediump_div', 'in0 / in1', es3fShaderPrecisionTests.div, gluShaderUtil.precision.PRECISION_MEDIUMP, 16, fullRange16U, [1, 1000]),
+            new UintCase('lowp_add', 'in0 + in1', es3fShaderPrecisionTests.add, gluShaderUtil.precision.PRECISION_LOWP, 8, fullRange8U, fullRange8U),
+            new UintCase('lowp_sub', 'in0 - in1', es3fShaderPrecisionTests.sub, gluShaderUtil.precision.PRECISION_LOWP, 8, fullRange8U, fullRange8U),
+            new UintCase('lowp_mul', 'in0 * in1', es3fShaderPrecisionTests.mul, gluShaderUtil.precision.PRECISION_LOWP, 8, fullRange8U, fullRange8U),
+            new UintCase('lowp_div', 'in0 / in1', es3fShaderPrecisionTests.div, gluShaderUtil.precision.PRECISION_LOWP, 8, fullRange8U, [1, 50])
+        ];
 
         /** @type {tcuTestCase.DeqpTest} */ var floatGroup = tcuTestCase.newTest('float', 'Floating-point precision tests');
         testGroup.addChild(floatGroup);
@@ -547,27 +901,27 @@ goog.scope(function() {
                 floatCases[ndx].precision, floatCases[ndx].rangeA, floatCases[ndx].rangeB, false));
         }
 
-        // /** @type {tcuTestCase.DeqpTest} */ var intGroup = tcuTestCase.newTest('int', 'Integer precision tests');
-        // testGroup.addChild(intGroup);
-        // for (var ndx = 0; ndx < intCases.length; ndx++) {
-        //     intGroup.addChild(new es3fShaderPrecisionTests.ShaderFloatPrecisionCase(
-        //         intCases[ndx].name + '_vertex', '', intCases[ndx].op, intCases[ndx].evalFunc,
-        //         intCases[ndx].precision, intCases[ndx].rangeA, intCases[ndx].rangeB, true));
-        //     intGroup.addChild(new es3fShaderPrecisionTests.ShaderFloatPrecisionCase(
-        //         intCases[ndx].name + '_fragment', '', intCases[ndx].op, intCases[ndx].evalFunc,
-        //         intCases[ndx].precision, intCases[ndx].rangeA, intCases[ndx].rangeB, false));
-        // }
-		//
-        // /** @type {tcuTestCase.DeqpTest} */ var uintGroup = tcuTestCase.newTest('uint', 'Unsigned integer precision tests');
-        // testGroup.addChild(uintGroup);
-        // for (var ndx = 0; ndx < uintCases.length; ndx++) {
-        //     uintGroup.addChild(new es3fShaderPrecisionTests.ShaderFloatPrecisionCase(
-        //         uintCases[ndx].name + '_vertex', '', uintCases[ndx].op, uintCases[ndx].evalFunc,
-        //         uintCases[ndx].precision, uintCases[ndx].rangeA, uintCases[ndx].rangeB, true));
-        //     uintGroup.addChild(new es3fShaderPrecisionTests.ShaderFloatPrecisionCase(
-        //         uintCases[ndx].name + '_fragment', '', uintCases[ndx].op, uintCases[ndx].evalFunc,
-        //         uintCases[ndx].precision, uintCases[ndx].rangeA, uintCases[ndx].rangeB, false));
-        // }
+        /** @type {tcuTestCase.DeqpTest} */ var intGroup = tcuTestCase.newTest('int', 'Integer precision tests');
+        testGroup.addChild(intGroup);
+        for (var ndx = 0; ndx < intCases.length; ndx++) {
+            intGroup.addChild(new es3fShaderPrecisionTests.ShaderIntPrecisionCase(
+                intCases[ndx].name + '_vertex', '', intCases[ndx].op, intCases[ndx].evalFunc,
+                intCases[ndx].precision, intCases[ndx].bits, intCases[ndx].rangeA, intCases[ndx].rangeB, true));
+            intGroup.addChild(new es3fShaderPrecisionTests.ShaderIntPrecisionCase(
+                intCases[ndx].name + '_fragment', '', intCases[ndx].op, intCases[ndx].evalFunc,
+                intCases[ndx].precision, intCases[ndx].bits, intCases[ndx].rangeA, intCases[ndx].rangeB, false));
+        }
+
+        /** @type {tcuTestCase.DeqpTest} */ var uintGroup = tcuTestCase.newTest('uint', 'Unsigned integer precision tests');
+        testGroup.addChild(uintGroup);
+        for (var ndx = 0; ndx < uintCases.length; ndx++) {
+            uintGroup.addChild(new es3fShaderPrecisionTests.ShaderUintPrecisionCase(
+                uintCases[ndx].name + '_vertex', '', uintCases[ndx].op, uintCases[ndx].evalFunc,
+                uintCases[ndx].precision, uintCases[ndx].bits, uintCases[ndx].rangeA, uintCases[ndx].rangeB, true));
+            uintGroup.addChild(new es3fShaderPrecisionTests.ShaderUintPrecisionCase(
+                uintCases[ndx].name + '_fragment', '', uintCases[ndx].op, uintCases[ndx].evalFunc,
+                uintCases[ndx].precision, uintCases[ndx].bits, uintCases[ndx].rangeA, uintCases[ndx].rangeB, false));
+        }
     };
 
     /**
