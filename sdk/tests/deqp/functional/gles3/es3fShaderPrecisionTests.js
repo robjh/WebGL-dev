@@ -232,8 +232,6 @@ goog.scope(function() {
 
         gl.bindFramebuffer(gl.FRAMEBUFFER, null);
 
-        // Initialize test result to pass.
-        // m_testCtx.setTestResult(QP_TEST_RESULT_PASS, "Pass");
         this.m_iterNdx = 0;
     };
 
@@ -372,13 +370,13 @@ goog.scope(function() {
 				}
 
 				if (!allPixelsOk){
-					// testFailedOptions("iter " + this.m_iterNdx + ", test " + testNdx + "Inconsistent values in framebuffer", false);
+					bufferedLogToConsole("iter " + this.m_iterNdx + ", test " + testNdx + "Inconsistent values in framebuffer");
 					testPassed = false;
 					testPassedMsg = 'Inconsistent values in framebuffer';
 				}
 			}
 			else{
-				// testFailedOptions("iter " + this.m_iterNdx + ", test " + testNdx + "Result comparison failed", false);
+				bufferedLogToConsole("iter " + this.m_iterNdx + ", test " + testNdx + "Result comparison failed");
 				testPassed = false;
 				testPassedMsg = 'Result comparison failed'
 			}
@@ -458,13 +456,10 @@ goog.scope(function() {
 		gl.bindFramebuffer(gl.FRAMEBUFFER, this.m_framebuffer);
 		gl.framebufferRenderbuffer(gl.FRAMEBUFFER, gl.COLOR_ATTACHMENT0, gl.RENDERBUFFER, this.m_renderbuffer);
 
-		// GLU_EXPECT_NO_ERROR(gl.getError(), "Post framebuffer setup");
 		assertMsgOptions(gl.checkFramebufferStatus(gl.FRAMEBUFFER) === gl.FRAMEBUFFER_COMPLETE, 'Framebuffer is incomplete', false, true);
 
 		gl.bindFramebuffer(gl.FRAMEBUFFER, null);
 
-		// Initialize test result to pass.
-		// m_testCtx.setTestResult(QP_TEST_RESULT_PASS, "Pass");
 		this.m_iterNdx = 0;
 
 		bufferedLogToConsole("Number of accurate bits assumed = " + this.m_bits);
@@ -532,7 +527,7 @@ goog.scope(function() {
 			/** @type {number} */ var refOut = es3fShaderPrecisionTests.extendTo32Bit(refMasked, this.m_bits);
 
 			bufferedLogToConsole("iter " + this.m_iterNdx + ", test " + testNdx + ": " +
-			 	"in0 = " + in0 + ", in1 = " + in1 + ", ref out = " + refOut + " / " + refMasked /*tcu::toHex(refMasked)*/);
+			 	"in0 = " + in0 + ", in1 = " + in1 + ", ref out = " + refOut + " / " + refMasked);
 
 			in0Arr = [in0, in0, in0, in0];
 			in1Arr = [in1, in1, in1, in1];
@@ -554,18 +549,14 @@ goog.scope(function() {
 
 					if (cmpMasked != refMasked) {
 						bufferedLogToConsole("Comparison failed (at " + x + ", " + y + "): " +
-							+ "got " + cmpOut + " / " + cmpOut /*tcu::toHex(cmpOut)*/);
-						// m_testCtx.setTestResult(QP_TEST_RESULT_FAIL, "Fail");
+							+ "got " + cmpOut + " / " + cmpOut);
 						testPassed = false;
 						testPassedMsg = 'Comparison failed';
-						//return tcuTestCase.IterateResult.STOP;
 					}
 				}
 			}
 		}
 
-		// GLU_EXPECT_NO_ERROR(gl.getError(), "After iteration");
-		// return (this.m_iterNdx < this.m_numIters) ? tcuTestCase.IterateResult.CONTINUE : tcuTestCase.IterateResult.STOP;
 		gl.bindFramebuffer(gl.FRAMEBUFFER, null);
 
 		this.m_iterNdx += 1;
@@ -642,8 +633,6 @@ goog.scope(function() {
 
 		gl.bindFramebuffer(gl.FRAMEBUFFER, null);
 
-		// Initialize test result to pass.
-		//m_testCtx.setTestResult(QP_TEST_RESULT_PASS, "Pass");
 		this.m_iterNdx = 0;
 
 		bufferedLogToConsole("Number of accurate bits assumed = " + this.m_bits);
@@ -759,13 +748,15 @@ goog.scope(function() {
         // Exp = Emax-2, Mantissa = 0
         // /** @type {number} */ var minF32 = tcuFloat.newFloat32((1 << 31) | (0xfd << 23) | 0x0).getValue();
         // /** @type {number} */ var maxF32 = tcuFloat.newFloat32((0 << 31) | (0xfd << 23) | 0x0).getValue();
-        // Work-around for float32 numbers
+        // [dag] Workaround for float32 numbers
         /** @type {number} */ var minF32 = new Float32Array(new Uint32Array([1<<31|0xfd<<23|0x0]).buffer)[0];
 		/** @type {number} */ var maxF32 = new Float32Array(new Uint32Array([0<<31|0xfd<<23|0x0]).buffer)[0];
+
         // /** @type {number} */ var minF16 = tcuFloat.newFloat16(((1 << 15) | (0x1d << 10) | 0x0)).getValue();
         // /** @type {number} */ var maxF16 = tcuFloat.newFloat16(((0 << 15) | (0x1d << 10) | 0x0)).getValue();
-        /** @type {number} */ var minF16 = -1<<14; // 1 << 15 | 0x1d | 0x0 == 0b1111010000000000; -1 * (2**(29-15)) * 1
-        /** @type {number} */ var maxF16 = 1<<14; // 0 << 15 | 0x1d | 0x0 == 0b0111010000000000; +1 * (2**(29-15)) * 1
+        /** @type {number} */ var minF16 = -1 << 14; // 1 << 15 | 0x1d | 0x0 == 0b1111010000000000; -1 * (2**(29-15)) * 1
+        /** @type {number} */ var maxF16 = 1 << 14; // 0 << 15 | 0x1d | 0x0 == 0b0111010000000000; +1 * (2**(29-15)) * 1
+
 		/** @type {Array<number>} */ var fullRange32F = [minF32, maxF32];
         /** @type {Array<number>} */ var fullRange16F = [minF16, maxF16];
         /** @type {Array<number>} */ var fullRange32I = [0x80000000, 0x7fffffff];
