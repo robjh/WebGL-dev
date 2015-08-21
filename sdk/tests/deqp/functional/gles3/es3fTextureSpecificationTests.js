@@ -20,10 +20,41 @@
 
 'use strict';
 goog.provide('functional.gles3.es3fTextureSpecificationTests');
+goog.require('framework.common.tcuPixelFormat');
+goog.require('framework.common.tcuImageCompare');
+goog.require('framework.common.tcuSurface');
+goog.require('framework.common.tcuTestCase');
+goog.require('framework.common.tcuTexture');
+goog.require('framework.common.tcuTextureUtil');
+goog.require('framework.delibs.debase.deMath');
+goog.require('framework.delibs.debase.deRandom');
+goog.require('framework.delibs.debase.deString');
+goog.require('framework.opengl.gluShaderUtil');
+goog.require('framework.opengl.gluTextureUtil');
+goog.require('framework.opengl.simplereference.sglrGLContext');
+goog.require('framework.opengl.simplereference.sglrReferenceContext');
+goog.require('framework.referencerenderer.rrUtil');
+goog.require('functional.gles3.es3fFboTestUtil');
 
 goog.scope(function() {
     var es3fTextureSpecificationTests =
         functional.gles3.es3fTextureSpecificationTests;
+    var tcuPixelFormat = framework.common.tcuPixelFormat;
+    var tcuImageCompare = framework.common.tcuImageCompare;
+    var tcuSurface = framework.common.tcuSurface;
+    var tcuTestCase = framework.common.tcuTestCase;
+    var tcuTexture = framework.common.tcuTexture;
+    var tcuTextureUtil = framework.common.tcuTextureUtil;
+    var deMath = framework.delibs.debase.deMath;
+    var deRandom = framework.delibs.debase.deRandom;
+    var deString = framework.delibs.debase.deString;
+    var gluShaderUtil = framework.opengl.gluShaderUtil;
+    var gluTextureUtil = framework.opengl.gluTextureUtil;
+    var sglrGLContext = framework.opengl.simplereference.sglrGLContext;
+    var sglrReferenceContext =
+        framework.opengl.simplereference.sglrReferenceContext;
+    var rrUtil = framework.referencerenderer.rrUtil;
+    var es3fFboTestUtil = functional.gles3.es3fFboTestUtil;
 
     /**
      * @param {number} internalFormat
@@ -36,28 +67,28 @@ goog.scope(function() {
         {
             case gl.ALPHA:
                 return new tcuTexture.TextureFormat (
-                    TextureFormat.ChannelOrder.A,
-                    TextureFormat.ChannelType.UNORM_INT8
+                    tcuTexture.ChannelOrder.A,
+                    tcuTexture.ChannelType.UNORM_INT8
                 );
             case gl.LUMINANCE:
                 return new tcuTexture.TextureFormat (
-                    TextureFormat.ChannelOrder.L,
-                    TextureFormat.ChannelType.UNORM_INT8
+                    tcuTexture.ChannelOrder.L,
+                    tcuTexture.ChannelType.UNORM_INT8
                 );
             case gl.LUMINANCE_ALPHA:
                 return new tcuTexture.TextureFormat (
-                    TextureFormat.ChannelOrder.LA,
-                    TextureFormat.ChannelType.UNORM_INT8
+                    tcuTexture.ChannelOrder.LA,
+                    tcuTexture.ChannelType.UNORM_INT8
                 );
             case gl.RGB:
                 return new tcuTexture.TextureFormat (
-                    TextureFormat.ChannelOrder.RGB,
-                    TextureFormat.ChannelType.UNORM_INT8
+                    tcuTexture.ChannelOrder.RGB,
+                    tcuTexture.ChannelType.UNORM_INT8
                 );
             case gl.RGBA:
                 return new tcuTexture.TextureFormat (
-                    TextureFormat.ChannelOrder.RGBA,
-                    TextureFormat.ChannelType.UNORM_INT8
+                    tcuTexture.ChannelOrder.RGBA,
+                    tcuTexture.ChannelType.UNORM_INT8
                 );
             default:
                 throw new Error(
@@ -67,44 +98,32 @@ goog.scope(function() {
         }
     };
 
-    VIEWPORT_WIDTH = 256;
-    VIEWPORT_HEIGHT = 256;
+    var VIEWPORT_WIDTH = 256;
+    var VIEWPORT_HEIGHT = 256;
 
     /**
      * @param {number} width
      * @param {number} height
-     * @return {number}
-     */
-    es3fTextureSpecificationTests.maxLevelCount = function (
-        width, height
-    ) {
-        return deMath.logToFloor(Math.max(width, height)) + 1;
-    };
-
-    /**
-     * @param {number} width
-     * @param {number} height
-     * @param {number} depth
+     * @param {number=} depth
      * @return {number}
      */
     es3fTextureSpecificationTests.maxLevelCount = function (
         width, height, depth
     ) {
+        depth = depth || 0;
         return deMath.logToFloor(Math.max(width, Math.max(height, depth))) + 1;
     };
 
     /**
      * @param {deRandom.Random} rnd
-     * @param {Array<number>=} minVal
-     * @param {Array<number>=} maxVal
+     * @param {Array<number>} minVal
+     * @param {Array<number>} maxVal
      * @param {number} size
      * @return {Array<number>}
      */
     es3fTextureSpecificationTests.randomVector = function (
         rnd, minVal, maxVal, size
     ) {
-        minVal = minVal || new Array(size).fill(0);
-        maxVal = maxVal || new Array(size).fill(1);
         var res = [];
         for (var ndx = 0; ndx < size; ndx++)
             res[ndx] = rnd.getFloat(minVal[ndx], maxVal[ndx]);
@@ -120,12 +139,12 @@ goog.scope(function() {
         gl.TEXTURE_CUBE_MAP_NEGATIVE_Y,
         gl.TEXTURE_CUBE_MAP_POSITIVE_Y,
         gl.TEXTURE_CUBE_MAP_NEGATIVE_Z,
-        gl.TEXTURE_CUBE_MAP_POSITIVE_Z,
+        gl.TEXTURE_CUBE_MAP_POSITIVE_Z
     ];
 
     /**
      * @param {tcuPixelFormat.PixelFormat} pixelFormat
-     * @param {tcuPixelFormat.PixelFormat} textureFormat
+     * @param {tcuTexture.TextureFormat} textureFormat
      * @return {Array<number>} (ivec4)
      */
     es3fTextureSpecificationTests.getPixelFormatCompareDepth = function (
@@ -254,8 +273,8 @@ goog.scope(function() {
         for (var ndx = 0; ndx < 2; ndx++)
         {
             this.m_context = ndx ? refContext : webgl2Context;
-            glClearColor(0.125, 0.25, 0.5, 1.0);
-            glClear(
+            this.m_context.clearColor(0.125, 0.25, 0.5, 1.0);
+            this.m_context.clear(
                 gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT |
                 gl.STENCIL_BUFFER_BIT
             );
@@ -286,7 +305,10 @@ goog.scope(function() {
 
     /**
      * @param {tcuSurface.Surface} dst
-     * @param {number} program
+     * @param {
+     *  ?WebGLProgram|
+     *  framework.opengl.simplereference.sglrShaderProgram.ShaderProgram
+     * } program
      * @param {number} width
      * @param {number} height
      */
@@ -298,8 +320,8 @@ goog.scope(function() {
         var w = width / targetW;
         var h = height / targetH;
 
-        this.m_context.drawQuad(
-            program, [-1.0, -1.0, 0.0],
+        rrUtil.drawQuad(
+            this.m_context, program, [-1.0, -1.0, 0.0],
             [-1.0 + w * 2.0, -1.0 + h * 2.0, 0.0]
         );
 
@@ -312,7 +334,7 @@ goog.scope(function() {
      * @extends {es3fTextureSpecificationTests.TextureSpecCase}
      * @param {string} name
      * @param {string} desc
-     * @param {number} format
+     * @param {tcuTexture.TextureFormat} format
      * @param {number} width
      * @param {number} height
      * @param {number} numLevels
@@ -382,8 +404,8 @@ goog.scope(function() {
         }
 
         for (var levelNdx = 0; levelNdx < this.m_numLevels; levelNdx++) {
-            levelW = Math.max(1, this.m_width >> levelNdx);
-            levelH = Math.max(1, this.m_height >> levelNdx);
+            var levelW = Math.max(1, this.m_width >> levelNdx);
+            var levelH = Math.max(1, this.m_height >> levelNdx);
             /** @type {tcuSurface.Surface} */ var reference;
             /** @type {tcuSurface.Surface} */ var result;
 
@@ -409,7 +431,7 @@ goog.scope(function() {
                 name, desc, reference.getAccess(), result.getAccess(),
                 threshold, levelNdx == 0 ?
                 tcuImageCompare.CompareLogMode.RESULT :
-                tcuImageCompare.CompareLogMode.ERROR
+                tcuImageCompare.CompareLogMode.ON_ERROR
             );
 
             if (!isOk)
@@ -441,9 +463,8 @@ goog.scope(function() {
         this.m_numLevels = numLevels;
     };
 
-    es3fTextureSpecificationTests.TextureCubeSpecCase.prototype = Object.create(
+    es3fTextureSpecificationTests.TextureCubeSpecCase.prototype =
         Object.create(es3fTextureSpecificationTests.TextureSpecCase.prototype);
-    );
 
     es3fTextureSpecificationTests.TextureCubeSpecCase.prototype.constructor =
         es3fTextureSpecificationTests.TextureCubeSpecCase;
@@ -458,7 +479,7 @@ goog.scope(function() {
     ) {
         /** @type {es3fFboTestUtil.TextureCubeShader} */
         var shader = new es3fFboTestUtil.TextureCubeShader(
-            [gluTextureUtil.getSamplerCubeType(this.m_texFormat)],
+            gluTextureUtil.getSamplerCubeType(this.m_texFormat),
             gluShaderUtil.DataType.FLOAT_VEC4
         );
         var shaderIDgles = webgl2Context.createProgram(shader);
@@ -502,7 +523,8 @@ goog.scope(function() {
             var isOk = true;
 
             for (
-                var face = 0;
+                /** @type {framework.common.tcuTexture.CubeFace} */
+                var face = /** @type {tcuTexture.CubeFace} */ (0);
                 face < Object.keys(tcuTexture.CubeFace).length;
                 face++
             ) {
@@ -533,9 +555,10 @@ goog.scope(function() {
                 var name = "Level" + levelStr;
                 var desc = "Level " + levelStr + ", face " + faceStr;
                 var isFaceOk = tcuImageCompare.fuzzyCompare(
-                    name, desc, reference, result, threshold, levelNdx == 0 ?
+                    name, desc, reference.getAccess(), result.getAccess(),
+                    threshold, levelNdx == 0 ?
                     tcuImageCompare.CompareLogMode.RESULT :
-                    tcuImageCompare.CompareLogMode.ERROR
+                    tcuImageCompare.CompareLogMode.ON_ERROR
                 );
 
                 if (!isFaceOk)
@@ -564,7 +587,7 @@ goog.scope(function() {
      * @param {number} numLevels
      */
     es3fTextureSpecificationTests.Texture2DArraySpecCase = function (
-        name, desc, format, size, numLayers, numLevels
+        name, desc, format, width, height, numLayers, numLevels
     ) {
         es3fTextureSpecificationTests.TextureSpecCase.call(
             this, name, desc
@@ -593,7 +616,7 @@ goog.scope(function() {
     ) {
         /** @type {es3fFboTestUtil.Texture2DArrayShader} */
         var shader = new es3fFboTestUtil.Texture2DArrayShader(
-            [gluTextureUtil.getSampler2DArrayType(this.m_texFormat)],
+            gluTextureUtil.getSampler2DArrayType(this.m_texFormat),
             gluShaderUtil.DataType.FLOAT_VEC4
         );
         var shaderIDgles = webgl2Context.createProgram(shader);
@@ -657,7 +680,7 @@ goog.scope(function() {
 
                     this.m_context = ctx;
                     shader.setUniforms(ctx, shaderID);
-                    this.renderTex(dst, shaderID, levelSize, levelSize);
+                    this.renderTex(dst, shaderID, levelW, levelH);
                 }
 
                 var threshold =
@@ -672,7 +695,7 @@ goog.scope(function() {
                     name, desc, reference.getAccess(), result.getAccess(),
                     threshold, (levelNdx == 0 && layerNdx == 0) ?
                     tcuImageCompare.CompareLogMode.RESULT :
-                    tcuImageCompare.CompareLogMode.ERROR
+                    tcuImageCompare.CompareLogMode.ON_ERROR
                 );
 
 
@@ -697,11 +720,11 @@ goog.scope(function() {
      * @param {tcuTexture.TextureFormat} format
      * @param {number} width
      * @param {number} height
-     * @param {number} numLayers
+     * @param {number} depth
      * @param {number} numLevels
      */
     es3fTextureSpecificationTests.Texture3DSpecCase = function (
-        name, desc, format, size, numLayers, numLevels
+        name, desc, format, width, height, depth, numLevels
     ) {
         es3fTextureSpecificationTests.TextureSpecCase.call(
             this, name, desc
@@ -710,7 +733,7 @@ goog.scope(function() {
         this.m_texFormatInfo = tcuTextureUtil.getTextureFormatInfo(format);
         this.m_width = width;
         this.m_height = height;
-        this.m_numLayers = numLayers;
+        this.m_depth = depth;
         this.m_numLevels = numLevels;
     };
 
@@ -730,7 +753,7 @@ goog.scope(function() {
     ) {
         /** @type {es3fFboTestUtil.Texture3DShader} */
         var shader = new es3fFboTestUtil.Texture3DShader(
-            [gluTextureUtil.getSampler3DType(this.m_texFormat)],
+            gluTextureUtil.getSampler3D(this.m_texFormat),
             gluShaderUtil.DataType.FLOAT_VEC4
         );
         var shaderIDgles = webgl2Context.createProgram(shader);
@@ -778,7 +801,7 @@ goog.scope(function() {
             var levelD = Math.max(1, this.m_depth >> levelNdx);
             var levelOk = true;
 
-            for (var depth = 0; depth < this.levelD; depth++) {
+            for (var depth = 0; depth < levelD; depth++) {
                 /** @type {tcuSurface.Surface} */
                 var reference = new tcuSurface.Surface();
                 /** @type {tcuSurface.Surface} */
@@ -803,20 +826,20 @@ goog.scope(function() {
                 );
                 var levelStr = levelNdx.toString();
                 var sliceStr = depth.toString();
-                var name = "Layer" + layerStr + "Slice" + sliceStr;
-                var desc = "Layer " + layerStr + ", Slice " + sliceStr;
+                var name = "Layer" + levelStr + "Slice" + sliceStr;
+                var desc = "Layer " + levelStr + ", Slice " + sliceStr;
                 var depthOk = tcuImageCompare.intThresholdCompare(
                     name, desc, reference.getAccess(), result.getAccess(),
                     threshold, (levelNdx == 0 && depth == 0) ?
                     tcuImageCompare.CompareLogMode.RESULT :
-                    tcuImageCompare.CompareLogMode.ERROR
+                    tcuImageCompare.CompareLogMode.ON_ERROR
                 );
 
 
                 if (!depthOk)
                 {
                     testFailed("Image comparison failed");
-                    isOk = false;
+                    levelOk = false;
                     break;
                 }
             }
@@ -832,7 +855,7 @@ goog.scope(function() {
      * @extends {es3fTextureSpecificationTests.Texture2DSpecCase}
      * @param {string} name
      * @param {string} desc
-     * @param {number} format
+     * @param {tcuTexture.TextureFormat} format
      * @param {number} dataType
      * @param {number} width
      * @param {number} height
@@ -931,7 +954,7 @@ goog.scope(function() {
      * @extends {es3fTextureSpecificationTests.TextureCubeSpecCase}
      * @param {string} name
      * @param {string} desc
-     * @param {number} format
+     * @param {tcuTexture.TextureFormat} format
      * @param {number} dataType
      * @param {number} size
      */
@@ -1003,7 +1026,8 @@ goog.scope(function() {
             levelData.setSize(levelSize, levelSize);
 
             for (
-                var face = 0;
+                /** @type {framework.common.tcuTexture.CubeFace} */
+        var face = /** @type {tcuTexture.CubeFace} */ (0);
                 face < es3fTextureSpecificationTests.s_cubeMapFaces.length;
                 face ++
             ) {
@@ -1191,7 +1215,7 @@ goog.scope(function() {
      * @extends {es3fTextureSpecificationTests.Texture2DSpecCase}
      * @param {string} name
      * @param {string} desc
-     * @param {number} format
+     * @param {tcuTexture.TextureFormat} format
      * @param {number} dataType
      * @param {number} width
      * @param {number} height
@@ -1295,7 +1319,7 @@ goog.scope(function() {
      * @extends {es3fTextureSpecificationTests.TextureCubeSpecCase}
      * @param {string} name
      * @param {string} desc
-     * @param {number} format
+     * @param {tcuTexture.TextureFormat} format
      * @param {number} dataType
      * @param {number} size
      */
@@ -1365,7 +1389,8 @@ goog.scope(function() {
 
         for (var ndx = 0; ndx < this.m_numLevels; ndx++)
             for (
-                var face = 0;
+                /** @type {framework.common.tcuTexture.CubeFace} */
+        var face = /** @type {tcuTexture.CubeFace} */ (0);
                 face < Object.keys(tcuTexture.CubeFace).length;
                 face++
             )
@@ -1375,7 +1400,8 @@ goog.scope(function() {
 
         for (var ndx = 0; ndx < this.m_numLevels; ndx++) {
             var levelNdx =  images[ndx].ndx;
-            var face =  images[ndx].face;
+            /** @type {framework.common.tcuTexture.CubeFace} */
+        var face =  images[ndx].face;
             var levelSize = Math.max(1, this.m_size >> levelNdx);
 
             var gMin = es3fTextureSpecificationTests.randomVector(
@@ -1407,7 +1433,7 @@ goog.scope(function() {
      * @extends {es3fTextureSpecificationTests.Texture2DSpecCase}
      * @param {string} name
      * @param {string} desc
-     * @param {number} format
+     * @param {tcuTexture.TextureFormat} format
      * @param {number} dataType
      * @param {number} width
      * @param {number} height
@@ -1524,7 +1550,7 @@ goog.scope(function() {
      * @extends {es3fTextureSpecificationTests.TextureCubeSpecCase}
      * @param {string} name
      * @param {string} desc
-     * @param {number} format
+     * @param {tcuTexture.TextureFormat} format
      * @param {number} dataType
      * @param {number} size
      * @param {number} numLevels
@@ -1619,7 +1645,8 @@ goog.scope(function() {
             );
 
             for (
-                var face = 0;
+                /** @type {framework.common.tcuTexture.CubeFace} */
+        var face = /** @type {tcuTexture.CubeFace} */ (0);
                 face < es3fTextureSpecificationTests.s_cubeMapFaces.length;
                 face++
             )
@@ -1845,7 +1872,7 @@ goog.scope(function() {
      * @extends {es3fTextureSpecificationTests.Texture2DSpecCase}
      * @param {string} name
      * @param {string} desc
-     * @param {number} format
+     * @param {tcuTexture.TextureFormat} format
      * @param {number} dataType
      * @param {number} width
      * @param {number} height
@@ -1967,7 +1994,7 @@ goog.scope(function() {
      * @extends {es3fTextureSpecificationTests.TextureCubeSpecCase}
      * @param {string} name
      * @param {string} desc
-     * @param {number} format
+     * @param {tcuTexture.TextureFormat} format
      * @param {number} dataType
      * @param {number} size
      */
@@ -2034,7 +2061,8 @@ goog.scope(function() {
             var levelSize = Math.max(1, this.m_width >> ndx);
             data.setSize(levelSize, levelSize);
 
-            for(var face = 0;
+            for(/** @type {framework.common.tcuTexture.CubeFace} */
+        var face = /** @type {tcuTexture.CubeFace} */ (0);
                 face < es3fTextureSpecificationTests.s_cubeMapFaces.length;
                 face++) {
                 var gMin = es3fTextureSpecificationTests.randomVector(
@@ -2063,7 +2091,8 @@ goog.scope(function() {
         for (var ndx = 0; ndx < this.m_numLevels; ndx++) {
             var levelSize = Math.max(1, this.m_width >> ndx);
 
-            for(var face = 0;
+            for(/** @type {framework.common.tcuTexture.CubeFace} */
+        var face = /** @type {tcuTexture.CubeFace} */ (0);
                 face < es3fTextureSpecificationTests.s_cubeMapFaces.length;
                 face++) {
 
@@ -2346,7 +2375,7 @@ goog.scope(function() {
      * @extends {es3fTextureSpecificationTests.Texture2DSpecCase}
      * @param {string} name
      * @param {string} desc
-     * @param {number} format
+     * @param {tcuTexture.TextureFormat} format
      * @param {number} dataType
      * @param {number} width
      * @param {number} height
@@ -2455,7 +2484,7 @@ goog.scope(function() {
      * @extends {es3fTextureSpecificationTests.TextureCubeSpecCase}
      * @param {string} name
      * @param {string} desc
-     * @param {number} format
+     * @param {tcuTexture.TextureFormat} format
      * @param {number} dataType
      * @param {number} size
      */
@@ -2526,7 +2555,8 @@ goog.scope(function() {
             var levelSize = Math.max(1, this.m_size >> ndx);
 
             for (
-                var face = 0;
+                /** @type {framework.common.tcuTexture.CubeFace} */
+        var face = /** @type {tcuTexture.CubeFace} */ (0);
                 face < es3fTextureSpecificationTests.s_cubeMapFaces.length;
                 face ++
             )
@@ -2545,7 +2575,8 @@ goog.scope(function() {
             data.setSize(levelSize, levelSize);
 
             for (
-                var face = 0;
+                /** @type {framework.common.tcuTexture.CubeFace} */
+        var face = /** @type {tcuTexture.CubeFace} */ (0);
                 face < es3fTextureSpecificationTests.s_cubeMapFaces.length;
                 face ++
             ) {
@@ -2577,7 +2608,7 @@ goog.scope(function() {
      * @extends {es3fTextureSpecificationTests.Texture2DSpecCase}
      * @param {string} name
      * @param {string} desc
-     * @param {number} format
+     * @param {tcuTexture.TextureFormat} format
      * @param {number} dataType
      * @param {number} width
      * @param {number} height
@@ -2701,7 +2732,7 @@ goog.scope(function() {
      * @extends {es3fTextureSpecificationTests.TextureCubeSpecCase}
      * @param {string} name
      * @param {string} desc
-     * @param {number} format
+     * @param {tcuTexture.TextureFormat} format
      * @param {number} dataType
      * @param {number} size
      * @param {number} subX
@@ -2794,7 +2825,8 @@ goog.scope(function() {
 
         this.m_context.pixelStorei(gl.UNPACK_ALIGNMENT, 1);
         for (
-            var face = 0;
+            /** @type {framework.common.tcuTexture.CubeFace} */
+        var face = /** @type {tcuTexture.CubeFace} */ (0);
             face < Object.keys(tcuTexture.CubeFace).length;
             face++
         )
@@ -2818,7 +2850,8 @@ goog.scope(function() {
         );
         this.m_context.pixelStorei(gl.UNPACK_ALIGNMENT, this.m_alignment);
         for (
-            var face = 0;
+            /** @type {framework.common.tcuTexture.CubeFace} */
+        var face = /** @type {tcuTexture.CubeFace} */ (0);
             face < Object.keys(tcuTexture.CubeFace).length;
             face++
         )
@@ -3124,7 +3157,8 @@ goog.scope(function() {
             var levelSize = Math.max(1, this.m_size >> ndx);
 
             for (
-                var face = 0;
+                /** @type {framework.common.tcuTexture.CubeFace} */
+        var face = /** @type {tcuTexture.CubeFace} */ (0);
                 face < es3fTextureSpecificationTests.s_cubeMapFaces.length;
                 face++
             ) {
@@ -3145,7 +3179,7 @@ goog.scope(function() {
      * @extends {es3fTextureSpecificationTests.Texture2DSpecCase}
      * @param {string} name
      * @param {string} desc
-     * @param {number} format
+     * @param {tcuTexture.TextureFormat} format
      * @param {number} dataType
      * @param {number} width
      * @param {number} height
@@ -3214,8 +3248,12 @@ goog.scope(function() {
             var levelW = Math.max(1, this.m_width >> ndx);
             var levelH = Math.max(1, this.m_height >> ndx);
 
-            var colorA = es3fTextureSpecificationTests.randomVector(rnd, 4);
-            var colorB = es3fTextureSpecificationTests.randomVector(rnd, 4);
+            var colorA = es3fTextureSpecificationTests.randomVector(
+                rnd, [0, 0, 0, 0], [1, 1, 1, 1], 4
+            );
+            var colorB = es3fTextureSpecificationTests.randomVector(
+                rnd, [0, 0, 0, 0], [1, 1, 1, 1], 4
+            );
             var cellSize = rnd.getInt(2, 16);
 
             data.setSize(levelW, levelH);
@@ -3263,7 +3301,7 @@ goog.scope(function() {
      * @extends {es3fTextureSpecificationTests.TextureCubeSpecCase}
      * @param {string} name
      * @param {string} desc
-     * @param {number} format
+     * @param {tcuTexture.TextureFormat} format
      * @param {number} dataType
      * @param {number} size
      */
@@ -3328,12 +3366,17 @@ goog.scope(function() {
             data.setSize(levelSize, levelSize);
 
             for(
-                var face = 0;
+                /** @type {framework.common.tcuTexture.CubeFace} */
+        var face = /** @type {tcuTexture.CubeFace} */ (0);
                 face < es3fTextureSpecificationTests.s_cubeMapFaces.length;
                 face++
             ) {
-                var colorA = es3fTextureSpecificationTests.randomVector(rnd, 4);
-                var colorB = es3fTextureSpecificationTests.randomVector(rnd, 4);
+                var colorA = es3fTextureSpecificationTests.randomVector(
+                    rnd, [0, 0, 0, 0], [1, 1, 1, 1], 4
+                );
+                var colorB = es3fTextureSpecificationTests.randomVector(
+                    rnd, [0, 0, 0, 0], [1, 1, 1, 1], 4
+                );
                 var cellSize = rnd.getInt(2, 16);
 
                 tcuTextureUtil.fillWithGrid(
@@ -3362,7 +3405,8 @@ goog.scope(function() {
             var levelSize = Math.max(1, this.m_size >> ndx);
 
             for(
-                var face = 0;
+                /** @type {framework.common.tcuTexture.CubeFace} */
+        var face = /** @type {tcuTexture.CubeFace} */ (0);
                 face < es3fTextureSpecificationTests.s_cubeMapFaces.length;
                 face++
             ) {
@@ -3521,7 +3565,8 @@ goog.scope(function() {
             levelData.setSize(levelSize, levelSize);
 
             for (
-                var face = 0;
+                /** @type {framework.common.tcuTexture.CubeFace} */
+        var face = /** @type {tcuTexture.CubeFace} */ (0);
                 face < es3fTextureSpecificationTests.s_cubeMapFaces.length;
                 face++
             ) {
@@ -3886,7 +3931,8 @@ goog.scope(function() {
         this.m_context.pixelStorei(gl.UNPACK_ALIGNMENT, 1);
 
         for (
-            var face = 0;
+            /** @type {framework.common.tcuTexture.CubeFace} */
+        var face = /** @type {tcuTexture.CubeFace} */ (0);
             face < es3fTextureSpecificationTests._cubeMapFaces.length;
             face++
         ) {
@@ -4005,7 +4051,7 @@ goog.scope(function() {
         );
 
         assertMsgOptions(
-            this.m_numLevels == 1, 'Number of levels is different than 1'
+            this.m_numLevels == 1, 'Number of levels is different than 1',
             false, true
         );
 
@@ -4126,7 +4172,7 @@ goog.scope(function() {
         );
 
         assertMsgOptions(
-            this.m_numLevels == 1, 'Number of levels is different than 1'
+            this.m_numLevels == 1, 'Number of levels is different than 1',
             false, true
         );
 
@@ -4241,7 +4287,7 @@ goog.scope(function() {
         );
 
         assertMsgOptions(
-            this.m_numLevels == 1, 'Number of levels is different than 1'
+            this.m_numLevels == 1, 'Number of levels is different than 1',
             false, true
         );
 
@@ -4376,7 +4422,7 @@ goog.scope(function() {
         );
 
         assertMsgOptions(
-            this.m_numLevels == 1, 'Number of levels is different than 1'
+            this.m_numLevels == 1, 'Number of levels is different than 1',
             false, true
         );
 
@@ -4388,7 +4434,8 @@ goog.scope(function() {
         this.m_context.pixelStorei(gl.UNPACK_ALIGNMENT, 1);
 
         for (
-            var face = 0;
+            /** @type {framework.common.tcuTexture.CubeFace} */
+        var face = /** @type {tcuTexture.CubeFace} */ (0);
             face < es3fTextureSpecificationTests.s_cubeMapFaces;
             face++
         ) {
@@ -4459,7 +4506,8 @@ goog.scope(function() {
         this.m_context.pixelStorei(gl.UNPACK_ALIGNMENT, this.m_alignment);
 
         for (
-            var face = 0;
+            /** @type {framework.common.tcuTexture.CubeFace} */
+        var face = /** @type {tcuTexture.CubeFace} */ (0);
             face < Object.keys(tcuTexture.CubeFace).length;
             face++
         )
@@ -4543,7 +4591,7 @@ goog.scope(function() {
         /** @type {ArrayBuffer} */ var data;
 
         assertMsgOptions(
-            this.m_numLevels == 1, 'Number of levels is different than 1'
+            this.m_numLevels == 1, 'Number of levels is different than 1',
             false, true
         );
 
@@ -4563,7 +4611,8 @@ goog.scope(function() {
         );
 
         for (
-            var face = 0;
+            /** @type {framework.common.tcuTexture.CubeFace} */
+        var face = /** @type {tcuTexture.CubeFace} */ (0);
             face < es3fTextureSpecificationTests.s_cubeMapFaces;
             face++
         ) {
@@ -4634,7 +4683,8 @@ goog.scope(function() {
         this.m_context.pixelStorei(gl.UNPACK_ALIGNMENT, this.m_alignment);
 
         for (
-            var face = 0;
+            /** @type {framework.common.tcuTexture.CubeFace} */
+        var face = /** @type {tcuTexture.CubeFace} */ (0);
             face < Object.keys(tcuTexture.CubeFace).length;
             face++
         )
@@ -4719,7 +4769,7 @@ goog.scope(function() {
         /** @type {ArrayBuffer} */ var data;
 
         assertMsgOptions(
-            this.m_numLevels == 1, 'Number of levels is different than 1'
+            this.m_numLevels == 1, 'Number of levels is different than 1',
             false, true
         );
 
@@ -5336,7 +5386,7 @@ goog.scope(function() {
 
     es3fTextureSpecificationTests.TextureSpecificationTests.init = function () {
         /** @type {Array<{name: string, format: number, dataType: number}>} */
-        var unsizedFormats [
+        var unsizedFormats = [
             {
                 name: "alpha_unsigned_byte",
                 format: gl.ALPHA,
@@ -5535,7 +5585,7 @@ goog.scope(function() {
         var rnd = new deRandom.Random(9);
 
         // 2D cases.
-        for (var ndx = 0; var < 10; ndx++)
+        for (var ndx = 0; ndx < 10; ndx++)
         {
             var formatNdx = rnd.getInt(0, colorFormats.length-1);
             var width        = 1 << rnd.getInt(2, 8);
@@ -7183,7 +7233,7 @@ goog.scope(function() {
                 sizes: 64, levels: 4
             }, {
                 sizes: 64, levels: 7
-            },
+            }
         ];
 
         /** @type {tcuTestCase.DeqpTest} */

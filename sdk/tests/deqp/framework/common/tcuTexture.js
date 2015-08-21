@@ -289,7 +289,7 @@ tcuTexture.sampleLinear2DCompare = function(access, sampler, ref, u, v, offset, 
 };
 
 /**
- * Contruct texture format
+ * Construct texture format
  * @param {?tcuTexture.ChannelOrder} order
  * @param {?tcuTexture.ChannelType} type
  *
