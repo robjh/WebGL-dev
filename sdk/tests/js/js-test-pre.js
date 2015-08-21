@@ -174,16 +174,16 @@ var TestFailedException = function (message) {
 function testPassed(msg)
 {
     reportTestResultsToHarness(true, msg);
-    _addSpan('<span><span class="pass">PASS</span> ' + escapeHTML(_currentTestName) + ": " + escapeHTML(msg) + '</span>');
+    _addSpan('<span><span class="pass">PASS</span> ' + escapeHTML(msg) + '</span>');
     if (_jsTestPreVerboseLogging) {
-        _bufferedLogToConsole('PASS ' + msg);
+	_bufferedLogToConsole('PASS ' + msg);
     }
 }
 
 function testFailed(msg)
 {
     reportTestResultsToHarness(false, msg);
-    _addSpan('<span><span class="fail">FAIL</span> ' + escapeHTML(_currentTestName) + ": " + escapeHTML(msg) + '</span>');
+    _addSpan('<span><span class="fail">FAIL</span> ' + escapeHTML(msg) + '</span>');
     _bufferedLogToConsole('FAIL ' + msg);
     _flushBufferedLogsToConsole();
 }
@@ -642,3 +642,4 @@ function finishTest() {
   epilogue.src = basePath + "js-test-post.js";
   document.body.appendChild(epilogue);
 }
+

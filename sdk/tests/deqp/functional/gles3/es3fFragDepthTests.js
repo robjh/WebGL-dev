@@ -273,7 +273,7 @@ goog.scope(function() {
 		/** @type {number} */ var depthBits = /** @type {number} */ (gl.getParameter(gl.DEPTH_BITS));
 
 		if (depthBits === 0)
-			throw new Error("Depth buffer is required");
+			throw new Error('Depth buffer is required');
 
 		gl.depthMask(true);
 		gl.viewport(viewportX, viewportY, viewportW, viewportH);
@@ -306,7 +306,7 @@ goog.scope(function() {
 		];
 
 		gl.useProgram(program.getProgram());
-		gl.uniform4f(gl.getUniformLocation(program.getProgram(), "u_color"), 0.0, 1.0, 0.0, 1.0);
+		gl.uniform4f(gl.getUniformLocation(program.getProgram(), 'u_color'), 0.0, 1.0, 0.0, 1.0);
 
 		// Setup default helper uniforms.
 		glsShaderRenderCase.setupDefaultUniforms(program.getProgram());
@@ -325,7 +325,7 @@ goog.scope(function() {
 			throw new Error('Compile failed');
 		}
 
-		/** @type {WebGLUniformLocation} */ var colorLoc = gl.getUniformLocation(program.getProgram(), "u_color");
+		/** @type {WebGLUniformLocation} */ var colorLoc = gl.getUniformLocation(program.getProgram(), 'u_color');
 
 		gl.useProgram(program.getProgram());
 		gl.depthMask(false);
@@ -343,7 +343,7 @@ goog.scope(function() {
 			];
 
 			/** @type {gluDrawUtil.VertexArrayBinding} */
-			var posBinding = gluDrawUtil.newFloatVertexArrayBinding("a_position", 4, 4, 0, position);
+			var posBinding = gluDrawUtil.newFloatVertexArrayBinding('a_position', 4, 4, 0, position);
 
 			gl.uniform4fv(colorLoc, color);
 			gluDrawUtil.draw(gl, program.getProgram(), [posBinding], gluDrawUtil.triangles(quadIndices));
@@ -363,7 +363,7 @@ goog.scope(function() {
 			referenceFrame.setPixel(x, y, [col, col, col, 0xff]);
 		}
 
-		/** @type {boolean} */ var isOk = tcuImageCompare.fuzzyCompare("Result", "Image comparison result", referenceFrame.getAccess(), renderedFrame.getAccess(), 0.05);
+		/** @type {boolean} */ var isOk = tcuImageCompare.fuzzyCompare('Result', 'Image comparison result', referenceFrame.getAccess(), renderedFrame.getAccess(), 0.05);
 
 		if (!isOk)
 			testFailedOptions('Fail', false);
@@ -439,23 +439,23 @@ goog.scope(function() {
 
 		/** @type {Array<Case>} */ var cases = [
 			new Case('no_write', 'No gl_FragDepth write', es3fFragDepthTests.evalNoWrite,
-				"#version 300 es\n" +
-				"uniform highp vec4 u_color;\n" +
-				"layout(location = 0) out mediump vec4 o_color;\n" +
-				"void main (void)\n" +
-				"{\n" +
-				"	o_color = u_color;\n" +
-				"}\n"
+				'#version 300 es\n' +
+				'uniform highp vec4 u_color;\n' +
+				'layout(location = 0) out mediump vec4 o_color;\n' +
+				'void main (void)\n' +
+				'{\n' +
+				'	o_color = u_color;\n' +
+				'}\n'
 			),
 			new Case('const', 'Const depth write', es3fFragDepthTests.evalConstDepth,
-				"#version 300 es\n" +
-				"uniform highp vec4 u_color;\n" +
-				"layout(location = 0) out mediump vec4 o_color;\n" +
-				"void main (void)\n" +
-				"{\n" +
-				"	o_color = u_color;\n" +
-				"	gl_FragDepth = 0.5;\n" +
-				"}\n"
+				'#version 300 es\n' +
+				'uniform highp vec4 u_color;\n' +
+				'layout(location = 0) out mediump vec4 o_color;\n' +
+				'void main (void)\n' +
+				'{\n' +
+				'	o_color = u_color;\n' +
+				'	gl_FragDepth = 0.5;\n' +
+				'}\n'
 			),
 			new Case('uniform', 'Uniform depth write', es3fFragDepthTests.evalConstDepth,
 				'#version 300 es\n' +
