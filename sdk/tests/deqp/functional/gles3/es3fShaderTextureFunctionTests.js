@@ -53,19 +53,51 @@ goog.scope(function() {
 		/** @type {number} */ this.flags = flags;
 	};
 
-	// /** @type {es3fShaderTextureFunctionTests.Function} */ var  FUNC
-	// /** @type {Array<number>} */ var minCoord
-	// /** @type {Array<number>} */ var maxCoord
-	//
-	// // BIAS
-	//
-	// CaseSpec(NAME, FUNC, MINCOORD, MAXCOORD, USEBIAS, MINLOD, MAXLOD, USEOFFSET, OFFSET, TEXSPEC, EVALFUNC, FLAGS) {
-	// 	return [NAME,
-	// 		TextureLookupSpec(FUNC, MINCOORD, MAXCOORD, USEBIAS, MINLOD, MAXLOD, [0.0, 0.0, 0.0], [0.0, 0.0, 0.0], [0.0, 0.0, 0.0], [0.0, 0.0, 0.0], USEOFFSET, OFFSET),
-	// 		TEXSPEC,
-	// 		EVALFUNC,
-	// 		FLAGS];
-	// };
+
+	/**
+	 * @struct
+	 * @constructor
+	 * @param {es3fShaderTextureFunctionTests.Function} func
+	 * @param {Array<number>} minCoord
+	 * @param {Array<number>} maxCoord
+	 * @param {boolean} useBias
+	 * @param {number} minLodBias
+	 * @param {number} maxLodBias
+	 * @param {Array<number>} minDX For *Grad* functions
+	 * @param {Array<number>} maxDX For *Grad* functions
+	 * @param {Array<number>} minDY For *Grad* functions
+	 * @param {Array<number>} maxDY For *Grad* functions
+	 * @param {boolean} useOffset
+	 * @param {Array<number>} offset
+	 */
+	es3fShaderTextureFunctionTests.TextureLookupSpec = function() {
+			// TODO
+	};
+
+	/** @typedef {Array<string, es3fShaderTextureFunctionTests.TextureLookupSpec, es3fShaderTextureFunctionTests.TextureSpec, es3fShaderTextureFunctionTests.EvalFunc, es3fShaderTextureFunctionTests.CaseFlags>} */ es3fShaderTextureFunctionTests.TestSpec;
+
+	/**
+	 * @param {string} name
+	 * @param {es3fShaderTextureFunctionTests.Function} func
+	 * @param {Array<number>} minCoord
+	 * @param {Array<number>} maxCoord
+	 * @param {boolean} useBias
+	 * @param {number} minLodBias
+	 * @param {number} maxLodBias
+	 * @param {boolean} useOffset
+	 * @param {Array<number>} offset
+	 * @param {es3fShaderTextureFunctionTests.TextureSpec} texSpec
+	 * @param {es3fShaderTextureFunctionTests.EvalFunc} evalFunc
+	 * @param {es3fShaderTextureFunctionTests.CaseFlags} flags
+	 * @return {es3fShaderTextureFunctionTests.TestSpec}
+	 */
+	es3fShaderTextureFunctionTests.getCaseSpec = function(name, func, minCoord, maxCoord, useBias, minLodBias, maxLodBias, useOffset, offset, texSpec, evalFunc, flags) {
+		return [name,
+			es3fShaderTextureFunctionTests.TextureLookupSpec(func, minCoord, maxCoord, useBias, minLodBias, maxLodBias, [0.0, 0.0, 0.0], [0.0, 0.0, 0.0], [0.0, 0.0, 0.0], [0.0, 0.0, 0.0], useOffset, offset),
+			texSpec,
+			evalFunc,
+			flags];
+	};
 
     /**
     * @constructor
