@@ -92,6 +92,10 @@ var length = function(a) {
     return Math.abs(a);
 };
 
+var nop = function(v){
+    return v;
+}
+
 var selection = function(cond, a, b) {
     return cond ? a : b;
 };
@@ -166,7 +170,7 @@ es3fShaderOperatorTests.isUintType = function(type) {
  * @return {boolean}
  */
 es3fShaderOperatorTests.isScalarType = function(type) {
-    return type == es3fShaderOperatorTests.ValueType.FLOAT || type == es3fShaderOperatorTests.ValueType.BOOL || type == es3fShaderOperatorTests.ValueType.INT || type == es3fShaderOperatorTests.ValueType.UINT;    
+    return type == es3fShaderOperatorTests.ValueType.FLOAT || type == es3fShaderOperatorTests.ValueType.BOOL || type == es3fShaderOperatorTests.ValueType.INT || type == es3fShaderOperatorTests.ValueType.UINT;
 };
 
 /**
@@ -174,8 +178,52 @@ es3fShaderOperatorTests.isScalarType = function(type) {
  * @return {boolean}
  */
 es3fShaderOperatorTests.isFloatType = function(type) {
-    return (type & (es3fShaderOperatorTests.ValueType.FLOAT | es3fShaderOperatorTests.ValueType.FLOAT_VEC | es3fShaderOperatorTests.ValueType.FLOAT_GENTYPE)) != 0;   
+    return (type & (es3fShaderOperatorTests.ValueType.FLOAT | es3fShaderOperatorTests.ValueType.FLOAT_VEC | es3fShaderOperatorTests.ValueType.FLOAT_GENTYPE)) != 0;
 };
+
+/**
+ * @param {gluShaderProgram.shaderType} shaderType
+ * @param {gluShaderUtil.precision} uintPrecision
+ * @return {number}
+ */
+es3fShaderOperatorTests.getGLSLUintMaxAsFloat = function (shaderType, uintPrecision) {
+	switch (uintPrecision) {
+		case gluShaderUtil.precision.PRECISION_LOWP:
+            var intPrecisionGL = gl.LOW_INT;
+            break;
+		case gluShaderUtil.precision.PRECISION_MEDIUMP:
+            var intPrecisionGL = gl.MEDIUM_INT;
+            break;
+		case gluShaderUtil.precision.PRECISION_HIGHP:
+            var intPrecisionGL = gl.HIGH_INT;
+            break;
+		default:
+			assertMsgOptions(false, 'Invalid shader type', false, false);
+			var intPrecisionGL = 0;
+	}
+
+	switch (shaderType) {
+		case gluShaderProgram.shaderType.VERTEX:
+            var shaderTypeGL = gl.VERTEX_SHADER;
+            break;
+		case gluShaderProgram.shaderType.FRAGMENT:
+            var shaderTypeGL = gl.FRAGMENT_SHADER;
+            break;
+		default:
+			assertMsgOptions(false, 'Invalid shader type', false, false);
+			var shaderTypeGL = 0;
+	}
+
+	/** @type{WebGLShaderPrecisionFormat } */ var sPrecision = gl.getShaderPrecisionFormat(shaderTypeGL, intPrecisionGL);
+    assertMsgOptions(gl.getError() === gl.NO_ERROR, 'glGetShaderPrecisionFormat failed', false, true);
+
+	if (!deMath.deInBounds32(sPrecision.rangeMin, 8, 32))
+        throw new Error('Out of range');
+
+	var numBitsInType = sPrecision.rangeMin + 1;
+	return Math.pow(2, numBitsInType) - 1;
+}
+
 
 
 /**
@@ -224,14 +272,14 @@ var convert = function(input, dataType) {
  * @param {function(number): number} func
  * @param {gluShaderUtil.DataType=} dataTypeIn
  * @param {gluShaderUtil.DataType=} dataTypeOut
- */ 
+ */
 es3fShaderOperatorTests.unaryGenTypeFuncs = function(func, dataTypeOut, dataTypeIn) {
     var run = function(output, func, input) {
         if (input instanceof Array) {
             var len = input.length;
             var indices = es3fShaderOperatorTests.outIndices[len];
             for (var i = 0; i < input.length; i++)
-                 output[indices[i]] = convert(func(convert(input[i], dataTypeIn)), dataTypeOut); 
+                 output[indices[i]] = convert(func(convert(input[i], dataTypeIn)), dataTypeOut);
         } else
             output[0] = convert(func(convert(input, dataTypeIn)), dataTypeOut);
     };
@@ -249,7 +297,7 @@ es3fShaderOperatorTests.unaryGenTypeFuncs = function(func, dataTypeOut, dataType
  * @param {function(number): number} func
  * @param {gluShaderUtil.DataType=} dataTypeIn
  * @param {gluShaderUtil.DataType=} dataTypeOut
- */ 
+ */
 es3fShaderOperatorTests.unaryScalarGenTypeFuncs = function(func, dataTypeOut, dataTypeIn) {
     var run = function(output, func, input) {
         output[0] = convert(func(convert(input, dataTypeIn)), dataTypeOut);
@@ -268,14 +316,14 @@ es3fShaderOperatorTests.unaryScalarGenTypeFuncs = function(func, dataTypeOut, da
  * @param {function(number, number): number} func
  * @param {gluShaderUtil.DataType=} dataTypeIn
  * @param {gluShaderUtil.DataType=} dataTypeOut
- */ 
+ */
 es3fShaderOperatorTests.binaryGenTypeFuncs = function(func, dataTypeOut, dataTypeIn) {
     var run = function(output, func, input1, input2) {
         if (input1 instanceof Array) {
             var len = input1.length;
             var indices = es3fShaderOperatorTests.outIndices[len];
             for (var i = 0; i < input1.length; i++)
-                 output[indices[i]] = convert(func(convert(input1[i], dataTypeIn), convert(input2[i], dataTypeIn)), dataTypeOut); 
+                 output[indices[i]] = convert(func(convert(input1[i], dataTypeIn), convert(input2[i], dataTypeIn)), dataTypeOut);
         } else {
             var value = convert(func(convert(input1, dataTypeIn), convert(input2, dataTypeIn)), dataTypeOut);
             output[0] = value;
@@ -294,7 +342,7 @@ es3fShaderOperatorTests.binaryGenTypeFuncs = function(func, dataTypeOut, dataTyp
  * Generate (cond ? a : b) functions
  * @param {gluShaderUtil.DataType} dataType
  * Returns an array of functions, indexed by datatype size
- */ 
+ */
 es3fShaderOperatorTests.selectionFuncs = function(dataType) {
     var run = function(output, input0, input1, input2) {
         var value = selection(input0, input1, input2);
@@ -329,7 +377,7 @@ var cp = function(dst, src) {
  * @param {function(number, Array<number>): Array<number>} func
  * @param {gluShaderUtil.DataType=} dataTypeIn
  * @param {gluShaderUtil.DataType=} dataTypeOut
- */ 
+ */
 es3fShaderOperatorTests.binaryScalarVecFuncs = function(func, dataTypeOut, dataTypeIn) {
     var run = function(output, func, input1, input2) {
         var in1 = convert(input1, dataTypeIn);
@@ -337,12 +385,12 @@ es3fShaderOperatorTests.binaryScalarVecFuncs = function(func, dataTypeOut, dataT
         var value = func(in1, in2);
         value = convert(value, dataTypeOut);
         cp(output, value);
-    };    
+    };
     var functions = {};
     functions.vec2 = function(c) { run(c.color, func, c.in_[0][2], deMath.swizzle(c.in_[1], [1, 0])); };
     functions.vec3 = function(c) { run(c.color, func, c.in_[0][2], deMath.swizzle(c.in_[1], [1, 2, 0])); };
     functions.vec4 = function(c) { run(c.color, func, c.in_[0][2], deMath.swizzle(c.in_[1], [3, 2, 1, 0])); };
-    return functions;    
+    return functions;
 };
 
 /**
@@ -350,7 +398,7 @@ es3fShaderOperatorTests.binaryScalarVecFuncs = function(func, dataTypeOut, dataT
  * @param {function(Array<number>, number): Array<number>} func
  * @param {gluShaderUtil.DataType=} dataTypeIn
  * @param {gluShaderUtil.DataType=} dataTypeOut
- */ 
+ */
 es3fShaderOperatorTests.binaryVecScalarFuncs = function(func, dataTypeOut, dataTypeIn) {
     var run = function(output, func, input1, input2) {
         var in1 = convert(input1, dataTypeIn);
@@ -358,7 +406,7 @@ es3fShaderOperatorTests.binaryVecScalarFuncs = function(func, dataTypeOut, dataT
         var value = func(in1, in2);
         value = convert(value, dataTypeOut);
         cp(output, value);
-    };    
+    };
     var functions = {};
     functions.vec2 = function(c) { cp(c.color, func(deMath.swizzle(c.in_[0], [3, 1]), c.in_[1][0])); };
     functions.vec3 = function(c) { cp(c.color, func(deMath.swizzle(c.in_[0], [2, 0, 1]), c.in_[1][0])); };
@@ -405,10 +453,34 @@ es3fShaderOperatorTests.FloatScalar = function(value, isSymbol) {
         this.constant = /** @type {number} */ (value);
 };
 
+/**
+ * @param {gluShaderProgram.shaderType} shaderType
+ * @return {number}
+ */
 es3fShaderOperatorTests.FloatScalar.prototype.getValue = function(shaderType) {
     if (this.constant !== undefined)
         return this.constant;
-    // TODO: Add symbol resolving
+    else
+        switch(this.symbol) {
+            case es3fShaderOperatorTests.Symbol.SYMBOL_LOWP_UINT_MAX:
+                return es3fShaderOperatorTests.getGLSLUintMaxAsFloat(shaderType, gluShaderUtil.precision.PRECISION_LOWP);
+            case es3fShaderOperatorTests.Symbol.SYMBOL_MEDIUMP_UINT_MAX:
+                return es3fShaderOperatorTests.getGLSLUintMaxAsFloat(gl, shaderType, gluShaderUtil.precision.PRECISION_MEDIUMP);
+
+            case es3fShaderOperatorTests.Symbol.SYMBOL_LOWP_UINT_MAX_RECIPROCAL:
+                return 1.0 / es3fShaderOperatorTests.getGLSLUintMaxAsFloat(shaderType, gluShaderUtil.precision.PRECISION_LOWP);
+            case es3fShaderOperatorTests.Symbol.SYMBOL_MEDIUMP_UINT_MAX_RECIPROCAL:
+                return 1.0 / es3fShaderOperatorTests.getGLSLUintMaxAsFloat(shaderType, gluShaderUtil.precision.PRECISION_MEDIUMP);
+
+            case es3fShaderOperatorTests.Symbol.SYMBOL_ONE_MINUS_UINT32MAX_DIV_LOWP_UINT_MAX:
+                return 1.0 - Number.MAX_VALUE / es3fShaderOperatorTests.getGLSLUintMaxAsFloat(shaderType, gluShaderUtil.precision.PRECISION_LOWP);
+            case es3fShaderOperatorTests.Symbol.SYMBOL_ONE_MINUS_UINT32MAX_DIV_MEDIUMP_UINT_MAX:
+                return 1.0 - Number.MAX_VALUE / es3fShaderOperatorTests.getGLSLUintMaxAsFloat(shaderType, gluShaderUtil.precision.PRECISION_MEDIUMP);
+
+            default:
+                assertMsgOptions(false, 'Invalid shader type', false, false);
+                return 0.0;
+        }
 };
 
 /**
@@ -516,6 +588,21 @@ es3fShaderOperatorTests.builtinSideEffOperInfo = function(caseName, shaderFuncNa
                                                    es3fShaderOperatorTests.OperationType.SIDE_EFFECT_OPERATOR);
 };
 
+es3fShaderOperatorTests.builtinOperInfoSeparateRefScaleBias = function (caseName, shaderFuncName, outValue, inputs, scale, bias, precision, functions, referenceScale, referenceBias)
+{
+	return new es3fShaderOperatorTests.BuiltinFuncInfo(caseName,
+                                                    shaderFuncName,
+                                                    outValue,
+                                                    inputs,
+                                                    scale,
+                                                    bias,
+                                                    referenceScale,
+                                                    referenceBias,
+                                                    precision,
+                                                    functions,
+                                                    es3fShaderOperatorTests.OperationType.OPERATOR);
+};
+
 /**
  * @constructor
  * @param {string} name
@@ -613,7 +700,7 @@ es3fShaderOperatorTests.ShaderOperatorCase.prototype.setupShaderData = function(
     sources[1] = ''; //fragment
     var vtx = 0;
     var frag = 1;
-    var op = this.m_isVertexCase ? vtx : frag;    
+    var op = this.m_isVertexCase ? vtx : frag;
 
     sources[vtx] += "#version 300 es\n";
     sources[frag] += "#version 300 es\n";
@@ -806,25 +893,44 @@ setParentClass(es3fShaderOperatorTests.ShaderOperatorTests, tcuTestCase.DeqpTest
 es3fShaderOperatorTests.ShaderOperatorTests.prototype.init = function() {
     var op = es3fShaderOperatorTests.builtinOperInfo;
     var side = es3fShaderOperatorTests.builtinSideEffOperInfo;
+    var separate = es3fShaderOperatorTests.builtinOperInfoSeparateRefScaleBias;
     var all = es3fShaderOperatorTests.Precision.All;
     var highp = es3fShaderOperatorTests.Precision.High;
     var mediump = es3fShaderOperatorTests.Precision.Medium;
     var lowp = es3fShaderOperatorTests.Precision.Low;
     var GT = es3fShaderOperatorTests.ValueType.FLOAT_GENTYPE;
+    var UGT = es3fShaderOperatorTests.ValueType.UINT_GENTYPE;
     var IGT = es3fShaderOperatorTests.ValueType.INT_GENTYPE;
     var F = es3fShaderOperatorTests.ValueType.FLOAT;
     var FV = es3fShaderOperatorTests.ValueType.FLOAT_VEC;
     var B = es3fShaderOperatorTests.ValueType.BOOL;
+    var lUMax = es3fShaderOperatorTests.Symbol.SYMBOL_LOWP_UINT_MAX;
+    var mUMax = es3fShaderOperatorTests.Symbol.SYMBOL_MEDIUMP_UINT_MAX;
+    var lUMaxR = es3fShaderOperatorTests.Symbol.SYMBOL_LOWP_UINT_MAX_RECIPROCAL;
+    var mUMaxR = es3fShaderOperatorTests.Symbol.SYMBOL_MEDIUMP_UINT_MAX_RECIPROCAL;
     var f = function(value) {
         return new es3fShaderOperatorTests.FloatScalar(value);
+    };
+    var s = function(value) {
+        return new es3fShaderOperatorTests.FloatScalar(value, true);
     };
     var v = function(type, a, b) {
         return new es3fShaderOperatorTests.Value(type, f(a), f(b));
     };
+    var v2 = function(type, a, b) {
+        return new es3fShaderOperatorTests.Value(type, f(a), s(b));
+    };
     var funcInfoGroups = [];
     var unary = new es3fShaderOperatorTests.BuiltinFuncGroup("unary_operator", "Unary operator tests");
 
+    unary.push(op("plus", "+", GT, [v(GT, -1.0, 1.0)], f(0.5), f(0.5), all, es3fShaderOperatorTests.unaryGenTypeFuncs(nop)));
+    unary.push(op("plus", "+", IGT, [v(IGT, -5.0, 5.0)], f(0.1), f(0.5), all, es3fShaderOperatorTests.unaryGenTypeFuncs(nop, gluShaderUtil.DataType.INT, gluShaderUtil.DataType.INT)));
+    unary.push(op("plus", "+", UGT, [v(UGT, 0.0, 2.0)], f(0.5), f(0.0), all, es3fShaderOperatorTests.unaryGenTypeFuncs(nop, gluShaderUtil.DataType.UINT, gluShaderUtil.DataType.UINT)));
     unary.push(op("minus", "-", GT, [v(GT, -1.0, 1.0)], f(0.5), f(0.5), all, es3fShaderOperatorTests.unaryGenTypeFuncs(negate)));
+    unary.push(op("minus", "-", IGT, [v(IGT, -5.0, 5.0)], f(0.1), f(0.5), all, es3fShaderOperatorTests.unaryGenTypeFuncs(negate, gluShaderUtil.DataType.INT, gluShaderUtil.DataType.INT)));
+    unary.push(separate("minus", "-", UGT, [v2(UGT, 0.0, lUMax)], s(lUMaxR), f(0.0), lowp, es3fShaderOperatorTests.unaryGenTypeFuncs(negate), s(lUMaxR), s(es3fShaderOperatorTests.Symbol.SYMBOL_ONE_MINUS_UINT32MAX_DIV_LOWP_UINT_MAX)));
+    unary.push(separate("minus", "-", UGT, [v2(UGT, 0.0, mUMax)], s(mUMaxR), f(0.0), mediump, es3fShaderOperatorTests.unaryGenTypeFuncs(negate, gluShaderUtil.DataType.UINT, gluShaderUtil.DataType.UINT), s(mUMaxR), s(es3fShaderOperatorTests.Symbol.SYMBOL_ONE_MINUS_UINT32MAX_DIV_LOWP_UINT_MAX)));
+    unary.push(op("minus", "-", UGT, [v(UGT, 0.0, 4000000000.0)], f(20000000000), f(0.0), highp, es3fShaderOperatorTests.unaryGenTypeFuncs(negate, gluShaderUtil.DataType.UINT, gluShaderUtil.DataType.UINT)));
     unary.push(side("pre_increment_effect", "++",   GT,     [v(GT,   -1.0, 1.0)], f(0.5), f(0.0),     all,   es3fShaderOperatorTests.unaryGenTypeFuncs(addOne)));
 
     funcInfoGroups.push(unary);
@@ -1098,21 +1204,21 @@ es3fShaderOperatorTests.ShaderOperatorTests.prototype.init = function() {
     // The ?: selection operator.
 
     var s_selectionInfo = [
-        gluShaderUtil.DataType.FLOAT,     
+        gluShaderUtil.DataType.FLOAT,
         gluShaderUtil.DataType.FLOAT_VEC2,
         gluShaderUtil.DataType.FLOAT_VEC3,
         gluShaderUtil.DataType.FLOAT_VEC4,
-        gluShaderUtil.DataType.INT,       
-        gluShaderUtil.DataType.INT_VEC2,  
-        gluShaderUtil.DataType.INT_VEC3,  
-        gluShaderUtil.DataType.INT_VEC4,  
-        gluShaderUtil.DataType.UINT,      
-        gluShaderUtil.DataType.UINT_VEC2, 
-        gluShaderUtil.DataType.UINT_VEC3, 
-        gluShaderUtil.DataType.UINT_VEC4, 
-        gluShaderUtil.DataType.BOOL,      
-        gluShaderUtil.DataType.BOOL_VEC2, 
-        gluShaderUtil.DataType.BOOL_VEC3, 
+        gluShaderUtil.DataType.INT,
+        gluShaderUtil.DataType.INT_VEC2,
+        gluShaderUtil.DataType.INT_VEC3,
+        gluShaderUtil.DataType.INT_VEC4,
+        gluShaderUtil.DataType.UINT,
+        gluShaderUtil.DataType.UINT_VEC2,
+        gluShaderUtil.DataType.UINT_VEC3,
+        gluShaderUtil.DataType.UINT_VEC4,
+        gluShaderUtil.DataType.BOOL,
+        gluShaderUtil.DataType.BOOL_VEC2,
+        gluShaderUtil.DataType.BOOL_VEC3,
         gluShaderUtil.DataType.BOOL_VEC4
     ];
 
