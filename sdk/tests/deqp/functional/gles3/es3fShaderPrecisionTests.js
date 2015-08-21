@@ -233,7 +233,7 @@ goog.scope(function() {
         gl.bindFramebuffer(gl.FRAMEBUFFER, null);
 
         // Initialize test result to pass.
-        // TODO: rework this part: m_testCtx.setTestResult(QP_TEST_RESULT_PASS, "Pass");
+        // m_testCtx.setTestResult(QP_TEST_RESULT_PASS, "Pass");
         this.m_iterNdx = 0;
     };
 
@@ -330,7 +330,6 @@ goog.scope(function() {
 			/** @type {number} */ var in1 = this.m_rnd.getFloat(this.m_rangeB[0], this.m_rangeB[1]);
 
 			/** @type {number} */ var refD = this.m_evalFunc(in0, in1);
-			// [dag] only used for logging. /** @type {number} */ var refF = tcuFloat.newFloat64(refD).getValue(); // Uses RTE rounding mode.
 
 			bufferedLogToConsole("iter " + this.m_iterNdx + ", test " + testNdx + ": "+
 				"in0 = " + in0 + " / " + tcuFloat.newFloat32(in0).bits() +
@@ -341,17 +340,15 @@ goog.scope(function() {
 			in1Arr = [in1, in1, in1, in1];
 			vertexArrays[1] = gluDrawUtil.newFloatVertexArrayBinding("a_in0", 1, numVertices, 0, in0Arr);
 			vertexArrays[2] = gluDrawUtil.newFloatVertexArrayBinding("a_in1", 1, numVertices, 0, in1Arr);
-			gluDrawUtil.draw(gl, prog, vertexArrays, gluDrawUtil.triangles(indices));
-			// glu::draw(m_context.getRenderContext(), prog, (int)vertexArrays.size(), &vertexArrays[0],
-			// 		  glu::pr::Triangles(DE_LENGTH_OF_ARRAY(indices), &indices[0]));
 
-			// gl.readPixels(0, 0, FRAMEBUFFER_WIDTH, FRAMEBUFFER_HEIGHT, GL_RGBA_INTEGER, GL_UNSIGNED_INT, &pixels[0]);
+			gluDrawUtil.draw(gl, prog, vertexArrays, gluDrawUtil.triangles(indices));
+
 			gl.readPixels(0, 0, es3fShaderPrecisionTests.FRAMEBUFFER_WIDTH,
-				es3fShaderPrecisionTests.FRAMEBUFFER_HEIGHT,
-				gl.RGBA_INTEGER, gl.UNSIGNED_INT, pixels_uint);
-			//GLU_EXPECT_NO_ERROR(gl.getError(), "After render");
+				es3fShaderPrecisionTests.FRAMEBUFFER_HEIGHT, gl.RGBA_INTEGER, gl.UNSIGNED_INT, pixels_uint);
+
 			var pixels = new Float32Array(pixels_uint.buffer);
 			bufferedLogToConsole("  result = " + pixels[0] + " / " + tcuFloat.newFloat32(pixels[0]).bits());
+
 			// Verify results
 			/** @type {boolean} */ var firstPixelOk = this.compare(in0, in1, refD, pixels[0]);
 
@@ -710,14 +707,12 @@ goog.scope(function() {
 			in1Arr = [in1, in1, in1, in1];
 			vertexArrays[1] = gluDrawUtil.newUint32VertexArrayBinding("a_in0", 1, numVertices, 0, in0Arr);
 			vertexArrays[2] = gluDrawUtil.newUint32VertexArrayBinding("a_in1", 1, numVertices, 0, in1Arr);
+
 			gluDrawUtil.draw(gl, prog, vertexArrays, gluDrawUtil.triangles(indices));
-			//glu::draw(m_context.getRenderContext(), prog, (int)vertexArrays.size(), &vertexArrays[0],
-			//		  glu::pr::Triangles(DE_LENGTH_OF_ARRAY(indices), &indices[0]));
-			// gl.readPixels(0, 0, FRAMEBUFFER_WIDTH, FRAMEBUFFER_HEIGHT, GL_RGBA_INTEGER, GL_UNSIGNED_INT, &pixels[0]);
-			// GLU_EXPECT_NO_ERROR(gl.getError(), "After render");
+
 			gl.readPixels(0, 0, es3fShaderPrecisionTests.FRAMEBUFFER_WIDTH,
-				es3fShaderPrecisionTests.FRAMEBUFFER_HEIGHT,
-				gl.RGBA_INTEGER, gl.UNSIGNED_INT, pixels);
+				es3fShaderPrecisionTests.FRAMEBUFFER_HEIGHT, gl.RGBA_INTEGER, gl.UNSIGNED_INT, pixels);
+
 			// Compare pixels.
 			for (var y = 0; y < es3fShaderPrecisionTests.FRAMEBUFFER_HEIGHT; y++) {
 				for (var x = 0; x < es3fShaderPrecisionTests.FRAMEBUFFER_WIDTH; x++) {
@@ -726,18 +721,13 @@ goog.scope(function() {
 
 					if (cmpMasked != refOut) {
 						bufferedLogToConsole("Comparison failed (at " + x + ", " + y + "): " + "got " + cmpOut)
-						//m_testCtx.setTestResult(QP_TEST_RESULT_FAIL, "Fail");
 						testPassed = false;
 						testPassedMsg = 'Comparison failed';
-						//return tcuTestCase.IterateResult.STOP;
 					}
 				}
 			}
 		}
 
-
-		// GLU_EXPECT_NO_ERROR(gl.getError(), "After iteration");
-		// return (this.m_iterNdx < this.m_numIters) ? tcuTestCase.IterateResult.CONTINUE : tcuTestCase.IterateResult.STOP;
 
 		gl.bindFramebuffer(gl.FRAMEBUFFER, null);
 
@@ -774,8 +764,8 @@ goog.scope(function() {
 		/** @type {number} */ var maxF32 = new Float32Array(new Uint32Array([0<<31|0xfd<<23|0x0]).buffer)[0];
         // /** @type {number} */ var minF16 = tcuFloat.newFloat16(((1 << 15) | (0x1d << 10) | 0x0)).getValue();
         // /** @type {number} */ var maxF16 = tcuFloat.newFloat16(((0 << 15) | (0x1d << 10) | 0x0)).getValue();
-        /** @type {number} */ var minF16 = -1<<14;
-        /** @type {number} */ var maxF16 = 1<<14;
+        /** @type {number} */ var minF16 = -1<<14; // 1 << 15 | 0x1d | 0x0 == 0b1111010000000000; -1 * (2**(29-15)) * 1
+        /** @type {number} */ var maxF16 = 1<<14; // 0 << 15 | 0x1d | 0x0 == 0b0111010000000000; +1 * (2**(29-15)) * 1
 		/** @type {Array<number>} */ var fullRange32F = [minF32, maxF32];
         /** @type {Array<number>} */ var fullRange16F = [minF16, maxF16];
         /** @type {Array<number>} */ var fullRange32I = [0x80000000, 0x7fffffff];
