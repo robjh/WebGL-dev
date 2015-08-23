@@ -3197,14 +3197,14 @@ tcuTexture.projectToFace = function(face, coord) {
 /**
  * @constructor
  * @param {tcuTexture.TextureFormat} format
- * @param {number} width
- * @param {number} height
+ * @param {number=} width
+ * @param {number=} height
  * @param {number=} depth
  */
 tcuTexture.TextureLevel = function(format, width, height, depth) {
     this.m_format = format;
-    this.m_width = width;
-    this.m_height = height;
+    this.m_width = width || 0;
+    this.m_height = height || 0;
     this.m_depth = depth === undefined ? 1 : depth;
     this.m_data = new tcuTexture.DeqpArrayBuffer();
     this.setSize(this.m_width, this.m_height, this.m_depth);
@@ -3214,9 +3214,9 @@ tcuTexture.TextureLevel.prototype.constructor = tcuTexture.TextureLevel;
 
 /**
  * @param {tcuTexture.TextureFormat} format
- * @param {number} width
- * @param {number} height
- * @param {number} depth
+ * @param {number=} width
+ * @param {number=} height
+ * @param {number=} depth
  */
 tcuTexture.TextureLevel.prototype.setStorage = function(format, width, height, depth) {
     this.m_format = format;
@@ -3224,16 +3224,16 @@ tcuTexture.TextureLevel.prototype.setStorage = function(format, width, height, d
 };
 
 /**
- * @param {number} width
- * @param {number} height
- * @param {number} depth
+ * @param {number=} width
+ * @param {number=} height
+ * @param {number=} depth
  */
 tcuTexture.TextureLevel.prototype.setSize = function(width, height, depth) {
     var pixelSize = this.m_format.getPixelSize();
 
-    this.m_width = width;
-    this.m_height = height;
-    this.m_depth = depth;
+    this.m_width = width || 0;
+    this.m_height = height || 0;
+    this.m_depth = depth === undefined ? 1 : depth;
 
     this.m_data.setStorage(this.m_width * this.m_height * this.m_depth * pixelSize);
 };

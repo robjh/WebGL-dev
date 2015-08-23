@@ -481,7 +481,6 @@ es3fFboTestUtil.FboIncompleteException.prototype.getReason = function() {return 
         var numPackets = packet.length;
         /** @type {Array<number>} */ var outScale = this.m_uniforms[0].value;
         /** @type {Array<number>} */ var outBias = this.m_uniforms[1].value;
-
         var texCoords = [];
         var colors = [];
 
@@ -496,11 +495,14 @@ es3fFboTestUtil.FboIncompleteException.prototype.getReason = function() {return 
             // sample each texture
             for (var ndx = 0; ndx < this.m_inputs.length; ndx++) {
                 var tex = this.m_uniforms[2 + ndx * 3].sampler;
+                var ratioX = tex.m_view.getWidth() / context.getWidth();
+                var ratioY = tex.m_view.getHeight() / context.getHeight();
+                var lod = Math.floor(Math.log2(Math.max(ratioX, ratioY)));
 
                 /** @const {Array<number>} */ var scale = this.m_uniforms[2 + ndx * 3 + 1].value;
                 /** @const {Array<number>} */ var bias = this.m_uniforms[2 + ndx * 3 + 2].value;
 
-                var tmpColors = tex.sample(texCoords);
+                var tmpColors = tex.sample(texCoords, lod);
 
                 colors = deMath.add(colors, deMath.add(deMath.multiply(tmpColors, scale), bias));
             }
@@ -657,11 +659,14 @@ es3fFboTestUtil.FboIncompleteException.prototype.getReason = function() {return 
 
         for (var packetNdx = 0; packetNdx < numPackets; ++packetNdx) {
             var tex = this.m_uniforms[1].sampler;
+            var ratioX = tex.m_view.getSize() / context.getWidth();
+            var ratioY = tex.m_view.getSize() / context.getHeight();
+            var lod = Math.floor(Math.log2(Math.max(ratioX, ratioY)));
 
             var coord = rrShadingContext.readTriangleVarying(packet[packetNdx], context, 0);
             texCoords = [coord[0], coord[1], coord[2]];
 
-            colors = tex.sample(texCoords);
+            colors = tex.sample(texCoords, lod);
 
             var color = deMath.clampVector(deMath.add(deMath.multiply(colors, texScale), texBias), 0, 1);
             var icolor = es3fFboTestUtil.castVectorSaturate(color, tcuTexture.deTypes.deInt32);
@@ -782,11 +787,15 @@ es3fFboTestUtil.FboIncompleteException.prototype.getReason = function() {return 
 
         for (var packetNdx = 0; packetNdx < numPackets; ++packetNdx) {
             var tex = this.m_uniforms[0].sampler;
+            var ratioX = tex.m_view.getWidth() / context.getWidth();
+            var ratioY = tex.m_view.getHeight() / context.getHeight();
+            var lod = Math.floor(Math.log2(Math.max(ratioX, ratioY)));
+
 
             /** @const {Array<number>} */ var coord = rrShadingContext.readTriangleVarying(packet[packetNdx], context, 0);
             texCoords = [coord[0], coord[1], layer];
 
-            colors = tex.sample(texCoords);
+            colors = tex.sample(texCoords, lod);
 
             /** @const {Array<number>} */ var color = deMath.clampVector(deMath.add(deMath.multiply(colors, texScale), texBias), 0, 1);
             /** @const {Array<number>} */ var icolor = es3fFboTestUtil.castVectorSaturate(color, tcuTexture.deTypes.deInt32);
@@ -908,11 +917,15 @@ es3fFboTestUtil.FboIncompleteException.prototype.getReason = function() {return 
 
         for (var packetNdx = 0; packetNdx < numPackets; ++packetNdx) {
             var tex = this.m_uniforms[0].sampler;
+            var ratioX = tex.m_view.getWidth() / context.getWidth();
+            var ratioY = tex.m_view.getHeight() / context.getHeight();
+            // TODO: what to do with Z coordinate?
+            var lod = Math.floor(Math.log2(Math.max(ratioX, ratioY)));
 
             var coord = rrShadingContext.readTriangleVarying(packet[packetNdx], context, 0);
             texCoords = [coord[0], coord[1], depth];
 
-            colors = tex.sample(texCoords);
+            colors = tex.sample(texCoords, lod);
 
             /** @const {Array<number>} */ var color = deMath.clampVector(deMath.add(deMath.multiply(colors, texScale), texBias), 0, 1);
             /** @const {Array<number>} */ var icolor = es3fFboTestUtil.castVectorSaturate(color, tcuTexture.deTypes.deInt32);
