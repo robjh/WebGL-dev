@@ -20,8 +20,9 @@
 
 'use strict';
 goog.provide('functional.gles3.es3fTextureSpecificationTests');
-goog.require('framework.common.tcuPixelFormat');
 goog.require('framework.common.tcuImageCompare');
+goog.require('framework.common.tcuLogImage');
+goog.require('framework.common.tcuPixelFormat');
 goog.require('framework.common.tcuSurface');
 goog.require('framework.common.tcuTestCase');
 goog.require('framework.common.tcuTexture');
@@ -35,7 +36,6 @@ goog.require('framework.opengl.simplereference.sglrGLContext');
 goog.require('framework.opengl.simplereference.sglrReferenceContext');
 goog.require('framework.referencerenderer.rrUtil');
 goog.require('functional.gles3.es3fFboTestUtil');
-goog.require('framework.common.tcuLogImage');
 
 goog.scope(function() {
     var es3fTextureSpecificationTests =
@@ -62,33 +62,32 @@ goog.scope(function() {
      * @param {number} internalFormat
      * @return {tcuTexture.TextureFormat}
      */
-    es3fTextureSpecificationTests.mapGLUnsizedInternalFormat = function (
+    es3fTextureSpecificationTests.mapGLUnsizedInternalFormat = function(
         internalFormat
     ) {
-        switch (internalFormat)
-        {
+        switch (internalFormat) {
             case gl.ALPHA:
-                return new tcuTexture.TextureFormat (
+                return new tcuTexture.TextureFormat(
                     tcuTexture.ChannelOrder.A,
                     tcuTexture.ChannelType.UNORM_INT8
                 );
             case gl.LUMINANCE:
-                return new tcuTexture.TextureFormat (
+                return new tcuTexture.TextureFormat(
                     tcuTexture.ChannelOrder.L,
                     tcuTexture.ChannelType.UNORM_INT8
                 );
             case gl.LUMINANCE_ALPHA:
-                return new tcuTexture.TextureFormat (
+                return new tcuTexture.TextureFormat(
                     tcuTexture.ChannelOrder.LA,
                     tcuTexture.ChannelType.UNORM_INT8
                 );
             case gl.RGB:
-                return new tcuTexture.TextureFormat (
+                return new tcuTexture.TextureFormat(
                     tcuTexture.ChannelOrder.RGB,
                     tcuTexture.ChannelType.UNORM_INT8
                 );
             case gl.RGBA:
-                return new tcuTexture.TextureFormat (
+                return new tcuTexture.TextureFormat(
                     tcuTexture.ChannelOrder.RGBA,
                     tcuTexture.ChannelType.UNORM_INT8
                 );
@@ -109,7 +108,7 @@ goog.scope(function() {
      * @param {number=} depth
      * @return {number}
      */
-    es3fTextureSpecificationTests.maxLevelCount = function (
+    es3fTextureSpecificationTests.maxLevelCount = function(
         width, height, depth
     ) {
         depth = depth || 0;
@@ -123,7 +122,7 @@ goog.scope(function() {
      * @param {number} size
      * @return {Array<number>}
      */
-    es3fTextureSpecificationTests.randomVector = function (
+    es3fTextureSpecificationTests.randomVector = function(
         rnd, minVal, maxVal, size
     ) {
         var res = [];
@@ -137,11 +136,10 @@ goog.scope(function() {
      * @param {tcuTexture.TextureFormat} textureFormat
      * @return {Array<number>} (ivec4)
      */
-    es3fTextureSpecificationTests.getPixelFormatCompareDepth = function (
+    es3fTextureSpecificationTests.getPixelFormatCompareDepth = function(
         pixelFormat, textureFormat
     ) {
-        switch (textureFormat.order)
-        {
+        switch (textureFormat.order) {
             case tcuTexture.ChannelOrder.L:
             case tcuTexture.ChannelOrder.LA:
                 return [
@@ -161,7 +159,7 @@ goog.scope(function() {
      * @param {tcuTexture.TextureFormat} textureFormat
      * @return {Array<number>} (uvec4)
      */
-    es3fTextureSpecificationTests.computeCompareThreshold = function (
+    es3fTextureSpecificationTests.computeCompareThreshold = function(
         pixelFormat, textureFormat
     ) {
         /** @type {Array<number>} */
@@ -196,7 +194,7 @@ goog.scope(function() {
      * @param {string} desc
      * context
      */
-    es3fTextureSpecificationTests.TextureSpecCase = function (name, desc) {
+    es3fTextureSpecificationTests.TextureSpecCase = function(name, desc) {
         tcuTestCase.DeqpTest.call(this, name, desc);
         /**
          * @type {
@@ -217,7 +215,7 @@ goog.scope(function() {
      * createTexture - Needs to be overridden
      */
     es3fTextureSpecificationTests.TextureSpecCase.prototype.createTexture =
-    function () {
+    function() {
         throw new Error('Must override');
     };
 
@@ -228,7 +226,7 @@ goog.scope(function() {
      * @return {boolean}
      */
     es3fTextureSpecificationTests.TextureSpecCase.prototype.verifyTexture =
-    function (
+    function(
         webgl2Context, refContext
     ) {
         throw new Error('Must override');
@@ -237,10 +235,10 @@ goog.scope(function() {
     /**
      * @return {tcuTestCase.IterateResult}
      */
-    es3fTextureSpecificationTests.TextureSpecCase.prototype.iterate = function () {
+    es3fTextureSpecificationTests.TextureSpecCase.prototype.iterate = function() {
         if (gl.canvas.width < VIEWPORT_WIDTH ||
             gl.canvas.height < VIEWPORT_HEIGHT)
-            throw new Error('Too small viewport', "");
+            throw new Error('Too small viewport', '');
 
         // Context size, and viewport for GLES3
         var rnd = new deRandom.Random(deString.deStringHash(this.fullName()));
@@ -270,8 +268,7 @@ goog.scope(function() {
         );
 
         // Clear color buffer.
-        for (var ndx = 0; ndx < 2; ndx++)
-        {
+        for (var ndx = 0; ndx < 2; ndx++) {
             this.m_context = ndx ? refContext : webgl2Context;
             this.m_context.clearColor(0.125, 0.25, 0.5, 1.0);
             this.m_context.clear(
@@ -281,8 +278,7 @@ goog.scope(function() {
         }
 
         // Construct texture using both GLES3 and reference contexts.
-        for (var ndx = 0; ndx < 2; ndx++)
-        {
+        for (var ndx = 0; ndx < 2; ndx++) {
             this.m_context = ndx ? refContext : webgl2Context;
             this.createTexture();
             checkMessage(
@@ -308,7 +304,7 @@ goog.scope(function() {
      * @param {number} height
      */
     es3fTextureSpecificationTests.TextureSpecCase.prototype.renderTex =
-    function (dst, program, width, height) {
+    function(dst, program, width, height) {
         var targetW = this.m_context.getWidth();
         var targetH = this.m_context.getHeight();
 
@@ -334,7 +330,7 @@ goog.scope(function() {
      * @param {number} height
      * @param {number} numLevels
      */
-    es3fTextureSpecificationTests.Texture2DSpecCase = function (
+    es3fTextureSpecificationTests.Texture2DSpecCase = function(
         name, desc, format, width, height, numLevels
     ) {
         es3fTextureSpecificationTests.TextureSpecCase.call(this, name, desc);
@@ -358,7 +354,7 @@ goog.scope(function() {
      * @param {sglrReferenceContext.ReferenceContext} refContext
      */
     es3fTextureSpecificationTests.Texture2DSpecCase.prototype.verifyTexture =
-    function (
+    function(
         webgl2Context, refContext
     ) {
         /** @type {es3fFboTestUtil.Texture2DShader} */
@@ -420,8 +416,8 @@ goog.scope(function() {
                 tcuPixelFormat.PixelFormatFromContext(gl), this.m_texFormat
             );
             var levelStr = levelNdx.toString();
-            var name = "Level" + levelStr;
-            var desc = "Level " + levelStr;
+            var name = 'Level' + levelStr;
+            var desc = 'Level ' + levelStr;
             var isOk = tcuImageCompare.intThresholdCompare(
                 name, desc, reference.getAccess(), result.getAccess(),
                 threshold, levelNdx == 0 ?
@@ -429,12 +425,10 @@ goog.scope(function() {
                 tcuImageCompare.CompareLogMode.ON_ERROR
             );
 
-            if (!isOk)
-            {
-                testFailed("Image comparison failed");
+            if (!isOk) {
+                testFailed('Image comparison failed');
                 return false;
-            }
-            else {
+            } else {
                 // tcuLogImage.logImageWithInfo(result.getAccess(),'Comparison OK on level: ' + levelNdx);
             }
         }
@@ -450,7 +444,7 @@ goog.scope(function() {
      * @param {number} size
      * @param {number} numLevels
      */
-    es3fTextureSpecificationTests.TextureCubeSpecCase = function (
+    es3fTextureSpecificationTests.TextureCubeSpecCase = function(
         name, desc, format, size, numLevels
     ) {
         es3fTextureSpecificationTests.TextureSpecCase.call(
@@ -489,8 +483,7 @@ goog.scope(function() {
         );
 
         // Set state.
-        for (var ndx = 0; ndx < 2; ndx++)
-        {
+        for (var ndx = 0; ndx < 2; ndx++) {
             var ctx = ndx ? refContext : webgl2Context;
 
             this.m_context = ctx;
@@ -521,12 +514,8 @@ goog.scope(function() {
             var levelSize = Math.max(1, this.m_size >> levelNdx);
             var isOk = true;
 
-            for (
-                /** @type {framework.common.tcuTexture.CubeFace} */
-                var face = /** @type {tcuTexture.CubeFace} */ (0);
-                face < Object.keys(tcuTexture.CubeFace).length;
-                face++
-            ) {
+            for (var f in tcuTexture.CubeFace) {
+                var face = tcuTexture.CubeFace[f];
                 /** @type {tcuSurface.Surface} */
                 var reference = new tcuSurface.Surface();
                 /** @type {tcuSurface.Surface} */
@@ -548,11 +537,11 @@ goog.scope(function() {
                     this.renderTex(dst, shaderID, levelSize, levelSize);
                 }
 
-                var threshold    = 0.02;
+                var threshold = 0.02;
                 var faceStr = face.toString();
                 var levelStr = levelNdx.toString();
-                var name = "Level" + levelStr;
-                var desc = "Level " + levelStr + ", face " + faceStr;
+                var name = 'Level' + levelStr;
+                var desc = 'Level ' + levelStr + ', face ' + faceStr;
                 var isFaceOk = tcuImageCompare.fuzzyCompare(
                     name, desc, reference.getAccess(), result.getAccess(),
                     threshold, levelNdx == 0 ?
@@ -560,17 +549,15 @@ goog.scope(function() {
                     tcuImageCompare.CompareLogMode.ON_ERROR
                 );
 
-                if (!isFaceOk)
-                {
-                    testFailed("Image comparison failed");
-                    return false
+                if (!isFaceOk) {
+                    testFailed('Image comparison failed');
+                    return false;
                 }
             }
 
         }
         return true;
     };
-
 
     /**
      * @constructor
@@ -583,7 +570,7 @@ goog.scope(function() {
      * @param {number} numLayers
      * @param {number} numLevels
      */
-    es3fTextureSpecificationTests.Texture2DArraySpecCase = function (
+    es3fTextureSpecificationTests.Texture2DArraySpecCase = function(
         name, desc, format, width, height, numLayers, numLevels
     ) {
         es3fTextureSpecificationTests.TextureSpecCase.call(
@@ -608,7 +595,7 @@ goog.scope(function() {
      * @param {sglrReferenceContext.ReferenceContext} refContext
      */
     es3fTextureSpecificationTests.Texture2DArraySpecCase.prototype.verifyTexture =
-    function (
+    function(
         webgl2Context, refContext
     ) {
         /** @type {es3fFboTestUtil.Texture2DArrayShader} */
@@ -686,8 +673,8 @@ goog.scope(function() {
                 );
                 var levelStr = levelNdx.toString();
                 var layerStr = layerNdx.toString();
-                var name = "Layer" + layerStr + "Level" + levelStr;
-                var desc = "Layer " + layerStr + ", Level " + levelStr;
+                var name = 'Layer' + layerStr + 'Level' + levelStr;
+                var desc = 'Layer ' + layerStr + ', Level ' + levelStr;
                 var depthOk = tcuImageCompare.intThresholdCompare(
                     name, desc, reference.getAccess(), result.getAccess(),
                     threshold, (levelNdx == 0 && layerNdx == 0) ?
@@ -695,10 +682,8 @@ goog.scope(function() {
                     tcuImageCompare.CompareLogMode.ON_ERROR
                 );
 
-
-                if (!depthOk)
-                {
-                    testFailed("Image comparison failed");
+                if (!depthOk) {
+                    testFailed('Image comparison failed');
                     return false;
                 }
             }
@@ -718,7 +703,7 @@ goog.scope(function() {
      * @param {number} depth
      * @param {number} numLevels
      */
-    es3fTextureSpecificationTests.Texture3DSpecCase = function (
+    es3fTextureSpecificationTests.Texture3DSpecCase = function(
         name, desc, format, width, height, depth, numLevels
     ) {
         es3fTextureSpecificationTests.TextureSpecCase.call(
@@ -743,7 +728,7 @@ goog.scope(function() {
      * @param {sglrReferenceContext.ReferenceContext} refContext
      */
     es3fTextureSpecificationTests.Texture3DSpecCase.prototype.verifyTexture =
-    function (
+    function(
         webgl2Context, refContext
     ) {
         /** @type {es3fFboTestUtil.Texture3DShader} */
@@ -821,8 +806,8 @@ goog.scope(function() {
                 );
                 var levelStr = levelNdx.toString();
                 var sliceStr = depth.toString();
-                var name = "Layer" + levelStr + "Slice" + sliceStr;
-                var desc = "Layer " + levelStr + ", Slice " + sliceStr;
+                var name = 'Layer' + levelStr + 'Slice' + sliceStr;
+                var desc = 'Layer ' + levelStr + ', Slice ' + sliceStr;
                 var depthOk = tcuImageCompare.intThresholdCompare(
                     name, desc, reference.getAccess(), result.getAccess(),
                     threshold, (levelNdx == 0 && depth == 0) ?
@@ -830,10 +815,8 @@ goog.scope(function() {
                     tcuImageCompare.CompareLogMode.ON_ERROR
                 );
 
-
-                if (!depthOk)
-                {
-                    testFailed("Image comparison failed");
+                if (!depthOk) {
+                    testFailed('Image comparison failed');
                     return false;
                 }
             }
@@ -853,7 +836,7 @@ goog.scope(function() {
      * @param {number} width
      * @param {number} height
      */
-    es3fTextureSpecificationTests.BasicTexImage2DCase = function (
+    es3fTextureSpecificationTests.BasicTexImage2DCase = function(
         name, desc, format, dataType, width, height
     ) {
         // Unsized internal format.
@@ -904,7 +887,7 @@ goog.scope(function() {
      * createTexture
      */
     es3fTextureSpecificationTests.BasicTexImage2DCase.prototype.createTexture =
-    function () {
+    function() {
         var tex = null;
         var levelData = new tcuTexture.TextureLevel(
             this.m_texFormat, this.m_width, this.m_height
@@ -950,7 +933,7 @@ goog.scope(function() {
      * @param {number} dataType
      * @param {number} size
      */
-    es3fTextureSpecificationTests.BasicTexImageCubeCase = function (
+    es3fTextureSpecificationTests.BasicTexImageCubeCase = function(
         name, desc, format, dataType, size
     ) {
         // Unsized internal format.
@@ -1000,7 +983,7 @@ goog.scope(function() {
      */
     es3fTextureSpecificationTests.
     BasicTexImageCubeCase.prototype.createTexture =
-    function () {
+    function() {
         var tex = null;
         var levelData = new tcuTexture.TextureLevel(
             this.m_texFormat, this.m_size, this.m_size
@@ -1016,12 +999,8 @@ goog.scope(function() {
 
             levelData.setSize(levelSize, levelSize);
 
-            for (
-                /** @type {framework.common.tcuTexture.CubeFace} */
-        var face = /** @type {tcuTexture.CubeFace} */ (0);
-                face < es3fTextureSpecificationTests.s_cubeMapFaces.length;
-                face ++
-            ) {
+            for (var f in tcuTexture.CubeFace) {
+                var face = tcuTexture.CubeFace[f];
                 var gMin = es3fTextureSpecificationTests.randomVector(
                     rnd, this.m_texFormatInfo.valueMin,
                     this.m_texFormatInfo.valueMax, 4
@@ -1056,7 +1035,7 @@ goog.scope(function() {
      * @param {number} height
      * @param {number} numLayers
      */
-    es3fTextureSpecificationTests.BasicTexImage2DArrayCase = function (
+    es3fTextureSpecificationTests.BasicTexImage2DArrayCase = function(
         name, desc, internalFormat, width, height, numLayers
     ) {
         es3fTextureSpecificationTests.Texture2DArraySpecCase.call(
@@ -1084,7 +1063,7 @@ goog.scope(function() {
      */
     es3fTextureSpecificationTests.
     BasicTexImage2DArrayCase.prototype.createTexture =
-    function () {
+    function() {
         var tex = null;
         var levelData = new tcuTexture.TextureLevel(
             this.m_texFormat, this.m_width, this.m_height
@@ -1133,7 +1112,7 @@ goog.scope(function() {
      * @param {number} height
      * @param {number} depth
      */
-    es3fTextureSpecificationTests.BasicTexImage3DCase = function (
+    es3fTextureSpecificationTests.BasicTexImage3DCase = function(
         name, desc, internalFormat, width, height, depth
     ) {
         es3fTextureSpecificationTests.Texture3DSpecCase.call(
@@ -1161,7 +1140,7 @@ goog.scope(function() {
      */
     es3fTextureSpecificationTests.
     BasicTexImage3DCase.prototype.createTexture =
-    function () {
+    function() {
         var tex = null;
         var levelData = new tcuTexture.TextureLevel(
             this.m_texFormat, this.m_width, this.m_height
@@ -1211,7 +1190,7 @@ goog.scope(function() {
      * @param {number} width
      * @param {number} height
      */
-    es3fTextureSpecificationTests.RandomOrderTexImage2DCase = function (
+    es3fTextureSpecificationTests.RandomOrderTexImage2DCase = function(
         name, desc, format, dataType, width, height
     ) {
         // Unsized internal format.
@@ -1262,7 +1241,7 @@ goog.scope(function() {
      * createTexture
      */
     es3fTextureSpecificationTests.
-    RandomOrderTexImage2DCase.prototype.createTexture = function () {
+    RandomOrderTexImage2DCase.prototype.createTexture = function() {
         var tex = null;
         var levelData = new tcuTexture.TextureLevel(
             this.m_texFormat, this.m_width, this.m_height
@@ -1314,7 +1293,7 @@ goog.scope(function() {
      * @param {number} dataType
      * @param {number} size
      */
-    es3fTextureSpecificationTests.RandomOrderTexImageCubeCase = function (
+    es3fTextureSpecificationTests.RandomOrderTexImageCubeCase = function(
         name, desc, format, dataType, size
     ) {
         // Unsized internal format.
@@ -1363,7 +1342,7 @@ goog.scope(function() {
      */
     es3fTextureSpecificationTests.
     RandomOrderTexImageCubeCase.prototype.createTexture =
-    function () {
+    function() {
         var tex = null;
         var levelData = new tcuTexture.TextureLevel(
             this.m_texFormat, this.m_size, this.m_size
@@ -1378,20 +1357,17 @@ goog.scope(function() {
         var images = [];
 
         for (var ndx = 0; ndx < this.m_numLevels; ndx++)
-            for (
-                /** @type {framework.common.tcuTexture.CubeFace} */
-                var face = /** @type {tcuTexture.CubeFace} */ (0);
-                face < Object.keys(tcuTexture.CubeFace).length;
-                face++
-                )
+            for (var f in tcuTexture.CubeFace) {
+                var face = tcuTexture.CubeFace[f];
                 images[ndx * 6 + face] = {ndx: ndx, face: face};
+            }
 
         images = rnd.shuffle(images);
 
         for (var ndx = 0; ndx < this.m_numLevels; ndx++) {
-            var levelNdx =  images[ndx].ndx;
+            var levelNdx = images[ndx].ndx;
             /** @type {framework.common.tcuTexture.CubeFace} */
-            var face =  images[ndx].face;
+            var face = images[ndx].face;
             var levelSize = Math.max(1, this.m_size >> levelNdx);
 
             var gMin = es3fTextureSpecificationTests.randomVector(
@@ -1430,7 +1406,7 @@ goog.scope(function() {
      * @param {number} numLevels
      * @param {number} alignment
      */
-    es3fTextureSpecificationTests.TexImage2DAlignCase = function (
+    es3fTextureSpecificationTests.TexImage2DAlignCase = function(
         name, desc, format, dataType, width, height, numLevels, alignment
     ) {
         // Unsized internal format.
@@ -1486,7 +1462,7 @@ goog.scope(function() {
      * createTexture
      */
     es3fTextureSpecificationTests.TexImage2DAlignCase.prototype.createTexture =
-    function () {
+    function() {
         var tex = null;
         /** @type {ArrayBuffer} */ var data;
 
@@ -1524,7 +1500,7 @@ goog.scope(function() {
             var access = new tcuTexture.PixelBufferAccess({format: this.m_texFormat, width: levelW,
                     height: levelH, rowPitch: rowPitch, data: data}
                 );
-            tcuTextureUtil.fillWithGrid(access,cellSize, colorA, colorB
+            tcuTextureUtil.fillWithGrid(access, cellSize, colorA, colorB
             );
 
             this.m_context.texImage2D(
@@ -1547,7 +1523,7 @@ goog.scope(function() {
      * @param {number} numLevels
      * @param {number} alignment
      */
-    es3fTextureSpecificationTests.TexImageCubeAlignCase = function (
+    es3fTextureSpecificationTests.TexImageCubeAlignCase = function(
         name, desc, format, dataType, size, numLevels, alignment
     ) {
         // Unsized internal format.
@@ -1599,7 +1575,7 @@ goog.scope(function() {
      */
     es3fTextureSpecificationTests.
     TexImageCubeAlignCase.prototype.createTexture =
-    function () {
+    function() {
         var tex = null;
         var rnd = new deRandom.Random(deString.deStringHash(this.fullName()));
         /** @type {ArrayBuffer} */ var data;
@@ -1610,10 +1586,10 @@ goog.scope(function() {
 
         for (var ndx = 0; ndx < this.m_numLevels; ndx++) {
             var levelSize = Math.max(1, this.m_size >> ndx);
-            var cellSize    = Math.max(1, levelSize >> 2);
+            var cellSize = Math.max(1, levelSize >> 2);
             var rowPitch = deMath.deAlign32(
                 this.m_texFormat.getPixelSize() * levelSize, this.m_alignment
-            )
+            );
             var colorA = deMath.add(deMath.multiply(
                 [1.0, 0.0, 0.0, 1.0], deMath.subtract(
                     this.m_texFormatInfo.valueMax, this.m_texFormatInfo.valueMin
@@ -1632,21 +1608,17 @@ goog.scope(function() {
             tcuTextureUtil.fillWithGrid(access, cellSize, colorA, colorB
             );
 
-            for (
-                /** @type {framework.common.tcuTexture.CubeFace} */
-        var face = /** @type {tcuTexture.CubeFace} */ (0);
-                face < es3fTextureSpecificationTests.s_cubeMapFaces.length;
-                face++
-            )
+            for (var f in tcuTexture.CubeFace) {
+                var face = tcuTexture.CubeFace[f];
                 this.m_context.texImage2D(
                     es3fTextureSpecificationTests.s_cubeMapFaces[face],
                     ndx, this.m_internalFormat, levelSize, levelSize, 0,
                     this.m_format, this.m_dataType,
                     access.getDataPtr()
                 );
+            }
         }
     };
-
 
     // TexImage2D() unpack parameters case.
     /**
@@ -1662,7 +1634,7 @@ goog.scope(function() {
      * @param {number} skipPixels
      * @param {number} alignment
      */
-    es3fTextureSpecificationTests.TexImage2DParamsCase = function (
+    es3fTextureSpecificationTests.TexImage2DParamsCase = function(
         name, desc, internalFormat, width, height, rowLength, skipRows,
         skipPixels, alignment
     ) {
@@ -1688,11 +1660,11 @@ goog.scope(function() {
      * createTexture
      */
     es3fTextureSpecificationTests.TexImage2DParamsCase.prototype.createTexture =
-    function () {
+    function() {
         var transferFmt = gluTextureUtil.getTransferFormat(this.m_texFormat);
         var pixelSize = this.m_texFormat.getPixelSize();
         var rowLength = this.m_rowLength > 0 ? this.m_rowLength : this.m_width;
-        var rowPitch = deMath.deAlign32(rowLength*pixelSize, this.m_alignment);
+        var rowPitch = deMath.deAlign32(rowLength * pixelSize, this.m_alignment);
         var height = this.m_height + this.m_skipRows;
         var tex = null;
         /** @type {ArrayBuffer} */ var data;
@@ -1762,7 +1734,7 @@ goog.scope(function() {
      * @param {number} skipPixels
      * @param {number} alignment
      */
-    es3fTextureSpecificationTests.TexImage3DParamsCase = function (
+    es3fTextureSpecificationTests.TexImage3DParamsCase = function(
         name, desc, internalFormat, width, height, depth, imageHeight,
         rowLength, skipImages, skipRows, skipPixels, alignment
     ) {
@@ -1795,10 +1767,10 @@ goog.scope(function() {
         var transferFmt = gluTextureUtil.getTransferFormat(this.m_texFormat);
         var pixelSize = this.m_texFormat.getPixelSize();
         var rowLength = this.m_rowLength > 0 ? this.m_rowLength : this.m_width;
-        var rowPitch = deMath.deAlign32(rowLength*pixelSize, this.m_alignment);
+        var rowPitch = deMath.deAlign32(rowLength * pixelSize, this.m_alignment);
         var imageHeight = this.m_imageHeight > 0 ?
             this.m_imageHeight : this.m_height;
-        var slicePitch = imageHeight*rowPitch;
+        var slicePitch = imageHeight * rowPitch;
 
         var tex = null;
         /** @type {ArrayBuffer} */ var data;
@@ -1836,8 +1808,8 @@ goog.scope(function() {
                 slicePitch: slicePitch,
                 data: data,
                 offset: this.m_skipImages * slicePitch + this.m_skipRows * rowPitch + this.m_skipPixels * pixelSize
-                })
-            , 4, colorA, colorB
+                }) ,
+            4, colorA, colorB
         );
 
         this.m_context.pixelStorei(gl.UNPACK_IMAGE_HEIGHT, this.m_imageHeight);
@@ -1866,7 +1838,7 @@ goog.scope(function() {
      * @param {number} width
      * @param {number} height
      */
-    es3fTextureSpecificationTests.BasicTexSubImage2DCase = function (
+    es3fTextureSpecificationTests.BasicTexSubImage2DCase = function(
         name, desc, format, dataType, width, height
     ) {
         es3fTextureSpecificationTests.Texture2DSpecCase.call(
@@ -1912,7 +1884,7 @@ goog.scope(function() {
     /**
      */
     es3fTextureSpecificationTests.
-    BasicTexSubImage2DCase.prototype.createTexture = function () {
+    BasicTexSubImage2DCase.prototype.createTexture = function() {
         var tex = null;
         var data = new tcuTexture.TextureLevel(
             this.m_texFormat, this.m_width, this.m_height
@@ -1953,8 +1925,8 @@ goog.scope(function() {
 
             var w = rnd.getInt(1, levelW);
             var h = rnd.getInt(1, levelH);
-            var x = rnd.getInt(0, levelW-w);
-            var y = rnd.getInt(0, levelH-h);
+            var x = rnd.getInt(0, levelW - w);
+            var y = rnd.getInt(0, levelH - h);
 
             var colorA = es3fTextureSpecificationTests.randomVector(
                 rnd, this.m_texFormatInfo.valueMin,
@@ -1964,7 +1936,7 @@ goog.scope(function() {
                 rnd, this.m_texFormatInfo.valueMin,
                 this.m_texFormatInfo.valueMax, 4
             );
-            var cellSize = rnd.getInt(2,16);
+            var cellSize = rnd.getInt(2, 16);
 
             data.setSize(w, h);
             tcuTextureUtil.fillWithGrid(
@@ -1987,7 +1959,7 @@ goog.scope(function() {
      * @param {number} dataType
      * @param {number} size
      */
-    es3fTextureSpecificationTests.BasicTexSubImageCubeCase = function (
+    es3fTextureSpecificationTests.BasicTexSubImageCubeCase = function(
         name, desc, format, dataType, size
     ) {
         es3fTextureSpecificationTests.TextureCubeSpecCase.call(
@@ -2032,7 +2004,7 @@ goog.scope(function() {
      * createTexture
      */
     es3fTextureSpecificationTests.
-    BasicTexSubImageCubeCase.prototype.createTexture = function () {
+    BasicTexSubImageCubeCase.prototype.createTexture = function() {
         var tex = null;
         var data = new tcuTexture.TextureLevel(
             this.m_texFormat, this.m_size, this.m_size
@@ -2047,7 +2019,7 @@ goog.scope(function() {
             var levelSize = Math.max(1, this.m_size >> ndx);
             data.setSize(levelSize, levelSize);
 
-            for(/** @type {framework.common.tcuTexture.CubeFace} */
+            for (/** @type {framework.common.tcuTexture.CubeFace} */
         var face = /** @type {tcuTexture.CubeFace} */ (0);
                 face < es3fTextureSpecificationTests.s_cubeMapFaces.length;
                 face++) {
@@ -2077,15 +2049,13 @@ goog.scope(function() {
         for (var ndx = 0; ndx < this.m_numLevels; ndx++) {
             var levelSize = Math.max(1, this.m_size >> ndx);
 
-            for(/** @type {framework.common.tcuTexture.CubeFace} */
-        var face = /** @type {tcuTexture.CubeFace} */ (0);
-                face < es3fTextureSpecificationTests.s_cubeMapFaces.length;
-                face++) {
+            for (var f in tcuTexture.CubeFace) {
+                var face = tcuTexture.CubeFace[f];
 
                 var w = rnd.getInt(1, levelSize);
                 var h = rnd.getInt(1, levelSize);
-                var x = rnd.getInt(0, levelSize-w);
-                var y = rnd.getInt(0, levelSize-h);
+                var x = rnd.getInt(0, levelSize - w);
+                var y = rnd.getInt(0, levelSize - h);
 
                 var colorA = es3fTextureSpecificationTests.randomVector(
                     rnd, this.m_texFormatInfo.valueMin,
@@ -2095,7 +2065,7 @@ goog.scope(function() {
                     rnd, this.m_texFormatInfo.valueMin,
                     this.m_texFormatInfo.valueMax, 4
                 );
-                var cellSize = rnd.getInt(2,16);
+                var cellSize = rnd.getInt(2, 16);
 
                 data.setSize(w, h);
                 tcuTextureUtil.fillWithGrid(
@@ -2129,7 +2099,7 @@ goog.scope(function() {
      * @param {number} skipPixels
      * @param {number} alignment
      */
-    es3fTextureSpecificationTests.TexSubImage2DParamsCase = function (
+    es3fTextureSpecificationTests.TexSubImage2DParamsCase = function(
         name, desc, internalFormat, width, height, subX, subY, subW, subH,
         rowLength, skipRows, skipPixels, alignment
     ) {
@@ -2162,7 +2132,7 @@ goog.scope(function() {
      * createTexture
      */
     es3fTextureSpecificationTests.
-    TexSubImage2DParamsCase.prototype.createTexture = function () {
+    TexSubImage2DParamsCase.prototype.createTexture = function() {
         var transferFmt = gluTextureUtil.getTransferFormat(this.m_texFormat);
         var pixelSize = this.m_texFormat.getPixelSize();
         var tex = null;
@@ -2196,7 +2166,7 @@ goog.scope(function() {
 
         // Fill data with grid.
         var rowLength = this.m_rowLength > 0 ? this.m_rowLength : this.m_subW;
-        var rowPitch = deMath.deAlign32(rowLength*pixelSize, this.m_alignment);
+        var rowPitch = deMath.deAlign32(rowLength * pixelSize, this.m_alignment);
         var height = this.m_subH + this.m_skipRows;
         var cScale = deMath.subtract(
             this.m_texFormatInfo.valueMax, this.m_texFormatInfo.valueMin
@@ -2221,8 +2191,8 @@ goog.scope(function() {
                 rowPitch: rowPitch,
                 data: data,
                 offset: this.m_skipRows * rowPitch + this.m_skipPixels * pixelSize
-                })
-            , 4, colorA, colorB
+                }) ,
+            4, colorA, colorB
         );
 
         this.m_context.pixelStorei(gl.UNPACK_ROW_LENGTH, this.m_rowLength);
@@ -2255,7 +2225,7 @@ goog.scope(function() {
      * @param {number} skipPixels
      * @param {number} alignment
      */
-    es3fTextureSpecificationTests.BasicTexSubImage3DCase = function (
+    es3fTextureSpecificationTests.BasicTexSubImage3DCase = function(
         name, desc, internalFormat, width, height, depth, imageHeight,
         rowLength, skipImages, skipRows, skipPixels, alignment
     ) {
@@ -2330,9 +2300,9 @@ goog.scope(function() {
             var w = rnd.getInt(1, levelW);
             var h = rnd.getInt(1, levelH);
             var d = rnd.getInt(1, levelD);
-            var x = rnd.getInt(0, levelW-w);
-            var y = rnd.getInt(0, levelH-h);
-            var z = rnd.getInt(0, levelD-d);
+            var x = rnd.getInt(0, levelW - w);
+            var y = rnd.getInt(0, levelH - h);
+            var z = rnd.getInt(0, levelD - d);
 
             var colorA = es3fTextureSpecificationTests.randomVector(
                 rnd, this.m_texFormatInfo.valueMin,
@@ -2368,7 +2338,7 @@ goog.scope(function() {
      * @param {number} width
      * @param {number} height
      */
-    es3fTextureSpecificationTests.TexSubImage2DEmptyTexCase = function (
+    es3fTextureSpecificationTests.TexSubImage2DEmptyTexCase = function(
         name, desc, format, dataType, width, height
     ) {
         es3fTextureSpecificationTests.Texture2DSpecCase.call(
@@ -2416,7 +2386,7 @@ goog.scope(function() {
      * createTexture
      */
     es3fTextureSpecificationTests.
-    TexSubImage2DEmptyTexCase.prototype.createTexture = function () {
+    TexSubImage2DEmptyTexCase.prototype.createTexture = function() {
         var tex = null;
         var data = new tcuTexture.TextureLevel(
             this.m_texFormat, this.m_width, this.m_height
@@ -2475,7 +2445,7 @@ goog.scope(function() {
      * @param {number} dataType
      * @param {number} size
      */
-    es3fTextureSpecificationTests.TexSubImageCubeEmptyTexCase = function (
+    es3fTextureSpecificationTests.TexSubImageCubeEmptyTexCase = function(
         name, desc, format, dataType, size
     ) {
         // Unsized internal format.
@@ -2525,7 +2495,7 @@ goog.scope(function() {
      */
     es3fTextureSpecificationTests.
     TexSubImageCubeEmptyTexCase.prototype.createTexture =
-    function () {
+    function() {
         var tex = null;
         var data = new tcuTexture.TextureLevel(
             this.m_texFormat, this.m_size, this.m_size
@@ -2540,18 +2510,15 @@ goog.scope(function() {
         for (var ndx = 0; ndx < this.m_numLevels; ndx++) {
             var levelSize = Math.max(1, this.m_size >> ndx);
 
-            for (
-                /** @type {framework.common.tcuTexture.CubeFace} */
-        var face = /** @type {tcuTexture.CubeFace} */ (0);
-                face < es3fTextureSpecificationTests.s_cubeMapFaces.length;
-                face ++
-            )
+            for (var f in tcuTexture.CubeFace) {
+                var face = tcuTexture.CubeFace[f];
                 this.m_context.texImage2D(
                     es3fTextureSpecificationTests.s_cubeMapFaces[face],
                     ndx, this.m_internalFormat, levelSize, levelSize, 0,
                     this.m_format, this.m_dataType,
                     null
                 );
+            }
         }
 
         // Specify data using glTexSubImage2D()
@@ -2560,12 +2527,8 @@ goog.scope(function() {
 
             data.setSize(levelSize, levelSize);
 
-            for (
-                /** @type {framework.common.tcuTexture.CubeFace} */
-        var face = /** @type {tcuTexture.CubeFace} */ (0);
-                face < es3fTextureSpecificationTests.s_cubeMapFaces.length;
-                face ++
-            ) {
+            for (var f in tcuTexture.CubeFace) {
+                var face = tcuTexture.CubeFace[f];
                 var gMin = es3fTextureSpecificationTests.randomVector(
                     rnd, this.m_texFormatInfo.valueMin,
                     this.m_texFormatInfo.valueMax, 4
@@ -2604,7 +2567,7 @@ goog.scope(function() {
      * @param {number} subH
      * @param {number} alignment
      */
-    es3fTextureSpecificationTests.TexSubImage2DAlignCase = function (
+    es3fTextureSpecificationTests.TexSubImage2DAlignCase = function(
         name, desc, format, dataType, width, height, subX, subY, subW, subH,
         alignment
     ) {
@@ -2667,7 +2630,7 @@ goog.scope(function() {
      * createTexture
      */
     es3fTextureSpecificationTests.
-    TexSubImage2DAlignCase.prototype.createTexture = function () {
+    TexSubImage2DAlignCase.prototype.createTexture = function() {
         var tex = null;
         /** @type {ArrayBuffer} */ var data;
 
@@ -2730,7 +2693,7 @@ goog.scope(function() {
      * @param {number} subH
      * @param {number} alignment
      */
-    es3fTextureSpecificationTests.TexSubImageCubeAlignCase = function (
+    es3fTextureSpecificationTests.TexSubImageCubeAlignCase = function(
         name, desc, format, dataType, size, subX, subY, subW, subH, alignment
     ) {
         // Unsized internal format.
@@ -2794,7 +2757,7 @@ goog.scope(function() {
      */
     es3fTextureSpecificationTests.
     TexSubImageCubeAlignCase.prototype.createTexture =
-    function () {
+    function() {
         var tex = null;
         tex = this.m_context.createTexture();
         this.m_context.bindTexture(gl.TEXTURE_CUBE_MAP, tex);
@@ -2810,18 +2773,15 @@ goog.scope(function() {
         );
 
         this.m_context.pixelStorei(gl.UNPACK_ALIGNMENT, 1);
-        for (
-            /** @type {framework.common.tcuTexture.CubeFace} */
-        var face = /** @type {tcuTexture.CubeFace} */ (0);
-            face < Object.keys(tcuTexture.CubeFace).length;
-            face++
-        )
+        for (var f in tcuTexture.CubeFace) {
+            var face = tcuTexture.CubeFace[f];
             this.m_context.texImage2D(
                 es3fTextureSpecificationTests.s_cubeMapFaces[face],
                 0, this.m_internalFormat, this.m_size, this.m_size, 0,
                 this.m_format, this.m_dataType,
                 access.getDataPtr()
             );
+        }
 
         // Re-specify subrectangle.
         var rowPitch = deMath.deAlign32(
@@ -2838,17 +2798,14 @@ goog.scope(function() {
                         }), 4, [1, 0, 0, 1], [0, 1, 0, 1]
         );
         this.m_context.pixelStorei(gl.UNPACK_ALIGNMENT, this.m_alignment);
-        for (
-            /** @type {framework.common.tcuTexture.CubeFace} */
-        var face = /** @type {tcuTexture.CubeFace} */ (0);
-            face < Object.keys(tcuTexture.CubeFace).length;
-            face++
-        )
+        for (var f in tcuTexture.CubeFace) {
+            var face = tcuTexture.CubeFace[f];
             this.m_context.texSubImage2D(
                 es3fTextureSpecificationTests.s_cubeMapFaces[face],
                 0, this.m_subX, this.m_subY, this.m_subW, this.m_subH,
                 this.m_format, this.m_dataType, new Uint8Array(data)
             );
+        }
     };
 
     // TexSubImage3D() unpack parameters case.
@@ -2861,20 +2818,20 @@ goog.scope(function() {
      * @param {number} width
      * @param {number} height
      * @param {number} depth
-     * @param {number} subX,
-     * @param {number} subY,
-     * @param {number} subZ,
-     * @param {number} subW,
-     * @param {number} subH,
-     * @param {number} subD,
-     * @param {number} imageHeight,
-     * @param {number} rowLength,
-     * @param {number} skipImages,
-     * @param {number} skipRows,
-     * @param {number} skipPixels,
+     * @param {number} subX ,
+     * @param {number} subY ,
+     * @param {number} subZ ,
+     * @param {number} subW ,
+     * @param {number} subH ,
+     * @param {number} subD ,
+     * @param {number} imageHeight ,
+     * @param {number} rowLength ,
+     * @param {number} skipImages ,
+     * @param {number} skipRows ,
+     * @param {number} skipPixels ,
      * @param {number} alignment
      */
-    es3fTextureSpecificationTests.TexSubImage3DParamsCase = function (
+    es3fTextureSpecificationTests.TexSubImage3DParamsCase = function(
         name, desc, internalFormat, width, height, depth,
         subX, subY, subZ, subW, subH, subD,
         imageHeight, rowLength, skipImages, skipRows, skipPixels, alignment
@@ -2917,8 +2874,8 @@ goog.scope(function() {
         var transferFmt = gluTextureUtil.getTransferFormat(this.m_texFormat);
         var pixelSize = this.m_texFormat.getPixelSize();
         var tex = null;
-        var        rowPitch        = deMath.deAlign32(pixelSize * this.m_width,  4);
-        var        slicePitch        = rowPitch * this.m_height;
+        var rowPitch = deMath.deAlign32(pixelSize * this.m_width, 4);
+        var slicePitch = rowPitch * this.m_height;
         assertMsgOptions(
             this.m_numLevels == 1, 'Numbel of levels different than 1',
             false, true
@@ -2997,7 +2954,7 @@ goog.scope(function() {
      * @param {number} width
      * @param {number} height
      */
-    es3fTextureSpecificationTests.BasicCopyTexImage2DCase = function (
+    es3fTextureSpecificationTests.BasicCopyTexImage2DCase = function(
         name, desc, internalFormat, width, height
     ) {
         es3fTextureSpecificationTests.Texture2DSpecCase.call(
@@ -3047,7 +3004,7 @@ goog.scope(function() {
 
         if ((texHasRGB && !targetHasRGB) || (texHasAlpha && !targetHasAlpha))
             throw new Error(
-                "Copying from current framebuffer is not supported"
+                'Copying from current framebuffer is not supported'
             );
 
         // Fill render target with gradient.
@@ -3061,8 +3018,7 @@ goog.scope(function() {
         tex = this.m_context.createTexture();
         this.m_context.bindTexture(gl.TEXTURE_2D, tex);
 
-        for (var ndx = 0; ndx < this.m_numLevels; ndx++)
-        {
+        for (var ndx = 0; ndx < this.m_numLevels; ndx++) {
             var levelW = Math.max(1, this.m_width >> ndx);
             var levelH = Math.max(1, this.m_height >> ndx);
             var x = rnd.getInt(0, this.m_width - levelW);
@@ -3084,13 +3040,13 @@ goog.scope(function() {
      * @param {number} internalFormat
      * @param {number} size
      */
-    es3fTextureSpecificationTests.BasicCopyTexImageCubeCase = function (
+    es3fTextureSpecificationTests.BasicCopyTexImageCubeCase = function(
         name, desc, internalFormat, size
     ) {
         es3fTextureSpecificationTests.TextureCubeSpecCase.call(
             this, name, desc, gluTextureUtil.mapGLTransferFormat(
                 internalFormat, gl.UNSIGNED_BYTE
-            ), size, deMath.logToFloor(size)+1
+            ), size, deMath.logToFloor(size) + 1
         );
 
         this.m_internalFormat = internalFormat;
@@ -3106,7 +3062,7 @@ goog.scope(function() {
         es3fTextureSpecificationTests.BasicCopyTexImageCubeCase;
 
     es3fTextureSpecificationTests.
-    BasicCopyTexImageCubeCase.prototype.createTexture = function () {
+    BasicCopyTexImageCubeCase.prototype.createTexture = function() {
         var pixelFormat = tcuPixelFormat.PixelFormatFromContext(gl);
         var targetHasRGB = pixelFormat.redBits > 0 &&
             pixelFormat.greenBits > 0 &&
@@ -3129,7 +3085,7 @@ goog.scope(function() {
 
         if ((texHasRGB && !targetHasRGB) || (texHasAlpha && !targetHasAlpha))
             throw new Error(
-                "Copying from current framebuffer is not supported"
+                'Copying from current framebuffer is not supported'
             );
 
         // Fill render target with gradient.
@@ -3143,16 +3099,11 @@ goog.scope(function() {
         tex = this.m_context.createTexture();
         this.m_context.bindTexture(gl.TEXTURE_CUBE_MAP, tex);
 
-        for (var ndx = 0; ndx < this.m_numLevels; ndx++)
-        {
+        for (var ndx = 0; ndx < this.m_numLevels; ndx++) {
             var levelSize = Math.max(1, this.m_size >> ndx);
 
-            for (
-                /** @type {framework.common.tcuTexture.CubeFace} */
-        var face = /** @type {tcuTexture.CubeFace} */ (0);
-                face < es3fTextureSpecificationTests.s_cubeMapFaces.length;
-                face++
-            ) {
+            for (var f in tcuTexture.CubeFace) {
+                var face = tcuTexture.CubeFace[f];
                 var x = rnd.getInt(0, this.m_size - levelSize);
                 var y = rnd.getInt(0, this.m_size - levelSize);
 
@@ -3175,7 +3126,7 @@ goog.scope(function() {
      * @param {number} width
      * @param {number} height
      */
-    es3fTextureSpecificationTests.BasicCopyTexSubImage2DCase = function (
+    es3fTextureSpecificationTests.BasicCopyTexSubImage2DCase = function(
         name, desc, format, dataType, width, height
     ) {
         es3fTextureSpecificationTests.Texture2DSpecCase.call(
@@ -3226,7 +3177,7 @@ goog.scope(function() {
 
         if ((texHasRGB && !targetHasRGB) || (texHasAlpha && !targetHasAlpha))
             throw new Error(
-                "Copying from current framebuffer is not supported"
+                'Copying from current framebuffer is not supported'
             );
 
         tex = this.m_context.createTexture();
@@ -3234,8 +3185,7 @@ goog.scope(function() {
         this.m_context.pixelStorei(gl.UNPACK_ALIGNMENT, 1);
 
         // First specify full texture.
-        for (var ndx = 0; ndx < this.m_numLevels; ndx++)
-        {
+        for (var ndx = 0; ndx < this.m_numLevels; ndx++) {
             var levelW = Math.max(1, this.m_width >> ndx);
             var levelH = Math.max(1, this.m_height >> ndx);
 
@@ -3247,7 +3197,7 @@ goog.scope(function() {
             );
             var cellSize = rnd.getInt(2, 16);
 
-            var data  = new tcuTexture.TextureLevel(fmt, levelW, levelH);
+            var data = new tcuTexture.TextureLevel(fmt, levelW, levelH);
             tcuTextureUtil.fillWithGrid(
                 data.getAccess(), cellSize, colorA, colorB
             );
@@ -3266,8 +3216,7 @@ goog.scope(function() {
         );
 
         // Re-specify parts of each level.
-        for (var ndx = 0; ndx < this.m_numLevels; ndx++)
-        {
+        for (var ndx = 0; ndx < this.m_numLevels; ndx++) {
             var levelW = Math.max(1, this.m_width >> ndx);
             var levelH = Math.max(1, this.m_height >> ndx);
 
@@ -3295,13 +3244,13 @@ goog.scope(function() {
      * @param {number} dataType
      * @param {number} size
      */
-    es3fTextureSpecificationTests.BasicCopyTexSubImageCubeCase = function (
+    es3fTextureSpecificationTests.BasicCopyTexSubImageCubeCase = function(
         name, desc, format, dataType, size
     ) {
         es3fTextureSpecificationTests.TextureCubeSpecCase.call(
             this, name, desc, gluTextureUtil.mapGLTransferFormat(
                 format, dataType
-            ), size, deMath.logToFloor(size)+1
+            ), size, deMath.logToFloor(size) + 1
         );
 
         this.m_format = format;
@@ -3318,7 +3267,7 @@ goog.scope(function() {
         es3fTextureSpecificationTests.BasicCopyTexSubImageCubeCase;
 
     es3fTextureSpecificationTests.
-    BasicCopyTexSubImageCubeCase.prototype.createTexture = function () {
+    BasicCopyTexSubImageCubeCase.prototype.createTexture = function() {
         var pixelFormat = tcuPixelFormat.PixelFormatFromContext(gl);
         var targetHasRGB = pixelFormat.redBits > 0 &&
             pixelFormat.greenBits > 0 &&
@@ -3339,7 +3288,7 @@ goog.scope(function() {
 
         if ((texHasRGB && !targetHasRGB) || (texHasAlpha && !targetHasAlpha))
             throw new Error(
-                "Copying from current framebuffer is not supported"
+                'Copying from current framebuffer is not supported'
             );
 
         tex = this.m_context.createTexture();
@@ -3349,18 +3298,13 @@ goog.scope(function() {
         var data = new tcuTexture.TextureLevel(fmt);
 
         // First specify full texture.
-        for (var ndx = 0; ndx < this.m_numLevels; ndx++)
-        {
+        for (var ndx = 0; ndx < this.m_numLevels; ndx++) {
             var levelSize = Math.max(1, this.m_size >> ndx);
 
             data.setSize(levelSize, levelSize);
 
-            for(
-                /** @type {framework.common.tcuTexture.CubeFace} */
-        var face = /** @type {tcuTexture.CubeFace} */ (0);
-                face < es3fTextureSpecificationTests.s_cubeMapFaces.length;
-                face++
-            ) {
+            for (var f in tcuTexture.CubeFace) {
+                var face = tcuTexture.CubeFace[f];
                 var colorA = es3fTextureSpecificationTests.randomVector(
                     rnd, [0, 0, 0, 0], [1, 1, 1, 1], 4
                 );
@@ -3390,14 +3334,10 @@ goog.scope(function() {
         );
 
         // Re-specify parts of each face and level.
-        for (var ndx = 0; ndx < this.m_numLevels; ndx++)
-        {
+        for (var ndx = 0; ndx < this.m_numLevels; ndx++) {
             var levelSize = Math.max(1, this.m_size >> ndx);
 
-            for(var faceNdx = 0;
-                faceNdx < es3fTextureSpecificationTests.s_cubeMapFaces.length;
-                faceNdx++
-            ) {
+            for (var f in es3fTextureSpecificationTests.s_cubeMapFaces) {
                 var w = rnd.getInt(1, levelSize);
                 var h = rnd.getInt(1, levelSize);
                 var xo = rnd.getInt(0, levelSize - w);
@@ -3407,7 +3347,7 @@ goog.scope(function() {
                 var y = rnd.getInt(0, this.m_size - h);
 
                 this.m_context.copyTexSubImage2D(
-                    es3fTextureSpecificationTests.s_cubeMapFaces[faceNdx],
+                    es3fTextureSpecificationTests.s_cubeMapFaces[f],
                     ndx, xo, yo, x, y, w, h
                 );
             }
@@ -3425,7 +3365,7 @@ goog.scope(function() {
      * @param {number} height
      * @param {number} numLevels
      */
-    es3fTextureSpecificationTests.BasicTexStorage2DCase = function (
+    es3fTextureSpecificationTests.BasicTexStorage2DCase = function(
         name, desc, internalFormat, width, height, numLevels
     ) {
         es3fTextureSpecificationTests.Texture2DSpecCase.call(
@@ -3449,7 +3389,7 @@ goog.scope(function() {
      * createTexture
      */
     es3fTextureSpecificationTests.
-    BasicTexStorage2DCase.prototype.createTexture = function () {
+    BasicTexStorage2DCase.prototype.createTexture = function() {
         var fmt = gluTextureUtil.mapGLInternalFormat(this.m_internalFormat);
         var transferFmt = gluTextureUtil.getTransferFormat(fmt);
         var tex = null;
@@ -3467,8 +3407,7 @@ goog.scope(function() {
 
         this.m_context.pixelStorei(gl.UNPACK_ALIGNMENT, 1);
 
-        for (var ndx = 0; ndx < this.m_numLevels; ndx++)
-        {
+        for (var ndx = 0; ndx < this.m_numLevels; ndx++) {
             var levelW = Math.max(1, this.m_width >> ndx);
             var levelH = Math.max(1, this.m_height >> ndx);
             var gMin = es3fTextureSpecificationTests.randomVector(
@@ -3503,7 +3442,7 @@ goog.scope(function() {
      * @param {number} size
      * @param {number} numLevels
      */
-    es3fTextureSpecificationTests.BasicTexStorageCubeCase = function (
+    es3fTextureSpecificationTests.BasicTexStorageCubeCase = function(
         name, desc, internalFormat, size, numLevels
     ) {
         es3fTextureSpecificationTests.TextureCubeSpecCase.call(
@@ -3526,7 +3465,7 @@ goog.scope(function() {
     /**
      * createTexture
      */
-    es3fTextureSpecificationTests.BasicTexStorageCubeCase.prototype.createTexture = function () {
+    es3fTextureSpecificationTests.BasicTexStorageCubeCase.prototype.createTexture = function() {
         var fmt = gluTextureUtil.mapGLInternalFormat(this.m_internalFormat);
         var transferFmt = gluTextureUtil.getTransferFormat(fmt);
         var tex = null;
@@ -3544,18 +3483,13 @@ goog.scope(function() {
 
         this.m_context.pixelStorei(gl.UNPACK_ALIGNMENT, 1);
 
-        for (var ndx = 0; ndx < this.m_numLevels; ndx++)
-        {
+        for (var ndx = 0; ndx < this.m_numLevels; ndx++) {
             var levelSize = Math.max(1, this.m_size >> ndx);
 
             levelData.setSize(levelSize, levelSize);
 
-            for (
-                /** @type {framework.common.tcuTexture.CubeFace} */
-        var face = /** @type {tcuTexture.CubeFace} */ (0);
-                face < es3fTextureSpecificationTests.s_cubeMapFaces.length;
-                face++
-            ) {
+            for (var f in tcuTexture.CubeFace) {
+                var face = tcuTexture.CubeFace[f];
                 var gMin = es3fTextureSpecificationTests.randomVector(
                     rnd, this.m_texFormatInfo.valueMin,
                     this.m_texFormatInfo.valueMax, 4
@@ -3591,7 +3525,7 @@ goog.scope(function() {
      * @param {number} numLayers
      * @param {number} numLevels
      */
-    es3fTextureSpecificationTests.BasicTexStorage2DArrayCase = function (
+    es3fTextureSpecificationTests.BasicTexStorage2DArrayCase = function(
         name, desc, internalFormat, width, height, numLayers, numLevels
     ) {
         es3fTextureSpecificationTests.Texture2DArraySpecCase.call(
@@ -3614,7 +3548,7 @@ goog.scope(function() {
     /**
      * createTexture
      */
-    es3fTextureSpecificationTests.BasicTexStorage2DArrayCase.prototype.createTexture = function () {
+    es3fTextureSpecificationTests.BasicTexStorage2DArrayCase.prototype.createTexture = function() {
         var tex = null;
         var levelData = new tcuTexture.TextureLevel(
             this.m_texFormat, this.m_width, this.m_height
@@ -3633,8 +3567,7 @@ goog.scope(function() {
 
         this.m_context.pixelStorei(gl.UNPACK_ALIGNMENT, 1);
 
-        for (var ndx = 0; ndx < this.m_numLevels; ndx++)
-        {
+        for (var ndx = 0; ndx < this.m_numLevels; ndx++) {
             var levelW = Math.max(1, this.m_width >> ndx);
             var levelH = Math.max(1, this.m_height >> ndx);
             var gMin = es3fTextureSpecificationTests.randomVector(
@@ -3671,7 +3604,7 @@ goog.scope(function() {
      * @param {number} depth
      * @param {number} numLevels
      */
-    es3fTextureSpecificationTests.BasicTexStorage3DCase = function (
+    es3fTextureSpecificationTests.BasicTexStorage3DCase = function(
         name, desc, internalFormat, width, height, depth, numLevels
     ) {
         es3fTextureSpecificationTests.Texture3DSpecCase.call(
@@ -3696,7 +3629,7 @@ goog.scope(function() {
      * createTexture
      */
     es3fTextureSpecificationTests.
-    BasicTexStorage3DCase.prototype.createTexture = function () {
+    BasicTexStorage3DCase.prototype.createTexture = function() {
         var tex = null;
         var levelData = new tcuTexture.TextureLevel(
             this.m_texFormat, this.m_width, this.m_height
@@ -3715,8 +3648,7 @@ goog.scope(function() {
 
         this.m_context.pixelStorei(gl.UNPACK_ALIGNMENT, 1);
 
-        for (var ndx = 0; ndx < this.m_numLevels; ndx++)
-        {
+        for (var ndx = 0; ndx < this.m_numLevels; ndx++) {
             var levelW = Math.max(1, this.m_width >> ndx);
             var levelH = Math.max(1, this.m_height >> ndx);
             var levelD = Math.max(1, this.m_depth >> ndx);
@@ -3759,7 +3691,7 @@ goog.scope(function() {
      * @param {number} alignment
      * @param {number} offset
      */
-    es3fTextureSpecificationTests.TexImage2DBufferCase = function (
+    es3fTextureSpecificationTests.TexImage2DBufferCase = function(
         name, desc, internalFormat, width, height, rowLength,
         skipRows, skipPixels, alignment, offset
     ) {
@@ -3790,7 +3722,7 @@ goog.scope(function() {
      * createTexture
      */
     es3fTextureSpecificationTests.TexImage2DBufferCase.prototype.createTexture =
-    function () {
+    function() {
         var transferFmt = gluTextureUtil.getTransferFormat(this.m_texFormat);
         var pixelSize = this.m_texFormat.getPixelSize();
         var rowLength = this.m_rowLength > 0 ?
@@ -3805,7 +3737,7 @@ goog.scope(function() {
         var data = new ArrayBuffer(rowPitch * height + this.m_offset);
 
         assertMsgOptions(
-            this.m_numLevels == 1,'Number of levels different than 1',
+            this.m_numLevels == 1, 'Number of levels different than 1',
             false, true
         );
 
@@ -3862,7 +3794,7 @@ goog.scope(function() {
      * @param {number} alignment
      * @param {number} offset
      */
-    es3fTextureSpecificationTests.TexImageCubeBufferCase = function (
+    es3fTextureSpecificationTests.TexImageCubeBufferCase = function(
         name, desc, internalFormat, size, rowLength, skipRows, skipPixels,
         alignment, offset
     ) {
@@ -3893,7 +3825,7 @@ goog.scope(function() {
      * createTexture
      */
     es3fTextureSpecificationTests.
-    TexImageCubeBufferCase.prototype.createTexture = function () {
+    TexImageCubeBufferCase.prototype.createTexture = function() {
         var rnd = new deRandom.Random(deString.deStringHash(this.fullName()));
         var tex = null;
         var fmt = gluTextureUtil.getTransferFormat(this.m_texFormat);
@@ -3924,12 +3856,8 @@ goog.scope(function() {
         this.m_context.bindTexture(gl.TEXTURE_CUBE_MAP, tex);
         this.m_context.pixelStorei(gl.UNPACK_ALIGNMENT, 1);
 
-        for (
-            /** @type {framework.common.tcuTexture.CubeFace} */
-        var face = /** @type {tcuTexture.CubeFace} */ (0);
-            face < es3fTextureSpecificationTests.s_cubeMapFaces.length;
-            face++
-        ) {
+        for (var f in tcuTexture.CubeFace) {
+            var face = tcuTexture.CubeFace[f];
             var buf = null;
 
             var gMin = es3fTextureSpecificationTests.randomVector(
@@ -3978,7 +3906,7 @@ goog.scope(function() {
      * @param {number} alignment
      * @param {number} offset
      */
-    es3fTextureSpecificationTests.TexImage2DArrayBufferCase = function (
+    es3fTextureSpecificationTests.TexImage2DArrayBufferCase = function(
         name, desc, internalFormat, width, height, depth, imageHeight,
         rowLength, skipImages, skipRows, skipPixels, alignment, offset
     ) {
@@ -4011,7 +3939,7 @@ goog.scope(function() {
      * createTexture
      */
     es3fTextureSpecificationTests.
-    TexImage2DArrayBufferCase.prototype.createTexture = function () {
+    TexImage2DArrayBufferCase.prototype.createTexture = function() {
         var transferFmt = gluTextureUtil.getTransferFormat(
             this.m_texFormat
         );
@@ -4073,7 +4001,7 @@ goog.scope(function() {
         this.m_context.pixelStorei(gl.UNPACK_ALIGNMENT, this.m_alignment);
 
         tex = this.createTexture();
-        this.m_context.bindTexture(gl.TEXTURE_2D_ARRAY, tex)
+        this.m_context.bindTexture(gl.TEXTURE_2D_ARRAY, tex);
         this.m_context.texImage3D(
             gl.TEXTURE_2D_ARRAY, 0, this.m_internalFormat, this.m_width,
             this.m_height, this.m_numLayers, 0, transferFmt.format,
@@ -4099,7 +4027,7 @@ goog.scope(function() {
      * @param {number} alignment
      * @param {number} offset
      */
-    es3fTextureSpecificationTests.TexImage3DBufferCase = function (
+    es3fTextureSpecificationTests.TexImage3DBufferCase = function(
         name, desc, internalFormat, width, height, depth, imageHeight,
         rowLength, skipImages, skipRows, skipPixels, alignment, offset
     ) {
@@ -4132,7 +4060,7 @@ goog.scope(function() {
      * createTexture
      */
     es3fTextureSpecificationTests.
-    TexImage3DBufferCase.prototype.createTexture = function () {
+    TexImage3DBufferCase.prototype.createTexture = function() {
         var transferFmt = gluTextureUtil.getTransferFormat(
             this.m_texFormat
         );
@@ -4174,7 +4102,7 @@ goog.scope(function() {
                         rowPitch: rowPitch,
                         slicePitch: slicePitch,
                         data: data,
-                        offset:  this.m_skipImages * slicePitch +
+                        offset: this.m_skipImages * slicePitch +
                             this.m_skipRows * rowPitch +
                             this.m_skipPixels * pixelSize +
                             this.m_offset
@@ -4194,7 +4122,7 @@ goog.scope(function() {
         this.m_context.pixelStorei(gl.UNPACK_ALIGNMENT, this.m_alignment);
 
         tex = this.createTexture();
-        this.m_context.bindTexture(gl.TEXTURE_3D, tex)
+        this.m_context.bindTexture(gl.TEXTURE_3D, tex);
         this.m_context.texImage3D(
             gl.TEXTURE_3D, 0, this.m_internalFormat, this.m_width,
             this.m_height, this.m_depth, 0, transferFmt.format,
@@ -4221,7 +4149,7 @@ goog.scope(function() {
      * @param {number} alignment
      * @param {number} offset
      */
-    es3fTextureSpecificationTests.TexSubImage2DBufferCase = function (
+    es3fTextureSpecificationTests.TexSubImage2DBufferCase = function(
         name, desc, internalFormat, width, height, subX, subY, subW, subH,
         rowLength, skipRows, skipPixels, alignment, offset
     ) {
@@ -4255,7 +4183,7 @@ goog.scope(function() {
      * createTexture
      */
     es3fTextureSpecificationTests.
-    TexSubImage2DBufferCase.prototype.createTexture = function () {
+    TexSubImage2DBufferCase.prototype.createTexture = function() {
         var transferFmt = gluTextureUtil.getTransferFormat(
             this.m_texFormat
         );
@@ -4350,7 +4278,7 @@ goog.scope(function() {
      * @param {number} alignment
      * @param {number} offset
      */
-    es3fTextureSpecificationTests.TexSubImageCubeBufferCase = function (
+    es3fTextureSpecificationTests.TexSubImageCubeBufferCase = function(
         name, desc, internalFormat, size, subX, subY, subW, subH, rowLength,
         skipRows, skipPixels, alignment, offset
     ) {
@@ -4385,7 +4313,7 @@ goog.scope(function() {
      * createTexture
      */
     es3fTextureSpecificationTests.
-    TexSubImageCubeBufferCase.prototype.createTexture = function () {
+    TexSubImageCubeBufferCase.prototype.createTexture = function() {
         var rnd = new deRandom.Random(deString.deStringHash(this.fullName()));
         var transferFmt = gluTextureUtil.getTransferFormat(
             this.m_texFormat
@@ -4398,7 +4326,7 @@ goog.scope(function() {
         );
         var access = new tcuTexture.PixelBufferAccess({
                             format: this.m_texFormat,
-                            width: this.m_size, 
+                            width: this.m_size,
                             height: this.m_size,
                             rowPitch: deMath.deAlign32(this.m_size * pixelSize, 4),
                             data: data
@@ -4415,12 +4343,8 @@ goog.scope(function() {
 
         this.m_context.pixelStorei(gl.UNPACK_ALIGNMENT, 1);
 
-        for (
-            /** @type {framework.common.tcuTexture.CubeFace} */
-        var face = /** @type {tcuTexture.CubeFace} */ (0);
-            face < es3fTextureSpecificationTests.s_cubeMapFaces;
-            face++
-        ) {
+        for (var f in tcuTexture.CubeFace) {
+            var face = tcuTexture.CubeFace[f];
             var gMin = es3fTextureSpecificationTests.randomVector(
                 rnd, this.m_texFormatInfo.valueMin,
                 this.m_texFormatInfo.valueMax, 4
@@ -4456,9 +4380,9 @@ goog.scope(function() {
         );
 
         var accessSub = new tcuTexture.PixelBufferAccess({
-                        format: this.m_texFormat, 
-                        width: this.m_subW, 
-                        height: this.m_subH, 
+                        format: this.m_texFormat,
+                        width: this.m_subW,
+                        height: this.m_subH,
                         rowPitch: rowPitch,
                         data: new ArrayBuffer(rowPitch * height + this.m_offset),
                         offset: this.m_skipRows * rowPitch +
@@ -4478,17 +4402,14 @@ goog.scope(function() {
         this.m_context.pixelStorei(gl.UNPACK_SKIP_PIXELS, this.m_skipPixels);
         this.m_context.pixelStorei(gl.UNPACK_ALIGNMENT, this.m_alignment);
 
-        for (
-            /** @type {framework.common.tcuTexture.CubeFace} */
-        var face = /** @type {tcuTexture.CubeFace} */ (0);
-            face < Object.keys(tcuTexture.CubeFace).length;
-            face++
-        )
+        for (var f in tcuTexture.CubeFace) {
+            var face = tcuTexture.CubeFace[f];
             this.m_context.texSubImage2D(
                 es3fTextureSpecificationTests.s_cubeMapFaces[face], 0,
                 this.m_subX, this.m_subY, this.m_subW, this.m_subH,
                 transferFmt.format, transferFmt.dataType, this.m_offset
             );
+        }
     };
 
     // TexSubImage3D() 2D array PBO case.
@@ -4515,7 +4436,7 @@ goog.scope(function() {
      * @param {number} alignment
      * @param {number} offset
      */
-    es3fTextureSpecificationTests.TexSubImage2DArrayBufferCase = function (
+    es3fTextureSpecificationTests.TexSubImage2DArrayBufferCase = function(
         name, desc, internalFormat, width, height, depth, subX, subY, subZ,
         subW, subH, subD, imageHeight, rowLength, skipImages, skipRows,
         skipPixels, alignment, offset
@@ -4554,7 +4475,7 @@ goog.scope(function() {
      * createTexture
      */
     es3fTextureSpecificationTests.
-    TexSubImage2DArrayBufferCase.prototype.createTexture = function () {
+    TexSubImage2DArrayBufferCase.prototype.createTexture = function() {
         var transferFmt = gluTextureUtil.getTransferFormat(
             this.m_texFormat
         );
@@ -4577,11 +4498,11 @@ goog.scope(function() {
 
         data = new ArrayBuffer(slicePitch * this.m_numLayers);
         var access = new tcuTexture.PixelBufferAccess({
-                        format: this.m_texFormat, 
-                        width: this.m_width, 
-                        height: this.m_height, 
+                        format: this.m_texFormat,
+                        width: this.m_width,
+                        height: this.m_height,
                         depth: this.m_numLayers,
-                        rowPitch: rowPitch, 
+                        rowPitch: rowPitch,
                         slicePitch: slicePitch,
                         data: data
                     });
@@ -4598,7 +4519,7 @@ goog.scope(function() {
         );
         var height = this.m_subH + this.m_skipRows;
         var cScale = deMath.subtract(this.m_texFormatInfo.valueMax, this.m_texFormatInfo.valueMin);
-       
+
         var cBias = this.m_texFormatInfo.valueMin;
         var colorA = deMath.add(
             deMath.multiply([1.0, 0.0, 0.0, 1.0], cScale), cBias
@@ -4608,9 +4529,9 @@ goog.scope(function() {
         );
 
         var accessSub = new tcuTexture.PixelBufferAccess({
-                        format: this.m_texFormat, 
-                        width: this.m_subW, 
-                        height: this.m_subH, 
+                        format: this.m_texFormat,
+                        width: this.m_subW,
+                        height: this.m_subH,
                         rowPitch: rowPitch,
                         data: new ArrayBuffer(rowPitch * height + this.m_offset),
                         offset: this.m_skipRows * rowPitch +
@@ -4655,7 +4576,7 @@ goog.scope(function() {
      * @param {number} alignment
      * @param {number} offset
      */
-    es3fTextureSpecificationTests.TexSubImage3DBufferCase = function (
+    es3fTextureSpecificationTests.TexSubImage3DBufferCase = function(
         name, desc, internalFormat, width, height, depth, subX, subY, subZ,
         subW, subH, subD, imageHeight, rowLength, skipImages, skipRows,
         skipPixels, alignment, offset
@@ -4695,7 +4616,7 @@ goog.scope(function() {
      * createTexture
      */
     es3fTextureSpecificationTests.
-    TexSubImage3DBufferCase.prototype.createTexture = function () {
+    TexSubImage3DBufferCase.prototype.createTexture = function() {
         var transferFmt = gluTextureUtil.getTransferFormat(
             this.m_texFormat
         );
@@ -4718,11 +4639,11 @@ goog.scope(function() {
 
         data = new ArrayBuffer(slicePitch * this.m_depth);
         var access = new tcuTexture.PixelBufferAccess({
-                        format: this.m_texFormat, 
-                        width: this.m_width, 
-                        height: this.m_height, 
+                        format: this.m_texFormat,
+                        width: this.m_width,
+                        height: this.m_height,
                         depth: this.m_depth,
-                        rowPitch: rowPitch, 
+                        rowPitch: rowPitch,
                         slicePitch: slicePitch,
                         data: data});
         tcuTextureUtil.fillWithComponentGradients(access, this.m_texFormatInfo.valueMin, this.m_texFormatInfo.valueMax
@@ -4752,12 +4673,12 @@ goog.scope(function() {
         );
 
         var accessSub = new tcuTexture.PixelBufferAccess({
-                        format: this.m_texFormat, 
-                        width: this.m_subW, 
-                        height: this.m_subH, 
+                        format: this.m_texFormat,
+                        width: this.m_subW,
+                        height: this.m_subH,
                         depth: this.m_subD,
-                        rowPitch: rowPitch, 
-                        slicePitch: slicePitch, 
+                        rowPitch: rowPitch,
+                        slicePitch: slicePitch,
                         data: new ArrayBuffer(slicePitch * (this.m_depth + this.m_skipImages) + this.m_offset),
                         offset: this.m_skipImages * slicePitch +
                                 this.m_skipRows * rowPitch +
@@ -4796,7 +4717,7 @@ goog.scope(function() {
      * @param {number} imageWidth
      * @param {number} imageHeight
      */
-    es3fTextureSpecificationTests.TexImage2DDepthCase = function (
+    es3fTextureSpecificationTests.TexImage2DDepthCase = function(
         name, desc, internalFormat, imageWidth, imageHeight
     ) {
         es3fTextureSpecificationTests.Texture2DSpecCase.call(
@@ -4827,7 +4748,7 @@ goog.scope(function() {
      * createTexture
      */
     es3fTextureSpecificationTests.TexImage2DDepthCase.prototype.createTexture =
-    function () {
+    function() {
         var fmt = gluTextureUtil.getTransferFormat(this.m_texFormat);
         var tex = null;
         var levelData = new tcuTexture.TextureLevel(
@@ -4838,8 +4759,7 @@ goog.scope(function() {
         this.m_context.bindTexture(gl.TEXTURE_2D, tex);
         this.m_context.pixelStorei(gl.UNPACK_ALIGNMENT, 1);
 
-        for (var ndx = 0; ndx < this.m_numLevels; ndx++)
-        {
+        for (var ndx = 0; ndx < this.m_numLevels; ndx++) {
             var levelW = Math.max(1, this.m_width >> ndx);
             var levelH = Math.max(1, this.m_height >> ndx);
             var gMin = [-1.5, -2.0, 1.7, -1.5];
@@ -4868,7 +4788,7 @@ goog.scope(function() {
      * @param {number} imageHeight
      * @param {number} numLayers
      */
-    es3fTextureSpecificationTests.TexImage2DArrayDepthCase = function (
+    es3fTextureSpecificationTests.TexImage2DArrayDepthCase = function(
         name, desc, internalFormat, imageWidth, imageHeight, numLayers
     ) {
         es3fTextureSpecificationTests.Texture2DArraySpecCase.call(
@@ -4899,7 +4819,7 @@ goog.scope(function() {
      * createTexture
      */
     es3fTextureSpecificationTests.
-    TexImage2DArrayDepthCase.prototype.createTexture = function () {
+    TexImage2DArrayDepthCase.prototype.createTexture = function() {
         var fmt = gluTextureUtil.getTransferFormat(this.m_texFormat);
         var tex = null;
         var levelData = new tcuTexture.TextureLevel(
@@ -4910,8 +4830,7 @@ goog.scope(function() {
         this.m_context.bindTexture(gl.TEXTURE_2D_ARRAY, tex);
         this.m_context.pixelStorei(gl.UNPACK_ALIGNMENT, 1);
 
-        for (var ndx = 0; ndx < this.m_numLevels; ndx++)
-        {
+        for (var ndx = 0; ndx < this.m_numLevels; ndx++) {
             var levelW = Math.max(1, this.m_width >> ndx);
             var levelH = Math.max(1, this.m_height >> ndx);
             var gMin = [-1.5, -2.0, 1.7, -1.5];
@@ -4940,7 +4859,7 @@ goog.scope(function() {
      * @param {number} imageWidth
      * @param {number} imageHeight
      */
-    es3fTextureSpecificationTests.TexSubImage2DDepthCase = function (
+    es3fTextureSpecificationTests.TexSubImage2DDepthCase = function(
         name, desc, internalFormat, imageWidth, imageHeight
     ) {
         es3fTextureSpecificationTests.Texture2DSpecCase.call(
@@ -4971,7 +4890,7 @@ goog.scope(function() {
      * createTexture
      */
     es3fTextureSpecificationTests.
-    TexSubImage2DDepthCase.prototype.createTexture = function () {
+    TexSubImage2DDepthCase.prototype.createTexture = function() {
         var fmt = gluTextureUtil.getTransferFormat(this.m_texFormat);
         var rnd = new deRandom.Random(deString.deStringHash(this.fullName()));
         var tex = null;
@@ -4984,8 +4903,7 @@ goog.scope(function() {
         this.m_context.pixelStorei(gl.UNPACK_ALIGNMENT, 1);
 
         // First specify full texture.
-        for (var ndx = 0; ndx < this.m_numLevels; ndx++)
-        {
+        for (var ndx = 0; ndx < this.m_numLevels; ndx++) {
             var levelW = Math.max(1, this.m_width >> ndx);
             var levelH = Math.max(1, this.m_height >> ndx);
             var gMin = [-1.5, -2.0, 1.7, -1.5];
@@ -5003,8 +4921,7 @@ goog.scope(function() {
         }
 
         // Re-specify parts of each level.
-        for (var ndx = 0; ndx < this.m_numLevels; ndx++)
-        {
+        for (var ndx = 0; ndx < this.m_numLevels; ndx++) {
             var levelW = Math.max(1, this.m_width >> ndx);
             var levelH = Math.max(1, this.m_height >> ndx);
 
@@ -5040,7 +4957,7 @@ goog.scope(function() {
      * @param {number} imageHeight
      * @param {number} numLayers
      */
-    es3fTextureSpecificationTests.TexSubImage2DArrayDepthCase = function (
+    es3fTextureSpecificationTests.TexSubImage2DArrayDepthCase = function(
         name, desc, internalFormat, imageWidth, imageHeight, numLayers
     ) {
         es3fTextureSpecificationTests.Texture2DArraySpecCase.call(
@@ -5071,7 +4988,7 @@ goog.scope(function() {
      * createTexture
      */
     es3fTextureSpecificationTests.
-    TexSubImage2DArrayDepthCase.prototype.createTexture = function () {
+    TexSubImage2DArrayDepthCase.prototype.createTexture = function() {
         var fmt = gluTextureUtil.getTransferFormat(this.m_texFormat);
         var rnd = new deRandom.Random(deString.deStringHash(this.fullName()));
         var tex = null;
@@ -5084,8 +5001,7 @@ goog.scope(function() {
         this.m_context.pixelStorei(gl.UNPACK_ALIGNMENT, 1);
 
         // First specify full texture.
-        for (var ndx = 0; ndx < this.m_numLevels; ndx++)
-        {
+        for (var ndx = 0; ndx < this.m_numLevels; ndx++) {
             var levelW = Math.max(1, this.m_width >> ndx);
             var levelH = Math.max(1, this.m_height >> ndx);
             var gMin = [-1.5, -2.0, 1.7, -1.5];
@@ -5104,8 +5020,7 @@ goog.scope(function() {
         }
 
         // Re-specify parts of each level.
-        for (var ndx = 0; ndx < this.m_numLevels; ndx++)
-        {
+        for (var ndx = 0; ndx < this.m_numLevels; ndx++) {
             var levelW = Math.max(1, this.m_width >> ndx);
             var levelH = Math.max(1, this.m_height >> ndx);
 
@@ -5142,7 +5057,7 @@ goog.scope(function() {
      * @param {number} imageWidth
      * @param {number} imageHeight
      */
-    es3fTextureSpecificationTests.TexImage2DDepthBufferCase = function (
+    es3fTextureSpecificationTests.TexImage2DDepthBufferCase = function(
         name, desc, internalFormat, imageWidth, imageHeight
     ) {
         es3fTextureSpecificationTests.Texture2DSpecCase.call(
@@ -5170,7 +5085,7 @@ goog.scope(function() {
      * createTexture
      */
     es3fTextureSpecificationTests.
-    TexImage2DDepthBufferCase.prototype.createTexture = function () {
+    TexImage2DDepthBufferCase.prototype.createTexture = function() {
         var transferFmt = gluTextureUtil.getTransferFormat(this.m_texFormat);
         var pixelSize = this.m_texFormat.getPixelSize();
         var rowLength = this.m_width;
@@ -5191,8 +5106,8 @@ goog.scope(function() {
         var gMax = [2.0, 1.5, -1.0, 2.0];
 
         var access = new tcuTexture.PixelBufferAccess({
-                        format: this.m_texFormat, 
-                        width:this.m_width, 
+                        format: this.m_texFormat,
+                        width: this.m_width,
                         height: this.m_height,
                         rowPitch: rowPitch,
                         data: data
@@ -5230,7 +5145,7 @@ goog.scope(function() {
      * @param {number} imageWidth
      * @param {number} imageHeight
      */
-    es3fTextureSpecificationTests.TexImage2DArrayDepthBufferCase = function (
+    es3fTextureSpecificationTests.TexImage2DArrayDepthBufferCase = function(
         name, desc, internalFormat, imageWidth, imageHeight, numLayers
     ) {
         es3fTextureSpecificationTests.Texture2DArraySpecCase.call(
@@ -5258,7 +5173,7 @@ goog.scope(function() {
      * createTexture
      */
     es3fTextureSpecificationTests.
-    TexImage2DArrayDepthBufferCase.prototype.createTexture = function () {
+    TexImage2DArrayDepthBufferCase.prototype.createTexture = function() {
         var transferFmt = gluTextureUtil.getTransferFormat(this.m_texFormat);
         var pixelSize = this.m_texFormat.getPixelSize();
         var rowLength = this.m_width;
@@ -5280,12 +5195,12 @@ goog.scope(function() {
         var gMax = [2.0, 1.5, -1.0, 2.0];
 
         var access = new tcuTexture.PixelBufferAccess({
-                        format: this.m_texFormat, 
-                        width: this.m_width, 
-                        height: this.m_height, 
+                        format: this.m_texFormat,
+                        width: this.m_width,
+                        height: this.m_height,
                         depth: this.m_numLayers,
-                        rowPitch: rowPitch, 
-                        slicePitch: slicePitch, 
+                        rowPitch: rowPitch,
+                        slicePitch: slicePitch,
                         data: data
                     });
         tcuTextureUtil.fillWithComponentGradients(access, gMin, gMax);
@@ -5317,10 +5232,9 @@ goog.scope(function() {
      * @constructor
      * @extends {tcuTestCase.DeqpTest}
      */
-    es3fTextureSpecificationTests.TextureSpecificationTests = function ()
-    {
+    es3fTextureSpecificationTests.TextureSpecificationTests = function() {
         tcuTestCase.DeqpTest.call(
-            this, "specification", "Texture Specification Tests"
+            this, 'specification', 'Texture Specification Tests'
         );
     };
 
@@ -5329,7 +5243,7 @@ goog.scope(function() {
     es3fTextureSpecificationTests.TextureSpecificationTests.prototype.constructor =
         es3fTextureSpecificationTests.TextureSpecificationTests;
 
-    es3fTextureSpecificationTests.TextureSpecificationTests.prototype.init = function () {
+    es3fTextureSpecificationTests.TextureSpecificationTests.prototype.init = function() {
         /**
          * @type {Array<number>}
          */
@@ -5343,161 +5257,159 @@ goog.scope(function() {
         ];
 
         /** @type {Array<{name: string, format: number, dataType: number}>} */
-        var unsizedFormats = [
-            {
-                name: "alpha_unsigned_byte",
+        var unsizedFormats = [{
+                name: 'alpha_unsigned_byte',
                 format: gl.ALPHA,
                 dataType: gl.UNSIGNED_BYTE
             }, {
-                name: "luminance_unsigned_byte",
+                name: 'luminance_unsigned_byte',
                 format: gl.LUMINANCE,
                 dataType: gl.UNSIGNED_BYTE
             }, {
-                name: "luminance_alpha_unsigned_byte",
+                name: 'luminance_alpha_unsigned_byte',
                 format: gl.LUMINANCE_ALPHA,
                 dataType: gl.UNSIGNED_BYTE
             }, {
-                name: "rgb_unsigned_short_5_6_5",
+                name: 'rgb_unsigned_short_5_6_5',
                 format: gl.RGB,
                 dataType: gl.UNSIGNED_SHORT_5_6_5
             }, {
-                name: "rgb_unsigned_byte",
+                name: 'rgb_unsigned_byte',
                 format: gl.RGB,
                 dataType: gl.UNSIGNED_BYTE
             }, {
-                name: "rgba_unsigned_short_4_4_4_4",
+                name: 'rgba_unsigned_short_4_4_4_4',
                 format: gl.RGBA,
                 dataType: gl.UNSIGNED_SHORT_4_4_4_4
             }, {
-                name: "rgba_unsigned_short_5_5_5_1",
+                name: 'rgba_unsigned_short_5_5_5_1',
                 format: gl.RGBA,
                 dataType: gl.UNSIGNED_SHORT_5_5_5_1
             }, {
-                name: "rgba_unsigned_byte",
+                name: 'rgba_unsigned_byte',
                 format: gl.RGBA,
                 dataType: gl.UNSIGNED_BYTE
             }
         ];
 
         /** @type {Array<{name: string, internalFormat: number}>} */
-        var colorFormats = [
-            {
-                name: "rgba32f", internalFormat: gl.RGBA32F
+        var colorFormats = [{
+                name: 'rgba32f', internalFormat: gl.RGBA32F
             }, {
-                name: "rgba32i", internalFormat: gl.RGBA32I
+                name: 'rgba32i', internalFormat: gl.RGBA32I
             }, {
-                name: "rgba32ui", internalFormat: gl.RGBA32UI
+                name: 'rgba32ui', internalFormat: gl.RGBA32UI
             }, {
-                name: "rgba16f", internalFormat: gl.RGBA16F
+                name: 'rgba16f', internalFormat: gl.RGBA16F
             }, {
-                name: "rgba16i", internalFormat: gl.RGBA16I
+                name: 'rgba16i', internalFormat: gl.RGBA16I
             }, {
-                name: "rgba16ui", internalFormat: gl.RGBA16UI
+                name: 'rgba16ui', internalFormat: gl.RGBA16UI
             }, {
-                name: "rgba8", internalFormat: gl.RGBA8
+                name: 'rgba8', internalFormat: gl.RGBA8
             }, {
-                name: "rgba8i", internalFormat: gl.RGBA8I
+                name: 'rgba8i', internalFormat: gl.RGBA8I
             }, {
-                name: "rgba8ui", internalFormat: gl.RGBA8UI
+                name: 'rgba8ui', internalFormat: gl.RGBA8UI
             }, {
-                name: "srgb8_alpha8", internalFormat: gl.SRGB8_ALPHA8
+                name: 'srgb8_alpha8', internalFormat: gl.SRGB8_ALPHA8
             }, {
-                name: "rgb10_a2", internalFormat: gl.RGB10_A2
+                name: 'rgb10_a2', internalFormat: gl.RGB10_A2
             }, {
-                name: "rgb10_a2ui", internalFormat: gl.RGB10_A2UI
+                name: 'rgb10_a2ui', internalFormat: gl.RGB10_A2UI
             }, {
-                name: "rgba4", internalFormat: gl.RGBA4
+                name: 'rgba4', internalFormat: gl.RGBA4
             }, {
-                name: "rgb5_a1", internalFormat: gl.RGB5_A1
+                name: 'rgb5_a1', internalFormat: gl.RGB5_A1
             }, {
-                name: "rgba8_snorm", internalFormat: gl.RGBA8_SNORM
+                name: 'rgba8_snorm', internalFormat: gl.RGBA8_SNORM
             }, {
-                name: "rgb8", internalFormat: gl.RGB8
+                name: 'rgb8', internalFormat: gl.RGB8
             }, {
-                name: "rgb565", internalFormat: gl.RGB565
+                name: 'rgb565', internalFormat: gl.RGB565
             }, {
-                name: "r11f_g11f_b10f", internalFormat: gl.R11F_G11F_B10F
+                name: 'r11f_g11f_b10f', internalFormat: gl.R11F_G11F_B10F
             }, {
-                name: "rgb32f", internalFormat: gl.RGB32F
+                name: 'rgb32f', internalFormat: gl.RGB32F
             }, {
-                name: "rgb32i", internalFormat: gl.RGB32I
+                name: 'rgb32i', internalFormat: gl.RGB32I
             }, {
-                name: "rgb32ui", internalFormat: gl.RGB32UI
+                name: 'rgb32ui', internalFormat: gl.RGB32UI
             }, {
-                name: "rgb16f", internalFormat: gl.RGB16F
+                name: 'rgb16f', internalFormat: gl.RGB16F
             }, {
-                name: "rgb16i", internalFormat: gl.RGB16I
+                name: 'rgb16i', internalFormat: gl.RGB16I
             }, {
-                name: "rgb16ui", internalFormat: gl.RGB16UI
+                name: 'rgb16ui', internalFormat: gl.RGB16UI
             }, {
-                name: "rgb8_snorm", internalFormat: gl.RGB8_SNORM
+                name: 'rgb8_snorm', internalFormat: gl.RGB8_SNORM
             }, {
-                name: "rgb8i", internalFormat: gl.RGB8I
+                name: 'rgb8i', internalFormat: gl.RGB8I
             }, {
-                name: "rgb8ui", internalFormat: gl.RGB8UI
+                name: 'rgb8ui', internalFormat: gl.RGB8UI
             }, {
-                name: "srgb8", internalFormat: gl.SRGB8
+                name: 'srgb8', internalFormat: gl.SRGB8
             }, {
-                name: "rgb9_e5", internalFormat: gl.RGB9_E5
+                name: 'rgb9_e5', internalFormat: gl.RGB9_E5
             }, {
-                name: "rg32f", internalFormat: gl.RG32F
+                name: 'rg32f', internalFormat: gl.RG32F
             }, {
-                name: "rg32i", internalFormat: gl.RG32I
+                name: 'rg32i', internalFormat: gl.RG32I
             }, {
-                name: "rg32ui", internalFormat: gl.RG32UI
+                name: 'rg32ui', internalFormat: gl.RG32UI
             }, {
-                name: "rg16f", internalFormat: gl.RG16F
+                name: 'rg16f', internalFormat: gl.RG16F
             }, {
-                name: "rg16i", internalFormat: gl.RG16I
+                name: 'rg16i', internalFormat: gl.RG16I
             }, {
-                name: "rg16ui", internalFormat: gl.RG16UI
+                name: 'rg16ui', internalFormat: gl.RG16UI
             }, {
-                name: "rg8", internalFormat: gl.RG8
+                name: 'rg8', internalFormat: gl.RG8
             }, {
-                name: "rg8i", internalFormat: gl.RG8I
+                name: 'rg8i', internalFormat: gl.RG8I
             }, {
-                name: "rg8ui", internalFormat: gl.RG8UI
+                name: 'rg8ui', internalFormat: gl.RG8UI
             }, {
-                name: "rg8_snorm", internalFormat: gl.RG8_SNORM
+                name: 'rg8_snorm', internalFormat: gl.RG8_SNORM
             }, {
-                name: "r32f", internalFormat: gl.R32F
+                name: 'r32f', internalFormat: gl.R32F
             }, {
-                name: "r32i", internalFormat: gl.R32I
+                name: 'r32i', internalFormat: gl.R32I
             }, {
-                name: "r32ui", internalFormat: gl.R32UI
+                name: 'r32ui', internalFormat: gl.R32UI
             }, {
-                name: "r16f", internalFormat: gl.R16F
+                name: 'r16f', internalFormat: gl.R16F
             }, {
-                name: "r16i", internalFormat: gl.R16I
+                name: 'r16i', internalFormat: gl.R16I
             }, {
-                name: "r16ui", internalFormat: gl.R16UI
+                name: 'r16ui', internalFormat: gl.R16UI
             }, {
-                name: "r8", internalFormat: gl.R8
+                name: 'r8', internalFormat: gl.R8
             }, {
-                name: "r8i", internalFormat: gl.R8I
+                name: 'r8i', internalFormat: gl.R8I
             }, {
-                name: "r8ui", internalFormat: gl.R8UI
+                name: 'r8ui', internalFormat: gl.R8UI
             }, {
-                name: "r8_snorm", internalFormat: gl.R8_SNORM
+                name: 'r8_snorm', internalFormat: gl.R8_SNORM
             }
         ];
 
         // Depth and stencil formats
         /** @type {Array<{name: string, internalFormat: number}>} */
         var depthStencilFormats = [{
-                name: "depth_component32f",
+                name: 'depth_component32f',
                 internalFormat: gl.DEPTH_COMPONENT32F
             }, {
-                name: "depth_component24",
+                name: 'depth_component24',
                 internalFormat: gl.DEPTH_COMPONENT24
             }, {
-                name: "depth_component16",
+                name: 'depth_component16',
                 internalFormat: gl.DEPTH_COMPONENT16
             }, {
-                name: "depth32f_stencil8",
+                name: 'depth32f_stencil8',
                 internalFormat: gl.DEPTH32F_STENCIL8
             }, {
-                name: "depth24_stencil8",
+                name: 'depth24_stencil8',
                 internalFormat: gl.DEPTH24_STENCIL8
             }
         ];
@@ -5506,7 +5418,7 @@ goog.scope(function() {
 
         /** @type {tcuTestCase.DeqpTest} */
         var basicTexImageGroup = new tcuTestCase.DeqpTest(
-            "basic_teximage2d", "Basic glTexImage2D() usage"
+            'basic_teximage2d', 'Basic glTexImage2D() usage'
         );
         this.addChild(basicTexImageGroup);
         for (var formatNdx = 0; formatNdx < colorFormats.length; formatNdx++) {
@@ -5523,12 +5435,12 @@ goog.scope(function() {
 
             basicTexImageGroup.addChild(
                 es3fTextureSpecificationTests.newBasicTexImage2DCaseInternal(
-                    fmtName + "_2d", "", format, tex2DWidth, tex2DHeight
+                    fmtName + '_2d', '', format, tex2DWidth, tex2DHeight
                 )
             );
             basicTexImageGroup.addChild(
                 es3fTextureSpecificationTests.newBasicTexImageCubeCaseInternal(
-                    fmtName + "_cube",    "",    format, texCubeSize
+                    fmtName + '_cube', '', format, texCubeSize
                 )
             );
         }
@@ -5536,224 +5448,221 @@ goog.scope(function() {
         // Randomized TexImage2D order.
         /** @type {tcuTestCase.DeqpTest} */
         var randomTexImageGroup = new tcuTestCase.DeqpTest(
-            "random_teximage2d", "Randomized glTexImage2D() usage"
+            'random_teximage2d', 'Randomized glTexImage2D() usage'
         );
         this.addChild(randomTexImageGroup);
         var rnd = new deRandom.Random(9);
 
         // 2D cases.
-        for (var ndx = 0; ndx < 10; ndx++)
-        {
-            var formatNdx = rnd.getInt(0, colorFormats.length-1);
-            var width        = 1 << rnd.getInt(2, 8);
-            var height        = 1 << rnd.getInt(2, 8);
+        for (var ndx = 0; ndx < 10; ndx++) {
+            var formatNdx = rnd.getInt(0, colorFormats.length - 1);
+            var width = 1 << rnd.getInt(2, 8);
+            var height = 1 << rnd.getInt(2, 8);
 
             randomTexImageGroup.addChild(
                 es3fTextureSpecificationTests.newRandomOrderTexImage2DCaseInternal(
-                    "2d_" + ndx, "", colorFormats[formatNdx].internalFormat,
+                    '2d_' + ndx, '', colorFormats[formatNdx].internalFormat,
                     width, height
                 )
             );
         }
 
         // Cubemap cases.
-        for (var ndx = 0; ndx < 10; ndx++)
-        {
-            formatNdx = rnd.getInt(0, colorFormats.length-1);
+        for (var ndx = 0; ndx < 10; ndx++) {
+            formatNdx = rnd.getInt(0, colorFormats.length - 1);
             /** @type {number} */ var size = 1 << rnd.getInt(2, 8);
 
             randomTexImageGroup.addChild(
                 es3fTextureSpecificationTests.newRandomOrderTexImageCubeCaseInternal(
-                    "cube_" + ndx, "",
+                    'cube_' + ndx, '',
                     colorFormats[formatNdx].internalFormat, size
                 )
             );
         }
 
-
         // TexImage2D unpack alignment.
         /** @type {tcuTestCase.DeqpTest} */
         var alignGroup = new tcuTestCase.DeqpTest(
-            "teximage2d_align", "glTexImage2D() unpack alignment tests"
+            'teximage2d_align', 'glTexImage2D() unpack alignment tests'
         );
         this.addChild(alignGroup);
 
         alignGroup.addChild(
             es3fTextureSpecificationTests.newTexImage2DAlignCaseInternal(
-                "2d_r8_4_8", "", gl.R8, 4, 8, 4, 8
+                '2d_r8_4_8', '', gl.R8, 4, 8, 4, 8
             )
         );
         alignGroup.addChild(
             es3fTextureSpecificationTests.newTexImage2DAlignCaseInternal(
-                "2d_r8_63_1", "", gl.R8, 63, 30, 1, 1
+                '2d_r8_63_1', '', gl.R8, 63, 30, 1, 1
             )
         );
         alignGroup.addChild(
             es3fTextureSpecificationTests.newTexImage2DAlignCaseInternal(
-                "2d_r8_63_2", "", gl.R8, 63, 30, 1, 2
+                '2d_r8_63_2', '', gl.R8, 63, 30, 1, 2
             )
         );
         alignGroup.addChild(
             es3fTextureSpecificationTests.newTexImage2DAlignCaseInternal(
-                "2d_r8_63_4", "", gl.R8, 63, 30, 1, 4
+                '2d_r8_63_4', '', gl.R8, 63, 30, 1, 4
             )
         );
         alignGroup.addChild(
             es3fTextureSpecificationTests.newTexImage2DAlignCaseInternal(
-                "2d_r8_63_8", "", gl.R8, 63, 30, 1, 8
+                '2d_r8_63_8', '', gl.R8, 63, 30, 1, 8
             )
         );
         alignGroup.addChild(
             es3fTextureSpecificationTests.newTexImage2DAlignCaseInternal(
-                "2d_rgba4_51_1", "", gl.RGBA4, 51, 30, 1, 1
+                '2d_rgba4_51_1', '', gl.RGBA4, 51, 30, 1, 1
             )
         );
         alignGroup.addChild(
             es3fTextureSpecificationTests.newTexImage2DAlignCaseInternal(
-                "2d_rgba4_51_2", "", gl.RGBA4, 51, 30, 1, 2
+                '2d_rgba4_51_2', '', gl.RGBA4, 51, 30, 1, 2
             )
         );
         alignGroup.addChild(
             es3fTextureSpecificationTests.newTexImage2DAlignCaseInternal(
-                "2d_rgba4_51_4", "", gl.RGBA4, 51, 30, 1, 4
+                '2d_rgba4_51_4', '', gl.RGBA4, 51, 30, 1, 4
             )
         );
         alignGroup.addChild(
             es3fTextureSpecificationTests.newTexImage2DAlignCaseInternal(
-                "2d_rgba4_51_8", "", gl.RGBA4, 51, 30, 1, 8
+                '2d_rgba4_51_8', '', gl.RGBA4, 51, 30, 1, 8
             )
         );
         alignGroup.addChild(
             es3fTextureSpecificationTests.newTexImage2DAlignCaseInternal(
-                "2d_rgb8_39_1", "", gl.RGB8, 39, 43, 1, 1
+                '2d_rgb8_39_1', '', gl.RGB8, 39, 43, 1, 1
             )
         );
         alignGroup.addChild(
             es3fTextureSpecificationTests.newTexImage2DAlignCaseInternal(
-                "2d_rgb8_39_2", "", gl.RGB8, 39, 43, 1, 2
+                '2d_rgb8_39_2', '', gl.RGB8, 39, 43, 1, 2
             )
         );
         alignGroup.addChild(
             es3fTextureSpecificationTests.newTexImage2DAlignCaseInternal(
-                "2d_rgb8_39_4", "", gl.RGB8, 39, 43, 1, 4
+                '2d_rgb8_39_4', '', gl.RGB8, 39, 43, 1, 4
             )
         );
         alignGroup.addChild(
             es3fTextureSpecificationTests.newTexImage2DAlignCaseInternal(
-                "2d_rgb8_39_8", "", gl.RGB8, 39, 43, 1, 8
+                '2d_rgb8_39_8', '', gl.RGB8, 39, 43, 1, 8
             )
         );
         alignGroup.addChild(
             es3fTextureSpecificationTests.newTexImage2DAlignCaseInternal(
-                "2d_rgba8_47_1", "", gl.RGBA8, 47, 27, 1, 1
+                '2d_rgba8_47_1', '', gl.RGBA8, 47, 27, 1, 1
             )
         );
         alignGroup.addChild(
             es3fTextureSpecificationTests.newTexImage2DAlignCaseInternal(
-                "2d_rgba8_47_2", "", gl.RGBA8, 47, 27, 1, 2
+                '2d_rgba8_47_2', '', gl.RGBA8, 47, 27, 1, 2
             )
         );
         alignGroup.addChild(
             es3fTextureSpecificationTests.newTexImage2DAlignCaseInternal(
-                "2d_rgba8_47_4", "", gl.RGBA8, 47, 27, 1, 4
+                '2d_rgba8_47_4', '', gl.RGBA8, 47, 27, 1, 4
             )
         );
         alignGroup.addChild(
             es3fTextureSpecificationTests.newTexImage2DAlignCaseInternal(
-                "2d_rgba8_47_8", "", gl.RGBA8, 47, 27, 1, 8
+                '2d_rgba8_47_8', '', gl.RGBA8, 47, 27, 1, 8
             )
         );
         alignGroup.addChild(
             es3fTextureSpecificationTests.newTexImageCubeAlignCaseInternal(
-                "cube_r8_4_8", "", gl.R8, 4, 3, 8
+                'cube_r8_4_8', '', gl.R8, 4, 3, 8
             )
         );
         alignGroup.addChild(
             es3fTextureSpecificationTests.newTexImageCubeAlignCaseInternal(
-                "cube_r8_63_1", "", gl.R8, 63, 1, 1
+                'cube_r8_63_1', '', gl.R8, 63, 1, 1
             )
         );
         alignGroup.addChild(
             es3fTextureSpecificationTests.newTexImageCubeAlignCaseInternal(
-                "cube_r8_63_2", "", gl.R8, 63, 1, 2
+                'cube_r8_63_2', '', gl.R8, 63, 1, 2
             )
         );
         alignGroup.addChild(
             es3fTextureSpecificationTests.newTexImageCubeAlignCaseInternal(
-                "cube_r8_63_4", "", gl.R8, 63, 1, 4
+                'cube_r8_63_4', '', gl.R8, 63, 1, 4
             )
         );
         alignGroup.addChild(
             es3fTextureSpecificationTests.newTexImageCubeAlignCaseInternal(
-                "cube_r8_63_8", "", gl.R8, 63, 1, 8
+                'cube_r8_63_8', '', gl.R8, 63, 1, 8
             )
         );
         alignGroup.addChild(
             es3fTextureSpecificationTests.newTexImageCubeAlignCaseInternal(
-                "cube_rgba4_51_1", "", gl.RGBA4, 51, 1, 1
+                'cube_rgba4_51_1', '', gl.RGBA4, 51, 1, 1
             )
         );
         alignGroup.addChild(
             es3fTextureSpecificationTests.newTexImageCubeAlignCaseInternal(
-                "cube_rgba4_51_2", "", gl.RGBA4, 51, 1, 2
+                'cube_rgba4_51_2', '', gl.RGBA4, 51, 1, 2
             )
         );
         alignGroup.addChild(
             es3fTextureSpecificationTests.newTexImageCubeAlignCaseInternal(
-                "cube_rgba4_51_4", "", gl.RGBA4, 51, 1, 4
+                'cube_rgba4_51_4', '', gl.RGBA4, 51, 1, 4
             )
         );
         alignGroup.addChild(
             es3fTextureSpecificationTests.newTexImageCubeAlignCaseInternal(
-                "cube_rgba4_51_8", "", gl.RGBA4, 51, 1, 8
+                'cube_rgba4_51_8', '', gl.RGBA4, 51, 1, 8
             )
         );
         alignGroup.addChild(
             es3fTextureSpecificationTests.newTexImageCubeAlignCaseInternal(
-                "cube_rgb8_39_1", "", gl.RGB8, 39, 1, 1
+                'cube_rgb8_39_1', '', gl.RGB8, 39, 1, 1
             )
         );
         alignGroup.addChild(
             es3fTextureSpecificationTests.newTexImageCubeAlignCaseInternal(
-                "cube_rgb8_39_2", "", gl.RGB8, 39, 1, 2
+                'cube_rgb8_39_2', '', gl.RGB8, 39, 1, 2
             )
         );
         alignGroup.addChild(
             es3fTextureSpecificationTests.newTexImageCubeAlignCaseInternal(
-                "cube_rgb8_39_4", "", gl.RGB8, 39, 1, 4
+                'cube_rgb8_39_4', '', gl.RGB8, 39, 1, 4
             )
         );
         alignGroup.addChild(
             es3fTextureSpecificationTests.newTexImageCubeAlignCaseInternal(
-                "cube_rgb8_39_8", "", gl.RGB8, 39, 1, 8
+                'cube_rgb8_39_8', '', gl.RGB8, 39, 1, 8
             )
         );
         alignGroup.addChild(
             es3fTextureSpecificationTests.newTexImageCubeAlignCaseInternal(
-                "cube_rgba8_47_1", "", gl.RGBA8, 47, 1, 1
+                'cube_rgba8_47_1', '', gl.RGBA8, 47, 1, 1
             )
         );
         alignGroup.addChild(
             es3fTextureSpecificationTests.newTexImageCubeAlignCaseInternal(
-                "cube_rgba8_47_2", "", gl.RGBA8, 47, 1, 2
+                'cube_rgba8_47_2', '', gl.RGBA8, 47, 1, 2
             )
         );
         alignGroup.addChild(
             es3fTextureSpecificationTests.newTexImageCubeAlignCaseInternal(
-                "cube_rgba8_47_4", "", gl.RGBA8, 47, 1, 4
+                'cube_rgba8_47_4', '', gl.RGBA8, 47, 1, 4
             )
         );
         alignGroup.addChild(
             es3fTextureSpecificationTests.newTexImageCubeAlignCaseInternal(
-                "cube_rgba8_47_8", "", gl.RGBA8, 47, 1, 8
+                'cube_rgba8_47_8', '', gl.RGBA8, 47, 1, 8
             )
         );
 
         // glTexImage2D() unpack parameter cases.
         /** @type {tcuTestCase.DeqpTest} */
         var paramGroup = new tcuTestCase.DeqpTest(
-            "teximage2d_unpack_params",
-            "glTexImage2D() pixel transfer mode cases"
+            'teximage2d_unpack_params',
+            'glTexImage2D() pixel transfer mode cases'
         );
         this.addChild(paramGroup);
 
@@ -5762,56 +5671,56 @@ goog.scope(function() {
          * height: number, rowLength: number, skipRows: number,
          * skipPixels: number, alignment: number}>}
          */
-        var cases = [ {
-                name: "rgb8_alignment", format: gl.RGB8, width: 31,
+        var cases = [{
+                name: 'rgb8_alignment', format: gl.RGB8, width: 31,
                 height: 30, rowLength: 0, skipRows: 0, skipPixels: 0,
                 alignment: 2
             }, {
-                name: "rgb8_row_length", format: gl.RGB8, width: 31,
+                name: 'rgb8_row_length', format: gl.RGB8, width: 31,
                 height: 30, rowLength: 50, skipRows: 0, skipPixels: 0,
                 alignment: 4
             }, {
-                name: "rgb8_skip_rows", format: gl.RGB8, width: 31,
+                name: 'rgb8_skip_rows', format: gl.RGB8, width: 31,
                 height: 30, rowLength: 0, skipRows: 3, skipPixels: 0,
                 alignment: 4
             }, {
-                name: "rgb8_skip_pixels", format: gl.RGB8, width: 31,
+                name: 'rgb8_skip_pixels', format: gl.RGB8, width: 31,
                 height: 30, rowLength: 36, skipRows: 0, skipPixels: 5,
                 alignment: 4
             }, {
-                name: "r8_complex1", format: gl.R8, width: 31,
+                name: 'r8_complex1', format: gl.R8, width: 31,
                 height: 30, rowLength: 64, skipRows: 1, skipPixels: 3,
                 alignment: 1
             }, {
-                name: "r8_complex2", format: gl.R8, width: 31,
+                name: 'r8_complex2', format: gl.R8, width: 31,
                 height: 30, rowLength: 64, skipRows: 1, skipPixels: 3,
                 alignment: 2
             }, {
-                name: "r8_complex3", format: gl.R8, width: 31,
+                name: 'r8_complex3', format: gl.R8, width: 31,
                 height: 30, rowLength: 64, skipRows: 1, skipPixels: 3,
                 alignment: 4
             }, {
-                name: "r8_complex4", format: gl.R8, width: 31,
+                name: 'r8_complex4', format: gl.R8, width: 31,
                 height: 30, rowLength: 64, skipRows: 1, skipPixels: 3,
                 alignment: 8
             }, {
-                name: "rgba8_complex1", format: gl.RGBA8, width: 56,
+                name: 'rgba8_complex1', format: gl.RGBA8, width: 56,
                 height: 61, rowLength: 69, skipRows: 0, skipPixels: 0,
                 alignment: 8
             }, {
-                name: "rgba8_complex2", format: gl.RGBA8, width: 56,
+                name: 'rgba8_complex2', format: gl.RGBA8, width: 56,
                 height: 61, rowLength: 69, skipRows: 0, skipPixels: 7,
                 alignment: 8
             }, {
-                name: "rgba8_complex3", format: gl.RGBA8, width: 56,
+                name: 'rgba8_complex3', format: gl.RGBA8, width: 56,
                 height: 61, rowLength: 69, skipRows: 3, skipPixels: 0,
                 alignment: 8
             }, {
-                name: "rgba8_complex4", format: gl.RGBA8, width: 56,
+                name: 'rgba8_complex4', format: gl.RGBA8, width: 56,
                 height: 61, rowLength: 69, skipRows: 3, skipPixels: 7,
                 alignment: 8
             }, {
-                name: "rgba32f_complex", format: gl.RGBA32F, width: 19,
+                name: 'rgba32f_complex', format: gl.RGBA32F, width: 19,
                 height: 10, rowLength: 27, skipRows: 1, skipPixels: 7,
                 alignment: 8
             }
@@ -5820,7 +5729,7 @@ goog.scope(function() {
         for (var ndx = 0; ndx < cases.length; ndx++)
             paramGroup.addChild(
                 new es3fTextureSpecificationTests.TexImage2DParamsCase(
-                    cases[ndx].name, "", cases[ndx].format, cases[ndx].width,
+                    cases[ndx].name, '', cases[ndx].format, cases[ndx].width,
                     cases[ndx].height, cases[ndx].rowLength,
                     cases[ndx].skipRows, cases[ndx].skipPixels,
                     cases[ndx].alignment
@@ -5830,7 +5739,7 @@ goog.scope(function() {
         // glTexImage2D() pbo cases.
         /** @type {tcuTestCase.DeqpTest} */
         var pboGroup = new tcuTestCase.DeqpTest(
-            "teximage2d_pbo", "glTexImage2D() from PBO"
+            'teximage2d_pbo', 'glTexImage2D() from PBO'
         );
         this.addChild(pboGroup);
 
@@ -5840,56 +5749,54 @@ goog.scope(function() {
          * height: number, rowLength: number, skipRows: number,
          * skipPixels: number, alignment: number, offset: number}>}
          */
-        var parameterCases = [ {
-                name: "rgb8_offset", format: gl.RGB8, width: 31,
+        var parameterCases = [{
+                name: 'rgb8_offset', format: gl.RGB8, width: 31,
                 height: 30, rowLength: 0, skipRows: 0, skipPixels: 0,
                 alignment: 4, offset: 67
             }, {
-                name: "rgb8_alignment", format: gl.RGB8, width: 31,
+                name: 'rgb8_alignment', format: gl.RGB8, width: 31,
                 height: 30, rowLength: 0, skipRows: 0, skipPixels: 0,
                 alignment: 2, offset: 0
             }, {
-                name: "rgb8_row_length", format: gl.RGB8, width: 31,
+                name: 'rgb8_row_length', format: gl.RGB8, width: 31,
                 height: 30, rowLength: 50, skipRows: 0, skipPixels: 0,
                 alignment: 4, offset: 0
             }, {
-                name: "rgb8_skip_rows", format: gl.RGB8, width: 31,
+                name: 'rgb8_skip_rows', format: gl.RGB8, width: 31,
                 height: 30, rowLength: 0, skipRows: 3, skipPixels: 0,
                 alignment: 4, offset: 0
             }, {
-                name: "rgb8_skip_pixels", format: gl.RGB8, width: 31,
+                name: 'rgb8_skip_pixels', format: gl.RGB8, width: 31,
                 height: 30, rowLength: 36, skipRows: 0, skipPixels: 5,
                 alignment: 4, offset: 0
             }
         ];
 
-        for (var formatNdx = 0; formatNdx < colorFormats.length; formatNdx++)
-        {
-            fmtName        = colorFormats[formatNdx].name;
-            format        = colorFormats[formatNdx].internalFormat;
-            tex2DWidth    = 65;
-            tex2DHeight    = 37;
-            texCubeSize    = 64;
+        for (var formatNdx = 0; formatNdx < colorFormats.length; formatNdx++) {
+            fmtName = colorFormats[formatNdx].name;
+            format = colorFormats[formatNdx].internalFormat;
+            tex2DWidth = 65;
+            tex2DHeight = 37;
+            texCubeSize = 64;
 
             pboGroup.addChild(
                 new es3fTextureSpecificationTests.TexImage2DBufferCase(
-                    fmtName + "_2d",     "", format,
+                    fmtName + '_2d', '', format,
                     tex2DWidth, tex2DHeight, 0, 0, 0, 4, 0
                 )
             );
             pboGroup.addChild(
                 new es3fTextureSpecificationTests.TexImageCubeBufferCase(
-                    fmtName + "_cube", "", format,
+                    fmtName + '_cube', '', format,
                     texCubeSize, 0, 0, 0, 4, 0
                 )
             );
         }
 
-        for (var ndx = 0; ndx < parameterCases.length; ndx++)
-        {
+        for (var ndx = 0; ndx < parameterCases.length; ndx++) {
             pboGroup.addChild(
                 new es3fTextureSpecificationTests.TexImage2DBufferCase(
-                    parameterCases[ndx].name + "_2d", "",
+                    parameterCases[ndx].name + '_2d', '',
                     parameterCases[ndx].format, parameterCases[ndx].width,
                     parameterCases[ndx].height, parameterCases[ndx].rowLength,
                     parameterCases[ndx].skipRows,
@@ -5900,7 +5807,7 @@ goog.scope(function() {
             );
             pboGroup.addChild(
                 new es3fTextureSpecificationTests.TexImageCubeBufferCase(
-                    parameterCases[ndx].name + "_cube", "",
+                    parameterCases[ndx].name + '_cube', '',
                     parameterCases[ndx].format, parameterCases[ndx].width,
                     parameterCases[ndx].rowLength, parameterCases[ndx].skipRows,
                     parameterCases[ndx].skipPixels,
@@ -5912,19 +5819,18 @@ goog.scope(function() {
         // glTexImage2D() depth cases.
         /** @type {tcuTestCase.DeqpTest} */
         var shadow2dGroup = new tcuTestCase.DeqpTest(
-            "teximage2d_depth",
-            "glTexImage2D() with depth or depth/stencil format"
+            'teximage2d_depth',
+            'glTexImage2D() with depth or depth/stencil format'
         );
         this.addChild(shadow2dGroup);
 
-        for (var ndx = 0; ndx < depthStencilFormats.length; ndx++)
-        {
-            var tex2DWidth    = 64;
-            var tex2DHeight    = 128;
+        for (var ndx = 0; ndx < depthStencilFormats.length; ndx++) {
+            var tex2DWidth = 64;
+            var tex2DHeight = 128;
 
             shadow2dGroup.addChild(
                 new es3fTextureSpecificationTests.TexImage2DDepthCase(
-                    depthStencilFormats[ndx].name, "",
+                    depthStencilFormats[ndx].name, '',
                     depthStencilFormats[ndx].internalFormat,
                     tex2DWidth, tex2DHeight
                 )
@@ -5933,19 +5839,18 @@ goog.scope(function() {
 
         // glTexImage2D() depth cases with pbo.
         shadow2dGroup = new tcuTestCase.DeqpTest(
-            "teximage2d_depth_pbo",
-            "glTexImage2D() with depth or depth/stencil format with pbo"
+            'teximage2d_depth_pbo',
+            'glTexImage2D() with depth or depth/stencil format with pbo'
         );
         this.addChild(shadow2dGroup);
 
-        for (var ndx = 0; ndx < depthStencilFormats.length; ndx++)
-        {
-            tex2DWidth    = 64;
-            tex2DHeight    = 128;
+        for (var ndx = 0; ndx < depthStencilFormats.length; ndx++) {
+            tex2DWidth = 64;
+            tex2DHeight = 128;
 
             shadow2dGroup.addChild(
                 new es3fTextureSpecificationTests.TexImage2DDepthBufferCase(
-                    depthStencilFormats[ndx].name, "",
+                    depthStencilFormats[ndx].name, '',
                     depthStencilFormats[ndx].internalFormat,
                     tex2DWidth, tex2DHeight
                 )
@@ -5955,25 +5860,24 @@ goog.scope(function() {
         // Basic TexSubImage2D usage.
         /** @type {tcuTestCase.DeqpTest} */
         var basicTexSubImageGroup = new tcuTestCase.DeqpTest(
-            "basic_texsubimage2d", "Basic glTexSubImage2D() usage"
+            'basic_texsubimage2d', 'Basic glTexSubImage2D() usage'
         );
         this.addChild(basicTexSubImageGroup);
-        for (var formatNdx = 0; formatNdx < colorFormats.length; formatNdx++)
-        {
-            fmtName        = colorFormats[formatNdx].name;
-            format        = colorFormats[formatNdx].internalFormat;
-            tex2DWidth    = 64;
-            tex2DHeight    = 128;
-            texCubeSize    = 64;
+        for (var formatNdx = 0; formatNdx < colorFormats.length; formatNdx++) {
+            fmtName = colorFormats[formatNdx].name;
+            format = colorFormats[formatNdx].internalFormat;
+            tex2DWidth = 64;
+            tex2DHeight = 128;
+            texCubeSize = 64;
 
             basicTexSubImageGroup.addChild(
                 es3fTextureSpecificationTests.newBasicTexSubImage2DCaseInternal(
-                    fmtName + "_2d", "", format, tex2DWidth, tex2DHeight
+                    fmtName + '_2d', '', format, tex2DWidth, tex2DHeight
                 )
             );
             basicTexSubImageGroup.addChild(
                 es3fTextureSpecificationTests.newBasicTexImageCubeCaseInternal(
-                    fmtName + "_cube", "", format, texCubeSize
+                    fmtName + '_cube', '', format, texCubeSize
                 )
             );
         }
@@ -5981,28 +5885,27 @@ goog.scope(function() {
         // TexSubImage2D to empty texture.
         /** @type {tcuTestCase.DeqpTest} */
         var texSubImageEmptyTexGroup = new tcuTestCase.DeqpTest(
-            "texsubimage2d_empty_tex",
-            "glTexSubImage2D() to texture that has storage but no data"
+            'texsubimage2d_empty_tex',
+            'glTexSubImage2D() to texture that has storage but no data'
         );
         this.addChild(texSubImageEmptyTexGroup);
-        for (var formatNdx = 0; formatNdx < unsizedFormats.length; formatNdx++)
-        {
-            fmtName        = unsizedFormats[formatNdx].name;
-            format        = unsizedFormats[formatNdx].format;
+        for (var formatNdx = 0; formatNdx < unsizedFormats.length; formatNdx++) {
+            fmtName = unsizedFormats[formatNdx].name;
+            format = unsizedFormats[formatNdx].format;
             /** @type {number} */
             var dataType = unsizedFormats[formatNdx].dataType;
-            tex2DWidth    = 64;
-            tex2DHeight    = 32;
-            texCubeSize    = 32;
+            tex2DWidth = 64;
+            tex2DHeight = 32;
+            texCubeSize = 32;
 
             texSubImageEmptyTexGroup.addChild(
                 new es3fTextureSpecificationTests.TexSubImage2DEmptyTexCase(
-                    fmtName + "_2d", "", format, dataType, tex2DWidth, tex2DHeight
+                    fmtName + '_2d', '', format, dataType, tex2DWidth, tex2DHeight
                 )
             );
             texSubImageEmptyTexGroup.addChild(
                 new es3fTextureSpecificationTests.TexSubImageCubeEmptyTexCase(
-                    fmtName + "_cube", "", format, dataType, texCubeSize
+                    fmtName + '_cube', '', format, dataType, texCubeSize
                 )
             );
         }
@@ -6010,217 +5913,217 @@ goog.scope(function() {
         // TexSubImage2D alignment cases.
         /** @type {tcuTestCase.DeqpTest} */
         var alignGroup = new tcuTestCase.DeqpTest(
-            "texsubimage2d_align", "glTexSubImage2D() unpack alignment tests"
+            'texsubimage2d_align', 'glTexSubImage2D() unpack alignment tests'
         );
         this.addChild(alignGroup);
 
         alignGroup.addChild(
             es3fTextureSpecificationTests.newTexSubImage2DAlignCaseInternal(
-                "2d_r8_1_1", "",    gl.R8, 64, 64, 13, 17,  1,  6, 1
+                '2d_r8_1_1', '', gl.R8, 64, 64, 13, 17, 1, 6, 1
             )
         );
         alignGroup.addChild(
             es3fTextureSpecificationTests.newTexSubImage2DAlignCaseInternal(
-                "2d_r8_1_2", "",    gl.R8, 64, 64, 13, 17,  1,  6, 2
+                '2d_r8_1_2', '', gl.R8, 64, 64, 13, 17, 1, 6, 2
             )
         );
         alignGroup.addChild(
             es3fTextureSpecificationTests.newTexSubImage2DAlignCaseInternal(
-                "2d_r8_1_4", "",    gl.R8, 64, 64, 13, 17,  1,  6, 4
+                '2d_r8_1_4', '', gl.R8, 64, 64, 13, 17, 1, 6, 4
             )
         );
         alignGroup.addChild(
             es3fTextureSpecificationTests.newTexSubImage2DAlignCaseInternal(
-                "2d_r8_1_8", "",    gl.R8, 64, 64, 13, 17,  1,  6, 8
+                '2d_r8_1_8', '', gl.R8, 64, 64, 13, 17, 1, 6, 8
             )
         );
         alignGroup.addChild(
             es3fTextureSpecificationTests.newTexSubImage2DAlignCaseInternal(
-                "2d_r8_63_1", "",    gl.R8, 64, 64,  1,  9, 63, 30, 1
+                '2d_r8_63_1', '', gl.R8, 64, 64, 1, 9, 63, 30, 1
             )
         );
         alignGroup.addChild(
             es3fTextureSpecificationTests.newTexSubImage2DAlignCaseInternal(
-                "2d_r8_63_2", "",    gl.R8, 64, 64,  1,  9, 63, 30, 2
+                '2d_r8_63_2', '', gl.R8, 64, 64, 1, 9, 63, 30, 2
             )
         );
         alignGroup.addChild(
             es3fTextureSpecificationTests.newTexSubImage2DAlignCaseInternal(
-                "2d_r8_63_4", "",    gl.R8, 64, 64,  1,  9, 63, 30, 4
+                '2d_r8_63_4', '', gl.R8, 64, 64, 1, 9, 63, 30, 4
             )
         );
         alignGroup.addChild(
             es3fTextureSpecificationTests.newTexSubImage2DAlignCaseInternal(
-                "2d_r8_63_8", "",    gl.R8, 64, 64,  1,  9, 63, 30, 8
+                '2d_r8_63_8', '', gl.R8, 64, 64, 1, 9, 63, 30, 8
             )
         );
         alignGroup.addChild(
             es3fTextureSpecificationTests.newTexSubImage2DAlignCaseInternal(
-                "2d_rgba4_51_1", "",    gl.RGBA4, 64, 64,  7, 29, 51, 30, 1
+                '2d_rgba4_51_1', '', gl.RGBA4, 64, 64, 7, 29, 51, 30, 1
             )
         );
         alignGroup.addChild(
             es3fTextureSpecificationTests.newTexSubImage2DAlignCaseInternal(
-                "2d_rgba4_51_2", "",    gl.RGBA4, 64, 64,  7, 29, 51, 30, 2
+                '2d_rgba4_51_2', '', gl.RGBA4, 64, 64, 7, 29, 51, 30, 2
             )
         );
         alignGroup.addChild(
             es3fTextureSpecificationTests.newTexSubImage2DAlignCaseInternal(
-                "2d_rgba4_51_4", "",    gl.RGBA4, 64, 64,  7, 29, 51, 30, 4
+                '2d_rgba4_51_4', '', gl.RGBA4, 64, 64, 7, 29, 51, 30, 4
             )
         );
         alignGroup.addChild(
             es3fTextureSpecificationTests.newTexSubImage2DAlignCaseInternal(
-                "2d_rgba4_51_8", "",    gl.RGBA4, 64, 64,  7, 29, 51, 30, 8
+                '2d_rgba4_51_8', '', gl.RGBA4, 64, 64, 7, 29, 51, 30, 8
             )
         );
         alignGroup.addChild(
             es3fTextureSpecificationTests.newTexSubImage2DAlignCaseInternal(
-                "2d_rgb8_39_1", "",    gl.RGB8, 64, 64, 11,  8, 39, 43, 1
+                '2d_rgb8_39_1', '', gl.RGB8, 64, 64, 11, 8, 39, 43, 1
             )
         );
         alignGroup.addChild(
             es3fTextureSpecificationTests.newTexSubImage2DAlignCaseInternal(
-                "2d_rgb8_39_2", "",    gl.RGB8, 64, 64, 11,  8, 39, 43, 2
+                '2d_rgb8_39_2', '', gl.RGB8, 64, 64, 11, 8, 39, 43, 2
             )
         );
         alignGroup.addChild(
             es3fTextureSpecificationTests.newTexSubImage2DAlignCaseInternal(
-                "2d_rgb8_39_4", "",    gl.RGB8, 64, 64, 11,  8, 39, 43, 4
+                '2d_rgb8_39_4', '', gl.RGB8, 64, 64, 11, 8, 39, 43, 4
             )
         );
         alignGroup.addChild(
             es3fTextureSpecificationTests.newTexSubImage2DAlignCaseInternal(
-                "2d_rgb8_39_8", "",    gl.RGB8, 64, 64, 11,  8, 39, 43, 8
+                '2d_rgb8_39_8', '', gl.RGB8, 64, 64, 11, 8, 39, 43, 8
             )
         );
         alignGroup.addChild(
             es3fTextureSpecificationTests.newTexSubImage2DAlignCaseInternal(
-                "2d_rgba8_47_1", "",    gl.RGBA8, 64, 64, 10,  1, 47, 27, 1
+                '2d_rgba8_47_1', '', gl.RGBA8, 64, 64, 10, 1, 47, 27, 1
             )
         );
         alignGroup.addChild(
             es3fTextureSpecificationTests.newTexSubImage2DAlignCaseInternal(
-                "2d_rgba8_47_2", "",    gl.RGBA8, 64, 64, 10,  1, 47, 27, 2
+                '2d_rgba8_47_2', '', gl.RGBA8, 64, 64, 10, 1, 47, 27, 2
             )
         );
         alignGroup.addChild(
             es3fTextureSpecificationTests.newTexSubImage2DAlignCaseInternal(
-                "2d_rgba8_47_4", "",    gl.RGBA8, 64, 64, 10,  1, 47, 27, 4
+                '2d_rgba8_47_4', '', gl.RGBA8, 64, 64, 10, 1, 47, 27, 4
             )
         );
         alignGroup.addChild(
             es3fTextureSpecificationTests.newTexSubImage2DAlignCaseInternal(
-                "2d_rgba8_47_8", "",    gl.RGBA8, 64, 64, 10,  1, 47, 27, 8
+                '2d_rgba8_47_8', '', gl.RGBA8, 64, 64, 10, 1, 47, 27, 8
             )
         );
 
         alignGroup.addChild(
             es3fTextureSpecificationTests.newTexSubImageCubeAlignCaseInternal(
-                "cube_r8_1_1", "",    gl.R8, 64, 13, 17,  1,  6, 1
+                'cube_r8_1_1', '', gl.R8, 64, 13, 17, 1, 6, 1
             )
         );
         alignGroup.addChild(
             es3fTextureSpecificationTests.newTexSubImageCubeAlignCaseInternal(
-                "cube_r8_1_2", "",    gl.R8, 64, 13, 17,  1,  6, 2
+                'cube_r8_1_2', '', gl.R8, 64, 13, 17, 1, 6, 2
             )
         );
         alignGroup.addChild(
             es3fTextureSpecificationTests.newTexSubImageCubeAlignCaseInternal(
-                "cube_r8_1_4", "",    gl.R8, 64, 13, 17,  1,  6, 4
+                'cube_r8_1_4', '', gl.R8, 64, 13, 17, 1, 6, 4
             )
         );
         alignGroup.addChild(
             es3fTextureSpecificationTests.newTexSubImageCubeAlignCaseInternal(
-                "cube_r8_1_8", "",    gl.R8, 64, 13, 17,  1,  6, 8
+                'cube_r8_1_8', '', gl.R8, 64, 13, 17, 1, 6, 8
             )
         );
         alignGroup.addChild(
             es3fTextureSpecificationTests.newTexSubImageCubeAlignCaseInternal(
-                "cube_r8_63_1", "",    gl.R8, 64,  1,  9, 63, 30, 1
+                'cube_r8_63_1', '', gl.R8, 64, 1, 9, 63, 30, 1
             )
         );
         alignGroup.addChild(
             es3fTextureSpecificationTests.newTexSubImageCubeAlignCaseInternal(
-                "cube_r8_63_2", "",    gl.R8, 64,  1,  9, 63, 30, 2
+                'cube_r8_63_2', '', gl.R8, 64, 1, 9, 63, 30, 2
             )
         );
         alignGroup.addChild(
             es3fTextureSpecificationTests.newTexSubImageCubeAlignCaseInternal(
-                "cube_r8_63_4", "",    gl.R8, 64,  1,  9, 63, 30, 4
+                'cube_r8_63_4', '', gl.R8, 64, 1, 9, 63, 30, 4
             )
         );
         alignGroup.addChild(
             es3fTextureSpecificationTests.newTexSubImageCubeAlignCaseInternal(
-                "cube_r8_63_8", "",    gl.R8, 64,  1,  9, 63, 30, 8
+                'cube_r8_63_8', '', gl.R8, 64, 1, 9, 63, 30, 8
             )
         );
         alignGroup.addChild(
             es3fTextureSpecificationTests.newTexSubImageCubeAlignCaseInternal(
-                "cube_rgba4_51_1", "",    gl.RGBA4, 64,  7, 29, 51, 30, 1
+                'cube_rgba4_51_1', '', gl.RGBA4, 64, 7, 29, 51, 30, 1
             )
         );
         alignGroup.addChild(
             es3fTextureSpecificationTests.newTexSubImageCubeAlignCaseInternal(
-                "cube_rgba4_51_2", "",    gl.RGBA4, 64,  7, 29, 51, 30, 2
+                'cube_rgba4_51_2', '', gl.RGBA4, 64, 7, 29, 51, 30, 2
             )
         );
         alignGroup.addChild(
             es3fTextureSpecificationTests.newTexSubImageCubeAlignCaseInternal(
-                "cube_rgba4_51_4", "",    gl.RGBA4, 64,  7, 29, 51, 30, 4
+                'cube_rgba4_51_4', '', gl.RGBA4, 64, 7, 29, 51, 30, 4
             )
         );
         alignGroup.addChild(
             es3fTextureSpecificationTests.newTexSubImageCubeAlignCaseInternal(
-                "cube_rgba4_51_8", "",    gl.RGBA4, 64,  7, 29, 51, 30, 8
+                'cube_rgba4_51_8', '', gl.RGBA4, 64, 7, 29, 51, 30, 8
             )
         );
         alignGroup.addChild(
             es3fTextureSpecificationTests.newTexSubImageCubeAlignCaseInternal(
-                "cube_rgb8_39_1", "",    gl.RGB8, 64, 11,  8, 39, 43, 1
+                'cube_rgb8_39_1', '', gl.RGB8, 64, 11, 8, 39, 43, 1
             )
         );
         alignGroup.addChild(
             es3fTextureSpecificationTests.newTexSubImageCubeAlignCaseInternal(
-                "cube_rgb8_39_2", "",    gl.RGB8, 64, 11,  8, 39, 43, 2
+                'cube_rgb8_39_2', '', gl.RGB8, 64, 11, 8, 39, 43, 2
             )
         );
         alignGroup.addChild(
             es3fTextureSpecificationTests.newTexSubImageCubeAlignCaseInternal(
-                "cube_rgb8_39_4", "",    gl.RGB8, 64, 11,  8, 39, 43, 4
+                'cube_rgb8_39_4', '', gl.RGB8, 64, 11, 8, 39, 43, 4
             )
         );
         alignGroup.addChild(
             es3fTextureSpecificationTests.newTexSubImageCubeAlignCaseInternal(
-                "cube_rgb8_39_8", "",    gl.RGB8, 64, 11,  8, 39, 43, 8
+                'cube_rgb8_39_8', '', gl.RGB8, 64, 11, 8, 39, 43, 8
             )
         );
         alignGroup.addChild(
             es3fTextureSpecificationTests.newTexSubImageCubeAlignCaseInternal(
-                "cube_rgba8_47_1", "",    gl.RGBA8, 64, 10,  1, 47, 27, 1
+                'cube_rgba8_47_1', '', gl.RGBA8, 64, 10, 1, 47, 27, 1
             )
         );
         alignGroup.addChild(
             es3fTextureSpecificationTests.newTexSubImageCubeAlignCaseInternal(
-                "cube_rgba8_47_2", "",    gl.RGBA8, 64, 10,  1, 47, 27, 2
+                'cube_rgba8_47_2', '', gl.RGBA8, 64, 10, 1, 47, 27, 2
             )
         );
         alignGroup.addChild(
             es3fTextureSpecificationTests.newTexSubImageCubeAlignCaseInternal(
-                "cube_rgba8_47_4", "",    gl.RGBA8, 64, 10,  1, 47, 27, 4
+                'cube_rgba8_47_4', '', gl.RGBA8, 64, 10, 1, 47, 27, 4
             )
         );
         alignGroup.addChild(
             es3fTextureSpecificationTests.newTexSubImageCubeAlignCaseInternal(
-                "cube_rgba8_47_8", "",    gl.RGBA8, 64, 10,  1, 47, 27, 8
+                'cube_rgba8_47_8', '', gl.RGBA8, 64, 10, 1, 47, 27, 8
             )
         );
 
         // glTexSubImage2D() pixel transfer mode cases.
         /** @type {tcuTestCase.DeqpTest} */
         var paramGroup = new tcuTestCase.DeqpTest(
-            "texsubimage2d_unpack_params",
-            "glTexSubImage2D() pixel transfer mode cases"
+            'texsubimage2d_unpack_params',
+            'glTexSubImage2D() pixel transfer mode cases'
         );
         this.addChild(paramGroup);
 
@@ -6230,56 +6133,56 @@ goog.scope(function() {
          * subH: number, rowLength: number, skipRows: number,
          * skipPixels: number, alignment: number}>}
          */
-        cases = [ {
-                name: "rgb8_alignment", format: gl.RGB8, width: 54,
+        cases = [{
+                name: 'rgb8_alignment', format: gl.RGB8, width: 54,
                 height: 60, subX: 11, subY: 7, subW: 31, subH: 30,
                 rowLength: 0, skipRows: 0, skipPixels: 0, alignment: 2
             }, {
-                name: "rgb8_row_length", format: gl.RGB8, width: 54,
+                name: 'rgb8_row_length', format: gl.RGB8, width: 54,
                 height: 60, subX: 11, subY: 7, subW: 31, subH: 30,
                 rowLength: 50, skipRows: 0, skipPixels: 0, alignment: 4
             }, {
-                name: "rgb8_skip_rows", format: gl.RGB8, width: 54,
+                name: 'rgb8_skip_rows', format: gl.RGB8, width: 54,
                 height: 60, subX: 11, subY: 7, subW: 31, subH: 30,
                 rowLength: 0, skipRows: 3, skipPixels: 0, alignment: 4
             }, {
-                name: "rgb8_skip_pixels", format: gl.RGB8, width: 54,
+                name: 'rgb8_skip_pixels', format: gl.RGB8, width: 54,
                 height: 60, subX: 11, subY: 7, subW: 31, subH: 30,
                 rowLength: 36, skipRows: 0, skipPixels: 5, alignment: 4
             }, {
-                name: "r8_complex1", format: gl.R8, width: 54,
+                name: 'r8_complex1', format: gl.R8, width: 54,
                 height: 60, subX: 11, subY: 7, subW: 31, subH: 30,
                 rowLength: 64, skipRows: 1, skipPixels: 3, alignment: 1
             }, {
-                name: "r8_complex2", format: gl.R8, width: 54,
+                name: 'r8_complex2', format: gl.R8, width: 54,
                 height: 60, subX: 11, subY: 7, subW: 31, subH: 30,
                 rowLength: 64, skipRows: 1, skipPixels: 3, alignment: 2
             }, {
-                name: "r8_complex3", format: gl.R8, width: 54,
+                name: 'r8_complex3', format: gl.R8, width: 54,
                 height: 60, subX: 11, subY: 7, subW: 31, subH: 30,
                 rowLength: 64, skipRows: 1, skipPixels: 3, alignment: 4
             }, {
-                name: "r8_complex4", format: gl.R8, width: 54,
+                name: 'r8_complex4', format: gl.R8, width: 54,
                 height: 60, subX: 11, subY: 7, subW: 31, subH: 30,
                 rowLength: 64, skipRows: 1, skipPixels: 3, alignment: 8
             }, {
-                name: "rgba8_complex1", format: gl.RGBA8, width: 92,
+                name: 'rgba8_complex1', format: gl.RGBA8, width: 92,
                 height: 84, subX: 13, subY: 19, subW: 56, subH: 61,
                 rowLength: 69, skipRows: 0, skipPixels: 0, alignment: 8
             }, {
-                name: "rgba8_complex2", format: gl.RGBA8, width: 92,
+                name: 'rgba8_complex2', format: gl.RGBA8, width: 92,
                 height: 84, subX: 13, subY: 19, subW: 56, subH: 61,
                 rowLength: 69, skipRows: 0, skipPixels: 7, alignment: 8
             }, {
-                name: "rgba8_complex3", format: gl.RGBA8, width: 92,
+                name: 'rgba8_complex3', format: gl.RGBA8, width: 92,
                 height: 84, subX: 13, subY: 19, subW: 56, subH: 61,
                 rowLength: 69, skipRows: 3, skipPixels: 0, alignment: 8
             }, {
-                name: "rgba8_complex4", format: gl.RGBA8, width: 92,
+                name: 'rgba8_complex4', format: gl.RGBA8, width: 92,
                 height: 84, subX: 13, subY: 19, subW: 56, subH: 61,
                 rowLength: 69, skipRows: 3, skipPixels: 7, alignment: 8
             }, {
-                name: "rgba32f_complex", format: gl.RGBA32F, width: 92,
+                name: 'rgba32f_complex', format: gl.RGBA32F, width: 92,
                 height: 84, subX: 13, subY: 19, subW: 56, subH: 61,
                 rowLength: 69, skipRows: 3, skipPixels: 7, alignment: 8
             }
@@ -6288,7 +6191,7 @@ goog.scope(function() {
         for (var ndx = 0; ndx < cases.length; ndx++)
             paramGroup.addChild(
                 new es3fTextureSpecificationTests.TexSubImage2DParamsCase(
-                    cases[ndx].name, "", cases[ndx].format, cases[ndx].width,
+                    cases[ndx].name, '', cases[ndx].format, cases[ndx].width,
                     cases[ndx].height, cases[ndx].subX, cases[ndx].subY,
                     cases[ndx].subW, cases[ndx].subH, cases[ndx].rowLength,
                     cases[ndx].skipRows, cases[ndx].skipPixels,
@@ -6299,87 +6202,84 @@ goog.scope(function() {
         // glTexSubImage2D() PBO cases.
         /** @type {tcuTestCase.DeqpTest} */
         var pboGroup = new tcuTestCase.DeqpTest(
-            "texsubimage2d_pbo",
-            "glTexSubImage2D() pixel buffer object tests"
+            'texsubimage2d_pbo',
+            'glTexSubImage2D() pixel buffer object tests'
         );
         this.addChild(pboGroup);
 
-        /** @type{Array<{name: string, format: number, width: number,
+        /** @type {Array<{name: string, format: number, width: number,
          * height: number, subX: number, subY: number,
          * subW: number, subH: number, rowLength: number, skipRows: number,
          * skipPixels: number, alignment: number, offset: number}>}
          */
-        var paramCases = [
-            {
-                name: "rgb8_offset", format: gl.RGB8, width: 54,
+        var paramCases = [{
+                name: 'rgb8_offset', format: gl.RGB8, width: 54,
                 height: 60, subX: 11, subY: 7, subW: 31, subH: 30,
                 rowLength: 0, skipRows: 0, skipPixels: 0,
                 alignment: 4, offset: 67
             }, {
-                name: "rgb8_alignment", format: gl.RGB8, width: 54,
+                name: 'rgb8_alignment', format: gl.RGB8, width: 54,
                 height: 60, subX: 11, subY: 7, subW: 31, subH: 30,
                 rowLength: 0, skipRows: 0, skipPixels: 0,
                 alignment: 2, offset: 0
             }, {
-                name: "rgb8_row_length", format: gl.RGB8, width: 54,
+                name: 'rgb8_row_length', format: gl.RGB8, width: 54,
                 height: 60, subX: 11, subY: 7, subW: 31, subH: 30,
                 rowLength: 50, skipRows: 0, skipPixels: 0,
                 alignment: 4, offset: 0
             }, {
-                name: "rgb8_skip_rows", format: gl.RGB8, width: 54,
+                name: 'rgb8_skip_rows', format: gl.RGB8, width: 54,
                 height: 60, subX: 11, subY: 7, subW: 31, subH: 30,
                 rowLength: 0, skipRows: 3, skipPixels: 0,
                 alignment: 4, offset: 0
             }, {
-                name: "rgb8_skip_pixels", format: gl.RGB8, width: 54,
+                name: 'rgb8_skip_pixels', format: gl.RGB8, width: 54,
                 height: 60, subX: 11, subY: 7, subW: 31, subH: 30,
                 rowLength: 36, skipRows: 0, skipPixels: 5,
                 alignment: 4, offset: 0
             }
         ];
 
-        for (var ndx = 0; ndx < colorFormats.length; ndx++)
-        {
+        for (var ndx = 0; ndx < colorFormats.length; ndx++) {
             pboGroup.addChild(
                 new es3fTextureSpecificationTests.TexSubImage2DBufferCase(
-                    colorFormats[ndx].name + "_2d", "",
+                    colorFormats[ndx].name + '_2d', '',
                     colorFormats[ndx].internalFormat,
-                    54,    // Width
-                    60,    // Height
-                    11,    // Sub X
-                    7,    // Sub Y
-                    31,    // Sub W
-                    30,    // Sub H
-                    0,    // Row len
-                    0,    // Skip rows
-                    0,    // Skip pixels
-                    4,    // Alignment
-                    0    /* offset */
+                    54, // Width
+                    60, // Height
+                    11, // Sub X
+                    7, // Sub Y
+                    31, // Sub W
+                    30, // Sub H
+                    0, // Row len
+                    0, // Skip rows
+                    0, // Skip pixels
+                    4, // Alignment
+                    0 /* offset */
                 )
             );
             pboGroup.addChild(
                 new es3fTextureSpecificationTests.TexSubImageCubeBufferCase(
-                    colorFormats[ndx].name + "_cube", "",
+                    colorFormats[ndx].name + '_cube', '',
                     colorFormats[ndx].internalFormat,
-                    64,    // Size
-                    11,    // Sub X
-                    7,    // Sub Y
-                    31,    // Sub W
-                    30,    // Sub H
-                    0,    // Row len
-                    0,    // Skip rows
-                    0,    // Skip pixels
-                    4,    // Alignment
-                    0    /* offset */
+                    64, // Size
+                    11, // Sub X
+                    7, // Sub Y
+                    31, // Sub W
+                    30, // Sub H
+                    0, // Row len
+                    0, // Skip rows
+                    0, // Skip pixels
+                    4, // Alignment
+                    0 /* offset */
                 )
             );
         }
 
-        for (var ndx = 0; ndx < paramCases.length; ndx++)
-        {
+        for (var ndx = 0; ndx < paramCases.length; ndx++) {
             pboGroup.addChild(
                 new es3fTextureSpecificationTests.TexSubImage2DBufferCase(
-                    paramCases[ndx].name + "_2d", "",
+                    paramCases[ndx].name + '_2d', '',
                     paramCases[ndx].format,
                     paramCases[ndx].width,
                     paramCases[ndx].height,
@@ -6394,7 +6294,7 @@ goog.scope(function() {
                     paramCases[ndx].offset));
             pboGroup.addChild(
                 new es3fTextureSpecificationTests.TexSubImageCubeBufferCase(
-                    paramCases[ndx].name + "_cube", "",
+                    paramCases[ndx].name + '_cube', '',
                     paramCases[ndx].format,
                     paramCases[ndx].width,
                     paramCases[ndx].subX,
@@ -6413,19 +6313,18 @@ goog.scope(function() {
         // glTexSubImage2D() depth cases.
         /** @type {tcuTestCase.DeqpTest} */
         var shadow2dGroup = new tcuTestCase.DeqpTest(
-            "texsubimage2d_depth",
-            "glTexSubImage2D() with depth or depth/stencil format"
+            'texsubimage2d_depth',
+            'glTexSubImage2D() with depth or depth/stencil format'
         );
         this.addChild(shadow2dGroup);
 
-        for (var ndx = 0; ndx < depthStencilFormats.length; ndx++)
-        {
-            tex2DWidth    = 64;
-            tex2DHeight    = 32;
+        for (var ndx = 0; ndx < depthStencilFormats.length; ndx++) {
+            tex2DWidth = 64;
+            tex2DHeight = 32;
 
             shadow2dGroup.addChild(
                 new es3fTextureSpecificationTests.TexSubImage2DDepthCase(
-                    depthStencilFormats[ndx].name, "",
+                    depthStencilFormats[ndx].name, '',
                     depthStencilFormats[ndx].internalFormat,
                     tex2DWidth, tex2DHeight
                 )
@@ -6435,147 +6334,146 @@ goog.scope(function() {
         // Basic glCopyTexImage2D() cases
         /** @type {tcuTestCase.DeqpTest} */
         var copyTexImageGroup = new tcuTestCase.DeqpTest(
-            "basic_copyteximage2d", "Basic glCopyTexImage2D() usage"
+            'basic_copyteximage2d', 'Basic glCopyTexImage2D() usage'
         );
         this.addChild(copyTexImageGroup);
 
         copyTexImageGroup.addChild(
             new es3fTextureSpecificationTests.BasicCopyTexImage2DCase(
-                "2d_alpha", "",    gl.ALPHA,            128, 64
+                '2d_alpha', '', gl.ALPHA, 128, 64
             )
         );
         copyTexImageGroup.addChild(
             new es3fTextureSpecificationTests.BasicCopyTexImage2DCase(
-                "2d_luminance", "",    gl.LUMINANCE,        128, 64
+                '2d_luminance', '', gl.LUMINANCE, 128, 64
             )
         );
         copyTexImageGroup.addChild(
             new es3fTextureSpecificationTests.BasicCopyTexImage2DCase(
-                "2d_luminance_alpha", "",    gl.LUMINANCE_ALPHA,    128, 64
+                '2d_luminance_alpha', '', gl.LUMINANCE_ALPHA, 128, 64
             )
         );
         copyTexImageGroup.addChild(
             new es3fTextureSpecificationTests.BasicCopyTexImage2DCase(
-                "2d_rgb", "",    gl.RGB,                128, 64
+                '2d_rgb', '', gl.RGB, 128, 64
             )
         );
         copyTexImageGroup.addChild(
             new es3fTextureSpecificationTests.BasicCopyTexImage2DCase(
-                "2d_rgba", "",    gl.RGBA,            128, 64
+                '2d_rgba', '', gl.RGBA, 128, 64
             )
         );
 
         copyTexImageGroup.addChild(
             new es3fTextureSpecificationTests.BasicCopyTexImageCubeCase(
-                "cube_alpha", "",    gl.ALPHA,            64
+                'cube_alpha', '', gl.ALPHA, 64
             )
         );
         copyTexImageGroup.addChild(
             new es3fTextureSpecificationTests.BasicCopyTexImageCubeCase(
-                "cube_luminance", "",    gl.LUMINANCE,        64
+                'cube_luminance', '', gl.LUMINANCE, 64
             )
         );
         copyTexImageGroup.addChild(
             new es3fTextureSpecificationTests.BasicCopyTexImageCubeCase(
-                "cube_luminance_alpha", "",    gl.LUMINANCE_ALPHA,    64
+                'cube_luminance_alpha', '', gl.LUMINANCE_ALPHA, 64
             )
         );
         copyTexImageGroup.addChild(
             new es3fTextureSpecificationTests.BasicCopyTexImageCubeCase(
-                "cube_rgb", "",    gl.RGB,                64
+                'cube_rgb', '', gl.RGB, 64
             )
         );
         copyTexImageGroup.addChild(
             new es3fTextureSpecificationTests.BasicCopyTexImageCubeCase(
-                "cube_rgba", "",    gl.RGBA,            64
+                'cube_rgba', '', gl.RGBA, 64
             )
         );
 
         // Basic glCopyTexSubImage2D() cases
         /** @type {tcuTestCase.DeqpTest} */
         var copyTexSubImageGroup = new tcuTestCase.DeqpTest(
-            "basic_copytexsubimage2d", "Basic glCopyTexSubImage2D() usage"
+            'basic_copytexsubimage2d', 'Basic glCopyTexSubImage2D() usage'
         );
         this.addChild(copyTexSubImageGroup);
 
         copyTexSubImageGroup.addChild(
             new es3fTextureSpecificationTests.BasicCopyTexSubImage2DCase(
-                "2d_alpha", "",    gl.ALPHA,            gl.UNSIGNED_BYTE, 128, 64
+                '2d_alpha', '', gl.ALPHA, gl.UNSIGNED_BYTE, 128, 64
             )
         );
         copyTexSubImageGroup.addChild(
             new es3fTextureSpecificationTests.BasicCopyTexSubImage2DCase(
-                "2d_luminance", "",    gl.LUMINANCE,        gl.UNSIGNED_BYTE, 128, 64
+                '2d_luminance', '', gl.LUMINANCE, gl.UNSIGNED_BYTE, 128, 64
             )
         );
         copyTexSubImageGroup.addChild(
             new es3fTextureSpecificationTests.BasicCopyTexSubImage2DCase(
-                "2d_luminance_alpha", "",    gl.LUMINANCE_ALPHA,    gl.UNSIGNED_BYTE, 128, 64
+                '2d_luminance_alpha', '', gl.LUMINANCE_ALPHA, gl.UNSIGNED_BYTE, 128, 64
             )
         );
         copyTexSubImageGroup.addChild(
             new es3fTextureSpecificationTests.BasicCopyTexSubImage2DCase(
-                "2d_rgb", "",    gl.RGB,                gl.UNSIGNED_BYTE, 128, 64
+                '2d_rgb', '', gl.RGB, gl.UNSIGNED_BYTE, 128, 64
             )
         );
         copyTexSubImageGroup.addChild(
             new es3fTextureSpecificationTests.BasicCopyTexSubImage2DCase(
-                "2d_rgba", "",    gl.RGBA,            gl.UNSIGNED_BYTE, 128, 64
+                '2d_rgba', '', gl.RGBA, gl.UNSIGNED_BYTE, 128, 64
             )
         );
 
         copyTexSubImageGroup.addChild(
             new es3fTextureSpecificationTests.BasicCopyTexSubImageCubeCase(
-                "cube_alpha", "",    gl.ALPHA,            gl.UNSIGNED_BYTE, 64
+                'cube_alpha', '', gl.ALPHA, gl.UNSIGNED_BYTE, 64
             )
         );
         copyTexSubImageGroup.addChild(
             new es3fTextureSpecificationTests.BasicCopyTexSubImageCubeCase(
-                "cube_luminance", "",    gl.LUMINANCE,        gl.UNSIGNED_BYTE, 64
+                'cube_luminance', '', gl.LUMINANCE, gl.UNSIGNED_BYTE, 64
             )
         );
         copyTexSubImageGroup.addChild(
             new es3fTextureSpecificationTests.BasicCopyTexSubImageCubeCase(
-                "cube_luminance_alpha", "",    gl.LUMINANCE_ALPHA,    gl.UNSIGNED_BYTE, 64
+                'cube_luminance_alpha', '', gl.LUMINANCE_ALPHA, gl.UNSIGNED_BYTE, 64
             )
         );
         copyTexSubImageGroup.addChild(
             new es3fTextureSpecificationTests.BasicCopyTexSubImageCubeCase(
-                "cube_rgb", "",    gl.RGB,                gl.UNSIGNED_BYTE, 64
+                'cube_rgb', '', gl.RGB, gl.UNSIGNED_BYTE, 64
             )
         );
         copyTexSubImageGroup.addChild(
             new es3fTextureSpecificationTests.BasicCopyTexSubImageCubeCase(
-                "cube_rgba", "",    gl.RGBA,            gl.UNSIGNED_BYTE, 64
+                'cube_rgba', '', gl.RGBA, gl.UNSIGNED_BYTE, 64
             )
         );
 
         // Basic TexImage3D usage.
         /** @type {tcuTestCase.DeqpTest} */
         var basicTexImageGroup = new tcuTestCase.DeqpTest(
-            "basic_teximage3d", "Basic glTexImage3D() usage"
+            'basic_teximage3d', 'Basic glTexImage3D() usage'
         );
         this.addChild(basicTexImageGroup);
-        for (var formatNdx = 0; formatNdx < colorFormats.length; formatNdx++)
-        {
-            fmtName                = colorFormats[formatNdx].name;
-            format                = colorFormats[formatNdx].internalFormat;
-            /** @type {number} */ var tex2DArrayWidth        = 57;
-            /** @type {number} */ var tex2DArrayHeight    = 44;
-            /** @type {number} */ var tex2DArrayLevels    = 5;
-            /** @type {number} */ var tex3DWidth            = 63;
-            /** @type {number} */ var tex3DHeight            = 29;
-            /** @type {number} */ var tex3DDepth            = 11;
+        for (var formatNdx = 0; formatNdx < colorFormats.length; formatNdx++) {
+            fmtName = colorFormats[formatNdx].name;
+            format = colorFormats[formatNdx].internalFormat;
+            /** @type {number} */ var tex2DArrayWidth = 57;
+            /** @type {number} */ var tex2DArrayHeight = 44;
+            /** @type {number} */ var tex2DArrayLevels = 5;
+            /** @type {number} */ var tex3DWidth = 63;
+            /** @type {number} */ var tex3DHeight = 29;
+            /** @type {number} */ var tex3DDepth = 11;
 
             basicTexImageGroup.addChild(
                 new es3fTextureSpecificationTests.BasicTexImage2DArrayCase(
-                    fmtName + "_2d_array", "", format,
+                    fmtName + '_2d_array', '', format,
                     tex2DArrayWidth, tex2DArrayHeight, tex2DArrayLevels
                 )
             );
             basicTexImageGroup.addChild(
                 new es3fTextureSpecificationTests.BasicTexImage3DCase(
-                    fmtName + "_3d", "", format,
+                    fmtName + '_3d', '', format,
                     tex3DWidth, tex3DHeight, tex3DDepth
                 )
             );
@@ -6584,7 +6482,7 @@ goog.scope(function() {
         // glTexImage3D() unpack params cases.
         /** @type {tcuTestCase.DeqpTest} */
         var paramGroup = new tcuTestCase.DeqpTest(
-            "teximage3d_unpack_params", "glTexImage3D() unpack parameters"
+            'teximage3d_unpack_params', 'glTexImage3D() unpack parameters'
         );
         this.addChild(paramGroup);
 
@@ -6594,61 +6492,60 @@ goog.scope(function() {
          * skipImages:number, skipRows:number, skipPixels: number,
          * alignment:number}>}
          */
-        var cases = [
-            {
-                name: "rgb8_image_height", format: gl.RGB8, width: 23,
+        var cases = [{
+                name: 'rgb8_image_height', format: gl.RGB8, width: 23,
                 height: 19, depth: 8, imageHeight: 26, rowLength: 0,
                 skipImages: 0, skipRows: 0, skipPixels: 0, alignment: 4
             }, {
-                name: "rgb8_row_length", format: gl.RGB8, width: 23,
+                name: 'rgb8_row_length', format: gl.RGB8, width: 23,
                 height: 19, depth: 8, imageHeight: 0, rowLength: 27,
                 skipImages: 0, skipRows: 0, skipPixels: 0, alignment: 4
             }, {
-                name: "rgb8_skip_images", format: gl.RGB8, width: 23,
+                name: 'rgb8_skip_images', format: gl.RGB8, width: 23,
                 height: 19, depth: 8, imageHeight: 0, rowLength: 0,
                 skipImages: 3, skipRows: 0, skipPixels: 0, alignment: 4
             }, {
-                name: "rgb8_skip_rows", format: gl.RGB8, width: 23,
+                name: 'rgb8_skip_rows', format: gl.RGB8, width: 23,
                 height: 19, depth: 8, imageHeight: 22, rowLength: 0,
                 skipImages: 0, skipRows: 3, skipPixels: 0, alignment: 4
             }, {
-                name: "rgb8_skip_pixels", format: gl.RGB8, width: 23,
+                name: 'rgb8_skip_pixels', format: gl.RGB8, width: 23,
                 height: 19, depth: 8, imageHeight: 0, rowLength: 25,
                 skipImages: 0, skipRows: 0, skipPixels: 2, alignment: 4
             }, {
-                name: "r8_complex1", format: gl.R8, width: 13,
+                name: 'r8_complex1', format: gl.R8, width: 13,
                 height: 17, depth: 11, imageHeight: 23, rowLength: 15,
                 skipImages: 2, skipRows: 3, skipPixels: 1, alignment: 1
             }, {
-                name: "r8_complex2", format: gl.R8, width: 13,
+                name: 'r8_complex2', format: gl.R8, width: 13,
                 height: 17, depth: 11, imageHeight: 23, rowLength: 15,
                 skipImages: 2, skipRows: 3, skipPixels: 1, alignment: 2
             }, {
-                name: "r8_complex3", format: gl.R8, width: 13,
+                name: 'r8_complex3', format: gl.R8, width: 13,
                 height: 17, depth: 11, imageHeight: 23, rowLength: 15,
                 skipImages: 2, skipRows: 3, skipPixels: 1, alignment: 4
             }, {
-                name: "r8_complex4", format: gl.R8, width: 13,
+                name: 'r8_complex4', format: gl.R8, width: 13,
                 height: 17, depth: 11, imageHeight: 23, rowLength: 15,
                 skipImages: 2, skipRows: 3, skipPixels: 1, alignment: 8
             }, {
-                name: "rgba8_complex1", format: gl.RGBA8, width: 11,
+                name: 'rgba8_complex1', format: gl.RGBA8, width: 11,
                 height: 20, depth: 8, imageHeight: 25, rowLength: 14,
                 skipImages: 0, skipRows: 0, skipPixels: 0, alignment: 8
             }, {
-                name: "rgba8_complex2", format: gl.RGBA8, width: 11,
+                name: 'rgba8_complex2', format: gl.RGBA8, width: 11,
                 height: 20, depth: 8, imageHeight: 25, rowLength: 14,
                 skipImages: 0, skipRows: 2, skipPixels: 0, alignment: 8
             }, {
-                name: "rgba8_complex3", format: gl.RGBA8, width: 11,
+                name: 'rgba8_complex3', format: gl.RGBA8, width: 11,
                 height: 20, depth: 8, imageHeight: 25, rowLength: 14,
                 skipImages: 0, skipRows: 0, skipPixels: 3, alignment: 8
             }, {
-                name: "rgba8_complex4", format: gl.RGBA8, width: 11,
+                name: 'rgba8_complex4', format: gl.RGBA8, width: 11,
                 height: 20, depth: 8, imageHeight: 25, rowLength: 14,
                 skipImages: 0, skipRows: 2, skipPixels: 3, alignment: 8
             }, {
-                name: "rgba32f_complex", format: gl.RGBA32F, width: 11,
+                name: 'rgba32f_complex', format: gl.RGBA32F, width: 11,
                 height: 20, depth: 8, imageHeight: 25, rowLength: 14,
                 skipImages: 0, skipRows: 2, skipPixels: 3, alignment: 8
              }
@@ -6657,7 +6554,7 @@ goog.scope(function() {
         for (var ndx = 0; ndx < cases.length; ndx++)
             paramGroup.addChild(
                 new es3fTextureSpecificationTests.TexImage3DParamsCase(
-                    cases[ndx].name, "", cases[ndx].format, cases[ndx].width,
+                    cases[ndx].name, '', cases[ndx].format, cases[ndx].width,
                     cases[ndx].height, cases[ndx].depth, cases[ndx].imageHeight,
                     cases[ndx].rowLength, cases[ndx].skipImages,
                     cases[ndx].skipRows, cases[ndx].skipPixels,
@@ -6668,7 +6565,7 @@ goog.scope(function() {
         // glTexImage3D() pbo cases.
         /** @type {tcuTestCase.DeqpTest} */
         var pboGroup = new tcuTestCase.DeqpTest(
-            "teximage3d_pbo", "glTexImage3D() from PBO"
+            'teximage3d_pbo', 'glTexImage3D() from PBO'
         );
         this.addChild(pboGroup);
 
@@ -6678,47 +6575,45 @@ goog.scope(function() {
          * rowLength: number, skipImages: number, skipRows: number,
          * skipPixels: number, alignment: number, offset: number}>}
          */
-        var parameterCases = [
-            {
-                name: "rgb8_offset", format: gl.RGB8, width: 23,
+        var parameterCases = [{
+                name: 'rgb8_offset', format: gl.RGB8, width: 23,
                 height: 19, depth: 8, imageHeight: 0, rowLength: 0,
                 skipImages: 0, skipRows: 0, skipPixels: 0, alignment: 1,
                 offset: 67
             }, {
-                name: "rgb8_alignment", format: gl.RGB8, width: 23,
+                name: 'rgb8_alignment', format: gl.RGB8, width: 23,
                 height: 19, depth: 8, imageHeight: 0, rowLength: 0,
                 skipImages: 0, skipRows: 0, skipPixels: 0, alignment: 2,
                 offset: 0
             }, {
-                name: "rgb8_image_height", format: gl.RGB8, width: 23,
+                name: 'rgb8_image_height', format: gl.RGB8, width: 23,
                 height: 19, depth: 8, imageHeight: 26, rowLength: 0,
                 skipImages: 0, skipRows: 0, skipPixels: 0, alignment: 4,
                 offset: 0
             }, {
-                name: "rgb8_row_length", format: gl.RGB8, width: 23,
+                name: 'rgb8_row_length', format: gl.RGB8, width: 23,
                 height: 19, depth: 8, imageHeight: 0, rowLength: 27,
                 skipImages: 0, skipRows: 0, skipPixels: 0, alignment: 4,
                 offset: 0
             }, {
-                name: "rgb8_skip_images", format: gl.RGB8, width: 23,
+                name: 'rgb8_skip_images', format: gl.RGB8, width: 23,
                 height: 19, depth: 8, imageHeight: 0, rowLength: 0,
                 skipImages: 3, skipRows: 0, skipPixels: 0, alignment: 4,
                 offset: 0
             }, {
-                name: "rgb8_skip_rows", format: gl.RGB8, width: 23,
+                name: 'rgb8_skip_rows', format: gl.RGB8, width: 23,
                 height: 19, depth: 8, imageHeight: 22, rowLength: 0,
                 skipImages: 0, skipRows: 3, skipPixels: 0, alignment: 4,
                 offset: 0
             }, {
-                name: "rgb8_skip_pixels", format: gl.RGB8, width: 23,
+                name: 'rgb8_skip_pixels', format: gl.RGB8, width: 23,
                 height: 19, depth: 8, imageHeight: 0, rowLength: 25,
                 skipImages: 0, skipRows: 0, skipPixels: 2, alignment: 4,
                 offset: 0
             }
         ];
 
-        for (var formatNdx = 0; formatNdx < colorFormats.length; formatNdx++)
-        {
+        for (var formatNdx = 0; formatNdx < colorFormats.length; formatNdx++) {
             fmtName = colorFormats[formatNdx].name;
             format = colorFormats[formatNdx].internalFormat;
             tex3DWidth = 11;
@@ -6727,23 +6622,22 @@ goog.scope(function() {
 
             pboGroup.addChild(
                 new es3fTextureSpecificationTests.TexImage2DArrayBufferCase(
-                    fmtName + "_2d_array", "", format, tex3DWidth, tex3DHeight,
+                    fmtName + '_2d_array', '', format, tex3DWidth, tex3DHeight,
                     tex3DDepth, 0, 0, 0, 0, 0, 4, 0
                 )
             );
             pboGroup.addChild(
                 new es3fTextureSpecificationTests.TexImage3DBufferCase(
-                    fmtName + "_3d", "", format, tex3DWidth, tex3DHeight,
+                    fmtName + '_3d', '', format, tex3DWidth, tex3DHeight,
                     tex3DDepth, 0, 0, 0, 0, 0, 4, 0
                 )
             );
         }
 
-        for (var ndx = 0; ndx < parameterCases.length; ndx++)
-        {
+        for (var ndx = 0; ndx < parameterCases.length; ndx++) {
             pboGroup.addChild(
                 new es3fTextureSpecificationTests.TexImage2DArrayBufferCase(
-                    parameterCases[ndx].name + "_2d_array", "",
+                    parameterCases[ndx].name + '_2d_array', '',
                     parameterCases[ndx].format, parameterCases[ndx].width,
                     parameterCases[ndx].depth, parameterCases[ndx].height,
                     parameterCases[ndx].imageHeight,
@@ -6756,7 +6650,7 @@ goog.scope(function() {
             );
             pboGroup.addChild(
                 new es3fTextureSpecificationTests.TexImage3DBufferCase(
-                    parameterCases[ndx].name + "_3d", "",
+                    parameterCases[ndx].name + '_3d', '',
                     parameterCases[ndx].format, parameterCases[ndx].width,
                     parameterCases[ndx].depth, parameterCases[ndx].height,
                     parameterCases[ndx].imageHeight,
@@ -6772,20 +6666,19 @@ goog.scope(function() {
         // glTexImage3D() depth cases.
         /** @type {tcuTestCase.DeqpTest} */
         var shadow3dGroup = new tcuTestCase.DeqpTest(
-            "teximage3d_depth",
-            "glTexImage3D() with depth or depth/stencil format"
+            'teximage3d_depth',
+            'glTexImage3D() with depth or depth/stencil format'
         );
         this.addChild(shadow3dGroup);
 
-        for (var ndx = 0; ndx < depthStencilFormats.length; ndx++)
-        {
+        for (var ndx = 0; ndx < depthStencilFormats.length; ndx++) {
             tex3DWidth = 32;
             tex3DHeight = 64;
             tex3DDepth = 8;
 
             shadow3dGroup.addChild(
                 new es3fTextureSpecificationTests.TexImage2DArrayDepthCase(
-                    depthStencilFormats[ndx].name + "_2d_array", "",
+                    depthStencilFormats[ndx].name + '_2d_array', '',
                     depthStencilFormats[ndx].internalFormat,
                     tex3DWidth, tex3DHeight, tex3DDepth
                 )
@@ -6794,20 +6687,19 @@ goog.scope(function() {
 
         // glTexImage3D() depth cases with pbo.
         shadow3dGroup = new tcuTestCase.DeqpTest(
-            "teximage3d_depth_pbo",
-            "glTexImage3D() with depth or depth/stencil format with pbo"
+            'teximage3d_depth_pbo',
+            'glTexImage3D() with depth or depth/stencil format with pbo'
         );
         this.addChild(shadow3dGroup);
 
-        for (var ndx = 0; ndx < depthStencilFormats.length; ndx++)
-        {
-            tex3DWidth    = 32;
-            tex3DHeight    = 64;
-            tex3DDepth    = 8;
+        for (var ndx = 0; ndx < depthStencilFormats.length; ndx++) {
+            tex3DWidth = 32;
+            tex3DHeight = 64;
+            tex3DDepth = 8;
 
             shadow3dGroup.addChild(
                 new es3fTextureSpecificationTests.TexImage2DArrayDepthBufferCase(
-                    depthStencilFormats[ndx].name + "_2d_array", "",
+                    depthStencilFormats[ndx].name + '_2d_array', '',
                     depthStencilFormats[ndx].internalFormat,
                     tex3DWidth, tex3DHeight, tex3DDepth
                 )
@@ -6816,20 +6708,19 @@ goog.scope(function() {
 
         // Basic TexSubImage3D usage.
         basicTexSubImageGroup = new tcuTestCase.DeqpTest(
-            "basic_texsubimage3d", "Basic glTexSubImage3D() usage"
+            'basic_texsubimage3d', 'Basic glTexSubImage3D() usage'
         );
         this.addChild(basicTexSubImageGroup);
-        for (var formatNdx = 0; formatNdx < colorFormats.length; formatNdx++)
-        {
-            fmtName        = colorFormats[formatNdx].name;
-            format        = colorFormats[formatNdx].internalFormat;
-            tex3DWidth    = 32;
-            tex3DHeight    = 64;
-            tex3DDepth    = 8;
+        for (var formatNdx = 0; formatNdx < colorFormats.length; formatNdx++) {
+            fmtName = colorFormats[formatNdx].name;
+            format = colorFormats[formatNdx].internalFormat;
+            tex3DWidth = 32;
+            tex3DHeight = 64;
+            tex3DDepth = 8;
 
             basicTexSubImageGroup.addChild(
                 new es3fTextureSpecificationTests.BasicTexSubImage3DCase(
-                    fmtName + "_3d", "", format,
+                    fmtName + '_3d', '', format,
                     tex3DWidth, tex3DHeight, tex3DDepth
                 )
             );
@@ -6837,7 +6728,7 @@ goog.scope(function() {
 
         // glTexSubImage3D() unpack params cases.
         paramGroup = new tcuTestCase.DeqpTest(
-            "texsubimage3d_unpack_params", "glTexSubImage3D() unpack parameters"
+            'texsubimage3d_unpack_params', 'glTexSubImage3D() unpack parameters'
         );
         this.addChild(paramGroup);
 
@@ -6847,84 +6738,83 @@ goog.scope(function() {
          * imageHeight: number, rowLength: number, skipImages: number,
          * skipRows: number, skipPixels: number, alignment: number}>}
          */
-        var casesSubImage3D = [
-            {
-                name: "rgb8_image_height", format: gl.RGB8, width: 26,
+        var casesSubImage3D = [{
+                name: 'rgb8_image_height', format: gl.RGB8, width: 26,
                 height: 25, depth: 10, subX: 1, subY: 2, subZ: 1, subW: 23,
                 subH: 19, subD: 8, imageHeight: 26, rowLength: 0,
                 skipImages: 0, skipRows: 0, skipPixels: 0, alignment: 4
             }, {
-                name: "rgb8_row_length", format: gl.RGB8, width: 26,
+                name: 'rgb8_row_length', format: gl.RGB8, width: 26,
                 height: 25, depth: 10, subX: 1, subY: 2, subZ: 1, subW: 23,
                 subH: 19, subD: 8, imageHeight: 0, rowLength: 27,
                 skipImages: 0, skipRows: 0, skipPixels: 0, alignment: 4
             }, {
-                name: "rgb8_skip_images", format: gl.RGB8, width: 26,
+                name: 'rgb8_skip_images', format: gl.RGB8, width: 26,
                 height: 25, depth: 10, subX: 1, subY: 2, subZ: 1, subW: 23,
                 subH: 19, subD: 8, imageHeight: 0, rowLength: 0,
                 skipImages: 3, skipRows: 0, skipPixels: 0, alignment: 4
             }, {
-                name: "rgb8_skip_rows", format: gl.RGB8, width: 26,
+                name: 'rgb8_skip_rows', format: gl.RGB8, width: 26,
                 height: 25, depth: 10, subX: 1, subY: 2, subZ: 1, subW: 23,
                 subH: 19, subD: 8, imageHeight: 22, rowLength: 0,
                 skipImages: 0, skipRows: 3, skipPixels: 0, alignment: 4
             }, {
-                name: "rgb8_skip_pixels", format: gl.RGB8, width: 26,
+                name: 'rgb8_skip_pixels', format: gl.RGB8, width: 26,
                 height: 25, depth: 10, subX: 1, subY: 2, subZ: 1, subW: 23,
                 subH: 19, subD: 8, imageHeight: 0, rowLength: 25,
                 skipImages: 0, skipRows: 0, skipPixels: 2, alignment: 4
             }, {
-                name: "r8_complex1", format: gl.R8, width: 15,
+                name: 'r8_complex1', format: gl.R8, width: 15,
                 height: 20, depth: 11, subX: 1, subY: 1, subZ: 0, subW: 13,
                 subH: 17, subD: 11, imageHeight: 23, rowLength: 15,
                 skipImages: 2, skipRows: 3, skipPixels: 1, alignment: 1
             }, {
-                name: "r8_complex2", format: gl.R8, width: 15,
+                name: 'r8_complex2', format: gl.R8, width: 15,
                 height: 20, depth: 11, subX: 1, subY: 1, subZ: 0, subW: 13,
                 subH: 17, subD: 11, imageHeight: 23, rowLength: 15,
                 skipImages: 2, skipRows: 3, skipPixels: 1, alignment: 2
             }, {
-                name: "r8_complex3", format: gl.R8, width: 15,
+                name: 'r8_complex3', format: gl.R8, width: 15,
                 height: 20, depth: 11, subX: 1, subY: 1, subZ: 0, subW: 13,
                 subH: 17, subD: 11, imageHeight: 23, rowLength: 15,
                 skipImages: 2, skipRows: 3, skipPixels: 1, alignment: 4
             }, {
-                name: "r8_complex4", format: gl.R8, width: 15,
+                name: 'r8_complex4', format: gl.R8, width: 15,
                 height: 20, depth: 11, subX: 1, subY: 1, subZ: 0, subW: 13,
                 subH: 17, subD: 11, imageHeight: 23, rowLength: 15,
                 skipImages: 2, skipRows: 3, skipPixels: 1, alignment: 8
             }, {
-                name: "rgba8_complex1", format: gl.RGBA8, width: 15,
+                name: 'rgba8_complex1', format: gl.RGBA8, width: 15,
                 height: 25, depth: 10, subX: 0, subY: 5, subZ: 1, subW: 11,
                 subH: 20, subD: 8, imageHeight: 25, rowLength: 14,
                 skipImages: 0, skipRows: 0, skipPixels: 0, alignment: 8
             }, {
-                name: "rgba8_complex2", format: gl.RGBA8, width: 15,
+                name: 'rgba8_complex2', format: gl.RGBA8, width: 15,
                 height: 25, depth: 10, subX: 0, subY: 5, subZ: 1, subW: 11,
                 subH: 20, subD: 8, imageHeight: 25, rowLength: 14,
                 skipImages: 0, skipRows: 2, skipPixels: 0, alignment: 8
             }, {
-                name: "rgba8_complex3", format: gl.RGBA8, width: 15,
+                name: 'rgba8_complex3', format: gl.RGBA8, width: 15,
                 height: 25, depth: 10, subX: 0, subY: 5, subZ: 1, subW: 11,
                 subH: 20, subD: 8, imageHeight: 25, rowLength: 14,
                 skipImages: 0, skipRows: 0, skipPixels: 3, alignment: 8
             }, {
-                name: "rgba8_complex4", format: gl.RGBA8, width: 15,
+                name: 'rgba8_complex4', format: gl.RGBA8, width: 15,
                 height: 25, depth: 10, subX: 0, subY: 5, subZ: 1, subW: 11,
                 subH: 20, subD: 8, imageHeight: 25, rowLength: 14,
                 skipImages: 0, skipRows: 2, skipPixels: 3, alignment: 8
             }, {
-                name: "rgba32f_complex", format: gl.RGBA32F, width: 15,
+                name: 'rgba32f_complex', format: gl.RGBA32F, width: 15,
                 height: 25, depth: 10, subX: 0, subY: 5, subZ: 1, subW: 11,
                 subH: 20, subD: 8, imageHeight: 25, rowLength: 14,
                 skipImages: 0, skipRows: 2, skipPixels: 3, alignment: 8
             }
         ];
 
-        for (var ndx = 0; ndx < cases.length; ndx++)
+        for (var ndx = 0; ndx < casesSubImage3D.length; ndx++)
             paramGroup.addChild(
                 new es3fTextureSpecificationTests.TexSubImage3DParamsCase(
-                    casesSubImage3D[ndx].name, "", casesSubImage3D[ndx].format,
+                    casesSubImage3D[ndx].name, '', casesSubImage3D[ndx].format,
                     casesSubImage3D[ndx].width, casesSubImage3D[ndx].height, casesSubImage3D[ndx].depth,
                     casesSubImage3D[ndx].subX, casesSubImage3D[ndx].subY, casesSubImage3D[ndx].subZ,
                     casesSubImage3D[ndx].subW, casesSubImage3D[ndx].subH, casesSubImage3D[ndx].subD,
@@ -6937,7 +6827,7 @@ goog.scope(function() {
         // glTexSubImage3D() PBO cases.
         /** @type {tcuTestCase.DeqpTest} */
         pboGroup = new tcuTestCase.DeqpTest(
-            "texsubimage3d_pbo", "glTexSubImage3D() pixel buffer object tests"
+            'texsubimage3d_pbo', 'glTexSubImage3D() pixel buffer object tests'
         );
         this.addChild(pboGroup);
 
@@ -6948,92 +6838,90 @@ goog.scope(function() {
          * skipRows: number, skipPixels: number, alignment: number,
          * offset: number}>}
          */
-        paramCases = [ {
-                name: "rgb8_offset", format: gl.RGB8, width: 26,
+        paramCases = [{
+                name: 'rgb8_offset', format: gl.RGB8, width: 26,
                 height: 25, depth: 10, subX: 1, subY: 2, subZ: 1, subW: 23,
                 subH: 19, subD: 8, imageHeight: 0, rowLength: 0, skipImages: 0,
                 skipRows: 0, skipPixels: 0, alignment: 4, offset: 67
             }, {
-                name: "rgb8_image_height", format: gl.RGB8, width: 26,
+                name: 'rgb8_image_height', format: gl.RGB8, width: 26,
                 height: 25, depth: 10, subX: 1, subY: 2, subZ: 1, subW: 23,
                 subH: 19, subD: 8, imageHeight: 26, rowLength: 0, skipImages: 0,
                 skipRows: 0, skipPixels: 0, alignment: 4, offset: 0
             }, {
-                name: "rgb8_row_length", format: gl.RGB8, width: 26,
+                name: 'rgb8_row_length', format: gl.RGB8, width: 26,
                 height: 25, depth: 10, subX: 1, subY: 2, subZ: 1, subW: 23,
                 subH: 19, subD: 8, imageHeight: 0, rowLength: 27, skipImages: 0,
                 skipRows: 0, skipPixels: 0, alignment: 4, offset: 0
             }, {
-                name: "rgb8_skip_images", format: gl.RGB8, width: 26,
+                name: 'rgb8_skip_images', format: gl.RGB8, width: 26,
                 height: 25, depth: 10, subX: 1, subY: 2, subZ: 1, subW: 23,
                 subH: 19, subD: 8, imageHeight: 0, rowLength: 0, skipImages: 3,
                 skipRows: 0, skipPixels: 0, alignment: 4, offset: 0
             }, {
-                name: "rgb8_skip_rows", format: gl.RGB8, width: 26,
+                name: 'rgb8_skip_rows', format: gl.RGB8, width: 26,
                 height: 25, depth: 10, subX: 1, subY: 2, subZ: 1, subW: 23,
                 subH: 19, subD: 8, imageHeight: 22, rowLength: 0, skipImages: 0,
                 skipRows: 3, skipPixels: 0, alignment: 4, offset: 0
             }, {
-                name: "rgb8_skip_pixels", format: gl.RGB8, width: 26,
+                name: 'rgb8_skip_pixels', format: gl.RGB8, width: 26,
                 height: 25, depth: 10, subX: 1, subY: 2, subZ: 1, subW: 23,
                 subH: 19, subD: 8, imageHeight: 0, rowLength: 25, skipImages: 0,
                 skipRows: 0, skipPixels: 2, alignment: 4, offset: 0
             }
         ];
 
-        for (var ndx = 0; ndx < colorFormats.length; ndx++)
-        {
+        for (var ndx = 0; ndx < colorFormats.length; ndx++) {
             pboGroup.addChild(
                 new es3fTextureSpecificationTests.TexSubImage2DArrayBufferCase(
-                    colorFormats[ndx].name + "_2d_array", "",
+                    colorFormats[ndx].name + '_2d_array', '',
                     colorFormats[ndx].internalFormat,
-                    26,    // Width
-                    25,    // Height
-                    10,    // Depth
-                    1,    // Sub X
-                    2,    // Sub Y
-                    0,    // Sub Z
-                    23,    // Sub W
-                    19,    // Sub H
-                    8,    // Sub D
-                    0,    // Image height
-                    0,    // Row length
-                    0,    // Skip images
-                    0,    // Skip rows
-                    0,    // Skip pixels
-                    4,    // Alignment
-                    0    /* offset */
+                    26, // Width
+                    25, // Height
+                    10, // Depth
+                    1, // Sub X
+                    2, // Sub Y
+                    0, // Sub Z
+                    23, // Sub W
+                    19, // Sub H
+                    8, // Sub D
+                    0, // Image height
+                    0, // Row length
+                    0, // Skip images
+                    0, // Skip rows
+                    0, // Skip pixels
+                    4, // Alignment
+                    0 /* offset */
                 )
             );
             pboGroup.addChild(
                 new es3fTextureSpecificationTests.TexSubImage3DBufferCase(
-                    colorFormats[ndx].name + "_3d", "",
+                    colorFormats[ndx].name + '_3d', '',
                     colorFormats[ndx].internalFormat,
-                    26,    // Width
-                    25,    // Height
-                    10,    // Depth
-                    1,    // Sub X
-                    2,    // Sub Y
-                    0,    // Sub Z
-                    23,    // Sub W
-                    19,    // Sub H
-                    8,    // Sub D
-                    0,    // Image height
-                    0,    // Row length
-                    0,    // Skip images
-                    0,    // Skip rows
-                    0,    // Skip pixels
-                    4,    // Alignment
-                    0    /* offset */
+                    26, // Width
+                    25, // Height
+                    10, // Depth
+                    1, // Sub X
+                    2, // Sub Y
+                    0, // Sub Z
+                    23, // Sub W
+                    19, // Sub H
+                    8, // Sub D
+                    0, // Image height
+                    0, // Row length
+                    0, // Skip images
+                    0, // Skip rows
+                    0, // Skip pixels
+                    4, // Alignment
+                    0 /* offset */
                 )
             );
         }
 
-        for (var ndx = 0; ndx < paramCases.length; ndx++)
-        {
+        for (var ndx = 0; ndx < paramCases.length; ndx++) {
             pboGroup.addChild(
                 new es3fTextureSpecificationTests.TexSubImage2DArrayBufferCase(
-                    paramCases[ndx].name + "_2d_array", "",
+                    paramCases[ndx].name + '_2d_array', '',
                     paramCases[ndx].format, paramCases[ndx].width,
                     paramCases[ndx].height, paramCases[ndx].depth,
                     paramCases[ndx].subX, paramCases[ndx].subY,
@@ -7047,7 +6935,7 @@ goog.scope(function() {
             );
             pboGroup.addChild(
                 new es3fTextureSpecificationTests.TexSubImage3DBufferCase(
-                    paramCases[ndx].name + "_3d", "",
+                    paramCases[ndx].name + '_3d', '',
                     paramCases[ndx].format, paramCases[ndx].width,
                     paramCases[ndx].height, paramCases[ndx].depth,
                     paramCases[ndx].subX, paramCases[ndx].subY,
@@ -7063,20 +6951,19 @@ goog.scope(function() {
 
         // glTexSubImage3D() depth cases.
         shadow3dGroup = new tcuTestCase.DeqpTest(
-            "texsubimage3d_depth",
-            "glTexSubImage3D() with depth or depth/stencil format"
+            'texsubimage3d_depth',
+            'glTexSubImage3D() with depth or depth/stencil format'
         );
         this.addChild(shadow3dGroup);
 
-        for (var ndx = 0; ndx < depthStencilFormats.length; ndx++)
-        {
-            tex2DArrayWidth        = 57;
-            tex2DArrayHeight    = 44;
-            tex2DArrayLevels    = 5;
+        for (var ndx = 0; ndx < depthStencilFormats.length; ndx++) {
+            tex2DArrayWidth = 57;
+            tex2DArrayHeight = 44;
+            tex2DArrayLevels = 5;
 
             shadow3dGroup.addChild(
                 new es3fTextureSpecificationTests.TexSubImage2DArrayDepthCase(
-                    depthStencilFormats[ndx].name + "_2d_array", "",
+                    depthStencilFormats[ndx].name + '_2d_array', '',
                     depthStencilFormats[ndx].internalFormat, tex2DArrayWidth,
                     tex2DArrayHeight, tex2DArrayLevels
                 )
@@ -7085,25 +6972,24 @@ goog.scope(function() {
 
         // glTexStorage2D() cases.
         var texStorageGroup = new tcuTestCase.DeqpTest(
-            "texstorage2d", "Basic glTexStorage2D() usage"
+            'texstorage2d', 'Basic glTexStorage2D() usage'
         );
         this.addChild(texStorageGroup);
 
         // All formats.
         var formatGroup = new tcuTestCase.DeqpTest(
-            "format", "glTexStorage2D() with all formats"
+            'format', 'glTexStorage2D() with all formats'
         );
         texStorageGroup.addChild(formatGroup);
 
         // Color formats.
-        for (var formatNdx = 0; formatNdx < colorFormats.length; formatNdx++)
-        {
-            fmtName            = colorFormats[formatNdx].name;
-            /** @type {number} */ var internalFormat    = colorFormats[formatNdx].internalFormat;
-            var tex2DWidth        = 117;
-            var tex2DHeight        = 97;
-            var tex2DLevels        = es3fTextureSpecificationTests.maxLevelCount(tex2DWidth, tex2DHeight);
-            /** @type {number} */ var cubeSize        = 57;
+        for (var formatNdx = 0; formatNdx < colorFormats.length; formatNdx++) {
+            fmtName = colorFormats[formatNdx].name;
+            /** @type {number} */ var internalFormat = colorFormats[formatNdx].internalFormat;
+            var tex2DWidth = 117;
+            var tex2DHeight = 97;
+            var tex2DLevels = es3fTextureSpecificationTests.maxLevelCount(tex2DWidth, tex2DHeight);
+            /** @type {number} */ var cubeSize = 57;
             /** @type {number} */
             var cubeLevels = es3fTextureSpecificationTests.maxLevelCount(
                 cubeSize, cubeSize
@@ -7111,48 +6997,47 @@ goog.scope(function() {
 
             formatGroup.addChild(
                 new es3fTextureSpecificationTests.BasicTexStorage2DCase(
-                    fmtName + "_2d", "", internalFormat,
+                    fmtName + '_2d', '', internalFormat,
                     tex2DWidth, tex2DHeight, tex2DLevels
                 )
             );
             formatGroup.addChild(
                 new es3fTextureSpecificationTests.BasicTexStorageCubeCase(
-                    fmtName + "_cube", "", internalFormat, cubeSize, cubeLevels
+                    fmtName + '_cube', '', internalFormat, cubeSize, cubeLevels
                 )
             );
         }
 
         // Depth / stencil formats.
-        for (var formatNdx = 0; formatNdx < depthStencilFormats.length; formatNdx++)
-        {
+        for (var formatNdx = 0; formatNdx < depthStencilFormats.length; formatNdx++) {
             fmtName = depthStencilFormats[formatNdx].name;
-            internalFormat    = depthStencilFormats[formatNdx].internalFormat;
-            tex2DWidth        = 117;
-            tex2DHeight        = 97;
-            tex2DLevels        = es3fTextureSpecificationTests.maxLevelCount(
+            internalFormat = depthStencilFormats[formatNdx].internalFormat;
+            tex2DWidth = 117;
+            tex2DHeight = 97;
+            tex2DLevels = es3fTextureSpecificationTests.maxLevelCount(
                 tex2DWidth, tex2DHeight
             );
-            cubeSize        = 57;
-            cubeLevels        = es3fTextureSpecificationTests.maxLevelCount(
+            cubeSize = 57;
+            cubeLevels = es3fTextureSpecificationTests.maxLevelCount(
                 cubeSize, cubeSize
             );
 
             formatGroup.addChild(
                 new es3fTextureSpecificationTests.BasicTexStorage2DCase(
-                    fmtName + "_2d", "", internalFormat,
+                    fmtName + '_2d', '', internalFormat,
                     tex2DWidth, tex2DHeight, tex2DLevels
                 )
             );
             formatGroup.addChild(
                 new es3fTextureSpecificationTests.BasicTexStorageCubeCase(
-                    fmtName + "_cube", "", internalFormat, cubeSize, cubeLevels
+                    fmtName + '_cube', '', internalFormat, cubeSize, cubeLevels
                 )
             );
         }
 
-        // Sizes. //    W    H    L
+        // Sizes. //    W H L
         /** @type {Array<{width: number, height: number, levels: number}>} */
-        var tex2DSizes = [ {
+        var tex2DSizes = [{
                 width: 1, height: 1, levels: 1
             }, {
                 width: 2, height: 2, levels: 2
@@ -7169,9 +7054,9 @@ goog.scope(function() {
             }
         ];
 
-        //    S    L
+        //    S L
         /** @type {Array<{sizes: number, levels: number}>} */
-        var cubeSizes = [ {
+        var cubeSizes = [{
                 sizes: 1, levels: 1
             }, {
                 sizes: 2, levels: 2
@@ -7190,55 +7075,52 @@ goog.scope(function() {
 
         /** @type {tcuTestCase.DeqpTest} */
         var sizeGroup = new tcuTestCase.DeqpTest(
-            "size", "glTexStorage2D() with various sizes"
+            'size', 'glTexStorage2D() with various sizes'
         );
         texStorageGroup.addChild(sizeGroup);
 
-        for (var ndx = 0; ndx < tex2DSizes.length; ndx++)
-        {
-            format        = gl.RGBA8;
+        for (var ndx = 0; ndx < tex2DSizes.length; ndx++) {
+            format = gl.RGBA8;
             /** @type {number} */ var width = tex2DSizes[ndx].width;
             /** @type {number} */ var height = tex2DSizes[ndx].height;
             /** @type {number} */ var levels = tex2DSizes[ndx].levels;
             /** @type {string} */
-            var name = "2d_" + width + "x" + height + "_" + levels + "_levels";
+            var name = '2d_' + width + 'x' + height + '_' + levels + '_levels';
 
             sizeGroup.addChild(
                 new es3fTextureSpecificationTests.BasicTexStorage2DCase(
-                    name, "", format, width, height, levels
+                    name, '', format, width, height, levels
                 )
             );
         }
 
-        for (var ndx = 0; ndx < cubeSizes.length; ndx++)
-        {
+        for (var ndx = 0; ndx < cubeSizes.length; ndx++) {
             format = gl.RGBA8;
             size = cubeSizes[ndx].sizes;
             levels = cubeSizes[ndx].levels;
-            name = "cube_" + size + "x" + size + "_" + levels + "_levels";
+            name = 'cube_' + size + 'x' + size + '_' + levels + '_levels';
 
             sizeGroup.addChild(
                 new es3fTextureSpecificationTests.BasicTexStorageCubeCase(
-                    name, "", format, size, levels
+                    name, '', format, size, levels
                 )
             );
         }
 
         // glTexStorage3D() cases.
         texStorageGroup = new tcuTestCase.DeqpTest(
-            "texstorage3d", "Basic glTexStorage3D() usage"
+            'texstorage3d', 'Basic glTexStorage3D() usage'
         );
         this.addChild(texStorageGroup);
 
         // All formats.
         formatGroup = new tcuTestCase.DeqpTest(
-            "format", "glTexStorage3D() with all formats"
+            'format', 'glTexStorage3D() with all formats'
         );
         texStorageGroup.addChild(formatGroup);
 
         // Color formats.
-        for (var formatNdx = 0; formatNdx < colorFormats.length; formatNdx++)
-        {
+        for (var formatNdx = 0; formatNdx < colorFormats.length; formatNdx++) {
             fmtName = colorFormats[formatNdx].name;
             internalFormat = colorFormats[formatNdx].internalFormat;
             tex2DArrayWidth = 57;
@@ -7256,13 +7138,13 @@ goog.scope(function() {
 
             formatGroup.addChild(
                 new es3fTextureSpecificationTests.BasicTexStorage2DArrayCase(
-                    fmtName + "_2d_array", "", internalFormat, tex2DArrayWidth,
+                    fmtName + '_2d_array', '', internalFormat, tex2DArrayWidth,
                     tex2DArrayHeight, tex2DArrayLayers, tex2DArrayLevels
                 )
             );
             formatGroup.addChild(
                 new es3fTextureSpecificationTests.BasicTexStorage3DCase(
-                    fmtName + "_3d", "", internalFormat, tex3DWidth,
+                    fmtName + '_3d', '', internalFormat, tex3DWidth,
                     tex3DHeight, tex3DDepth, tex3DLevels
                 )
             );
@@ -7271,8 +7153,7 @@ goog.scope(function() {
         // Depth/stencil formats (only 2D texture array is supported).
         for (var formatNdx = 0;
             formatNdx < depthStencilFormats.length;
-            formatNdx++)
-        {
+            formatNdx++) {
             fmtName = depthStencilFormats[formatNdx].name;
             internalFormat = depthStencilFormats[formatNdx].internalFormat;
             tex2DArrayWidth = 57;
@@ -7284,18 +7165,18 @@ goog.scope(function() {
 
             formatGroup.addChild(
                 new es3fTextureSpecificationTests.BasicTexStorage2DArrayCase(
-                    fmtName + "_2d_array", "", internalFormat, tex2DArrayWidth,
+                    fmtName + '_2d_array', '', internalFormat, tex2DArrayWidth,
                     tex2DArrayHeight, tex2DArrayLayers, tex2DArrayLevels
                 )
             );
         }
 
-        // Sizes. //    W    H    La    Le
+        // Sizes. //    W H La Le
         /**
          * @type {Array<{width: number, height: number,
          * layers: number, levels: number}>}
          */
-        var tex2DArraySizes = [ {
+        var tex2DArraySizes = [{
                 width: 1, height: 1, layers: 1, levels: 1
             }, {
                 width: 2, height: 2, layers: 2, levels: 2
@@ -7312,12 +7193,12 @@ goog.scope(function() {
             }
         ];
 
-        //    W    H    D    L
+        //    W H D L
         /**
          * @type {Array<{width: number, height: number,
          * depth: number, levels: number}>}
          */
-        var tex3DSizes = [ {
+        var tex3DSizes = [{
                 width: 1, height: 1, depth: 1, levels: 1
             }, {
                 width: 2, height: 2, depth: 2, levels: 2
@@ -7337,40 +7218,38 @@ goog.scope(function() {
         ];
 
         sizeGroup = new tcuTestCase.DeqpTest(
-            "size", "glTexStorage2D() with various sizes"
+            'size', 'glTexStorage2D() with various sizes'
         );
         texStorageGroup.addChild(sizeGroup);
 
-        for (var ndx = 0; ndx < tex2DArraySizes.length; ndx++)
-        {
+        for (var ndx = 0; ndx < tex2DArraySizes.length; ndx++) {
             format = gl.RGBA8;
             width = tex2DArraySizes[ndx].width;
             height = tex2DArraySizes[ndx].height;
             /** @type {number} */ var layers = tex2DArraySizes[ndx].layers;
             levels = tex2DArraySizes[ndx].levels;
-            name = "2d_array_" + width + "x" + height + "x" +
-                layers + "_" + levels + "_levels";
+            name = '2d_array_' + width + 'x' + height + 'x' +
+                layers + '_' + levels + '_levels';
 
             sizeGroup.addChild(
                 new es3fTextureSpecificationTests.BasicTexStorage2DArrayCase(
-                    name, "", format, width, height, layers, levels
+                    name, '', format, width, height, layers, levels
                 )
             );
         }
 
-        for (var ndx = 0; ndx < tex3DSizes.length; ndx++)
-        {
-            format        = gl.RGBA8;
-            width        = tex3DSizes[ndx].width;
-            height        = tex3DSizes[ndx].height;
-            var depth        = tex3DSizes[ndx].depth;
-            levels        = tex3DSizes[ndx].levels;
-            name = "3d_" + width + "x" + height + "x" +
-                depth + "_" + levels + "_levels";
+        for (var ndx = 0; ndx < tex3DSizes.length; ndx++) {
+            format = gl.RGBA8;
+            width = tex3DSizes[ndx].width;
+            height = tex3DSizes[ndx].height;
+            var depth = tex3DSizes[ndx].depth;
+            levels = tex3DSizes[ndx].levels;
+            name = '3d_' + width + 'x' + height + 'x' +
+                depth + '_' + levels + '_levels';
 
             sizeGroup.addChild(
                 new es3fTextureSpecificationTests.BasicTexStorage3DCase(
-                    name, "", format, width, height, depth, levels
+                    name, '', format, width, height, depth, levels
                 )
             );
         }

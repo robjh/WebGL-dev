@@ -791,7 +791,6 @@ es3fFboTestUtil.FboIncompleteException.prototype.getReason = function() {return 
             var ratioY = tex.m_view.getHeight() / context.getHeight();
             var lod = Math.floor(Math.log2(Math.max(ratioX, ratioY)));
 
-
             /** @const {Array<number>} */ var coord = rrShadingContext.readTriangleVarying(packet[packetNdx], context, 0);
             texCoords = [coord[0], coord[1], layer];
 
