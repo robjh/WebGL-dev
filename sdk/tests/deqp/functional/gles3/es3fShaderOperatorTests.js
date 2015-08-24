@@ -100,6 +100,10 @@ var selection = function(cond, a, b) {
     return cond ? a : b;
 };
 
+var boolNot = function(a) {
+    return !a;
+};
+
 /**
  * @constructor
  * @param {boolean} low
@@ -246,7 +250,6 @@ es3fShaderOperatorTests.outIndices[4] = [0, 1, 2, 3];
 var convert = function(input, dataType) {
     switch (dataType) {
         case gluShaderUtil.DataType.INT:
-        case gluShaderUtil.DataType.UINT:
             if (input instanceof Array) {
                 var ret = [];
                 for (var i = 0; i < input.length; i++)
@@ -254,6 +257,14 @@ var convert = function(input, dataType) {
                 return ret;
             }
             return deMath.intCast(input);
+        case gluShaderUtil.DataType.UINT:
+            if (input instanceof Array) {
+                var ret = [];
+                for (var i = 0; i < input.length; i++)
+                    ret[i] = deMath.uintCast(input[i]);
+                return ret;
+            }
+            return deMath.uintCast(input);
         case gluShaderUtil.DataType.BOOL:
             if (input instanceof Array) {
                 var ret = [];
@@ -465,7 +476,7 @@ es3fShaderOperatorTests.FloatScalar.prototype.getValue = function(shaderType) {
             case es3fShaderOperatorTests.Symbol.SYMBOL_LOWP_UINT_MAX:
                 return es3fShaderOperatorTests.getGLSLUintMaxAsFloat(shaderType, gluShaderUtil.precision.PRECISION_LOWP);
             case es3fShaderOperatorTests.Symbol.SYMBOL_MEDIUMP_UINT_MAX:
-                return es3fShaderOperatorTests.getGLSLUintMaxAsFloat(gl, shaderType, gluShaderUtil.precision.PRECISION_MEDIUMP);
+                return es3fShaderOperatorTests.getGLSLUintMaxAsFloat(shaderType, gluShaderUtil.precision.PRECISION_MEDIUMP);
 
             case es3fShaderOperatorTests.Symbol.SYMBOL_LOWP_UINT_MAX_RECIPROCAL:
                 return 1.0 / es3fShaderOperatorTests.getGLSLUintMaxAsFloat(shaderType, gluShaderUtil.precision.PRECISION_LOWP);
@@ -473,9 +484,9 @@ es3fShaderOperatorTests.FloatScalar.prototype.getValue = function(shaderType) {
                 return 1.0 / es3fShaderOperatorTests.getGLSLUintMaxAsFloat(shaderType, gluShaderUtil.precision.PRECISION_MEDIUMP);
 
             case es3fShaderOperatorTests.Symbol.SYMBOL_ONE_MINUS_UINT32MAX_DIV_LOWP_UINT_MAX:
-                return 1.0 - Number.MAX_VALUE / es3fShaderOperatorTests.getGLSLUintMaxAsFloat(shaderType, gluShaderUtil.precision.PRECISION_LOWP);
+                return 1.0 - 0xFFFFFFFF / es3fShaderOperatorTests.getGLSLUintMaxAsFloat(shaderType, gluShaderUtil.precision.PRECISION_LOWP);
             case es3fShaderOperatorTests.Symbol.SYMBOL_ONE_MINUS_UINT32MAX_DIV_MEDIUMP_UINT_MAX:
-                return 1.0 - Number.MAX_VALUE / es3fShaderOperatorTests.getGLSLUintMaxAsFloat(shaderType, gluShaderUtil.precision.PRECISION_MEDIUMP);
+                return 1.0 - 0xFFFFFFFF / es3fShaderOperatorTests.getGLSLUintMaxAsFloat(shaderType, gluShaderUtil.precision.PRECISION_MEDIUMP);
 
             default:
                 assertMsgOptions(false, 'Invalid shader type', false, false);
@@ -898,6 +909,7 @@ es3fShaderOperatorTests.ShaderOperatorTests.prototype.init = function() {
     var highp = es3fShaderOperatorTests.Precision.High;
     var mediump = es3fShaderOperatorTests.Precision.Medium;
     var lowp = es3fShaderOperatorTests.Precision.Low;
+    var na = es3fShaderOperatorTests.Precision.None
     var GT = es3fShaderOperatorTests.ValueType.FLOAT_GENTYPE;
     var UGT = es3fShaderOperatorTests.ValueType.UINT_GENTYPE;
     var IGT = es3fShaderOperatorTests.ValueType.INT_GENTYPE;
@@ -923,15 +935,34 @@ es3fShaderOperatorTests.ShaderOperatorTests.prototype.init = function() {
     var funcInfoGroups = [];
     var unary = new es3fShaderOperatorTests.BuiltinFuncGroup("unary_operator", "Unary operator tests");
 
-    unary.push(op("plus", "+", GT, [v(GT, -1.0, 1.0)], f(0.5), f(0.5), all, es3fShaderOperatorTests.unaryGenTypeFuncs(nop)));
-    unary.push(op("plus", "+", IGT, [v(IGT, -5.0, 5.0)], f(0.1), f(0.5), all, es3fShaderOperatorTests.unaryGenTypeFuncs(nop, gluShaderUtil.DataType.INT, gluShaderUtil.DataType.INT)));
-    unary.push(op("plus", "+", UGT, [v(UGT, 0.0, 2.0)], f(0.5), f(0.0), all, es3fShaderOperatorTests.unaryGenTypeFuncs(nop, gluShaderUtil.DataType.UINT, gluShaderUtil.DataType.UINT)));
-    unary.push(op("minus", "-", GT, [v(GT, -1.0, 1.0)], f(0.5), f(0.5), all, es3fShaderOperatorTests.unaryGenTypeFuncs(negate)));
-    unary.push(op("minus", "-", IGT, [v(IGT, -5.0, 5.0)], f(0.1), f(0.5), all, es3fShaderOperatorTests.unaryGenTypeFuncs(negate, gluShaderUtil.DataType.INT, gluShaderUtil.DataType.INT)));
-    unary.push(separate("minus", "-", UGT, [v2(UGT, 0.0, lUMax)], s(lUMaxR), f(0.0), lowp, es3fShaderOperatorTests.unaryGenTypeFuncs(negate), s(lUMaxR), s(es3fShaderOperatorTests.Symbol.SYMBOL_ONE_MINUS_UINT32MAX_DIV_LOWP_UINT_MAX)));
-    unary.push(separate("minus", "-", UGT, [v2(UGT, 0.0, mUMax)], s(mUMaxR), f(0.0), mediump, es3fShaderOperatorTests.unaryGenTypeFuncs(negate, gluShaderUtil.DataType.UINT, gluShaderUtil.DataType.UINT), s(mUMaxR), s(es3fShaderOperatorTests.Symbol.SYMBOL_ONE_MINUS_UINT32MAX_DIV_LOWP_UINT_MAX)));
-    unary.push(op("minus", "-", UGT, [v(UGT, 0.0, 4000000000.0)], f(20000000000), f(0.0), highp, es3fShaderOperatorTests.unaryGenTypeFuncs(negate, gluShaderUtil.DataType.UINT, gluShaderUtil.DataType.UINT)));
-    unary.push(side("pre_increment_effect", "++",   GT,     [v(GT,   -1.0, 1.0)], f(0.5), f(0.0),     all,   es3fShaderOperatorTests.unaryGenTypeFuncs(addOne)));
+    unary.push(op("plus", "+", GT, [v(GT, -1.0, 1.0)], f(0.5), f(0.5), all,
+        es3fShaderOperatorTests.unaryGenTypeFuncs(nop)));
+    unary.push(op("plus", "+", IGT, [v(IGT, -5.0, 5.0)], f(0.1), f(0.5), all,
+        es3fShaderOperatorTests.unaryGenTypeFuncs(nop, gluShaderUtil.DataType.INT,
+        gluShaderUtil.DataType.INT)));
+    unary.push(op("plus", "+", UGT, [v(UGT, 0.0, 2.0)], f(0.5), f(0.0), all,
+        es3fShaderOperatorTests.unaryGenTypeFuncs(nop, gluShaderUtil.DataType.UINT,
+        gluShaderUtil.DataType.UINT)));
+    unary.push(op("minus", "-", GT, [v(GT, -1.0, 1.0)], f(0.5), f(0.5), all,
+        es3fShaderOperatorTests.unaryGenTypeFuncs(negate)));
+    unary.push(op("minus", "-", IGT, [v(IGT, -5.0, 5.0)], f(0.1), f(0.5), all,
+        es3fShaderOperatorTests.unaryGenTypeFuncs(negate, gluShaderUtil.DataType.INT,
+        gluShaderUtil.DataType.INT)));
+    unary.push(separate("minus", "-", UGT, [v2(UGT, 0.0, lUMax)], s(lUMaxR), f(0.0), lowp,
+        es3fShaderOperatorTests.unaryGenTypeFuncs(negate, gluShaderUtil.DataType.UINT,
+        gluShaderUtil.DataType.UINT), s(lUMaxR),
+        s(es3fShaderOperatorTests.Symbol.SYMBOL_ONE_MINUS_UINT32MAX_DIV_LOWP_UINT_MAX)));
+    unary.push(separate("minus", "-", UGT, [v2(UGT, 0.0, mUMax)], s(mUMaxR), f(0.0), mediump,
+        es3fShaderOperatorTests.unaryGenTypeFuncs(negate, gluShaderUtil.DataType.UINT,
+        gluShaderUtil.DataType.UINT), s(mUMaxR),
+        s(es3fShaderOperatorTests.Symbol.SYMBOL_ONE_MINUS_UINT32MAX_DIV_MEDIUMP_UINT_MAX)));
+    unary.push(op("minus", "-", UGT, [v(UGT, 0.0, 4000000000.0)], f(20000000000), f(0.0), highp,
+        es3fShaderOperatorTests.unaryGenTypeFuncs(negate, gluShaderUtil.DataType.UINT,
+        gluShaderUtil.DataType.UINT)));
+    unary.push(op("not", "!", B, [v(B, -1.0, 1.0)], f(1.0), f(0.0), na,
+        {'scalar': es3fShaderOperatorTests.unaryGenTypeFuncs(boolNot, gluShaderUtil.DataType.BOOL, gluShaderUtil.DataType.BOOL).scalar}));
+    unary.push(side("pre_increment_effect", "++", GT, [v(GT, -1.0, 1.0)], f(0.5), f(0.0), all,
+        es3fShaderOperatorTests.unaryGenTypeFuncs(addOne)));
 
     funcInfoGroups.push(unary);
 

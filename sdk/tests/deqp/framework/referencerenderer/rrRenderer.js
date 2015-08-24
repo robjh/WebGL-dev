@@ -624,6 +624,7 @@ rrRenderer.drawQuads = function(state, renderTarget, program, vertexAttribs, pri
             quadPackets[topLeftVertexNdx].outputs,
             quadPackets[bottomRightVertexNdx].outputs
         );
+        shadingContextTopLeft.setSize(width, height);
         var packetsTopLeft = [];
 
         var shadingContextBottomRight = new rrShadingContext.FragmentShadingContext(
@@ -631,6 +632,7 @@ rrRenderer.drawQuads = function(state, renderTarget, program, vertexAttribs, pri
             quadPackets[topLeftVertexNdx].outputs,
             quadPackets[topRightVertexNdx].outputs
         );
+        shadingContextBottomRight.setSize(width, height);
         var packetsBottomRight = [];
 
         for (var i = 0; i < width; i++)

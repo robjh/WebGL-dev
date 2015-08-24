@@ -343,7 +343,7 @@ gluTextureUtil.mapGLTransferFormat = function(format, dataType) {
         case gl.DEPTH_STENCIL: return new tcuTexture.TextureFormat(tcuTexture.ChannelOrder.DS, gluTextureUtil.mapGLChannelType(dataType, true));
 
         default:
-            throw new Error("Can't map GL pixel format (" + format + ', ' + dataType + ') to texture format');
+            throw new Error("Can't map GL pixel format (" + deString.enumToString(gl, format) + ', ' + deString.enumToString(gl, dataType) + ') to texture format');
     }
 };
 

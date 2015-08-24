@@ -91,7 +91,6 @@ deMath.dePop32 = function(a) {
 
 deMath.clamp = function(val, minParm, maxParm) {
     return Math.min(Math.max(val, minParm), maxParm);
- //   return Math.max(minParm, Math.min(val, maxParm));
 };
 
 /**
@@ -373,6 +372,13 @@ deMath.intCast = function(a) {
     if (a >= 0)
         return Math.floor(a);
     return Math.ceil(a);
+};
+
+// Round number to uint32 by dropping fractional part
+deMath.uintCast = function(a) {
+    if (a >= 0)
+        return Math.floor(a);
+    return Math.floor(0xFFFFFFFF + a);
 };
 
 /**
@@ -791,20 +797,6 @@ deMath.toIVec = function(a) {
    return leadingZeros;
 };
 
-/**
- * Helper function to create and initialize arrays
- * @param {Array<number>} a
- * @param {number} b
- * @return {Array<number>}
- */
-deMath.addScalarToVector = function(a, b) {
-    if (!Array.isArray(a))
-        throw new Error('The first parameter is not an array: (' + typeof(a) + ')' + a);
-    /** @type {Array<number>} */ var res = [];
-    for (var i = 0; i < a.length; i++)
-        res.push(a[i] + b);
-    return res;
-};
 /**
  * @param {number} a
  * @param {number} exponent
