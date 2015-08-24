@@ -972,10 +972,17 @@ es3fShaderOperatorTests.ShaderOperatorTests.prototype.init = function() {
     unary.push(op("bitwise_not", "~", UGT, [v(UGT, -0.0, 200000000.0)], f(-5000000000.0), f(0.0), highp,
         es3fShaderOperatorTests.unaryGenTypeFuncs(bitwiseNot, gluShaderUtil.DataType.UINT,
         gluShaderUtil.DataType.UINT)));
-    unary.push(side("pre_increment_effect", "++", GT, [v(GT, -1.0, 1.0)], f(0.5), f(0.0), all,
-        es3fShaderOperatorTests.unaryGenTypeFuncs(addOne)));
 
     // Pre/post incr/decr side effect cases.
+    unary.push(side("pre_increment_effect", "++", GT, [v(GT, -1.0, 1.0)], f(0.5), f(0.0), all,
+        es3fShaderOperatorTests.unaryGenTypeFuncs(addOne)));
+    unary.push(side("pre_increment_effect", "++", IGT, [v(IGT, -6.0, 4.0)], f(0.1), f(0.5), all,
+        es3fShaderOperatorTests.unaryGenTypeFuncs(addOne, gluShaderUtil.DataType.INT,
+        gluShaderUtil.DataType.INT)));
+    unary.push(side("pre_increment_effect", "++", UGT, [v(UGT, 0.0, 9.0)], f(0.1), f(0.5), all,
+        es3fShaderOperatorTests.unaryGenTypeFuncs(addOne, gluShaderUtil.DataType.UINT,
+        gluShaderUtil.DataType.UINT)));
+
 
     funcInfoGroups.push(unary);
 
