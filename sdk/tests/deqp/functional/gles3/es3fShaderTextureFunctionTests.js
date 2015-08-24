@@ -490,7 +490,7 @@ goog.scope(function() {
 	 * @param {es3fShaderTextureFunctionTests.TexLookupParams} p
 	 */
 	es3fShaderTextureFunctionTests.evalTexture2D = function(c, p) {
-		c.color = texture2D(c, c.in[0][0], c.in[0][1], p.lod) * p.scale + p.bias;
+		c.color = es3fShaderTextureFunctionTests.texture2D(c, c.in[0][0], c.in[0][1], p.lod) * p.scale + p.bias;
 	};
 
 	/**
@@ -498,7 +498,7 @@ goog.scope(function() {
 	 * @param {es3fShaderTextureFunctionTests.TexLookupParams} p
 	 */
 	es3fShaderTextureFunctionTests.evalTextureCube = function(c, p) {
-		c.color = textureCube(c, c.in[0][0], c.in[0][1], c.in[0][2], p.lod) * p.scale + p.bias;
+		c.color = es3fShaderTextureFunctionTests.textureCube(c, c.in[0][0], c.in[0][1], c.in[0][2], p.lod) * p.scale + p.bias;
 	};
 
 	/**
@@ -506,7 +506,7 @@ goog.scope(function() {
 	 * @param {es3fShaderTextureFunctionTests.TexLookupParams} p
 	 */
 	es3fShaderTextureFunctionTests.evalTexture2DArray = function(c, p) {
-		c.color = texture2DArray(c, c.in[0][0], c.in[0][1], c.in[0][2], p.lod) * p.scale + p.bias;
+		c.color = es3fShaderTextureFunctionTests.texture2DArray(c, c.in[0][0], c.in[0][1], c.in[0][2], p.lod) * p.scale + p.bias;
 	};
 
 	/**
@@ -514,7 +514,7 @@ goog.scope(function() {
 	 * @param {es3fShaderTextureFunctionTests.TexLookupParams} p
 	 */
 	es3fShaderTextureFunctionTests.evalTexture3D = function(c, p) {
-		c.color = texture3D(c, c.in[0][0], c.in[0][1], c.in[0][2], p.lod) * p.scale + p.bias;
+		c.color = es3fShaderTextureFunctionTests.texture3D(c, c.in[0][0], c.in[0][1], c.in[0][2], p.lod) * p.scale + p.bias;
 	};
 
 
@@ -523,7 +523,7 @@ goog.scope(function() {
 	 * @param {es3fShaderTextureFunctionTests.TexLookupParams} p
 	 */
 	es3fShaderTextureFunctionTests.evalTexture2DBias = function(c, p) {
-		c.color = texture2D(c, c.in[0][0], c.in[0][1], p.lod+c.in[1][0]) * p.scale + p.bias;
+		c.color = es3fShaderTextureFunctionTests.texture2D(c, c.in[0][0], c.in[0][1], p.lod+c.in[1][0]) * p.scale + p.bias;
 	};
 
 	/**
@@ -531,7 +531,7 @@ goog.scope(function() {
 	 * @param {es3fShaderTextureFunctionTests.TexLookupParams} p
 	 */
 	es3fShaderTextureFunctionTests.evalTextureCubeBias = function(c, p) {
-		c.color = textureCube(c, c.in[0][0], c.in[0][1], c.in[0][2], p.lod+c.in[1][0]) * p.scale + p.bias;
+		c.color = es3fShaderTextureFunctionTests.textureCube(c, c.in[0][0], c.in[0][1], c.in[0][2], p.lod+c.in[1][0]) * p.scale + p.bias;
 	};
 
 	/**
@@ -539,7 +539,7 @@ goog.scope(function() {
 	 * @param {es3fShaderTextureFunctionTests.TexLookupParams} p
 	 */
 	es3fShaderTextureFunctionTests.evalTexture2DArrayBias = function(c, p) {
-		c.color = texture2DArray(c, c.in[0][0], c.in[0][1], c.in[0][2], p.lod+c.in[1][0]) * p.scale + p.bias;
+		c.color = es3fShaderTextureFunctionTests.texture2DArray(c, c.in[0][0], c.in[0][1], c.in[0][2], p.lod+c.in[1][0]) * p.scale + p.bias;
 	};
 
 	/**
@@ -547,7 +547,7 @@ goog.scope(function() {
 	 * @param {es3fShaderTextureFunctionTests.TexLookupParams} p
 	 */
 	es3fShaderTextureFunctionTests.evalTexture3DBias = function(c, p) {
-		c.color = texture3D(c, c.in[0][0], c.in[0][1], c.in[0][2], p.lod+c.in[1][0]) * p.scale + p.bias;
+		c.color = es3fShaderTextureFunctionTests.texture3D(c, c.in[0][0], c.in[0][1], c.in[0][2], p.lod+c.in[1][0]) * p.scale + p.bias;
 	};
 
 
@@ -556,7 +556,7 @@ goog.scope(function() {
 	 * @param {es3fShaderTextureFunctionTests.TexLookupParams} p
 	 */
 	es3fShaderTextureFunctionTests.evalTexture2DProj3 = function(c, p) {
-		c.color = texture2D(c, c.in[0][0]/c.in[0][2], c.in[0][1]/c.in[0][2], p.lod) * p.scale + p.bias;
+		c.color = es3fShaderTextureFunctionTests.texture2D(c, c.in[0][0]/c.in[0][2], c.in[0][1]/c.in[0][2], p.lod) * p.scale + p.bias;
 	};
 
 	/**
@@ -564,7 +564,7 @@ goog.scope(function() {
 	 * @param {es3fShaderTextureFunctionTests.TexLookupParams} p
 	 */
 	es3fShaderTextureFunctionTests.evalTexture2DProj3Bias = function(c, p) {
-		c.color = texture2D(c, c.in[0][0]/c.in[0][2], c.in[0][1]/c.in[0][2], p.lod+c.in[1][0]) * p.scale + p.bias;
+		c.color = es3fShaderTextureFunctionTests.texture2D(c, c.in[0][0]/c.in[0][2], c.in[0][1]/c.in[0][2], p.lod+c.in[1][0]) * p.scale + p.bias;
 	};
 
 	/**
@@ -572,7 +572,7 @@ goog.scope(function() {
 	 * @param {es3fShaderTextureFunctionTests.TexLookupParams} p
 	 */
 	es3fShaderTextureFunctionTests.evalTexture2DProj = function(c, p) {
-		c.color = texture2D(c, c.in[0][0]/c.in[0][3], c.in[0][1]/c.in[0][3], p.lod) * p.scale + p.bias;
+		c.color = es3fShaderTextureFunctionTests.texture2D(c, c.in[0][0]/c.in[0][3], c.in[0][1]/c.in[0][3], p.lod) * p.scale + p.bias;
 	};
 
 	/**
@@ -580,7 +580,7 @@ goog.scope(function() {
 	 * @param {es3fShaderTextureFunctionTests.TexLookupParams} p
 	 */
 	es3fShaderTextureFunctionTests.evalTexture2DProjBias = function(c, p) {
-		c.color = texture2D(c, c.in[0][0]/c.in[0][3], c.in[0][1]/c.in[0][3], p.lod+c.in[1][0]) * p.scale + p.bias;
+		c.color = es3fShaderTextureFunctionTests.texture2D(c, c.in[0][0]/c.in[0][3], c.in[0][1]/c.in[0][3], p.lod+c.in[1][0]) * p.scale + p.bias;
 	};
 
 	/**
@@ -588,7 +588,7 @@ goog.scope(function() {
 	 * @param {es3fShaderTextureFunctionTests.TexLookupParams} p
 	 */
 	es3fShaderTextureFunctionTests.evalTexture3DProj = function(c, p) {
-		c.color = texture3D(c, c.in[0][0]/c.in[0][3], c.in[0][1]/c.in[0][3], c.in[0][2]/c.in[0][3], p.lod) * p.scale + p.bias;
+		c.color = es3fShaderTextureFunctionTests.texture3D(c, c.in[0][0]/c.in[0][3], c.in[0][1]/c.in[0][3], c.in[0][2]/c.in[0][3], p.lod) * p.scale + p.bias;
 	};
 
 	/**
@@ -596,7 +596,7 @@ goog.scope(function() {
 	 * @param {es3fShaderTextureFunctionTests.TexLookupParams} p
 	 */
 	es3fShaderTextureFunctionTests.evalTexture3DProjBias = function(c, p) {
-		c.color = texture3D(c, c.in[0][0]/c.in[0][3], c.in[0][1]/c.in[0][3], c.in[0][2]/c.in[0][3], p.lod+c.in[1][0]) * p.scale + p.bias;
+		c.color = es3fShaderTextureFunctionTests.texture3D(c, c.in[0][0]/c.in[0][3], c.in[0][1]/c.in[0][3], c.in[0][2]/c.in[0][3], p.lod+c.in[1][0]) * p.scale + p.bias;
 	};
 
 
@@ -605,7 +605,7 @@ goog.scope(function() {
 	 * @param {es3fShaderTextureFunctionTests.TexLookupParams} p
 	 */
 	es3fShaderTextureFunctionTests.evalTexture2DLod = function(c, p) {
-		c.color = texture2D(c, c.in[0][0], c.in[0][1], c.in[1][0]) * p.scale + p.bias;
+		c.color = es3fShaderTextureFunctionTests.texture2D(c, c.in[0][0], c.in[0][1], c.in[1][0]) * p.scale + p.bias;
 	};
 
 	/**
@@ -613,7 +613,7 @@ goog.scope(function() {
 	 * @param {es3fShaderTextureFunctionTests.TexLookupParams} p
 	 */
 	es3fShaderTextureFunctionTests.evalTextureCubeLod = function(c, p) {
-		c.color = textureCube(c, c.in[0][0], c.in[0][1], c.in[0][2], c.in[1][0]) * p.scale + p.bias;
+		c.color = es3fShaderTextureFunctionTests.textureCube(c, c.in[0][0], c.in[0][1], c.in[0][2], c.in[1][0]) * p.scale + p.bias;
 	};
 
 	/**
@@ -621,7 +621,7 @@ goog.scope(function() {
 	 * @param {es3fShaderTextureFunctionTests.TexLookupParams} p
 	 */
 	es3fShaderTextureFunctionTests.evalTexture2DArrayLod = function(c, p) {
-		c.color = texture2DArray(c, c.in[0][0], c.in[0][1], c.in[0][2], c.in[1][0]) * p.scale + p.bias;
+		c.color = es3fShaderTextureFunctionTests.texture2DArray(c, c.in[0][0], c.in[0][1], c.in[0][2], c.in[1][0]) * p.scale + p.bias;
 	};
 
 	/**
@@ -629,7 +629,7 @@ goog.scope(function() {
 	 * @param {es3fShaderTextureFunctionTests.TexLookupParams} p
 	 */
 	es3fShaderTextureFunctionTests.evalTexture3DLod = function(c, p) {
-		c.color = texture3D(c, c.in[0][0], c.in[0][1], c.in[0][2], c.in[1][0]) * p.scale + p.bias;
+		c.color = es3fShaderTextureFunctionTests.texture3D(c, c.in[0][0], c.in[0][1], c.in[0][2], c.in[1][0]) * p.scale + p.bias;
 	};
 
 
@@ -638,7 +638,7 @@ goog.scope(function() {
 	 * @param {es3fShaderTextureFunctionTests.TexLookupParams} p
 	 */
 	es3fShaderTextureFunctionTests.evalTexture2DProjLod3 = function(c, p) {
-		c.color = texture2D(c, c.in[0][0]/c.in[0][2], c.in[0][1]/c.in[0][2], c.in[1][0]) * p.scale + p.bias;
+		c.color = es3fShaderTextureFunctionTests.texture2D(c, c.in[0][0]/c.in[0][2], c.in[0][1]/c.in[0][2], c.in[1][0]) * p.scale + p.bias;
 	};
 
 	/**
@@ -646,7 +646,7 @@ goog.scope(function() {
 	 * @param {es3fShaderTextureFunctionTests.TexLookupParams} p
 	 */
 	es3fShaderTextureFunctionTests.evalTexture2DProjLod = function(c, p) {
-		c.color = texture2D(c, c.in[0][0]/c.in[0][3], c.in[0][1]/c.in[0][3], c.in[1][0]) * p.scale + p.bias;
+		c.color = es3fShaderTextureFunctionTests.texture2D(c, c.in[0][0]/c.in[0][3], c.in[0][1]/c.in[0][3], c.in[1][0]) * p.scale + p.bias;
 	};
 
 	/**
@@ -654,7 +654,7 @@ goog.scope(function() {
 	 * @param {es3fShaderTextureFunctionTests.TexLookupParams} p
 	 */
 	es3fShaderTextureFunctionTests.evalTexture3DProjLod = function(c, p) {
-		c.color = texture3D(c, c.in[0][0]/c.in[0][3], c.in[0][1]/c.in[0][3], c.in[0][2]/c.in[0][3], c.in[1][0]) * p.scale + p.bias;
+		c.color = es3fShaderTextureFunctionTests.texture3D(c, c.in[0][0]/c.in[0][3], c.in[0][1]/c.in[0][3], c.in[0][2]/c.in[0][3], c.in[1][0]) * p.scale + p.bias;
 	};
 
 	// Offset variants
@@ -664,7 +664,7 @@ goog.scope(function() {
 	 * @param {es3fShaderTextureFunctionTests.TexLookupParams} p
 	 */
 	es3fShaderTextureFunctionTests.evalTexture2DOffset = function(c, p) {
-		c.color = texture2DOffset(c, c.in[0][0], c.in[0][1], p.lod, p.offset.swizzle(0,1)) * p.scale + p.bias;
+		c.color = es3fShaderTextureFunctionTests.texture2DOffset(c, c.in[0][0], c.in[0][1], p.lod, p.offset.swizzle(0,1)) * p.scale + p.bias;
 	};
 
 	/**
@@ -672,7 +672,7 @@ goog.scope(function() {
 	 * @param {es3fShaderTextureFunctionTests.TexLookupParams} p
 	 */
 	es3fShaderTextureFunctionTests.evalTexture2DArrayOffset = function(c, p) {
-		c.color = texture2DArrayOffset(c, c.in[0][0], c.in[0][1], c.in[0][2], p.lod, p.offset.swizzle(0,1)) * p.scale + p.bias;
+		c.color = es3fShaderTextureFunctionTests.texture2DArrayOffset(c, c.in[0][0], c.in[0][1], c.in[0][2], p.lod, p.offset.swizzle(0,1)) * p.scale + p.bias;
 	};
 
 	/**
@@ -680,7 +680,7 @@ goog.scope(function() {
 	 * @param {es3fShaderTextureFunctionTests.TexLookupParams} p
 	 */
 	es3fShaderTextureFunctionTests.evalTexture3DOffset = function(c, p) {
-		c.color = texture3DOffset(c, c.in[0][0], c.in[0][1], c.in[0][2], p.lod, p.offset) * p.scale + p.bias;
+		c.color = es3fShaderTextureFunctionTests.texture3DOffset(c, c.in[0][0], c.in[0][1], c.in[0][2], p.lod, p.offset) * p.scale + p.bias;
 	};
 
 
@@ -689,7 +689,7 @@ goog.scope(function() {
 	 * @param {es3fShaderTextureFunctionTests.TexLookupParams} p
 	 */
 	es3fShaderTextureFunctionTests.evalTexture2DOffsetBias = function(c, p) {
-		c.color = texture2DOffset(c, c.in[0][0], c.in[0][1], p.lod+c.in[1][0], p.offset.swizzle(0,1)) * p.scale + p.bias;
+		c.color = es3fShaderTextureFunctionTests.texture2DOffset(c, c.in[0][0], c.in[0][1], p.lod+c.in[1][0], p.offset.swizzle(0,1)) * p.scale + p.bias;
 	};
 
 	/**
@@ -697,7 +697,7 @@ goog.scope(function() {
 	 * @param {es3fShaderTextureFunctionTests.TexLookupParams} p
 	 */
 	es3fShaderTextureFunctionTests.evalTexture2DArrayOffsetBias = function(c, p) {
-		c.color = texture2DArrayOffset(c, c.in[0][0], c.in[0][1], c.in[0][2], p.lod+c.in[1][0], p.offset.swizzle(0,1)) * p.scale + p.bias;
+		c.color = es3fShaderTextureFunctionTests.texture2DArrayOffset(c, c.in[0][0], c.in[0][1], c.in[0][2], p.lod+c.in[1][0], p.offset.swizzle(0,1)) * p.scale + p.bias;
 	};
 
 	/**
@@ -705,7 +705,7 @@ goog.scope(function() {
 	 * @param {es3fShaderTextureFunctionTests.TexLookupParams} p
 	 */
 	es3fShaderTextureFunctionTests.evalTexture3DOffsetBias = function(c, p) {
-		c.color = texture3DOffset(c, c.in[0][0], c.in[0][1], c.in[0][2], p.lod+c.in[1][0], p.offset) * p.scale + p.bias;
+		c.color = es3fShaderTextureFunctionTests.texture3DOffset(c, c.in[0][0], c.in[0][1], c.in[0][2], p.lod+c.in[1][0], p.offset) * p.scale + p.bias;
 	};
 
 
@@ -714,7 +714,7 @@ goog.scope(function() {
 	 * @param {es3fShaderTextureFunctionTests.TexLookupParams} p
 	 */
 	es3fShaderTextureFunctionTests.evalTexture2DLodOffset = function(c, p) {
-		c.color = texture2DOffset(c, c.in[0][0], c.in[0][1], c.in[1][0], p.offset.swizzle(0,1)) * p.scale + p.bias;
+		c.color = es3fShaderTextureFunctionTests.texture2DOffset(c, c.in[0][0], c.in[0][1], c.in[1][0], p.offset.swizzle(0,1)) * p.scale + p.bias;
 	};
 
 	/**
@@ -722,7 +722,7 @@ goog.scope(function() {
 	 * @param {es3fShaderTextureFunctionTests.TexLookupParams} p
 	 */
 	es3fShaderTextureFunctionTests.evalTexture2DArrayLodOffset = function(c, p) {
-		c.color = texture2DArrayOffset(c, c.in[0][0], c.in[0][1], c.in[0][2], c.in[1][0], p.offset.swizzle(0,1)) * p.scale + p.bias;
+		c.color = es3fShaderTextureFunctionTests.texture2DArrayOffset(c, c.in[0][0], c.in[0][1], c.in[0][2], c.in[1][0], p.offset.swizzle(0,1)) * p.scale + p.bias;
 	};
 
 	/**
@@ -730,7 +730,7 @@ goog.scope(function() {
 	 * @param {es3fShaderTextureFunctionTests.TexLookupParams} p
 	 */
 	es3fShaderTextureFunctionTests.evalTexture3DLodOffset = function(c, p) {
-		c.color = texture3DOffset(c, c.in[0][0], c.in[0][1], c.in[0][2], c.in[1][0], p.offset) * p.scale + p.bias;
+		c.color = es3fShaderTextureFunctionTests.texture3DOffset(c, c.in[0][0], c.in[0][1], c.in[0][2], c.in[1][0], p.offset) * p.scale + p.bias;
 	};
 
 
@@ -739,7 +739,7 @@ goog.scope(function() {
 	 * @param {es3fShaderTextureFunctionTests.TexLookupParams} p
 	 */
 	es3fShaderTextureFunctionTests.evalTexture2DProj3Offset = function(c, p) {
-		c.color = texture2DOffset(c, c.in[0][0]/c.in[0][2], c.in[0][1]/c.in[0][2], p.lod, p.offset.swizzle(0,1)) * p.scale + p.bias;
+		c.color = es3fShaderTextureFunctionTests.texture2DOffset(c, c.in[0][0]/c.in[0][2], c.in[0][1]/c.in[0][2], p.lod, p.offset.swizzle(0,1)) * p.scale + p.bias;
 	};
 
 	/**
@@ -747,7 +747,7 @@ goog.scope(function() {
 	 * @param {es3fShaderTextureFunctionTests.TexLookupParams} p
 	 */
 	es3fShaderTextureFunctionTests.evalTexture2DProj3OffsetBias = function(c, p) {
-		c.color = texture2DOffset(c, c.in[0][0]/c.in[0][2], c.in[0][1]/c.in[0][2], p.lod+c.in[1][0], p.offset.swizzle(0,1)) * p.scale + p.bias;
+		c.color = es3fShaderTextureFunctionTests.texture2DOffset(c, c.in[0][0]/c.in[0][2], c.in[0][1]/c.in[0][2], p.lod+c.in[1][0], p.offset.swizzle(0,1)) * p.scale + p.bias;
 	};
 
 	/**
@@ -755,7 +755,7 @@ goog.scope(function() {
 	 * @param {es3fShaderTextureFunctionTests.TexLookupParams} p
 	 */
 	es3fShaderTextureFunctionTests.evalTexture2DProjOffset = function(c, p) {
-		c.color = texture2DOffset(c, c.in[0][0]/c.in[0][3], c.in[0][1]/c.in[0][3], p.lod, p.offset.swizzle(0,1)) * p.scale + p.bias;
+		c.color = es3fShaderTextureFunctionTests.texture2DOffset(c, c.in[0][0]/c.in[0][3], c.in[0][1]/c.in[0][3], p.lod, p.offset.swizzle(0,1)) * p.scale + p.bias;
 	};
 
 	/**
@@ -763,7 +763,7 @@ goog.scope(function() {
 	 * @param {es3fShaderTextureFunctionTests.TexLookupParams} p
 	 */
 	es3fShaderTextureFunctionTests.evalTexture2DProjOffsetBias = function(c, p) {
-		c.color = texture2DOffset(c, c.in[0][0]/c.in[0][3], c.in[0][1]/c.in[0][3], p.lod+c.in[1][0], p.offset.swizzle(0,1)) * p.scale + p.bias;
+		c.color = es3fShaderTextureFunctionTests.texture2DOffset(c, c.in[0][0]/c.in[0][3], c.in[0][1]/c.in[0][3], p.lod+c.in[1][0], p.offset.swizzle(0,1)) * p.scale + p.bias;
 	};
 
 	/**
@@ -771,7 +771,7 @@ goog.scope(function() {
 	 * @param {es3fShaderTextureFunctionTests.TexLookupParams} p
 	 */
 	es3fShaderTextureFunctionTests.evalTexture3DProjOffset = function(c, p) {
-		c.color = texture3DOffset(c, c.in[0][0]/c.in[0][3], c.in[0][1]/c.in[0][3], c.in[0][2]/c.in[0][3], p.lod, p.offset) * p.scale + p.bias;
+		c.color = es3fShaderTextureFunctionTests.texture3DOffset(c, c.in[0][0]/c.in[0][3], c.in[0][1]/c.in[0][3], c.in[0][2]/c.in[0][3], p.lod, p.offset) * p.scale + p.bias;
 	};
 
 	/**
@@ -779,7 +779,7 @@ goog.scope(function() {
 	 * @param {es3fShaderTextureFunctionTests.TexLookupParams} p
 	 */
 	es3fShaderTextureFunctionTests.evalTexture3DProjOffsetBias = function(c, p) {
-		c.color = texture3DOffset(c, c.in[0][0]/c.in[0][3], c.in[0][1]/c.in[0][3], c.in[0][2]/c.in[0][3], p.lod+c.in[1][0], p.offset) * p.scale + p.bias;
+		c.color = es3fShaderTextureFunctionTests.texture3DOffset(c, c.in[0][0]/c.in[0][3], c.in[0][1]/c.in[0][3], c.in[0][2]/c.in[0][3], p.lod+c.in[1][0], p.offset) * p.scale + p.bias;
 	};
 
 
@@ -788,7 +788,7 @@ goog.scope(function() {
 	 * @param {es3fShaderTextureFunctionTests.TexLookupParams} p
 	 */
 	es3fShaderTextureFunctionTests.evalTexture2DProjLod3Offset = function(c, p) {
-		c.color = texture2DOffset(c, c.in[0][0]/c.in[0][2], c.in[0][1]/c.in[0][2], c.in[1][0], p.offset.swizzle(0,1)) * p.scale + p.bias;
+		c.color = es3fShaderTextureFunctionTests.texture2DOffset(c, c.in[0][0]/c.in[0][2], c.in[0][1]/c.in[0][2], c.in[1][0], p.offset.swizzle(0,1)) * p.scale + p.bias;
 	};
 
 	/**
@@ -796,7 +796,7 @@ goog.scope(function() {
 	 * @param {es3fShaderTextureFunctionTests.TexLookupParams} p
 	 */
 	es3fShaderTextureFunctionTests.evalTexture2DProjLodOffset = function(c, p) {
-		c.color = texture2DOffset(c, c.in[0][0]/c.in[0][3], c.in[0][1]/c.in[0][3], c.in[1][0], p.offset.swizzle(0,1)) * p.scale + p.bias;
+		c.color = es3fShaderTextureFunctionTests.texture2DOffset(c, c.in[0][0]/c.in[0][3], c.in[0][1]/c.in[0][3], c.in[1][0], p.offset.swizzle(0,1)) * p.scale + p.bias;
 	};
 
 	/**
@@ -804,7 +804,7 @@ goog.scope(function() {
 	 * @param {es3fShaderTextureFunctionTests.TexLookupParams} p
 	 */
 	es3fShaderTextureFunctionTests.evalTexture3DProjLodOffset = function(c, p) {
-		c.color = texture3DOffset(c, c.in[0][0]/c.in[0][3], c.in[0][1]/c.in[0][3], c.in[0][2]/c.in[0][3], c.in[1][0], p.offset) * p.scale + p.bias;
+		c.color = es3fShaderTextureFunctionTests.texture3DOffset(c, c.in[0][0]/c.in[0][3], c.in[0][1]/c.in[0][3], c.in[0][2]/c.in[0][3], c.in[1][0], p.offset) * p.scale + p.bias;
 	};
 
 	// Shadow variants
@@ -814,14 +814,14 @@ goog.scope(function() {
 	 * @param {es3fShaderTextureFunctionTests.TexLookupParams} p
 	 */
 	es3fShaderTextureFunctionTests.evalTexture2DShadow = function(c, p) {
-		c.color[0] = texture2DShadow(c, c.in[0][2], c.in[0][0], c.in[0][1], p.lod);
+		c.color[0] = es3fShaderTextureFunctionTests.texture2DShadow(c, c.in[0][2], c.in[0][0], c.in[0][1], p.lod);
 	};
 	/**
 	 * @param {glsShaderRenderCase.ShaderEvalContext} c
 	 * @param {es3fShaderTextureFunctionTests.TexLookupParams} p
 	 */
 	es3fShaderTextureFunctionTests.evalTexture2DShadowBias = function(c, p) {
-		c.color[0] = texture2DShadow(c, c.in[0][2], c.in[0][0], c.in[0][1], p.lod+c.in[1][0]);
+		c.color[0] = es3fShaderTextureFunctionTests.texture2DShadow(c, c.in[0][2], c.in[0][0], c.in[0][1], p.lod+c.in[1][0]);
 	};
 
 	/**
@@ -829,14 +829,14 @@ goog.scope(function() {
 	 * @param {es3fShaderTextureFunctionTests.TexLookupParams} p
 	 */
 	es3fShaderTextureFunctionTests.evalTextureCubeShadow = function(c, p) {
-		c.color[0] = textureCubeShadow(c, c.in[0][3], c.in[0][0], c.in[0][1], c.in[0][2], p.lod);
+		c.color[0] = es3fShaderTextureFunctionTests.textureCubeShadow(c, c.in[0][3], c.in[0][0], c.in[0][1], c.in[0][2], p.lod);
 	};
 	/**
 	 * @param {glsShaderRenderCase.ShaderEvalContext} c
 	 * @param {es3fShaderTextureFunctionTests.TexLookupParams} p
 	 */
 	es3fShaderTextureFunctionTests.evalTextureCubeShadowBias = function(c, p) {
-		c.color[0] = textureCubeShadow(c, c.in[0][3], c.in[0][0], c.in[0][1], c.in[0][2], p.lod+c.in[1][0]);
+		c.color[0] = es3fShaderTextureFunctionTests.textureCubeShadow(c, c.in[0][3], c.in[0][0], c.in[0][1], c.in[0][2], p.lod+c.in[1][0]);
 	};
 
 	/**
@@ -844,7 +844,7 @@ goog.scope(function() {
 	 * @param {es3fShaderTextureFunctionTests.TexLookupParams} p
 	 */
 	es3fShaderTextureFunctionTests.evalTexture2DArrayShadow = function(c, p) {
-		c.color[0] = texture2DArrayShadow(c, c.in[0][3], c.in[0][0], c.in[0][1], c.in[0][2], p.lod);
+		c.color[0] = es3fShaderTextureFunctionTests.texture2DArrayShadow(c, c.in[0][3], c.in[0][0], c.in[0][1], c.in[0][2], p.lod);
 	};
 
 	/**
@@ -852,14 +852,14 @@ goog.scope(function() {
 	 * @param {es3fShaderTextureFunctionTests.TexLookupParams} p
 	 */
 	es3fShaderTextureFunctionTests.evalTexture2DShadowLod = function(c) {
-		c.color[0] = texture2DShadow(c, c.in[0][2], c.in[0][0], c.in[0][1], c.in[1][0]);
+		c.color[0] = es3fShaderTextureFunctionTests.texture2DShadow(c, c.in[0][2], c.in[0][0], c.in[0][1], c.in[1][0]);
 	};
 	/**
 	 * @param {glsShaderRenderCase.ShaderEvalContext} c
 	 * @param {es3fShaderTextureFunctionTests.TexLookupParams} p
 	 */
 	es3fShaderTextureFunctionTests.evalTexture2DShadowLodOffset = function(c, p) {
-		c.color[0] = texture2DShadowOffset(c, c.in[0][2], c.in[0][0], c.in[0][1], c.in[1][0], p.offset.swizzle(0,1));
+		c.color[0] = es3fShaderTextureFunctionTests.texture2DShadowOffset(c, c.in[0][2], c.in[0][0], c.in[0][1], c.in[1][0], p.offset.swizzle(0,1));
 	};
 
 	/**
@@ -867,14 +867,14 @@ goog.scope(function() {
 	 * @param {es3fShaderTextureFunctionTests.TexLookupParams} p
 	 */
 	es3fShaderTextureFunctionTests.evalTexture2DShadowProj = function(c, p) {
-		c.color[0] = texture2DShadow(c, c.in[0][2]/c.in[0][3], c.in[0][0]/c.in[0][3], c.in[0][1]/c.in[0][3], p.lod);
+		c.color[0] = es3fShaderTextureFunctionTests.texture2DShadow(c, c.in[0][2]/c.in[0][3], c.in[0][0]/c.in[0][3], c.in[0][1]/c.in[0][3], p.lod);
 	};
 	/**
 	 * @param {glsShaderRenderCase.ShaderEvalContext} c
 	 * @param {es3fShaderTextureFunctionTests.TexLookupParams} p
 	 */
 	es3fShaderTextureFunctionTests.evalTexture2DShadowProjBias = function(c, p) {
-		c.color[0] = texture2DShadow(c, c.in[0][2]/c.in[0][3], c.in[0][0]/c.in[0][3], c.in[0][1]/c.in[0][3], p.lod+c.in[1][0]);
+		c.color[0] = es3fShaderTextureFunctionTests.texture2DShadow(c, c.in[0][2]/c.in[0][3], c.in[0][0]/c.in[0][3], c.in[0][1]/c.in[0][3], p.lod+c.in[1][0]);
 	};
 
 	/**
@@ -882,14 +882,14 @@ goog.scope(function() {
 	 * @param {es3fShaderTextureFunctionTests.TexLookupParams} p
 	 */
 	es3fShaderTextureFunctionTests.evalTexture2DShadowProjLod = function(c) {
-		c.color[0] = texture2DShadow(c, c.in[0][2]/c.in[0][3], c.in[0][0]/c.in[0][3], c.in[0][1]/c.in[0][3], c.in[1][0]);
+		c.color[0] = es3fShaderTextureFunctionTests.texture2DShadow(c, c.in[0][2]/c.in[0][3], c.in[0][0]/c.in[0][3], c.in[0][1]/c.in[0][3], c.in[1][0]);
 	};
 	/**
 	 * @param {glsShaderRenderCase.ShaderEvalContext} c
 	 * @param {es3fShaderTextureFunctionTests.TexLookupParams} p
 	 */
 	es3fShaderTextureFunctionTests.evalTexture2DShadowProjLodOffset = function(c, p) {
-		c.color[0] = texture2DShadowOffset(c, c.in[0][2]/c.in[0][3], c.in[0][0]/c.in[0][3], c.in[0][1]/c.in[0][3], c.in[1][0], p.offset.swizzle(0,1));
+		c.color[0] = es3fShaderTextureFunctionTests.texture2DShadowOffset(c, c.in[0][2]/c.in[0][3], c.in[0][0]/c.in[0][3], c.in[0][1]/c.in[0][3], c.in[1][0], p.offset.swizzle(0,1));
 	};
 
 	/**
@@ -897,14 +897,14 @@ goog.scope(function() {
 	 * @param {es3fShaderTextureFunctionTests.TexLookupParams} p
 	 */
 	es3fShaderTextureFunctionTests.evalTexture2DShadowOffset = function(c, p) {
-		c.color[0] = texture2DShadowOffset(c, c.in[0][2], c.in[0][0], c.in[0][1], p.lod, p.offset.swizzle(0,1));
+		c.color[0] = es3fShaderTextureFunctionTests.texture2DShadowOffset(c, c.in[0][2], c.in[0][0], c.in[0][1], p.lod, p.offset.swizzle(0,1));
 	};
 	/**
 	 * @param {glsShaderRenderCase.ShaderEvalContext} c
 	 * @param {es3fShaderTextureFunctionTests.TexLookupParams} p
 	 */
 	es3fShaderTextureFunctionTests.evalTexture2DShadowOffsetBias = function(c, p) {
-		c.color[0] = texture2DShadowOffset(c, c.in[0][2], c.in[0][0], c.in[0][1], p.lod+c.in[1][0], p.offset.swizzle(0,1));
+		c.color[0] = es3fShaderTextureFunctionTests.texture2DShadowOffset(c, c.in[0][2], c.in[0][0], c.in[0][1], p.lod+c.in[1][0], p.offset.swizzle(0,1));
 	};
 
 	/**
@@ -912,14 +912,14 @@ goog.scope(function() {
 	 * @param {es3fShaderTextureFunctionTests.TexLookupParams} p
 	 */
 	es3fShaderTextureFunctionTests.evalTexture2DShadowProjOffset = function(c, p) {
-		c.color[0] = texture2DShadowOffset(c, c.in[0][2]/c.in[0][3], c.in[0][0]/c.in[0][3], c.in[0][1]/c.in[0][3], p.lod, p.offset.swizzle(0,1));
+		c.color[0] = es3fShaderTextureFunctionTests.texture2DShadowOffset(c, c.in[0][2]/c.in[0][3], c.in[0][0]/c.in[0][3], c.in[0][1]/c.in[0][3], p.lod, p.offset.swizzle(0,1));
 	};
 	/**
 	 * @param {glsShaderRenderCase.ShaderEvalContext} c
 	 * @param {es3fShaderTextureFunctionTests.TexLookupParams} p
 	 */
 	es3fShaderTextureFunctionTests.evalTexture2DShadowProjOffsetBias = function(c, p) {
-		c.color[0] = texture2DShadowOffset(c, c.in[0][2]/c.in[0][3], c.in[0][0]/c.in[0][3], c.in[0][1]/c.in[0][3], p.lod+c.in[1][0], p.offset.swizzle(0,1));
+		c.color[0] = es3fShaderTextureFunctionTests.texture2DShadowOffset(c, c.in[0][2]/c.in[0][3], c.in[0][0]/c.in[0][3], c.in[0][1]/c.in[0][3], p.lod+c.in[1][0], p.offset.swizzle(0,1));
 	};
 
 	// Gradient variarts
@@ -929,7 +929,7 @@ goog.scope(function() {
 	 * @param {es3fShaderTextureFunctionTests.TexLookupParams} p
 	 */
 	es3fShaderTextureFunctionTests.evalTexture2DGrad = function(c, p) {
-		c.color = texture2D(c, c.in[0][0], c.in[0][1], computeLodFromGrad2D(c)) * p.scale + p.bias;
+		c.color = es3fShaderTextureFunctionTests.texture2D(c, c.in[0][0], c.in[0][1], es3fShaderTextureFunctionTests.computeLodFromGrad2D(c)) * p.scale + p.bias;
 	};
 
 	/**
@@ -937,7 +937,7 @@ goog.scope(function() {
 	 * @param {es3fShaderTextureFunctionTests.TexLookupParams} p
 	 */
 	es3fShaderTextureFunctionTests.evalTextureCubeGrad = function(c, p) {
-		c.color = textureCube(c, c.in[0][0], c.in[0][1], c.in[0][2], computeLodFromGradCube(c)) * p.scale + p.bias;
+		c.color = es3fShaderTextureFunctionTests.textureCube(c, c.in[0][0], c.in[0][1], c.in[0][2], es3fShaderTextureFunctionTests.computeLodFromGradCube(c)) * p.scale + p.bias;
 	};
 
 	/**
@@ -945,7 +945,7 @@ goog.scope(function() {
 	 * @param {es3fShaderTextureFunctionTests.TexLookupParams} p
 	 */
 	es3fShaderTextureFunctionTests.evalTexture2DArrayGrad = function(c, p) {
-		c.color = texture2DArray(c, c.in[0][0], c.in[0][1], c.in[0][2], computeLodFromGrad2DArray(c)) * p.scale + p.bias;
+		c.color = es3fShaderTextureFunctionTests.texture2DArray(c, c.in[0][0], c.in[0][1], c.in[0][2], es3fShaderTextureFunctionTests.computeLodFromGrad2DArray(c)) * p.scale + p.bias;
 	};
 
 	/**
@@ -953,7 +953,7 @@ goog.scope(function() {
 	 * @param {es3fShaderTextureFunctionTests.TexLookupParams} p
 	 */
 	es3fShaderTextureFunctionTests.evalTexture3DGrad = function(c, p) {
-		c.color = texture3D(c, c.in[0][0], c.in[0][1], c.in[0][2], computeLodFromGrad3D(c)) * p.scale + p.bias;
+		c.color = es3fShaderTextureFunctionTests.texture3D(c, c.in[0][0], c.in[0][1], c.in[0][2], es3fShaderTextureFunctionTests.computeLodFromGrad3D(c)) * p.scale + p.bias;
 	};
 
 
@@ -962,7 +962,7 @@ goog.scope(function() {
 	 * @param {es3fShaderTextureFunctionTests.TexLookupParams} p
 	 */
 	es3fShaderTextureFunctionTests.evalTexture2DShadowGrad = function(c) {
-		c.color[0] = texture2DShadow(c, c.in[0][2], c.in[0][0], c.in[0][1], computeLodFromGrad2D(c));
+		c.color[0] = es3fShaderTextureFunctionTests.texture2DShadow(c, c.in[0][2], c.in[0][0], c.in[0][1], es3fShaderTextureFunctionTests.computeLodFromGrad2D(c));
 	};
 
 	/**
@@ -970,7 +970,7 @@ goog.scope(function() {
 	 * @param {es3fShaderTextureFunctionTests.TexLookupParams} p
 	 */
 	es3fShaderTextureFunctionTests.evalTextureCubeShadowGrad = function(c) {
-		c.color[0] = textureCubeShadow(c, c.in[0][3], c.in[0][0], c.in[0][1], c.in[0][2], computeLodFromGradCube(c));
+		c.color[0] = es3fShaderTextureFunctionTests.textureCubeShadow(c, c.in[0][3], c.in[0][0], c.in[0][1], c.in[0][2], es3fShaderTextureFunctionTests.computeLodFromGradCube(c));
 	};
 
 	/**
@@ -978,7 +978,7 @@ goog.scope(function() {
 	 * @param {es3fShaderTextureFunctionTests.TexLookupParams} p
 	 */
 	es3fShaderTextureFunctionTests.evalTexture2DArrayShadowGrad = function(c) {
-		c.color[0] = texture2DArrayShadow(c, c.in[0][3], c.in[0][0], c.in[0][1], c.in[0][2], computeLodFromGrad2DArray(c));
+		c.color[0] = es3fShaderTextureFunctionTests.texture2DArrayShadow(c, c.in[0][3], c.in[0][0], c.in[0][1], c.in[0][2], es3fShaderTextureFunctionTests.computeLodFromGrad2DArray(c));
 	};
 
 
@@ -987,7 +987,7 @@ goog.scope(function() {
 	 * @param {es3fShaderTextureFunctionTests.TexLookupParams} p
 	 */
 	es3fShaderTextureFunctionTests.evalTexture2DGradOffset = function(c, p) {
-		c.color = texture2DOffset(c, c.in[0][0], c.in[0][1], computeLodFromGrad2D(c), p.offset.swizzle(0,1)) * p.scale + p.bias;
+		c.color = es3fShaderTextureFunctionTests.texture2DOffset(c, c.in[0][0], c.in[0][1], es3fShaderTextureFunctionTests.computeLodFromGrad2D(c), p.offset.swizzle(0,1)) * p.scale + p.bias;
 	};
 
 	/**
@@ -995,7 +995,7 @@ goog.scope(function() {
 	 * @param {es3fShaderTextureFunctionTests.TexLookupParams} p
 	 */
 	es3fShaderTextureFunctionTests.evalTexture2DArrayGradOffset = function(c, p) {
-		c.color = texture2DArrayOffset(c, c.in[0][0], c.in[0][1], c.in[0][2], computeLodFromGrad2DArray(c), p.offset.swizzle(0,1)) * p.scale + p.bias;
+		c.color = es3fShaderTextureFunctionTests.texture2DArrayOffset(c, c.in[0][0], c.in[0][1], c.in[0][2], es3fShaderTextureFunctionTests.computeLodFromGrad2DArray(c), p.offset.swizzle(0,1)) * p.scale + p.bias;
 	};
 
 	/**
@@ -1003,7 +1003,7 @@ goog.scope(function() {
 	 * @param {es3fShaderTextureFunctionTests.TexLookupParams} p
 	 */
 	es3fShaderTextureFunctionTests.evalTexture3DGradOffset = function(c, p) {
-		c.color = texture3DOffset(c, c.in[0][0], c.in[0][1], c.in[0][2], computeLodFromGrad3D(c), p.offset) * p.scale + p.bias;
+		c.color = es3fShaderTextureFunctionTests.texture3DOffset(c, c.in[0][0], c.in[0][1], c.in[0][2], es3fShaderTextureFunctionTests.computeLodFromGrad3D(c), p.offset) * p.scale + p.bias;
 	};
 
 
@@ -1012,7 +1012,7 @@ goog.scope(function() {
 	 * @param {es3fShaderTextureFunctionTests.TexLookupParams} p
 	 */
 	es3fShaderTextureFunctionTests.evalTexture2DShadowGradOffset = function(c, p) {
-		c.color[0] = texture2DShadowOffset(c, c.in[0][2], c.in[0][0], c.in[0][1], computeLodFromGrad2D(c), p.offset.swizzle(0,1));
+		c.color[0] = es3fShaderTextureFunctionTests.texture2DShadowOffset(c, c.in[0][2], c.in[0][0], c.in[0][1], es3fShaderTextureFunctionTests.computeLodFromGrad2D(c), p.offset.swizzle(0,1));
 	};
 
 	/**
@@ -1020,7 +1020,7 @@ goog.scope(function() {
 	 * @param {es3fShaderTextureFunctionTests.TexLookupParams} p
 	 */
 	es3fShaderTextureFunctionTests.evalTexture2DArrayShadowGradOffset = function(c, p) {
-		c.color[0] = texture2DArrayShadowOffset(c, c.in[0][3], c.in[0][0], c.in[0][1], c.in[0][2], computeLodFromGrad2DArray(c), p.offset.swizzle(0,1));
+		c.color[0] = es3fShaderTextureFunctionTests.texture2DArrayShadowOffset(c, c.in[0][3], c.in[0][0], c.in[0][1], c.in[0][2], es3fShaderTextureFunctionTests.computeLodFromGrad2DArray(c), p.offset.swizzle(0,1));
 	};
 
 
@@ -1029,7 +1029,7 @@ goog.scope(function() {
 	 * @param {es3fShaderTextureFunctionTests.TexLookupParams} p
 	 */
 	es3fShaderTextureFunctionTests.evalTexture2DShadowProjGrad = function(c) {
-		c.color[0] = texture2DShadow(c, c.in[0][2]/c.in[0][3], c.in[0][0]/c.in[0][3], c.in[0][1]/c.in[0][3], computeLodFromGrad2D(c));
+		c.color[0] = es3fShaderTextureFunctionTests.texture2DShadow(c, c.in[0][2]/c.in[0][3], c.in[0][0]/c.in[0][3], c.in[0][1]/c.in[0][3], es3fShaderTextureFunctionTests.computeLodFromGrad2D(c));
 	};
 
 	/**
@@ -1037,7 +1037,7 @@ goog.scope(function() {
 	 * @param {es3fShaderTextureFunctionTests.TexLookupParams} p
 	 */
 	es3fShaderTextureFunctionTests.evalTexture2DShadowProjGradOffset = function(c, p) {
-		c.color[0] = texture2DShadowOffset(c, c.in[0][2]/c.in[0][3], c.in[0][0]/c.in[0][3], c.in[0][1]/c.in[0][3], computeLodFromGrad2D(c), p.offset.swizzle(0,1));
+		c.color[0] = es3fShaderTextureFunctionTests.texture2DShadowOffset(c, c.in[0][2]/c.in[0][3], c.in[0][0]/c.in[0][3], c.in[0][1]/c.in[0][3], es3fShaderTextureFunctionTests.computeLodFromGrad2D(c), p.offset.swizzle(0,1));
 	};
 
 
@@ -1046,7 +1046,7 @@ goog.scope(function() {
 	 * @param {es3fShaderTextureFunctionTests.TexLookupParams} p
 	 */
 	es3fShaderTextureFunctionTests.evalTexture2DProjGrad3 = function(c, p) {
-		c.color = texture2D(c, c.in[0][0]/c.in[0][2], c.in[0][1]/c.in[0][2], computeLodFromGrad2D(c)) * p.scale + p.bias;
+		c.color = es3fShaderTextureFunctionTests.texture2D(c, c.in[0][0]/c.in[0][2], c.in[0][1]/c.in[0][2], es3fShaderTextureFunctionTests.computeLodFromGrad2D(c)) * p.scale + p.bias;
 	};
 
 	/**
@@ -1054,7 +1054,7 @@ goog.scope(function() {
 	 * @param {es3fShaderTextureFunctionTests.TexLookupParams} p
 	 */
 	es3fShaderTextureFunctionTests.evalTexture2DProjGrad = function(c, p) {
-		c.color = texture2D(c, c.in[0][0]/c.in[0][3], c.in[0][1]/c.in[0][3], computeLodFromGrad2D(c)) * p.scale + p.bias;
+		c.color = es3fShaderTextureFunctionTests.texture2D(c, c.in[0][0]/c.in[0][3], c.in[0][1]/c.in[0][3], es3fShaderTextureFunctionTests.computeLodFromGrad2D(c)) * p.scale + p.bias;
 	};
 
 	/**
@@ -1062,7 +1062,7 @@ goog.scope(function() {
 	 * @param {es3fShaderTextureFunctionTests.TexLookupParams} p
 	 */
 	es3fShaderTextureFunctionTests.evalTexture3DProjGrad = function(c, p) {
-		c.color = texture3D(c, c.in[0][0]/c.in[0][3], c.in[0][1]/c.in[0][3], c.in[0][2]/c.in[0][3], computeLodFromGrad3D(c)) * p.scale + p.bias;
+		c.color = es3fShaderTextureFunctionTests.texture3D(c, c.in[0][0]/c.in[0][3], c.in[0][1]/c.in[0][3], c.in[0][2]/c.in[0][3], es3fShaderTextureFunctionTests.computeLodFromGrad3D(c)) * p.scale + p.bias;
 	};
 
 
@@ -1071,7 +1071,7 @@ goog.scope(function() {
 	 * @param {es3fShaderTextureFunctionTests.TexLookupParams} p
 	 */
 	es3fShaderTextureFunctionTests.evalTexture2DProjGrad3Offset = function(c, p) {
-		c.color = texture2DOffset(c, c.in[0][0]/c.in[0][2], c.in[0][1]/c.in[0][2], computeLodFromGrad2D(c), p.offset.swizzle(0,1)) * p.scale + p.bias;
+		c.color = es3fShaderTextureFunctionTests.texture2DOffset(c, c.in[0][0]/c.in[0][2], c.in[0][1]/c.in[0][2], es3fShaderTextureFunctionTests.computeLodFromGrad2D(c), p.offset.swizzle(0,1)) * p.scale + p.bias;
 	};
 
 	/**
@@ -1079,7 +1079,7 @@ goog.scope(function() {
 	 * @param {es3fShaderTextureFunctionTests.TexLookupParams} p
 	 */
 	es3fShaderTextureFunctionTests.evalTexture2DProjGradOffset = function(c, p) {
-		c.color = texture2DOffset(c, c.in[0][0]/c.in[0][3], c.in[0][1]/c.in[0][3], computeLodFromGrad2D(c), p.offset.swizzle(0,1)) * p.scale + p.bias;
+		c.color = es3fShaderTextureFunctionTests.texture2DOffset(c, c.in[0][0]/c.in[0][3], c.in[0][1]/c.in[0][3], es3fShaderTextureFunctionTests.computeLodFromGrad2D(c), p.offset.swizzle(0,1)) * p.scale + p.bias;
 	};
 
 	/**
@@ -1087,7 +1087,7 @@ goog.scope(function() {
 	 * @param {es3fShaderTextureFunctionTests.TexLookupParams} p
 	 */
 	es3fShaderTextureFunctionTests.evalTexture3DProjGradOffset = function(c, p) {
-		c.color = texture3DOffset(c, c.in[0][0]/c.in[0][3], c.in[0][1]/c.in[0][3], c.in[0][2]/c.in[0][3], computeLodFromGrad3D(c), p.offset) * p.scale + p.bias;
+		c.color = es3fShaderTextureFunctionTests.texture3DOffset(c, c.in[0][0]/c.in[0][3], c.in[0][1]/c.in[0][3], c.in[0][2]/c.in[0][3], es3fShaderTextureFunctionTests.computeLodFromGrad3D(c), p.offset) * p.scale + p.bias;
 	};
 
 	// Texel fetch variants
