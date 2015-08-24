@@ -104,6 +104,10 @@ var boolNot = function(a) {
     return !a;
 };
 
+var bitwiseNot = function(a) {
+    return ~a;
+};
+
 /**
  * @constructor
  * @param {boolean} low
@@ -960,9 +964,18 @@ es3fShaderOperatorTests.ShaderOperatorTests.prototype.init = function() {
         es3fShaderOperatorTests.unaryGenTypeFuncs(negate, gluShaderUtil.DataType.UINT,
         gluShaderUtil.DataType.UINT)));
     unary.push(op("not", "!", B, [v(B, -1.0, 1.0)], f(1.0), f(0.0), na,
-        {'scalar': es3fShaderOperatorTests.unaryGenTypeFuncs(boolNot, gluShaderUtil.DataType.BOOL, gluShaderUtil.DataType.BOOL).scalar}));
+        {'scalar': es3fShaderOperatorTests.unaryGenTypeFuncs(boolNot, gluShaderUtil.DataType.BOOL,
+        gluShaderUtil.DataType.BOOL).scalar}));
+    unary.push(op("bitwise_not", "~", IGT, [v(IGT, -10000.0, 10000.0)], f(-50000.0), f(0.5), highp,
+        es3fShaderOperatorTests.unaryGenTypeFuncs(bitwiseNot, gluShaderUtil.DataType.INT,
+        gluShaderUtil.DataType.INT)));
+    unary.push(op("bitwise_not", "~", UGT, [v(UGT, -0.0, 200000000.0)], f(-5000000000.0), f(0.0), highp,
+        es3fShaderOperatorTests.unaryGenTypeFuncs(bitwiseNot, gluShaderUtil.DataType.UINT,
+        gluShaderUtil.DataType.UINT)));
     unary.push(side("pre_increment_effect", "++", GT, [v(GT, -1.0, 1.0)], f(0.5), f(0.0), all,
         es3fShaderOperatorTests.unaryGenTypeFuncs(addOne)));
+
+    // Pre/post incr/decr side effect cases.
 
     funcInfoGroups.push(unary);
 
