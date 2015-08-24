@@ -95,7 +95,8 @@ targets = {
     'shaderpackingfunction' : 'functional.gles3.es3fShaderPackingFunctionTests',
     'shadercommonfunction' : 'functional.gles3.es3fShaderCommonFunctionTests',
     'shadermatrix' : 'functional.gles3.es3fShaderMatrixTest',
-    'shaderprecision' : 'functional.gles3.es3fShaderPrecisionTests'
+    'shaderprecision' : 'functional.gles3.es3fShaderPrecisionTests',
+    'shadertexturefunction' : 'functional.gles3.es3fShaderTextureFunctionTests'
 }
 
 total_errors = 0
