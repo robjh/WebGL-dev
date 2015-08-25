@@ -20,11 +20,23 @@
 
 'use strict';
 goog.provide('functional.gles3.es3fShaderTextureFunctionTests');
+goog.require('framework.common.tcuMatrix');
 goog.require('framework.common.tcuTestCase');
+goog.require('framework.opengl.gluTexture');
+goog.require('modules.shared.glsShaderRenderCase');
 
 goog.scope(function() {
 	var es3fShaderTextureFunctionTests = functional.gles3.es3fShaderTextureFunctionTests;
     var tcuTestCase = framework.common.tcuTestCase;
+	var tcuMatrix = framework.common.tcuMatrix;
+	var tcuTestCase = framework.common.tcuTestCase;
+	var gluTexture = framework.opengl.gluTexture;
+	var glsShaderRenderCase = modules.shared.glsShaderRenderCase;
+
+	var tcuTexture;
+	var gluTextureUtil;
+	var tcuTextureUtil;
+	var gluShaderProgram;
 
 	/**
 	 * @enum
@@ -58,7 +70,7 @@ goog.scope(function() {
 	 * @param {es3fShaderTextureFunctionTests.Function} function_
 	 * @return {boolean}
 	 */
-	es3fShaderTextureFunctionTests.functionHasAutoLod = function(function_) {
+	es3fShaderTextureFunctionTests.functionHasProj = function(function_) {
 		return function_ === es3fShaderTextureFunctionTests.Function.TEXTUREPROJ ||
 		   function_ === es3fShaderTextureFunctionTests.Function.TEXTUREPROJ3 ||
 		   function_ === es3fShaderTextureFunctionTests.Function.TEXTUREPROJLOD ||
@@ -1147,7 +1159,600 @@ goog.scope(function() {
 		this.m_evalFunc(ctx, this.m_lookupParams);
 	};
 
-	// NEXT: ShaderTextureFunctionCase
+	/**
+	 * @constructor
+	 * @extends {glsShaderRenderCase.ShaderRenderCase}
+	 * @param {string} name
+	 * @param {string} desc
+	 * @param {es3fShaderTextureFunctionTests.TextureLookupSpec} lookup
+	 * @param {es3fShaderTextureFunctionTests.TextureSpec} texture
+	 * @param {es3fShaderTextureFunctionTests.TexEvalFunc} evalFunc
+	 * @param {boolean} isVertexCase
+	 */
+	es3fShaderTextureFunctionTests.ShaderTextureFunctionCase = function(name, desc, lookup, texture, evalFunc, isVertexCase) {
+		// TODO: ShadeRenderCase takes this.m_evaluator. Should we construct the local evaluator first and pass it to the superclass?
+		glsShaderRenderCase.ShaderRenderCase.call(this, name, desc, isVertexCase, null /*this.m_evaluator*/);
+
+		/** @type {es3fShaderTextureFunctionTests.TextureLookupSpec} */ this.m_lookupSpec = lookup;
+		/** @type {es3fShaderTextureFunctionTests.TextureSpec} */ this.m_textureSpec = texture;
+		/** @type {es3fShaderTextureFunctionTests.TexLookupParams} */ this.m_lookupParams = new es3fShaderTextureFunctionTests.TexLookupParams();
+		/** @type {es3fShaderTextureFunctionTests.TexLookupEvaluator} */ this.m_evaluator = new es3fShaderTextureFunctionTests.TexLookupEvaluator(evalFunc, this.m_lookupParams);
+
+		/** @type {gluTexture.Texture2D} */ this.m_texture2D = null;
+		/** @type {gluTexture.TextureCube} */ this.m_textureCube = null;
+		/** @type {gluTexture.Texture2DArray} */ this.m_texture2DArray = null;
+		/** @type {gluTexture.Texture3D} */ this.m_texture3D = null;
+	};
+
+	es3fShaderTextureFunctionTests.ShaderTextureFunctionCase.prototype = Object.create(glsShaderRenderCase.ShaderRenderCase.prototype);
+	es3fShaderTextureFunctionTests.ShaderTextureFunctionCase.prototype.constructor = es3fShaderTextureFunctionTests.ShaderTextureFunctionCase;
+
+	es3fShaderTextureFunctionTests.ShaderTextureFunctionCase.prototype.init = function() {
+
+		// Base coord scale & bias
+		/** @type {Array<number>} */ var s = this.m_lookupSpec.maxCoord - this.m_lookupSpec.minCoord;
+		/** @type {Array<number>} */ var b = this.m_lookupSpec.minCoord;
+
+		/** @type {Array<number>} */ var baseCoordTrans =[
+			s[0], 0.0, 0.0, b[0],
+			0.0, s[1], 0., b[1],
+			s[2]/2.0, -s[2]/2.0, 0.0, s[2]/2.0 + b[2],
+			-s[3]/2.0, s[3]/2.0, 0.0, s[3]/2.0 + b[3]
+		];
+		this.m_userAttribTransforms.push(tcuMatrix.matrixFromArray(4, 4, baseCoordTrans));
+
+		/** @type {boolean} */ var hasLodBias	= es3fShaderTextureFunctionTests.functionHasLod(this.m_lookupSpec.function) || this.m_lookupSpec.useBias;
+		/** @type {boolean} */ var isGrad		= es3fShaderTextureFunctionTests.functionHasGrad(this.m_lookupSpec.function);
+		assertMsgOptions(!isGrad || !hasLodBias, 'Assert Error. expected: isGrad || hasLodBias === false', false, true);
+
+		if (hasLodBias) {
+			/** @type {number} */ var s = this.m_lookupSpec.maxLodBias - this.m_lookupSpec.minLodBias;
+			/** @type {number} */ var b = this.m_lookupSpec.minLodBias;
+			/** @type {Array<number>} */ var lodCoordTrans = [
+				s/2.0, s/2.0, 0.0, b,
+				0.0, 0.0, 0.0, 0.0,
+				0.0, 0.0, 0.0, 0.0,
+				0.0, 0.0, 0.0, 0.0
+			];
+
+			this.m_userAttribTransforms.push(tcuMatrix.matrixFromArray(4, 4, lodCoordTrans));
+		}
+		else if (isGrad) {
+			/** @type {Array<number>} */ var sx = this.m_lookupSpec.maxDX - this.m_lookupSpec.minDX;
+			/** @type {Array<number>} */ var sy = this.m_lookupSpec.maxDY - this.m_lookupSpec.minDY;
+			/** @type {Array<number>} */ var gradDxTrans = [
+				sx[0]/2.0, sx[0]/2.0, 0.0, this.m_lookupSpec.minDX[0],
+				sx[1]/2.0, sx[1]/2.0, 0.0, this.m_lookupSpec.minDX[1],
+				sx[2]/2.0, sx[2]/2.0, 0.0, this.m_lookupSpec.minDX[2],
+				0.0, 0.0, 0.0, 0.0
+			];
+			/** @type {Array<number>} */ var gradDyTrans = [
+				-sy[0]/2.0, -sy[0]/2.0, 0.0, this.m_lookupSpec.maxDY[0],
+				-sy[1]/2.0, -sy[1]/2.0, 0.0, this.m_lookupSpec.maxDY[1],
+				-sy[2]/2.0, -sy[2]/2.0, 0.0, this.m_lookupSpec.maxDY[2],
+				0.0, 0.0, 0.0, 0.0
+ 			];
+
+			this.m_userAttribTransforms.push(tcuMatrix.matrixFromArray(4, 4, gradDxTrans));
+			this.m_userAttribTransforms.push(tcuMatrix.matrixFromArray(4, 4, gradDyTrans));
+		}
+
+		this.initShaderSources();
+		this.initTexture();
+
+		this.postinit();
+
+	};
+
+	es3fShaderTextureFunctionTests.ShaderTextureFunctionCase.prototype.initTexture = function() {
+		/** @type {Array<number>} */ var texCubeSwz = [
+			[0, 0, 1, 1],
+			[1, 1, 0, 0],
+			[0, 1, 0, 1],
+			[1, 0, 1, 0],
+			[0, 1, 1, 0],
+			[1, 0, 0, 1]
+		];
+
+		assertMsgOptions(texCubeSwz.length === 6 /*tcu::CUBEFACE_LAST*/, 'Cube should have 6 faces.', false, true);
+
+		/** @type {number} */ var levelStep;
+		/** @type {Array<number>} */ var cScale;
+		/** @type {Array<number>} */ var cBias;
+		/** @type {number} */ var baseCellSize;
+
+		/** @type {number} */ var fA;
+		/** @type {number} */ var fB;
+		/** @type {Array<number>} */ var colorA;
+		/** @type {Array<number>} */ var colorB;
+
+		/** @type {number} */ var dudx;
+		/** @type {number} */ var dvdy;
+
+		/** @type {tcuTexture.TextureFormat} */ var exFmt = gluTextureUtil.mapGLInternalFormat(this.m_textureSpec.format);
+		/** @type {tcuTextureUtil.TextureFormatInfo} */ var fmtInfo = tcuTextureUtil.getTextureFormatInfo(texFmt);
+		/** @type {Array<number>} */ var viewportSize = this.getViewportSize();
+		/** @type {boolean} */ var isProj = es3fShaderTextureFunctionTests.functionHasProj(this.m_lookupSpec.function);
+		/** @type {boolean} */ var isAutoLod = es3fShaderTextureFunctionTests.functionHasAutoLod(
+			this.m_isVertexCase ? gluShaderProgram.shaderType.VERTEX : gluShaderProgram.shaderType.FRAGMENT,
+			m_lookupSpec.function); // LOD can vary significantly
+		/** @type {number} */ var proj = isProj ?
+			1.0 / this.m_lookupSpec.minCoord[this.m_lookupSpec.function === es3fShaderTextureFunctionTests.Function.TEXTUREPROJ3 ? 2 : 3] :
+			1.0;
+
+		switch (this.m_textureSpec.type) {
+			case es3fShaderTextureFunctionTests.TextureType.TEXTURETYPE_2D:
+				levelStep = isAutoLod ? 0.0 : 1.0 / Math.max(1, this.m_textureSpec.numLevels - 1);
+				cScale = fmtInfo.valueMax - fmtInfo.valueMin;
+				cBias = fmtInfo.valueMin;
+				baseCellSize = Math.min(this.m_textureSpec.width / 4, this.m_textureSpec.height / 4);
+
+				this.m_texture2D = new gluTexture.Texture2D(gl, this.m_textureSpec.format, this.m_textureSpec.width, this.m_textureSpec.height);
+				for (var level = 0; level < this.m_textureSpec.numLevels; level++) {
+					fA = level * levelStep;
+					fB = 1.0f - fA;
+					colorA = cBias + cScale * [fA, fB, fA, fB];
+					colorB = cBias + cScale * [fB, fA, fB, fA];
+
+					this.m_texture2D.getRefTexture().allocLevel(level);
+					tcuTextureUtil.fillWithGrid(this.m_texture2D.getRefTexture().getLevel(level), Math.max(1, baseCellSize >> level), colorA, colorB);
+				}
+				m_texture2D.upload();
+
+				// Compute LOD.
+				dudx = (this.m_lookupSpec.maxCoord[0] - this.m_lookupSpec.minCoord[0]) * proj * this.m_textureSpec.width / viewportSize[0];
+				dvdy = (this.m_lookupSpec.maxCoord[1] - this.m_lookupSpec.minCoord[1]) * proj * this.m_textureSpec.height / viewportSize[1];
+				this.m_lookupParams.lod = es3fShaderTextureFunctionTests.computeLodFromDerivates(dudx, 0.0, 0.0, dvdy);
+
+				// Append to texture list.
+				this.m_textures.push(new glsShaderRenderCase.TextureBinding(this.m_texture2D, this.m_textureSpec.sampler));
+				break;
+
+			case es3fShaderTextureFunctionTests.TextureType.TEXTURETYPE_CUBE_MAP:
+				levelStep = isAutoLod ? 0.0 : 1.0 / Math.max(1, this.m_textureSpec.numLevels - 1);
+				cScale = fmtInfo.valueMax - fmtInfo.valueMin;
+				cBias = fmtInfo.valueMin;
+				/** @type {Array<number>} */ var cCorner = cBias + cScale * 0.5;
+				baseCellSize = Math.min(this.m_textureSpec.width / 4, this.m_textureSpec.height / 4);
+
+				assertMsgOptions(this.m_textureSpec.width === this.m_textureSpec.height, 'Expected width === height', false, true);
+				this.m_textureCube = new gluTexture.TextureCube(gl, this.m_textureSpec.format, this.m_textureSpec.width);
+				for (var level = 0; level < this.m_textureSpec.numLevels; level++) {
+					fA = level * levelStep;
+					fB = 1.0 - fA;
+					/** @type {Array<number>} */ var f = [fA, fB];
+
+					for (var face = 0; face < 6 /*tcu::CUBEFACE_LAST*/; face++) {
+						/** @type {Array<number>} */ var swzA	= texCubeSwz[face];
+						/** @type {Array<number>} */ var swzB	= deMath.subtract([1, 1, 1, 1], swzA);
+						colorA = cBias + cScale * f.swizzle(swzA[0], swzA[1], swzA[2], swzA[3]);
+						colorB = cBias + cScale * f.swizzle(swzB[0], swzB[1], swzB[2], swzB[3]);
+
+						this.m_textureCube.getRefTexture().allocLevel(face, level);
+
+						/** @type {tcuTexture.PixelBufferAccess} */ var access = this.m_textureCube.getRefTexture().getLevelFace(level, face);
+						/** @type {number} */ var lastPix = access.getWidth() - 1;
+
+						tcuTextureUtil.fillWithGrid(access, Math.max(1, baseCellSize >> level), colorA, colorB);
+
+						// Ensure all corners have identical colors in order to avoid dealing with ambiguous corner texel filtering
+						access.setPixel(cCorner, 0, 0);
+						access.setPixel(cCorner, 0, lastPix);
+						access.setPixel(cCorner, lastPix, 0);
+						access.setPixel(cCorner, lastPix, lastPix);
+					}
+				}
+				this.m_textureCube.upload();
+
+				// Compute LOD \note Assumes that only single side is accessed and R is constant major axis.
+				assertMsgOptions(Math.abs(this.m_lookupSpec.minCoord[2] - this.m_lookupSpec.maxCoord[2]) < 0.005, 'Expected abs(minCoord-maxCoord) < 0.005', false, true);
+				assertMsgOptions(Math.abs(this.m_lookupSpec.minCoord[0]) < Math.abs(this.m_lookupSpec.minCoord[2]) && Math.abs(this.m_lookupSpec.maxCoord[0]) < Math.abs(this.m_lookupSpec.minCoord[2]), 'Assert error: minCoord, maxCoord', false, true);
+				assertMsgOptions(Math.abs(this.m_lookupSpec.minCoord[1]) < Math.abs(this.m_lookupSpec.minCoord[2]) && Math.abs(this.m_lookupSpec.maxCoord[1]) < Math.abs(this.m_lookupSpec.minCoord[2]), 'Assert error: minCoord, maxCoord', false, true);
+
+				/** @type {tcuTexture.CubeFaceCoords} */ var c00 = tcuTexture.getCubeFaceCoords([this.m_lookupSpec.minCoord[0] * proj, this.m_lookupSpec.minCoord[1] * proj, this.m_lookupSpec.minCoord[2] * proj]);
+				/** @type {tcuTexture.CubeFaceCoords} */ var c10 = tcuTexture.getCubeFaceCoords([this.m_lookupSpec.maxCoord[0] * proj, this.m_lookupSpec.minCoord[1] * proj, this.m_lookupSpec.minCoord[2] * proj]);
+				/** @type {tcuTexture.CubeFaceCoords} */ var c01 = tcuTexture.getCubeFaceCoords([this.m_lookupSpec.minCoord[0] * proj, this.m_lookupSpec.maxCoord[1] * proj, this.m_lookupSpec.minCoord[2] * proj]);
+				dudx = (c10.s - c00.s) * this.m_textureSpec.width / viewportSize[0];
+				dvdy = (c01.t - c00.t) * this.m_textureSpec.height / viewportSize[1];
+
+				this.m_lookupParams.lod = es3fShaderTextureFunctionTests.computeLodFromDerivates(dudx, 0.0, 0.0, dvdy);
+
+				this.m_textures.push(new glsShaderRenderCase.TextureBinding(this.m_textureCube, this.m_textureSpec.sampler));
+				break;
+
+			case es3fShaderTextureFunctionTests.TextureType.TEXTURETYPE_2D_ARRAY:
+				/** @type {number} */ var layerStep = 1.0 / this.m_textureSpec.depth;
+				levelStep = isAutoLod ? 0.0 : 1.0 / Math.max(1, this.m_textureSpec.numLevels - 1) * this.m_textureSpec.depth;
+				cScale = fmtInfo.valueMax - fmtInfo.valueMin;
+				cBias = fmtInfo.valueMin;
+				baseCellSize = Math.min(this.m_textureSpec.width / 4, this.m_textureSpec.height / 4);
+
+				this.m_texture2DArray = new gluTexture.Texture2DArray(gl, this.m_textureSpec.format, this.m_textureSpec.width, this.m_textureSpec.height, this.m_textureSpec.depth);
+				for (var level = 0; level < this.m_textureSpec.numLevels; level++) {
+					this.m_texture2DArray.getRefTexture().allocLevel(level);
+					/** @type {tcuTexture.PixelBufferAccess} */ var levelAccess = this.m_texture2DArray.getRefTexture().getLevel(level);
+
+					for (var layer = 0; layer < levelAccess.getDepth(); layer++) {
+						fA = layer * layerStep + level * levelStep;
+						fB = 1.0 - fA;
+						colorA = cBias + cScale * [fA, fB, fA, fB];
+						colorB = cBias + cScale * [fB, fA, fB, fA];
+
+						tcuTextureUtil.fillWithGrid(tcuTextureUtil.getSubregion(levelAccess, 0, 0, layer, levelAccess.getWidth(), levelAccess.getHeight(), 1), Math.max(1, baseCellSize >> level), colorA, colorB);
+					}
+				}
+				this.m_texture2DArray.upload();
+
+				// Compute LOD.
+				dudx = (this.m_lookupSpec.maxCoord[0] - this.m_lookupSpec.minCoord[0]) * proj * this.m_textureSpec.width / viewportSize[0];
+				dvdy = (this.m_lookupSpec.maxCoord[1] - this.m_lookupSpec.minCoord[1]) * proj * this.m_textureSpec.height / viewportSize[1];
+				this.m_lookupParams.lod = es3fShaderTextureFunctionTests.computeLodFromDerivates(dudx, 0.0, 0.0, dvdy);
+
+				// Append to texture list.
+				this.m_textures.push(new glsShaderRenderCase.TextureBinding.TextureBinding(this.m_texture2DArray, this.m_textureSpec.sampler));
+				break;
+
+			case es3fShaderTextureFunctionTests.TextureType.TEXTURETYPE_3D:
+				levelStep = isAutoLod ? 0.0 : 1.0 / Math.max(1, this.m_textureSpec.numLevels - 1);
+				cScale = fmtInfo.valueMax - fmtInfo.valueMin;
+				cBias = fmtInfo.valueMin;
+				baseCellSize = Math.min(this.m_textureSpec.width / 2, this.m_textureSpec.height / 2, this.m_textureSpec.depth / 2);
+
+				this.m_texture3D = new gluTexture.Texture3D(gl, this.m_textureSpec.format, this.m_textureSpec.width, this.m_textureSpec.height, this.m_textureSpec.depth);
+				for (var level = 0; level < this.m_textureSpec.numLevels; level++) {
+					fA = level * levelStep;
+					fB = 1.0 - fA;
+					colorA = cBias + cScale * [fA, fB, fA, fB];
+					colorB = cBias + cScale * [fB, fA, fB, fA];
+
+					this.m_texture3D.getRefTexture().allocLevel(level);
+					tcuTextureUtil.fillWithGri(this.m_texture3D0getRefTexture().getLevel(level), Math.max(1, baseCellSize >> level), colorA, colorB);
+				}
+				this.m_texture3D.upload();
+
+				// Compute LOD.
+				dudx = (this.m_lookupSpec.maxCoord[0] - this.m_lookupSpec.minCoord[0]) * proj * this.m_textureSpec.width / viewportSize[0];
+				dvdy = (this.m_lookupSpec.maxCoord[1] - this.m_lookupSpec.minCoord[1]) * proj * this.m_textureSpec.height / viewportSize[1];
+				/** @type {number} */ var dwdx = (this.m_lookupSpec.maxCoord[2] - this.m_lookupSpec.minCoord[2]) * 0.5 * proj * this.m_textureSpec.depth / viewportSize[0];
+				/** @type {number} */ var dwdy = (this.m_lookupSpec.maxCoord[2] - this.m_lookupSpec.minCoord[2]) * 0.5 * proj * this.m_textureSpec.depth / viewportSize[1];
+				this.m_lookupParams.lod = es3fShaderTextureFunctionTests.computeLodFromDerivates(dudx, 0.0, dwdx, 0.0, dvdy, dwdy);
+
+				// Append to texture list.
+				this.m_textures.push(new glsShaderRenderCase.TextureBinding(this.m_texture3D, this.m_textureSpec.sampler));
+				break;
+
+			default:
+				throw new Error('Texture type not supported.');
+		}
+
+		// Set lookup scale & bias
+		this.m_lookupParams.scale = fmtInfo.lookupScale;
+		this.m_lookupParams.bias = fmtInfo.lookupBias;
+		this.m_lookupParams.offset = this.m_lookupSpec.offset;
+	};
+
+	es3fShaderTextureFunctionTests.ShaderTextureFunctionCase.prototype.initShaderSources = function() {
+		/** @type {es3fShaderTextureFunctionTests.Function} */ var function_ = this.m_lookupSpec.function;
+		/** @type {boolean} */ var isVtxCase = this.m_isVertexCase;
+		/** @type {boolean} */ var isProj = functionHasProj(function_);
+		/** @type {boolean} */ var isGrad = functionHasGrad(function_);
+		/** @type {boolean} */ var isShadow = this.m_textureSpec.sampler.compare !== tcuTexture.CompareMode.COMPAREMODE_NONE;
+		/** @type {boolean} */ var is2DProj4 = !isShadow && this.m_textureSpec.type === es3fShaderTextureFunctionTests.TextureType.TEXTURETYPE_2D && (function_ === es3fShaderTextureFunctionTests.Function.TEXTUREPROJ || function === es3fShaderTextureFunctionTests.Function .TEXTUREPROJLOD || function === es3fShaderTextureFunctionTests.Function .
+		/** @type {boolean} */ var isIntCoord = function_ === es3fShaderTextureFunctionTests.Function.
+		/** @type {boolean} */ var hasLodBias = functionHasLod(this.m_lookupSpec.function) || this.m_lookupSpec.useBias;
+		/** @type {number} */ var texCoordComps = this.m_textureSpec.type === es3fShaderTextureFunctionTests.TextureType.TEXTURETYPE_2D ? 2 : 3;
+		/** @type {number} */ var extraCoordComps = (isProj ? (is2DProj4 ? 2 : 1) : 0) + (isShadow ? 1 : 0);
+		/** @type {gluShaderUtil.DataType} */ var coordType = gluShaderUtil.getDataTypeVector(gluShaderUtil.DataType.FLOAT, texCoordComps+extraCoordComps);
+		/** @type {gluShaderUtil.precision} */ var coordPrec = gluShaderUtil.precision.PRECISION_HIGHP;
+		/** @type {string} */ var coordTypeName = gluShaderUtil.getDataTypeName(coordType);
+		/** @type {string} */ var coordPrecName = gluShaderUtil.getPrecisionName(coordPrec);
+		/** @type {tcuTexture.TextureFormat} */ var exFmt = gluTextureUtil.mapGLInternalFormat(this.m_textureSpec.format);
+		/** @type {?gluShaderUtil.DataType} */ var samplerType = null;
+		/** @type {gluShaderUtil.DataType} */ var gradType = (this.m_textureSpec.type === es3fShaderTextureFunctionTests.TextureType.TEXTURETYPE_CUBE_MAP || this.m_textureSpec.type === es3fShaderTextureFunctionTests.TextureType.TEXTURETYPE_3D) ? gluShaderUtil.DataType.FLOAT_VEC3 : gluShaderUtil.DataType.FLOAT_VEC2;
+		/** @type {string} */ var gradTypeName = gluShaderUtil.getDataTypeName(gradType);
+		/** @type {string} */ var baseFuncName = '';
+
+		assertMsgOptions(!isGrad || !hasLodBias, 'Expected !isGrad || !hasLodBias', false, true);
+
+		switch (this.m_textureSpec.type) {
+			case es3fShaderTextureFunctionTests.TextureType.TEXTURETYPE_2D:
+				samplerType = isShadow ? gluShaderUtil.DataType.SAMPLER_2D_SHADOW : gluTextureUtil.getSampler2DType(texFmt);
+				break;
+			case es3fShaderTextureFunctionTests.TextureType.TEXTURETYPE_CUBE_MAP:
+				samplerType = isShadow ? gluShaderUtil.DataType.SAMPLER_CUBE_SHADOW : gluTextureUtil.getSamplerCubeType(texFmt);
+				break;
+			case es3fShaderTextureFunctionTests.TextureType.TEXTURETYPE_2D_ARRAY:
+				samplerType = isShadow ? gluShaderUtil.DataType.SAMPLER_2D_ARRAY_SHADOW : gluTextureUtil.getSampler2DArrayType(texFmt);
+				break;
+			case es3fShaderTextureFunctionTests.TextureType.TEXTURETYPE_3D:
+				assertMsgOptions(!isShadow, 'Expected !isShadow', false, true);
+				samplerType = gluTextureUtil.getSampler3DType(texFmt);
+				break;
+			default:
+				throw new Error('Unexpected type.');
+		}
+
+		switch (this.m_lookupSpec.function)
+		{
+			case es3fShaderTextureFunctionTests.Function.TEXTURE: baseFuncName = "texture"; break;
+			case es3fShaderTextureFunctionTests.Function.TEXTUREPROJ: baseFuncName = "textureProj"; break;
+			case es3fShaderTextureFunctionTests.Function.TEXTUREPROJ3: baseFuncName = "textureProj"; break;
+			case es3fShaderTextureFunctionTests.Function.TEXTURELOD: baseFuncName = "textureLod"; break;
+			case es3fShaderTextureFunctionTests.Function.TEXTUREPROJLOD: baseFuncName = "textureProjLod"; break;
+			case es3fShaderTextureFunctionTests.Function.TEXTUREPROJLOD3: baseFuncName = "textureProjLod"; break;
+			case es3fShaderTextureFunctionTests.Function.TEXTUREGRAD: baseFuncName = "textureGrad"; break;
+			case es3fShaderTextureFunctionTests.Function.TEXTUREPROJGRAD: baseFuncName = "textureProjGrad"; break;
+			case es3fShaderTextureFunctionTests.Function.TEXTUREPROJGRAD3: baseFuncName = "textureProjGrad"; break;
+			case es3fShaderTextureFunctionTests.Function.TEXELFETCH: baseFuncName = "texelFetch"; break;
+			default:
+				throw new Error('Unexpected function.');
+		}
+
+		/** @type {string} */ var vert = '';
+		/** @type {string} */ var frag = '';
+		/** @type {string} */ var op = '';
+
+		vert += "#version 300 es\n" +
+			    "in highp vec4 a_position;\n" +
+			    "in " + coordPrecName + " " + coordTypeName + " a_in0;\n";
+
+		if (isGrad) {
+			vert += "in " + coordPrecName + " " + gradTypeName + " a_in1;\n";
+			vert += "in " + coordPrecName + " " + gradTypeName + " a_in2;\n";
+		}
+		else if (hasLodBias)
+			vert += "in " + coordPrecName + " float a_in1;\n";
+
+		frag += "#version 300 es\n" +
+			    "layout(location = 0) out mediump vec4 o_color;\n";
+
+		if (isVtxCase) {
+			vert += "out mediump vec4 v_color;\n";
+			frag += "in mediump vec4 v_color;\n";
+		}
+		else
+		{
+			vert += "out " + coordPrecName + " " + coordTypeName + " v_texCoord;\n";
+			frag += "in " + coordPrecName + " " + coordTypeName + " v_texCoord;\n";
+
+			if (isGrad) {
+				vert += "out " + coordPrecName + " " + gradTypeName + " v_gradX;\n";
+				vert += "out " + coordPrecName + " " + gradTypeName + " v_gradY;\n";
+				frag += "in " + coordPrecName + " " + gradTypeName + " v_gradX;\n";
+				frag += "in " + coordPrecName + " " + gradTypeName + " v_gradY;\n";
+			}
+
+			if (hasLodBias) {
+				vert += "out " + coordPrecName + " float v_lodBias;\n";
+				frag += "in " + coordPrecName + " float v_lodBias;\n";
+			}
+		}
+
+		// Uniforms
+		op += "uniform highp " + gluShaderUtil.getDataTypeName(samplerType) + " u_sampler;\n" +
+		      "uniform highp vec4 u_scale;\n" +
+		      "uniform highp vec4 u_bias;\n";
+
+		vtx += isVtxCase ? op : '';
+		frag += isVtxCase ? '' : op;
+		op = '';
+
+		vert += "\nvoid main()\n{\n" +
+			    "\tgl_Position = a_position;\n";
+		frag += "\nvoid main()\n{\n";
+
+		if (isVtxCase)
+			vert += "\tv_color = ";
+		else
+			frag += "\to_color = ";
+
+		// Op.
+		/** @type {string} */ var texCoord = isVtxCase ? "a_in0" : "v_texCoord";
+		/** @type {string} */ var gradX = isVtxCase ? "a_in1" : "v_gradX";
+		/** @type {string} */ var gradY = isVtxCase ? "a_in2" : "v_gradY";
+		/** @type {string} */ var lodBias = isVtxCase ? "a_in1" : "v_lodBias";
+
+		op += "vec4(" + baseFuncName;
+		if (this.m_lookupSpec.useOffset)
+			op += "Offset";
+		op += "(u_sampler, ";
+
+		if (isIntCoord)
+			op += "ivec" + (texCoordComps+extraCoordComps) + "(";
+
+		op += texCoord;
+
+		if (isIntCoord)
+			op += ")";
+
+		if (isGrad)
+			op += ", " + gradX + ", " + gradY;
+
+		if (functionHasLod(function_)) {
+			if (isIntCoord)
+				op += ", int(" + lodBias + ")";
+			else
+				op += ", " + lodBias;
+		}
+
+		if (this.m_lookupSpec.useOffset) {
+			/** @type {number} */ var offsetComps = this.m_textureSpec.type === es3fShaderTextureFunctionTests.TextureType.TEXTURETYPE_3D ? 3 : 2;
+
+			op += ", ivec" + offsetComps + "(";
+			for (var ndx = 0; ndx < offsetComps; ndx++) {
+				if (ndx != 0)
+					op += ", ";
+				op += this.m_lookupSpec.offset[ndx];
+			}
+			op += ")";
+		}
+
+		if (this.m_lookupSpec.useBias)
+			op += ", " + lodBias;
+
+		op += ")";
+
+		if (isShadow)
+			op += ", 0.0, 0.0, 1.0)";
+		else
+			op += ")*u_scale + u_bias";
+
+		op += ";\n";
+
+		vtx += isVtxCase ? op : '';
+		frag += isVtxCase ? '' : op;
+		op = '';
+
+		if (isVtxCase)
+			frag += "\to_color = v_color;\n";
+		else {
+			vert += "\tv_texCoord = a_in0;\n";
+
+			if (isGrad) {
+				vert += "\tv_gradX = a_in1;\n";
+				vert += "\tv_gradY = a_in2;\n";
+			}
+			else if (hasLodBias)
+				vert += "\tv_lodBias = a_in1;\n";
+		}
+
+		vert += "}\n";
+		frag += "}\n";
+
+		this.m_vertShaderSource = vert;
+		this.m_fragShaderSource = frag;
+	};
+
+	es3fShaderTextureFunctionTests.ShaderTextureFunctionCase.prototype.deinit = function() {
+		this.m_program = null;
+		this.m_texture2D = null;
+		this.m_textureCube = null;
+		this.m_texture2DArray = null;
+		this.m_texture3D = null;
+	};
+
+	/**
+	 * @param  {number} programID
+	 * @param  {Array<number>} constCoords
+	 */
+	es3fShaderTextureFunctionTests.ShaderTextureFunctionCase.prototype.setupUniforms = function(programID, constCoords) {
+		gl.uniform1i(gl.getUniformLocation(programID, "u_sampler"),	0);
+		gl.uniform4fv(gl.getUniformLocation(programID, "u_scale"), 1, this.m_lookupParams.scale);
+		gl.uniform4fv(gl.getUniformLocation(programID, "u_bias"), 1, this.m_lookupParams.bias);
+	};
+
+
+	/**
+	 * @struct
+	 * @param {Array<number>} textureSize
+	 * @param {number} lod
+	 * @param {number} lodBase
+	 * @param {Array<number>} expectedSize
+	 */
+	es3fShaderTextureFunctionTests.TestSize = function(textureSize, lod, lodBase, expectedSize) {
+		/** @type {Array<number>} */ this.textureSize = textureSize;
+		/** @type {number} */ this.lod = lod;
+		/** @type {number} */ this.lodBase = lodBase;
+		/** @type {Array<number>} */ this.expectedSize = expectedSize;
+	};
+
+	/**
+	 * @constructor
+	 * @extends {tcuTestCase.DeqpTest}
+	 * @type {string} name
+	 * @type {string} desc
+	 * @type {string} samplerType
+	 * @type {es3fShaderTextureFunctionTests.TextureSpec} texture
+	 * @type {boolean} isVertexCase
+	 */
+	es3fShaderTextureFunctionTests.TextureSizeCase = function(name, desc, samplerType, texture, isVertexCase) {
+		tcuTestCase.DeqpTest.call(this, name, desc);
+		/** @type {string} */ this.m_samplerTypeStr = samplerType;
+		/** @type {es3fShaderTextureFunctionTests.TextureSpec} */ this.m_textureSpec = texture;
+		/** @type {boolean} */ this.m_isVertexCase = isVertexCase;
+		/** @type {boolean} */ this.m_has3DSize = texture.type === es3fShaderTextureFunctionTests.TextureType.TEXTURETYPE_3D || texture.type === es3fShaderTextureFunctionTests.TextureType.TEXTURETYPE_2D_ARRAY;
+		/** @type {?gluShaderProgram.ShaderProgram} */ this.m_program = null;
+		/** @type {number} */ this.m_iterationCounter = 0;
+	};
+
+	es3fShaderTextureFunctionTests.TextureSizeCase.prototype = Object.create(tcuTestCase.DeqpTest.prototype);
+	es3fShaderTextureFunctionTests.TextureSizeCase.prototype.constructor = es3fShaderTextureFunctionTests.TextureSizeCase;
+
+	es3fShaderTextureFunctionTests.TextureSizeCase.prototype.deinit = function() {
+		this.freeShader();
+	};
+
+	es3fShaderTextureFunctionTests.TextureSizeCase.prototype.iterate = function() {
+		// const int currentIteration = m_iterationCounter++;
+		// const TestSize testSizes[] =
+		// {
+		// 	{ tcu::IVec3(1, 2, 1),			1,		0,	tcu::IVec3(1, 1, 1)			},
+		// 	{ tcu::IVec3(1, 2, 1),			0,		0,	tcu::IVec3(1, 2, 1)			},
+		//
+		// 	{ tcu::IVec3(1, 3, 2),			0,		0,	tcu::IVec3(1, 3, 2)			},
+		// 	{ tcu::IVec3(1, 3, 2),			1,		0,	tcu::IVec3(1, 1, 1)			},
+		//
+		// 	{ tcu::IVec3(100, 31, 18),		0,		0,	tcu::IVec3(100, 31, 18)		},
+		// 	{ tcu::IVec3(100, 31, 18),		1,		0,	tcu::IVec3(50, 15, 9)		},
+		// 	{ tcu::IVec3(100, 31, 18),		2,		0,	tcu::IVec3(25, 7, 4)		},
+		// 	{ tcu::IVec3(100, 31, 18),		3,		0,	tcu::IVec3(12, 3, 2)		},
+		// 	{ tcu::IVec3(100, 31, 18),		4,		0,	tcu::IVec3(6, 1, 1)			},
+		// 	{ tcu::IVec3(100, 31, 18),		5,		0,	tcu::IVec3(3, 1, 1)			},
+		// 	{ tcu::IVec3(100, 31, 18),		6,		0,	tcu::IVec3(1, 1, 1)			},
+		//
+		// 	{ tcu::IVec3(100, 128, 32),		0,		0,	tcu::IVec3(100, 128, 32)	},
+		// 	{ tcu::IVec3(100, 128, 32),		1,		0,	tcu::IVec3(50, 64, 16)		},
+		// 	{ tcu::IVec3(100, 128, 32),		2,		0,	tcu::IVec3(25, 32, 8)		},
+		// 	{ tcu::IVec3(100, 128, 32),		3,		0,	tcu::IVec3(12, 16, 4)		},
+		// 	{ tcu::IVec3(100, 128, 32),		4,		0,	tcu::IVec3(6, 8, 2)			},
+		// 	{ tcu::IVec3(100, 128, 32),		5,		0,	tcu::IVec3(3, 4, 1)			},
+		// 	{ tcu::IVec3(100, 128, 32),		6,		0,	tcu::IVec3(1, 2, 1)			},
+		// 	{ tcu::IVec3(100, 128, 32),		7,		0,	tcu::IVec3(1, 1, 1)			},
+		//
+		// 	// pow 2
+		// 	{ tcu::IVec3(128, 64, 32),		0,		0,	tcu::IVec3(128, 64, 32)		},
+		// 	{ tcu::IVec3(128, 64, 32),		1,		0,	tcu::IVec3(64, 32, 16)		},
+		// 	{ tcu::IVec3(128, 64, 32),		2,		0,	tcu::IVec3(32, 16, 8)		},
+		// 	{ tcu::IVec3(128, 64, 32),		3,		0,	tcu::IVec3(16, 8, 4)		},
+		// 	{ tcu::IVec3(128, 64, 32),		4,		0,	tcu::IVec3(8, 4, 2)			},
+		// 	{ tcu::IVec3(128, 64, 32),		5,		0,	tcu::IVec3(4, 2, 1)			},
+		// 	{ tcu::IVec3(128, 64, 32),		6,		0,	tcu::IVec3(2, 1, 1)			},
+		// 	{ tcu::IVec3(128, 64, 32),		7,		0,	tcu::IVec3(1, 1, 1)			},
+		//
+		// 	// w == h
+		// 	{ tcu::IVec3(1, 1, 1),			0,		0,	tcu::IVec3(1, 1, 1)			},
+		// 	{ tcu::IVec3(64, 64, 64),		0,		0,	tcu::IVec3(64, 64, 64)		},
+		// 	{ tcu::IVec3(64, 64, 64),		1,		0,	tcu::IVec3(32, 32, 32)		},
+		// 	{ tcu::IVec3(64, 64, 64),		2,		0,	tcu::IVec3(16, 16, 16)		},
+		// 	{ tcu::IVec3(64, 64, 64),		3,		0,	tcu::IVec3(8, 8, 8)			},
+		// 	{ tcu::IVec3(64, 64, 64),		4,		0,	tcu::IVec3(4, 4, 4)			},
+		//
+		// 	// with lod base
+		// 	{ tcu::IVec3(100, 31, 18),		3,		1,	tcu::IVec3(6, 1, 1)			},
+		// 	{ tcu::IVec3(128, 64, 32),		3,		1,	tcu::IVec3(8, 4, 2)			},
+		// 	{ tcu::IVec3(64, 64, 64),		1,		1,	tcu::IVec3(16, 16, 16)		},
+		//
+		// };
+		// const int lastIterationIndex = DE_LENGTH_OF_ARRAY(testSizes) + 1;
+		//
+		// if (currentIteration == 0)
+		// {
+		// 	m_testCtx.setTestResult(QP_TEST_RESULT_PASS, "Pass");
+		// 	return initShader() ? CONTINUE : STOP;
+		// }
+		// else if (currentIteration == lastIterationIndex)
+		// {
+		// 	freeShader();
+		// 	return STOP;
+		// }
+		// else
+		// {
+		// 	if (!testTextureSize(testSizes[currentIteration - 1]))
+		// 		if (m_testCtx.getTestResult() != QP_TEST_RESULT_FAIL)
+		// 			m_testCtx.setTestResult(QP_TEST_RESULT_FAIL, "Got unexpected texture size");
+		// 	return CONTINUE;
+		// }
+	};
 
 	/** @typedef {Array<string, es3fShaderTextureFunctionTests.TextureLookupSpec, es3fShaderTextureFunctionTests.TextureSpec, es3fShaderTextureFunctionTests.EvalFunc, es3fShaderTextureFunctionTests.CaseFlags>} */ es3fShaderTextureFunctionTests.TestSpec;
 
