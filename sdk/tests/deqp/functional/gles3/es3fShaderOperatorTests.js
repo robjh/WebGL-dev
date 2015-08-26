@@ -634,6 +634,21 @@ es3fShaderOperatorTests.BuiltinPostSideEffOperInfo = function (caseName, shaderF
                                                     bias,
                                                     precision,
                                                     functions,
+                                                    es3fShaderOperatorTests.OperationType.SIDE_EFFECT_OPERATOR,
+                                                    false);
+};
+es3fShaderOperatorTests.BuiltinPostOperInfo = function (caseName, shaderFuncName, outValue, inputs, scale, bias, precision, functions)
+{
+	return new es3fShaderOperatorTests.BuiltinFuncInfo(caseName,
+                                                    shaderFuncName,
+                                                    outValue,
+                                                    inputs,
+                                                    scale,
+                                                    bias,
+                                                    scale,
+                                                    bias,
+                                                    precision,
+                                                    functions,
                                                     es3fShaderOperatorTests.OperationType.OPERATOR,
                                                     false);
 };
@@ -930,6 +945,7 @@ es3fShaderOperatorTests.ShaderOperatorTests.prototype.init = function() {
     var side = es3fShaderOperatorTests.builtinSideEffOperInfo;
     var separate = es3fShaderOperatorTests.builtinOperInfoSeparateRefScaleBias;
     var postSide = es3fShaderOperatorTests.BuiltinPostSideEffOperInfo;
+    var postOp = es3fShaderOperatorTests.BuiltinPostOperInfo;
     var all = es3fShaderOperatorTests.Precision.All;
     var highp = es3fShaderOperatorTests.Precision.High;
     var mediump = es3fShaderOperatorTests.Precision.Medium;
@@ -1014,9 +1030,53 @@ es3fShaderOperatorTests.ShaderOperatorTests.prototype.init = function() {
     unary.push(postSide("post_increment_result", "++", GT, [v(GT, -1.0, 1.0)], f(0.5), f(0.0), all,
         es3fShaderOperatorTests.unaryGenTypeFuncs(addOne)));
     unary.push(postSide("post_increment_result", "++", IGT, [v(IGT, -6.0, 4.0)], f(0.1), f(0.5), all,
-        es3fShaderOperatorTests.unaryGenTypeFuncs(addOne)));
+        es3fShaderOperatorTests.unaryGenTypeFuncs(addOne, gluShaderUtil.DataType.INT,
+        gluShaderUtil.DataType.INT)));
     unary.push(postSide("post_increment_result", "++", UGT, [v(UGT, 0.0, 9.0)], f(0.1), f(0.0), all,
-        es3fShaderOperatorTests.unaryGenTypeFuncs(addOne)));
+        es3fShaderOperatorTests.unaryGenTypeFuncs(addOne, gluShaderUtil.DataType.UINT,
+        gluShaderUtil.DataType.UINT)));
+    unary.push(postSide("post_decrement_result", "--", GT, [v(GT, -1.0, 1.0)], f(0.5), f(1.0), all,
+        es3fShaderOperatorTests.unaryGenTypeFuncs(subOne)));
+    unary.push(postSide("post_decrement_result", "--", IGT, [v(IGT, -4.0, 6.0)], f(0.1), f(0.5), all,
+        es3fShaderOperatorTests.unaryGenTypeFuncs(subOne, gluShaderUtil.DataType.INT,
+        gluShaderUtil.DataType.INT)));
+    unary.push(postSide("post_decrement_result", "--", UGT, [v(UGT, 1.0, 10.0)], f(0.1), f(0.0), all,
+        es3fShaderOperatorTests.unaryGenTypeFuncs(subOne, gluShaderUtil.DataType.UINT,
+        gluShaderUtil.DataType.UINT)));
+
+        // Pre/post incr/decr result cases.
+        unary.push(op("pre_increment_result", "++", GT, [v(GT, -1.0, 1.0)], f(0.5), f(0.0), all,
+            es3fShaderOperatorTests.unaryGenTypeFuncs(addOne)));
+        unary.push(op("pre_increment_result", "++", IGT, [v(IGT, -6.0, 4.0)], f(0.1), f(0.5), all,
+            es3fShaderOperatorTests.unaryGenTypeFuncs(addOne, gluShaderUtil.DataType.INT,
+            gluShaderUtil.DataType.INT)));
+        unary.push(op("pre_increment_result", "++", UGT, [v(UGT, 0.0, 9.0)], f(0.1), f(0.0), all,
+            es3fShaderOperatorTests.unaryGenTypeFuncs(addOne, gluShaderUtil.DataType.UINT,
+            gluShaderUtil.DataType.UINT)));
+        unary.push(op("pre_dencrement_result", "--", GT, [v(GT, -1.0, 1.0)], f(0.5), f(1.0), all,
+            es3fShaderOperatorTests.unaryGenTypeFuncs(subOne)));
+        unary.push(op("pre_decrement_result", "--", IGT, [v(IGT, -4.0, 6.0)], f(0.1), f(0.5), all,
+            es3fShaderOperatorTests.unaryGenTypeFuncs(subOne, gluShaderUtil.DataType.INT,
+            gluShaderUtil.DataType.INT)));
+        unary.push(op("pre_decrement_result", "--", UGT, [v(UGT, 0.0, 10.0)], f(0.1), f(0.0), all,
+            es3fShaderOperatorTests.unaryGenTypeFuncs(subOne, gluShaderUtil.DataType.UINT,
+            gluShaderUtil.DataType.UINT)));
+        unary.push(postOp("post_increment_result", "++", GT, [v(GT, -1.0, 1.0)], f(0.5), f(0.5), all,
+            es3fShaderOperatorTests.unaryGenTypeFuncs(nop)));
+        unary.push(postOp("post_increment_result", "++", IGT, [v(IGT, -5.0, 5.0)], f(0.1), f(0.5), all,
+            es3fShaderOperatorTests.unaryGenTypeFuncs(nop, gluShaderUtil.DataType.INT,
+            gluShaderUtil.DataType.INT)));
+        unary.push(postOp("post_increment_result", "++", UGT, [v(UGT, 0.0, 9.0)], f(0.1), f(0.0), all,
+            es3fShaderOperatorTests.unaryGenTypeFuncs(nop, gluShaderUtil.DataType.UINT,
+            gluShaderUtil.DataType.UINT)));
+        unary.push(postOp("post_decrement_result", "--", GT, [v(GT, -1.0, 1.0)], f(0.5), f(0.5), all,
+            es3fShaderOperatorTests.unaryGenTypeFuncs(nop)));
+        unary.push(postOp("post_decrement_result", "--", IGT, [v(IGT, -5.0, 5.0)], f(0.1), f(0.5), all,
+            es3fShaderOperatorTests.unaryGenTypeFuncs(nop, gluShaderUtil.DataType.INT,
+            gluShaderUtil.DataType.INT)));
+        unary.push(postOp("post_decrement_result", "--", UGT, [v(UGT, 0.0, 10.0)], f(0.1), f(0.0), all,
+            es3fShaderOperatorTests.unaryGenTypeFuncs(nop, gluShaderUtil.DataType.UINT,
+            gluShaderUtil.DataType.UINT)));
 
 
     funcInfoGroups.push(unary);
