@@ -481,6 +481,11 @@ deMath.getBitRange = function(array, firstNdx, lastNdx) {
     return deMath.arrayToNumber(outArray);
 };
 
+/**
+ * Split a large signed number into low and high 32bit dwords.
+ * @param {number} x
+ * @return {Array<number>}
+ */
 deMath.split32 = function(x) {
     var ret = [];
     ret[1] = Math.floor(x / 0x100000000);
@@ -488,6 +493,11 @@ deMath.split32 = function(x) {
     return ret;
 };
 
+/**
+ * Recontruct a number from high and low 32 bit dwords
+ * @param {Array<number>} x
+ * @return {number}
+ */
 deMath.join32 = function(x) {
     var v0 = x[0] >= 0 ? x[0] : 0x100000000 + x[0];
     var v1 = x[1];
@@ -529,7 +539,6 @@ deMath.doNativeBinaryOp = function(valueA, valueB, operation) {
 /**
  * Performs a binary operation between two operands
  * with the help of arrays to avoid losing the internal binary representation.
- * If the operation is safe to perform in a native way, it will do that.
  * @param {number} valueA First operand
  * @param {number} valueB Second operand
  * @param {deMath.BinaryOp} binaryOpParm The desired operation to perform
@@ -550,7 +559,7 @@ deMath.binaryOp = function(valueA, valueB, binaryOpParm) {
 };
 
 /**
- * Performs a binary NOT operation in an operand
+ * Performs a binary NOT operation on an operand
  * @param {number} value Operand
  * @return {number}
  */
@@ -558,108 +567,81 @@ deMath.binaryNot = function(value) {
     //quick path if value fits in signed 32 bit range
     if (deMath.deInRange32(value, -0x80000000, 0x7FFFFFFF))
         return ~value;
-    var printBinary = function(prefix, x) {
-        var arr = new Uint8Array(8);
-        deMath.numberToArray(arr, x);
-        var str = '';
-        for (var i = arr.length - 1; i >= 0; i--) {
-            str += arr[i].toString(2);
-            if (i != 0)
-                str += '.';
 
-        }
-        debug(prefix +': ' + x + ' binary: ' + str);
-    };
-
-    // printBinary('Input', value);
     var x = deMath.split32(value);
-    // printBinary('x[0]', x[0]);
-    // printBinary('x[1]', x[1]);
     x[0] = ~x[0];
     x[1] = ~x[1];
-    // printBinary('ret[0]', x[0]);
-    // printBinary('ret[1]', x[1]);
     var ret = deMath.join32(x);
-    // printBinary('Output', ret);
     return ret;
 };
 
 /**
  * Shifts the given value 'steps' bits to the left. Replaces << operator
  * This function should be used if the expected value will be wider than 32-bits.
- * If safe, it will perform a normal << operation
  * @param {number} value
  * @param {number} steps
  * @return {number}
  */
 deMath.shiftLeft = function(value, steps) {
-    value = value < 0 ? new Uint32Array([value])[0] : value;
-    /** @type {number} */ var totalBitsRequired = value == 0 ? steps : Math.floor(Math.log2(value) + 1) + steps;
+    if (steps == 0)
+        return value;
+    else if (steps < 32) {
+        var mask = (1 << 32 - steps) - 1;
+        var x = deMath.split32(value);
+        var highBits = x[0] & (~mask);
+        var y = highBits >> (32 - steps);
+        if (highBits < 0) {
+            var m = (1 << steps) - 1;
+            y &= m;
+        }
+        var result = [];
+        result[0] = x[0] << steps;
+        result[1] = x[1] << steps;
+        result[1] |= y;
 
-    if (totalBitsRequired < 32)
-        return value << steps;
-
-    totalBitsRequired = totalBitsRequired > 64 ? 64 : totalBitsRequired; //No more than 64-bits
-
-    /** @type {number} */ var totalBytesRequired = Math.floor(totalBitsRequired / 8) + ((totalBitsRequired % 8) > 0 ? 1 : 0);
-
-    /** @type {ArrayBuffer} */ var inBuffer = new ArrayBuffer(totalBytesRequired);
-    /** @type {Uint8Array} */ var inArray = new Uint8Array(inBuffer);
-
-    /** @type {ArrayBuffer} */ var buffer = new ArrayBuffer(totalBytesRequired);
-    /** @type {Uint8Array} */ var outArray = new Uint8Array(buffer);
-
-    deMath.numberToArray(inArray, value);
-
-    for (var bitNdx = 0; bitNdx < totalBitsRequired; bitNdx++) {
-        /** @type {number} */ var sourceByte = Math.floor(bitNdx / 8);
-        /** @type {number} */ var sourceBit = Math.floor(bitNdx % 8);
-        /** @type {number} */ var newbitNdx = bitNdx + steps;
-        /** @type {number} */ var correspondingByte = Math.floor(newbitNdx / 8);
-        /** @type {number} */ var correspondingBit = Math.floor(newbitNdx % 8);
-        /** @type {number} */ var bitValue = (inArray[sourceByte] & Math.pow(2, sourceBit)) != 0 ? 1 : 0;
-        outArray[correspondingByte] = outArray[correspondingByte] | (Math.pow(2, correspondingBit) * bitValue);
+        return deMath.join32(result);
+    } else {
+        var x = deMath.split32(value);
+        var result = [];
+        result[0] = 0;
+        result[1] = x[0] << steps - 32;
+        return deMath.join32(result);
     }
-
-    return deMath.arrayToNumber(outArray);
 };
 
 /**
  * Shifts the given value 'steps' bits to the right. Replaces >> operator
- * This function should be used if the expected value will be wider than 32-bits
- * If safe, it will perform a normal >> operation
+ * This function should be used if the value is wider than 32-bits
  * @param {number} value
  * @param {number} steps
  * @return {number}
  */
 deMath.shiftRight = function(value, steps) {
-    value = value < 0 ? new Uint32Array([value])[0] : value;
-    /** @type {number} */ var totalBitsRequired = value == 0 ? steps : Math.floor(Math.log2(value) + 1); //additional bits not needed (will be 0) + steps;
-
-    if (totalBitsRequired < 32)
+    //quick path
+    if (deMath.deInRange32(value, -0x80000000, 0x7FFFFFFF))
         return value >> steps;
 
-    /** @type {number} */ var totalBytesRequired = Math.floor(totalBitsRequired / 8) + ((totalBitsRequired % 8) > 0 ? 1 : 0);
-
-    /** @type {ArrayBuffer} */ var inBuffer = new ArrayBuffer(totalBytesRequired);
-    /** @type {Uint8Array} */ var inArray = new Uint8Array(inBuffer);
-
-    /** @type {ArrayBuffer} */ var buffer = new ArrayBuffer(totalBytesRequired);
-    /** @type {Uint8Array} */ var outArray = new Uint8Array(buffer);
-
-    deMath.numberToArray(inArray, value);
-
-    for (var bitNdx = totalBitsRequired - 1; bitNdx >= steps; bitNdx--) {
-        /** @type {number} */ var sourceByte = Math.floor(bitNdx / 8);
-        /** @type {number} */ var sourceBit = Math.floor(bitNdx % 8);
-        /** @type {number} */ var newbitNdx = bitNdx - steps;
-        /** @type {number} */ var correspondingByte = Math.floor(newbitNdx / 8);
-        /** @type {number} */ var correspondingBit = Math.floor(newbitNdx % 8);
-        /** @type {number} */ var bitValue = (inArray[sourceByte] & Math.pow(2, sourceBit)) != 0 ? 1 : 0;
-        outArray[correspondingByte] = outArray[correspondingByte] | (Math.pow(2, correspondingBit) * bitValue);
+    if (steps == 0)
+        return value;
+    else if (steps < 32) {
+        if (steps == 0)
+            return value;
+        var mask = (1 << steps) - 1;
+        var x = deMath.split32(value);
+        var lowBits = x[1] & mask;
+        var result = [];
+        var m = (1 << 32 - steps) - 1;
+        result[0] = (x[0] >> steps) & m;
+        result[1] = x[1] >> steps;
+        result[0] |= lowBits << 32 - steps;
+        return deMath.join32(result);
+    } else {
+        var x = deMath.split32(value);
+        var result = [];
+        result[0] = x[1] >> steps - 32;
+        result[1] = value < 0 ? -1 : 0;
+        return deMath.join32(result);
     }
-
-    return deMath.arrayToNumber(outArray);
 };
 
 /** deMath.logicalAndBool over two arrays of booleans
