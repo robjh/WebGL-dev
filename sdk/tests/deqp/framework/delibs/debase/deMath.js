@@ -481,6 +481,20 @@ deMath.getBitRange = function(array, firstNdx, lastNdx) {
     return deMath.arrayToNumber(outArray);
 };
 
+deMath.split32 = function(x) {
+    var ret = [];
+    ret[1] = Math.floor(x / 0x100000000);
+    ret[0] = x - ret[1] * 0x100000000;
+    return ret;
+};
+
+deMath.join32 = function(x) {
+    var v0 = x[0] >= 0 ? x[0] : 0x100000000 + x[0];
+    var v1 = x[1];
+    var val = v1 * 0x100000000 + v0;
+    return val;
+};
+
 //Bit operations with the help of arrays
 
 /**
@@ -522,76 +536,52 @@ deMath.doNativeBinaryOp = function(valueA, valueB, operation) {
  * @return {number}
  */
 deMath.binaryOp = function(valueA, valueB, binaryOpParm) {
-    valueA = valueA < 0 ? new Uint32Array([valueA])[0] : valueA;
-    valueB = valueB < 0 ? new Uint32Array([valueB])[0] : valueB;
-    /** @type {number} */ var valueABitSize = valueA == 0 ? 0 : Math.floor(Math.log2(valueA) + 1);
-    /** @type {number} */ var valueBBitSize = valueB == 0 ? 0 : Math.floor(Math.log2(valueB) + 1);
-    /** @type {number} */ var bitsSize = Math.max(valueABitSize, valueBBitSize);
-
-    if (bitsSize <= 32)
+    //quick path if values fit in signed 32 bit range
+    if (deMath.deInRange32(valueA, -0x80000000, 0x7FFFFFFF) && deMath.deInRange32(valueB, -0x80000000, 0x7FFFFFFF))
         return deMath.doNativeBinaryOp(valueA, valueB, binaryOpParm);
 
-    /** @type {number} */ var valueAByteSize = Math.floor(valueABitSize / 8) + ((valueABitSize % 8) > 0 ? 1 : 0);
-    /** @type {number} */ var valueBByteSize = Math.floor(valueBBitSize / 8) + ((valueBBitSize % 8) > 0 ? 1 : 0);
-    /** @type {number} */ var byteSize = Math.floor(bitsSize / 8) + ((bitsSize % 8) > 0 ? 1 : 0);
-
-    /** @type {ArrayBuffer} */ var valueABuffer = new ArrayBuffer(valueAByteSize);
-    /** @type {ArrayBuffer} */ var valueBBuffer = new ArrayBuffer(valueBByteSize);
-    /** @type {ArrayBuffer} */ var buffer = new ArrayBuffer(byteSize);
-
-    /** @type {Uint8Array} */ var inArrayA = new Uint8Array(valueABuffer);
-    /** @type {Uint8Array} */ var inArrayB = new Uint8Array(valueBBuffer);
-    /** @type {Uint8Array} */ var outArray = new Uint8Array(buffer);
-
-    deMath.numberToArray(inArrayA, valueA);
-    deMath.numberToArray(inArrayB, valueB);
-
-    /** @type {Uint8Array} */ var largestArray = inArrayA.length > inArrayB.length ? inArrayA : inArrayB;
-
-    /** @type {number} */ var minLength = Math.min(inArrayA.length, inArrayB.length);
-
-    for (var byteNdx = 0; byteNdx < minLength; byteNdx++) {
-        outArray[byteNdx] = deMath.doNativeBinaryOp(inArrayA[byteNdx], inArrayB[byteNdx], binaryOpParm);
-    }
-
-    while (byteNdx < byteSize) {
-        outArray[byteNdx] = largestArray[byteNdx];
-        byteNdx++;
-    }
-
-    return deMath.arrayToNumber(outArray);
+    var x = deMath.split32(valueA);
+    var y = deMath.split32(valueB);
+    var z = [];
+    for (var i = 0; i < 2; i++)
+        z[i] = deMath.doNativeBinaryOp(x[i], y[i], binaryOpParm);
+    var ret = deMath.join32(z);
+    return ret;
 };
 
 /**
  * Performs a binary NOT operation in an operand
- * with the help of arrays.
  * @param {number} value Operand
  * @return {number}
  */
 deMath.binaryNot = function(value) {
-    if (value == 0) return 0xffffffff;
-    value = value < 0 ? new Uint32Array([value])[0] : value;
-    /** @type {number} */ var bitsSize = value == 0 ? 0 : Math.floor(Math.log2(value) + 1);
+    //quick path if value fits in signed 32 bit range
+    if (deMath.deInRange32(value, -0x80000000, 0x7FFFFFFF))
+        return ~value;
+    var printBinary = function(prefix, x) {
+        var arr = new Uint8Array(8);
+        deMath.numberToArray(arr, x);
+        var str = '';
+        for (var i = arr.length - 1; i >= 0; i--) {
+            str += arr[i].toString(2);
+            if (i != 0)
+                str += '.';
 
-    //This is not reliable. But left here commented as a warning.
-    //if (bitsSize <= 32)
-    //    return ~value;
+        }
+        debug(prefix +': ' + x + ' binary: ' + str);
+    };
 
-    /** @type {number} */ var byteSize = Math.floor(bitsSize / 8) + ((bitsSize % 8) > 0 ? 1 : 0);
-
-    /** @type {ArrayBuffer} */ var inBuffer = new ArrayBuffer(byteSize);
-    /** @type {Uint8Array} */ var inArray = new Uint8Array(inBuffer);
-
-    /** @type {ArrayBuffer} */ var buffer = new ArrayBuffer(byteSize);
-    /** @type {Uint8Array} */ var outArray = new Uint8Array(buffer);
-
-    deMath.numberToArray(inArray, value);
-
-    for (var byteNdx = 0; byteNdx < byteSize; byteNdx++) {
-        outArray[byteNdx] = ~inArray[byteNdx];
-    }
-
-    return deMath.arrayToNumber(outArray);
+    // printBinary('Input', value);
+    var x = deMath.split32(value);
+    // printBinary('x[0]', x[0]);
+    // printBinary('x[1]', x[1]);
+    x[0] = ~x[0];
+    x[1] = ~x[1];
+    // printBinary('ret[0]', x[0]);
+    // printBinary('ret[1]', x[1]);
+    var ret = deMath.join32(x);
+    // printBinary('Output', ret);
+    return ret;
 };
 
 /**
