@@ -207,12 +207,12 @@ es3fBooleanStateQuery.TransformFeedbackTestCase.prototype.test = function() {
     var shaderVert = gl.createShader(gl.VERTEX_SHADER);
     gl.shaderSource(shaderVert, transformFeedbackTestVertSource);
     gl.compileShader(shaderVert);
-    this.m_pass &= glsStateQuery.compare(gl.getShaderParameter(shaderVert, gl.COMPILE_STATUS), true);
+    this.m_pass &= glsStateQuery.verifyShader(shaderVert, gl.COMPILE_STATUS, true);
 
     var shaderFrag = gl.createShader(gl.FRAGMENT_SHADER);
     gl.shaderSource(shaderFrag, transformFeedbackTestFragSource);
     gl.compileShader(shaderFrag);
-    this.m_pass &= glsStateQuery.compare(gl.getShaderParameter(shaderFrag, gl.COMPILE_STATUS), true);
+    this.m_pass &= glsStateQuery.verifyShader(shaderFrag, gl.COMPILE_STATUS, true);
 
     var shaderProg = gl.createProgram();
     gl.attachShader(shaderProg, shaderVert);
@@ -220,7 +220,7 @@ es3fBooleanStateQuery.TransformFeedbackTestCase.prototype.test = function() {
     var transform_feedback_outputs = ['gl_Position'];
     gl.transformFeedbackVaryings(shaderProg, transform_feedback_outputs, gl.INTERLEAVED_ATTRIBS);
     gl.linkProgram(shaderProg);
-    this.m_pass &= glsStateQuery.compare(gl.getProgramParameter(shaderProg, gl.LINK_STATUS), true);
+    this.m_pass &= glsStateQuery.verifyProgram(shaderProg, gl.LINK_STATUS, true);
 
     gl.bindTransformFeedback(gl.TRANSFORM_FEEDBACK, this.m_transformfeedback);
 
