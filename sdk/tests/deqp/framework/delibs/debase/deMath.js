@@ -453,32 +453,22 @@ deMath.numberToArray = function(array, number) {
 };
 
 /**
- * Obtains the bit fragment from an array in a number
- * @param {Uint8Array} array
+ * Obtains the bit fragment from a number
+ * @param {number} x
  * @param {number} firstNdx
  * @param {number} lastNdx
  * @return {number}
  */
-deMath.getBitRange = function(array, firstNdx, lastNdx) {
-    /** @type {number} */ var bitSize = lastNdx - firstNdx;
-    /** @type {number} */ var byteSize = Math.floor(bitSize / 8) + ((bitSize % 8) > 0 ? 1 : 0);
-
-    /** @type {ArrayBuffer} */ var buffer = new ArrayBuffer(byteSize);
-    /** @type {Uint8Array} */ var outArray = new Uint8Array(buffer);
-
-    for (var bitNdx = firstNdx; bitNdx < lastNdx; bitNdx++) {
-        /** @type {number} */ var sourceByte = Math.floor(bitNdx / 8);
-        /** @type {number} */ var sourceBit = Math.floor(bitNdx % 8);
-
-        /** @type {number} */ var destByte = Math.floor((bitNdx - firstNdx) / 8);
-        /** @type {number} */ var destBit = Math.floor((bitNdx - firstNdx) % 8);
-
-        /** @type {number} */ var sourceBitValue = (array[sourceByte] & Math.pow(2, sourceBit)) != 0 ? 1 : 0;
-
-        outArray[destByte] = outArray[destByte] | (Math.pow(2, destBit) * sourceBitValue);
-    }
-
-    return deMath.arrayToNumber(outArray);
+deMath.getBitRange = function(x, firstNdx, lastNdx) {
+    var shifted = deMath.shiftRight(x, firstNdx);
+    var bitSize = lastNdx - firstNdx;
+    var mask;
+    if (bitSize < 32)
+        mask = (1 << bitSize) -1
+    else
+        mask = Math.pow(2, bitSize) - 1;
+    var masked = deMath.binaryAnd(shifted, mask);
+    return masked;
 };
 
 /**
@@ -559,6 +549,33 @@ deMath.binaryOp = function(valueA, valueB, binaryOpParm) {
 };
 
 /**
+ * @param {number} a
+ * @param {number} b
+ * @return {number}
+ */
+deMath.binaryAnd = function(a, b) {
+    return deMath.binaryOp(a, b, deMath.BinaryOp.AND);
+};
+
+/**
+ * @param {number} a
+ * @param {number} b
+ * @return {number}
+ */
+deMath.binaryOr = function(a, b) {
+    return deMath.binaryOp(a, b, deMath.BinaryOp.OR);
+};
+
+/**
+ * @param {number} a
+ * @param {number} b
+ * @return {number}
+ */
+deMath.binaryXor = function(a, b) {
+    return deMath.binaryOp(a, b, deMath.BinaryOp.XOR);
+};
+
+/**
  * Performs a binary NOT operation on an operand
  * @param {number} value Operand
  * @return {number}
@@ -618,7 +635,7 @@ deMath.shiftLeft = function(value, steps) {
  */
 deMath.shiftRight = function(value, steps) {
     //quick path
-    if (deMath.deInRange32(value, -0x80000000, 0x7FFFFFFF))
+    if (deMath.deInRange32(value, -0x80000000, 0x7FFFFFFF) && steps < 32)
         return value >> steps;
 
     if (steps == 0)
