@@ -68,6 +68,38 @@ glsStateQuery.verify = function(param, reference) {
 };
 
 /**
+ * Verify that WebGL shader state 'param' has the expected value
+ * @param {WebGLShader} shader
+ * @param {number} param
+ * @param {*} reference
+ * @return {boolean}
+ */
+glsStateQuery.verifyShader = function(shader, param, reference) {
+    var value = gl.getShaderParameter(shader, param);
+    var result = glsStateQuery.compare(value, reference);
+    if (!result) {
+        bufferedLogToConsole('Result: ' + value + ' Expected: ' + reference);
+    }
+    return result;
+};
+
+/**
+ * Verify that WebGL program state 'param' has the expected value
+ * @param {WebGLProgram} program
+ * @param {number} param
+ * @param {*} reference
+ * @return {boolean}
+ */
+glsStateQuery.verifyProgram = function(program, param, reference) {
+    var value = gl.getProgramParameter(program, param);
+    var result = glsStateQuery.compare(value, reference);
+    if (!result) {
+        bufferedLogToConsole('Result: ' + value + ' Expected: ' + reference);
+    }
+    return result;
+};
+
+/**
  * Verify that WebGL state 'param' has one of the expected values
  * @param {number} param
  * @param {Array<*>} reference
