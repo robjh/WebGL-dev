@@ -20,23 +20,27 @@
 
 'use strict';
 goog.provide('functional.gles3.es3fShaderTextureFunctionTests');
-goog.require('framework.common.tcuMatrix');
-goog.require('framework.common.tcuTestCase');
+goog.require('framework.opengl.gluTextureUtil');
 goog.require('framework.opengl.gluTexture');
+goog.require('framework.opengl.gluShaderProgram');
+goog.require('framework.common.tcuMatrix');
+goog.require('framework.common.tcuSurface');
+goog.require('framework.common.tcuTestCase');
+goog.require('framework.common.tcuTexture');
+goog.require('framework.common.tcuTextureUtil');
 goog.require('modules.shared.glsShaderRenderCase');
 
 goog.scope(function() {
 	var es3fShaderTextureFunctionTests = functional.gles3.es3fShaderTextureFunctionTests;
-    var tcuTestCase = framework.common.tcuTestCase;
 	var tcuMatrix = framework.common.tcuMatrix;
-	var tcuTestCase = framework.common.tcuTestCase;
+    var tcuTestCase = framework.common.tcuTestCase;
+    var tcuSurface = framework.common.tcuSurface;
+    var tcuTexture = framework.common.tcuTexture;
+    var tcuTextureUtil = framework.common.tcuTextureUtil;
+	var gluTextureUtil = framework.opengl.gluTextureUtil;
 	var gluTexture = framework.opengl.gluTexture;
+	var gluShaderProgram = framework.opengl.gluShaderProgram;
 	var glsShaderRenderCase = modules.shared.glsShaderRenderCase;
-
-	var tcuTexture;
-	var gluTextureUtil;
-	var tcuTextureUtil;
-	var gluShaderProgram;
 
 	/**
 	 * @enum
@@ -84,9 +88,9 @@ goog.scope(function() {
 	 * @return {boolean}
 	 */
 	es3fShaderTextureFunctionTests.functionHasGrad = function(function_) {
-		return function_ === es3fShaderTextureFunctionTests.TEXTUREGRAD ||
-			function_ === es3fShaderTextureFunctionTests.TEXTUREPROJGRAD ||
-		 	function_ === es3fShaderTextureFunctionTests.TEXTUREPROJGRAD3;
+		return function_ === es3fShaderTextureFunctionTests.Function.TEXTUREGRAD ||
+			function_ === es3fShaderTextureFunctionTests.Function.TEXTUREPROJGRAD ||
+		 	function_ === es3fShaderTextureFunctionTests.Function.TEXTUREPROJGRAD3;
 	};
 
 	/**
@@ -136,7 +140,7 @@ goog.scope(function() {
 			/** @type {boolean} */ this.useOffset = useOffset;
 			/** @type {Array<number>} */ this.offset = offset;
 		} else {
-			/** @type {?es3fShaderTextureFunctionTests.Function} */ this.func = null;
+			/** @type {?es3fShaderTextureFunctionTests.Function=} */ this.func = null;
 			/** @type {Array<number>} */ this.minCoord = [0.0, 0.0, 0.0, 0.0];
 			/** @type {Array<number>} */ this.maxCoord = [1.0, 1.0, 1.0, 1.0];
 			// Bias
@@ -1290,7 +1294,7 @@ goog.scope(function() {
 				this.m_texture2D = new gluTexture.Texture2D(gl, this.m_textureSpec.format, this.m_textureSpec.width, this.m_textureSpec.height);
 				for (var level = 0; level < this.m_textureSpec.numLevels; level++) {
 					fA = level * levelStep;
-					fB = 1.0f - fA;
+					fB = 1.0 - fA;
 					colorA = cBias + cScale * [fA, fB, fA, fB];
 					colorB = cBias + cScale * [fB, fA, fB, fA];
 
@@ -1437,8 +1441,8 @@ goog.scope(function() {
 		/** @type {boolean} */ var isProj = functionHasProj(function_);
 		/** @type {boolean} */ var isGrad = functionHasGrad(function_);
 		/** @type {boolean} */ var isShadow = this.m_textureSpec.sampler.compare !== tcuTexture.CompareMode.COMPAREMODE_NONE;
-		/** @type {boolean} */ var is2DProj4 = !isShadow && this.m_textureSpec.type === es3fShaderTextureFunctionTests.TextureType.TEXTURETYPE_2D && (function_ === es3fShaderTextureFunctionTests.Function.TEXTUREPROJ || function === es3fShaderTextureFunctionTests.Function .TEXTUREPROJLOD || function === es3fShaderTextureFunctionTests.Function .
-		/** @type {boolean} */ var isIntCoord = function_ === es3fShaderTextureFunctionTests.Function.
+		/** @type {boolean} */ var is2DProj4 = !isShadow && this.m_textureSpec.type === es3fShaderTextureFunctionTests.TextureType.TEXTURETYPE_2D && (function_ === es3fShaderTextureFunctionTests.Function.TEXTUREPROJ || function_ === es3fShaderTextureFunctionTests.Function.TEXTUREPROJLOD || function_ === es3fShaderTextureFunctionTests.Function.TEXTUREPROJGRAD);
+		/** @type {boolean} */ var isIntCoord = function_ === es3fShaderTextureFunctionTests.Function.TEXELFETCH;
 		/** @type {boolean} */ var hasLodBias = functionHasLod(this.m_lookupSpec.function) || this.m_lookupSpec.useBias;
 		/** @type {number} */ var texCoordComps = this.m_textureSpec.type === es3fShaderTextureFunctionTests.TextureType.TEXTURETYPE_2D ? 2 : 3;
 		/** @type {number} */ var extraCoordComps = (isProj ? (is2DProj4 ? 2 : 1) : 0) + (isShadow ? 1 : 0);
@@ -1580,7 +1584,7 @@ goog.scope(function() {
 
 			op += ", ivec" + offsetComps + "(";
 			for (var ndx = 0; ndx < offsetComps; ndx++) {
-				if (ndx != 0)
+				if (ndx !== 0)
 					op += ", ";
 				op += this.m_lookupSpec.offset[ndx];
 			}
@@ -1682,76 +1686,310 @@ goog.scope(function() {
 		this.freeShader();
 	};
 
+	/**
+	 * @return {tcuTestCase.IterateResult}
+	 */
 	es3fShaderTextureFunctionTests.TextureSizeCase.prototype.iterate = function() {
-		// const int currentIteration = m_iterationCounter++;
-		// const TestSize testSizes[] =
-		// {
-		// 	{ tcu::IVec3(1, 2, 1),			1,		0,	tcu::IVec3(1, 1, 1)			},
-		// 	{ tcu::IVec3(1, 2, 1),			0,		0,	tcu::IVec3(1, 2, 1)			},
-		//
-		// 	{ tcu::IVec3(1, 3, 2),			0,		0,	tcu::IVec3(1, 3, 2)			},
-		// 	{ tcu::IVec3(1, 3, 2),			1,		0,	tcu::IVec3(1, 1, 1)			},
-		//
-		// 	{ tcu::IVec3(100, 31, 18),		0,		0,	tcu::IVec3(100, 31, 18)		},
-		// 	{ tcu::IVec3(100, 31, 18),		1,		0,	tcu::IVec3(50, 15, 9)		},
-		// 	{ tcu::IVec3(100, 31, 18),		2,		0,	tcu::IVec3(25, 7, 4)		},
-		// 	{ tcu::IVec3(100, 31, 18),		3,		0,	tcu::IVec3(12, 3, 2)		},
-		// 	{ tcu::IVec3(100, 31, 18),		4,		0,	tcu::IVec3(6, 1, 1)			},
-		// 	{ tcu::IVec3(100, 31, 18),		5,		0,	tcu::IVec3(3, 1, 1)			},
-		// 	{ tcu::IVec3(100, 31, 18),		6,		0,	tcu::IVec3(1, 1, 1)			},
-		//
-		// 	{ tcu::IVec3(100, 128, 32),		0,		0,	tcu::IVec3(100, 128, 32)	},
-		// 	{ tcu::IVec3(100, 128, 32),		1,		0,	tcu::IVec3(50, 64, 16)		},
-		// 	{ tcu::IVec3(100, 128, 32),		2,		0,	tcu::IVec3(25, 32, 8)		},
-		// 	{ tcu::IVec3(100, 128, 32),		3,		0,	tcu::IVec3(12, 16, 4)		},
-		// 	{ tcu::IVec3(100, 128, 32),		4,		0,	tcu::IVec3(6, 8, 2)			},
-		// 	{ tcu::IVec3(100, 128, 32),		5,		0,	tcu::IVec3(3, 4, 1)			},
-		// 	{ tcu::IVec3(100, 128, 32),		6,		0,	tcu::IVec3(1, 2, 1)			},
-		// 	{ tcu::IVec3(100, 128, 32),		7,		0,	tcu::IVec3(1, 1, 1)			},
-		//
-		// 	// pow 2
-		// 	{ tcu::IVec3(128, 64, 32),		0,		0,	tcu::IVec3(128, 64, 32)		},
-		// 	{ tcu::IVec3(128, 64, 32),		1,		0,	tcu::IVec3(64, 32, 16)		},
-		// 	{ tcu::IVec3(128, 64, 32),		2,		0,	tcu::IVec3(32, 16, 8)		},
-		// 	{ tcu::IVec3(128, 64, 32),		3,		0,	tcu::IVec3(16, 8, 4)		},
-		// 	{ tcu::IVec3(128, 64, 32),		4,		0,	tcu::IVec3(8, 4, 2)			},
-		// 	{ tcu::IVec3(128, 64, 32),		5,		0,	tcu::IVec3(4, 2, 1)			},
-		// 	{ tcu::IVec3(128, 64, 32),		6,		0,	tcu::IVec3(2, 1, 1)			},
-		// 	{ tcu::IVec3(128, 64, 32),		7,		0,	tcu::IVec3(1, 1, 1)			},
-		//
-		// 	// w == h
-		// 	{ tcu::IVec3(1, 1, 1),			0,		0,	tcu::IVec3(1, 1, 1)			},
-		// 	{ tcu::IVec3(64, 64, 64),		0,		0,	tcu::IVec3(64, 64, 64)		},
-		// 	{ tcu::IVec3(64, 64, 64),		1,		0,	tcu::IVec3(32, 32, 32)		},
-		// 	{ tcu::IVec3(64, 64, 64),		2,		0,	tcu::IVec3(16, 16, 16)		},
-		// 	{ tcu::IVec3(64, 64, 64),		3,		0,	tcu::IVec3(8, 8, 8)			},
-		// 	{ tcu::IVec3(64, 64, 64),		4,		0,	tcu::IVec3(4, 4, 4)			},
-		//
-		// 	// with lod base
-		// 	{ tcu::IVec3(100, 31, 18),		3,		1,	tcu::IVec3(6, 1, 1)			},
-		// 	{ tcu::IVec3(128, 64, 32),		3,		1,	tcu::IVec3(8, 4, 2)			},
-		// 	{ tcu::IVec3(64, 64, 64),		1,		1,	tcu::IVec3(16, 16, 16)		},
-		//
-		// };
-		// const int lastIterationIndex = DE_LENGTH_OF_ARRAY(testSizes) + 1;
-		//
-		// if (currentIteration == 0)
-		// {
-		// 	m_testCtx.setTestResult(QP_TEST_RESULT_PASS, "Pass");
-		// 	return initShader() ? CONTINUE : STOP;
-		// }
-		// else if (currentIteration == lastIterationIndex)
-		// {
-		// 	freeShader();
-		// 	return STOP;
-		// }
-		// else
-		// {
-		// 	if (!testTextureSize(testSizes[currentIteration - 1]))
-		// 		if (m_testCtx.getTestResult() != QP_TEST_RESULT_FAIL)
-		// 			m_testCtx.setTestResult(QP_TEST_RESULT_FAIL, "Got unexpected texture size");
-		// 	return CONTINUE;
-		// }
+		/** @type {number} */ var currentIteration = this.m_iterationCounter++;
+		/** @type {Array<es3fShaderTextureFunctionTests.TestSize>} */ var estSizes = [
+			new es3fShaderTextureFunctionTests.TestSize([1, 2, 1], 1, 0, [1, 1, 1]),
+			new es3fShaderTextureFunctionTests.TestSize([1, 2, 1], 0, 0, [1, 2, 1]),
+
+			new es3fShaderTextureFunctionTests.TestSize([1, 3, 2], 0, 0, [1, 3, 2]),
+			new es3fShaderTextureFunctionTests.TestSize([1, 3, 2], 1, 0, [1, 1, 1]),
+
+			new es3fShaderTextureFunctionTests.TestSize([100, 31, 18], 0, 0, [100, 31, 18]),
+			new es3fShaderTextureFunctionTests.TestSize([100, 31, 18], 1, 0, [50, 15, 9]),
+			new es3fShaderTextureFunctionTests.TestSize([100, 31, 18], 2, 0, [25, 7, 4]),
+			new es3fShaderTextureFunctionTests.TestSize([100, 31, 18], 3, 0, [12, 3, 2]),
+			new es3fShaderTextureFunctionTests.TestSize([100, 31, 18], 4, 0, [6, 1, 1]),
+			new es3fShaderTextureFunctionTests.TestSize([100, 31, 18], 5, 0, [3, 1, 1]),
+			new es3fShaderTextureFunctionTests.TestSize([100, 31, 18], 6, 0, [1, 1, 1]),
+
+			new es3fShaderTextureFunctionTests.TestSize([100, 128, 32], 0, 0, [100, 128, 32]),
+			new es3fShaderTextureFunctionTests.TestSize([100, 128, 32], 1, 0, [50, 64, 16]),
+			new es3fShaderTextureFunctionTests.TestSize([100, 128, 32], 2, 0, [25, 32, 8]),
+			new es3fShaderTextureFunctionTests.TestSize([100, 128, 32], 3, 0, [12, 16, 4]),
+			new es3fShaderTextureFunctionTests.TestSize([100, 128, 32], 4, 0, [6, 8, 2]),
+			new es3fShaderTextureFunctionTests.TestSize([100, 128, 32], 5, 0, [3, 4, 1]),
+			new es3fShaderTextureFunctionTests.TestSize([100, 128, 32], 6, 0, [1, 2, 1]),
+			new es3fShaderTextureFunctionTests.TestSize([100, 128, 32], 7, 0, [1, 1, 1]),
+
+			// pow 2
+			new es3fShaderTextureFunctionTests.TestSize([128, 64, 32], 0, 0, [128, 64, 32]),
+			new es3fShaderTextureFunctionTests.TestSize([128, 64, 32], 1, 0, [64, 32, 16]),
+			new es3fShaderTextureFunctionTests.TestSize([128, 64, 32], 2, 0, [32, 16, 8]),
+			new es3fShaderTextureFunctionTests.TestSize([128, 64, 32], 3, 0, [16, 8, 4]),
+			new es3fShaderTextureFunctionTests.TestSize([128, 64, 32], 4, 0, [8, 4, 2]),
+			new es3fShaderTextureFunctionTests.TestSize([128, 64, 32], 5, 0, [4, 2, 1]),
+			new es3fShaderTextureFunctionTests.TestSize([128, 64, 32], 6, 0, [2, 1, 1]),
+			new es3fShaderTextureFunctionTests.TestSize([128, 64, 32], 7, 0, [1, 1, 1]),
+
+			// w === h
+			new es3fShaderTextureFunctionTests.TestSize([1, 1, 1], 0, 0, [1, 1, 1]),
+			new es3fShaderTextureFunctionTests.TestSize([64, 64, 64], 0, 0, [64, 64, 64]),
+			new es3fShaderTextureFunctionTests.TestSize([64, 64, 64], 1, 0, [32, 32, 32]),
+			new es3fShaderTextureFunctionTests.TestSize([64, 64, 64], 2, 0, [16, 16, 16]),
+			new es3fShaderTextureFunctionTests.TestSize([64, 64, 64], 3, 0, [8, 8, 8]),
+			new es3fShaderTextureFunctionTests.TestSize([64, 64, 64], 4, 0, [4, 4, 4]),
+
+			// with lod base
+			new es3fShaderTextureFunctionTests.TestSize([100, 31, 18], 3, 1, [6, 1, 1]),
+			new es3fShaderTextureFunctionTests.TestSize([128, 64, 32], 3, 1, [8, 4, 2]),
+			new es3fShaderTextureFunctionTests.TestSize([64, 64, 64], 1, 1, [16, 16, 16])
+
+		];
+		/** @type {number} */ var lastIterationIndex = testSizes.length + 1;
+
+		// TODO: result reporting
+		if (currentIteration === 0) {
+			m_testCtx.setTestResult(QP_TEST_RESULT_PASS, "Pass");
+			return this.initShader() ? tcuTestCase.IterateResult.CONTINUE : tcuTestCase.IterateResult.STOP;
+		}
+		else if (currentIteration === lastIterationIndex) {
+			this.freeShader();
+			return tcuTestCase.IterateResult.STOP;
+		}
+		else
+		{
+			if (!testTextureSize(testSizes[currentIteration - 1]))
+				if (m_testCtx.getTestResult() !== QP_TEST_RESULT_FAIL)
+					m_testCtx.setTestResult(QP_TEST_RESULT_FAIL, "Got unexpected texture size");
+			return tcuTestCase.IterateResult.CONTINUE;
+		}
+	};
+
+	/**
+	 * @return {boolean}
+	 */
+	es3fShaderTextureFunctionTests.TextureSizeCase.prototype.initShader = function() {
+		/** @type {string} */ var vertSrc = this.genVertexShader();
+		/** @type {string} */ var fragSrc = this.genFragmentShader();
+
+		assertMsgOptions(this.m_program === null, 'Program should be null', false, true);
+		this.m_program = new gluShaderProgram.ShaderProgram(gl, gluShaderProgram.makeVtxFragSources(vertSrc, fragSrc));
+		bufferedLogToConsole(this.m_program.getProgramInfo().infoLog);
+
+		if (!this.m_program.isOk()) {
+			m_testCtx.setTestResult(QP_TEST_RESULT_FAIL, "Shader failed");
+			return false;
+		}
+
+		return true;
+	};
+
+	es3fShaderTextureFunctionTests.TextureSizeCase.prototype.freeShader = function() {
+		this.m_program = null;
+	};
+
+	/**
+	 * @param {es3fShaderTextureFunctionTests.TestSize} testSize
+	 * @return {boolean}
+	 */
+	es3fShaderTextureFunctionTests.TextureSizeCase.prototype.testTextureSize = function(testSize) {
+		/** @type {Array<number>} */ var triangle = [ // covers entire viewport
+			-1, -1, 0, 1, // was a 3x4 matrix
+			4, -1, 0, 1,
+			-1, 4, 0, 1
+		];
+
+		/** @type {number} */ var positionLoc = gl.getAttribLocation(this.m_program.getProgram(), 'a_position');
+		/** @type {WebGLUniformLocation} */ var samplerLoc = gl.getUniformLocation(this.m_program.getProgram(), 'u_sampler');
+		/** @type {WebGLUniformLocation} */ var sizeLoc = gl.getUniformLocation(this.m_program.getProgram(), 'u_texSize');
+		/** @type {WebGLUniformLocation} */ var lodLoc = gl.getUniformLocation(this.m_program.getProgram(), 'u_lod');
+		/** @type {number} */ var textureTarget = this.getGLTextureTarget();
+		/** @type {boolean} */ var isSquare = testSize.textureSize[0] === testSize.textureSize[1];
+		/** @type {boolean} */ var is2DLodValid = (testSize.textureSize[0] >> (testSize.lod + testSize.lodBase)) !== 0 || (testSize.textureSize[1] >> (testSize.lod + testSize.lodBase)) !== 0;
+		/** @type {boolean} */ var success = true;
+		/** @type {number} */ var errorValue;
+
+		// Skip incompatible cases
+		if (this.m_textureSpec.type === es3fShaderTextureFunctionTests.TextureType.TEXTURETYPE_CUBE_MAP && !isSquare)
+			return true;
+		if (this.m_textureSpec.type === es3fShaderTextureFunctionTests.TextureType.TEXTURETYPE_2D && !is2DLodValid)
+			return true;
+		if (this.m_textureSpec.type === es3fShaderTextureFunctionTests.TextureType.TEXTURETYPE_2D_ARRAY && !is2DLodValid)
+			return true;
+
+		// setup rendering
+
+		gl.useProgram(this.m_program.getProgram());
+		gl.uniform1i(samplerLoc, 0);
+		gl.clearColor(0.5, 0.5, 0.5, 1.0);
+		gl.viewport(0, 0, 1, 1);
+		gl.vertexAttribPointer(positionLoc, 4, gl.FLOAT, gl.FALSE, 0, triangle);
+		gl.enableVertexAttribArray(positionLoc);
+
+		// setup texture
+		/** @type {number} */ var maxLevel = testSize.lod + testSize.lodBase;
+		/** @type {number} */ var levels = maxLevel + 1;
+		/** @type {?WebGLTexture} */ var texId = null;
+
+		// gen texture
+		texId = gl.createTexture();
+		gl.bindTexture(textureTarget, texId);
+		gl.texParameteri(textureTarget, gl.TEXTURE_MIN_FILTER, gl.NEAREST);
+		gl.texParameteri(textureTarget, gl.TEXTURE_MAG_FILTER, gl.NEAREST);
+		gl.texParameteri(textureTarget, gl.TEXTURE_BASE_LEVEL, testSize.lodBase);
+
+		// set up texture
+
+		switch (this.m_textureSpec.type) {
+			case es3fShaderTextureFunctionTests.TextureType.TEXTURETYPE_3D:
+				bufferedLogToConsole("Testing image size " + testSize.textureSize[0] + "x" + testSize.textureSize[1] + "x" + testSize.textureSize[2]);
+				bufferedLogToConsole("Lod: " + testSize.lod + ", base level: " + testSize.lodBase);
+				bufferedLogToConsole("Expecting: " + testSize.expectedSize[0] + "x" + testSize.expectedSize[1] + "x" + testSize.expectedSize[2]);
+
+				gl.uniform3iv(sizeLoc, 1, testSize.expectedSize.m_data);
+				gl.uniform1iv(lodLoc,  1, testSize.lod);
+
+				gl.texStorage3D(textureTarget, levels, this.m_textureSpec.format, testSize.textureSize[0], testSize.textureSize[1], testSize.textureSize[2]);
+				break;
+
+			case es3fShaderTextureFunctionTests.TextureType.TEXTURETYPE_2D:
+			case es3fShaderTextureFunctionTests.TextureType.TEXTURETYPE_CUBE_MAP:
+				bufferedLogToConsole("Testing image size " + testSize.textureSize[0] + "x" + testSize.textureSize[1]);
+				bufferedLogToConsole("Lod: " + testSize.lod + ", base level: " + testSize.lodBase);
+				bufferedLogToConsole("Expecting: " + testSize.expectedSize[0] + "x" + testSize.expectedSize[1]);
+
+				gl.uniform2iv(sizeLoc, 1, testSize.expectedSize.m_data);
+				gl.uniform1iv(lodLoc,  1, testSize.lod);
+
+				gl.texStorage2D(textureTarget, levels, this.m_textureSpec.format, testSize.textureSize[0], testSize.textureSize[1]);
+				break;
+
+			case es3fShaderTextureFunctionTests.TextureType.TEXTURETYPE_2D_ARRAY:
+				/** @type {Array<number>} */ var expectedSize = [testSize.expectedSize[0], testSize.expectedSize[1], testSize.textureSize[2]];
+
+				bufferedLogToConsole("Testing image size " + testSize.textureSize[0] + "x" + testSize.textureSize[1] + " with " + testSize.textureSize[2] + " layer(s)");
+				bufferedLogToConsole("Lod: " + testSize.lod + ", base level: " + testSize.lodBase);
+				bufferedLogToConsole("Expecting: " + testSize.expectedSize[0] + "x" + testSize.expectedSize[1] + " and " + testSize.textureSize[2] + " layer(s)");
+
+				gl.uniform3iv(sizeLoc, 1, expectedSize.m_data);
+				gl.uniform1iv(lodLoc, 1, testSize.lod);
+
+				gl.texStorage3D(textureTarget, levels, this.m_textureSpec.format, testSize.textureSize[0], testSize.textureSize[1], testSize.textureSize[2]);
+				break;
+
+			default:
+				throw new Error('Type not supported');
+		}
+
+		errorValue = gl.getError();
+		if (errorValue === gl.OUT_OF_MEMORY)
+			throw new Error("Failed to allocate texture, got GL_OUT_OF_MEMORY. TexStorageXD");
+		else if (errorValue !== gl.NO_ERROR) {
+			// error is a failure too
+			bufferedLogToConsole("Failed, got " + wtu.glEnumToString(gl, errorValue) + "." );
+			success = false;
+		} else {
+			// test
+			/** @type {number} */ var colorTolerance = 0.1;
+			///** @type {tcuTexture.TextureLevel} */ var sample = new tcuTexture.TextureLevel(new tcuTexture.TextureFormat(tcuTexture.ChannelOrder.RGBA, tcuTexture.ChannelType.UNORM_INT8), 1, 1);
+			/** @type {tcuSurface.Surface} */ var sample = new tcuSurface.Surface(1, 1);
+			/** @type {Array<number>} */ var outputColor;
+
+			gl.clear(gl.COLOR_BUFFER_BIT);
+			gl.drawArrays(gl.TRIANGLES, 0, 3);
+			gl.finish();
+
+			//glu::readPixels		(m_context.getRenderContext(), 0, 0, sample.getAccess());
+			sample.readViewport(gl, [0, 0, 1, 1]);
+
+			outputColor = sample.getAccess().getPixel(0, 0);
+
+			if (outputColor[0] >= 1.0 - colorTolerance &&
+				outputColor[1] >= 1.0 - colorTolerance &&
+				outputColor[2] >= 1.0 - colorTolerance)
+				bufferedLogToConsole("Passed");
+			else {
+				// failure
+				bufferedLogToConsole("Failed");
+				success = false;
+			}
+		}
+
+		// free
+		gl.bindTexture(textureTarget, null);
+		gl.deleteTexture(texId);
+
+		gl.useProgram(null);
+
+		return success;
+	};
+
+	/**
+	 * @return {string}
+	 */
+	es3fShaderTextureFunctionTests.TextureSizeCase.prototype.genVertexShader = function()  {
+		/** @type {string} */ var vert = '';
+		vert += "#version 300 es\n" +
+			    "in highp vec4 a_position;\n";
+
+		if (this.m_isVertexCase) {
+			vert += "out mediump vec4 v_color;\n" +
+			        "uniform highp " + this.m_samplerTypeStr + " u_sampler;\n" +
+			        "uniform highp ivec" + (this.m_has3DSize ? 3 : 2) + " u_texSize;\n" +
+			        "uniform highp int u_lod;\n";
+		}
+
+		vert += "void main()\n{\n";
+
+		if (this.m_isVertexCase)
+			vert += "	v_color = (textureSize(u_sampler, u_lod) === u_texSize ? vec4(1.0, 1.0, 1.0, 1.0) : vec4(0.0, 0.0, 0.0, 1.0));\n";
+
+		vert += "	gl_Position = a_position;\n" +
+			    "}\n";
+
+		return vert;
+	};
+
+	/**
+	 * @return {string}
+	 */
+	es3fShaderTextureFunctionTests.TextureSizeCase.prototype.genFragmentShader = function()  {
+		/** @type {string} */ var frag = '';
+
+		frag += "#version 300 es\n"
+			    "layout(location = 0) out mediump vec4 o_color;\n";
+
+		if (this.m_isVertexCase)
+				frag += "in mediump vec4 v_color;\n";
+
+		if (!this.m_isVertexCase) {
+			frag += "uniform highp " + this.m_samplerTypeStr + " u_sampler;\n" +
+			        "uniform highp ivec" + (this.m_has3DSize ? 3 : 2) + " u_texSize;\n" +
+			        "uniform highp int u_lod;\n";
+		}
+
+		frag += "void main()\n{\n";
+
+		if (!this.m_isVertexCase)
+			frag += "	o_color = (textureSize(u_sampler, u_lod) === u_texSize ? vec4(1.0, 1.0, 1.0, 1.0) : vec4(0.0, 0.0, 0.0, 1.0));\n";
+		else
+			frag += "	o_color = v_color;\n";
+
+		frag += "}\n";
+
+		return frag;
+	};
+
+	/**
+	 * @return {number}
+	 */
+	es3fShaderTextureFunctionTests.TextureSizeCase.prototype.getGLTextureTarget = function()  {
+		switch (this.m_textureSpec.type) {
+			case es3fShaderTextureFunctionTests.TextureType.TEXTURETYPE_2D:
+				return gl.TEXTURE_2D;
+			case es3fShaderTextureFunctionTests.TextureType.TEXTURETYPE_CUBE_MAP:
+				return gl.TEXTURE_CUBE_MAP;
+			case es3fShaderTextureFunctionTests.TextureType.TEXTURETYPE_2D_ARRAY:
+				return gl.TEXTURE_2D_ARRAY;
+			case es3fShaderTextureFunctionTests.TextureType.TEXTURETYPE_3D:
+				return gl.TEXTURE_3D;
+			default:
+				throw new Error('Texture Type not supported.');
+		}
 	};
 
 	/** @typedef {Array<string, es3fShaderTextureFunctionTests.TextureLookupSpec, es3fShaderTextureFunctionTests.TextureSpec, es3fShaderTextureFunctionTests.EvalFunc, es3fShaderTextureFunctionTests.CaseFlags>} */ es3fShaderTextureFunctionTests.TestSpec;
@@ -1834,18 +2072,17 @@ goog.scope(function() {
 	 * @param  {string} groupName
 	 * @param  {string} groupDesc
 	 * @param  {es3fShaderTextureFunctionTests.TexFuncCaseSpec} cases
-	 * @param  {number} numCases
 	 */
-	es3fShaderTextureFunctionTests.createCaseGroup = function(parent, groupName, groupDesc, cases, numCases) {
+	es3fShaderTextureFunctionTests.createCaseGroup = function(parent, groupName, groupDesc, cases) {
 		/** @type {tcuTestCase.DeqpTest} */ var group = tcuTestCase.newTest(groupName, groupDesc);
 		parent.addChild(group);
 
-		for (var ndx = 0; ndx < numCases; ndx++) {
+		for (var ndx = 0; ndx < cases.length; ndx++) {
 			/** @type {string} */ var name = cases[ndx].name;
 			if (cases[ndx].flags & es3fShaderTextureFunctionTests.CaseFlags.VERTEX)
-				group->addChild(new es3fShaderTextureFunctionTests.ShaderTextureFunctionCase(name + "_vertex", "", cases[ndx].lookupSpec, cases[ndx].texSpec, cases[ndx].evalFunc, true));
+				group.addChild(new es3fShaderTextureFunctionTests.ShaderTextureFunctionCase(name + "_vertex", "", cases[ndx].lookupSpec, cases[ndx].texSpec, cases[ndx].evalFunc, true));
 			if (cases[ndx].flags & es3fShaderTextureFunctionTests.CaseFlags.FRAGMENT)
-				group->addChild(new es3fShaderTextureFunctionTests.ShaderTextureFunctionCase(name + "_fragment", "", cases[ndx].lookupSpec, cases[ndx].texSpec, cases[ndx].evalFunc, false));
+				group.addChild(new es3fShaderTextureFunctionTests.ShaderTextureFunctionCase(name + "_fragment", "", cases[ndx].lookupSpec, cases[ndx].texSpec, cases[ndx].evalFunc, false));
 		}
 	};
 
@@ -1861,6 +2098,613 @@ goog.scope(function() {
     es3fShaderTextureFunctionTests.ShaderTextureFunctionTests.prototype.constructor = es3fShaderTextureFunctionTests.ShaderTextureFunctionTests;
 
     es3fShaderTextureFunctionTests.ShaderTextureFunctionTests.prototype.init = function() {
+		// Samplers
+		/** @type {tcuTexture.Sampler} */ var samplerNearestNoMipmap = new tcuTexture.Sampler(tcuTexture.WrapMode.REPEAT_GL, tcuTexture.WrapMode.REPEAT_GL, tcuTexture.WrapMode.REPEAT_GL,
+															 tcuTexture.FilterMode.NEAREST, tcuTexture.FilterMode.NEAREST,
+															 0.0 /* LOD threshold */, true /* normalized coords */, tcuTexture.CompareMode.COMPAREMODE_NONE,
+															 0 /* cmp channel */, [0.0, 0.0, 0.0, 0.0] /* border color */, true /* seamless cube map */);
+		/** @type {tcuTexture.Sampler} */ var samplerLinearNoMipmap = new tcuTexture.Sampler(tcuTexture.WrapMode.REPEAT_GL, tcuTexture.WrapMode.REPEAT_GL, tcuTexture.WrapMode.REPEAT_GL,
+															 tcuTexture.FilterMode.LINEAR, tcuTexture.FilterMode.LINEAR,
+															 0.0 /* LOD threshold */, true /* normalized coords */, tcuTexture.CompareMode.COMPAREMODE_NONE,
+															 0 /* cmp channel */, [0.0, 0.0, 0.0, 0.0] /* border color */, true /* seamless cube map */);
+		/** @type {tcuTexture.Sampler} */ var samplerNearestMipmap = new tcuTexture.Sampler(tcuTexture.WrapMode.REPEAT_GL, tcuTexture.WrapMode.REPEAT_GL, tcuTexture.WrapMode.REPEAT_GL,
+															 tcuTexture.FilterMode.NEAREST_MIPMAP_NEAREST, tcuTexture.FilterMode.NEAREST,
+															 0.0 /* LOD threshold */, true /* normalized coords */, tcuTexture.CompareMode.COMPAREMODE_NONE,
+															 0 /* cmp channel */, [0.0, 0.0, 0.0, 0.0] /* border color */, true /* seamless cube map */);
+		/** @type {tcuTexture.Sampler} */ var samplerLinearMipmap = new tcuTexture.Sampler(tcuTexture.WrapMode.REPEAT_GL, tcuTexture.WrapMode.REPEAT_GL, tcuTexture.WrapMode.REPEAT_GL,
+															 tcuTexture.FilterMode.LINEAR_MIPMAP_NEAREST, tcuTexture.FilterMode.LINEAR,
+															 0.0 /* LOD threshold */, true /* normalized coords */, tcuTexture.CompareMode.COMPAREMODE_NONE,
+															 0 /* cmp channel */, [0.0, 0.0, 0.0, 0.0] /* border color */, true /* seamless cube map */);
+
+		/** @type {tcuTexture.Sampler} */ var samplerShadowNoMipmap = new tcuTexture.Sampler(tcuTexture.WrapMode.REPEAT_GL, tcuTexture.WrapMode.REPEAT_GL, tcuTexture.WrapMode.REPEAT_GL,
+															 tcuTexture.FilterMode.NEAREST, tcuTexture.FilterMode.NEAREST,
+															 0.0 /* LOD threshold */, true /* normalized coords */, tcuTexture.CompareMode.COMPAREMODE_LESS,
+															 0 /* cmp channel */, [0.0, 0.0, 0.0, 0.0] /* border color */, true /* seamless cube map */);
+		/** @type {tcuTexture.Sampler} */ var samplerShadowMipmap = new tcuTexture.Sampler(tcuTexture.WrapMode.REPEAT_GL, tcuTexture.WrapMode.REPEAT_GL, tcuTexture.WrapMode.REPEAT_GL,
+															 tcuTexture.FilterMode.NEAREST_MIPMAP_NEAREST, tcuTexture.FilterMode.NEAREST,
+															 0.0 /* LOD threshold */, true /* normalized coords */, tcuTexture.CompareMode.COMPAREMODE_LESS,
+															 0 /* cmp channel */, [0.0, 0.0, 0.0, 0.0] /* border color */, true /* seamless cube map */);
+
+		/** @type {tcuTexture.Sampler} */ var samplerTexelFetch = new tcuTexture.Sampler(tcuTexture.WrapMode.REPEAT_GL, tcuTexture.WrapMode.REPEAT_GL, tcuTexture.WrapMode.REPEAT_GL,
+															 tcuTexture.FilterMode.NEAREST_MIPMAP_NEAREST, tcuTexture.FilterMode.NEAREST,
+															 0.0 /* LOD threshold */, false /* non-normalized coords */, tcuTexture.CompareMode.COMPAREMODE_NONE,
+															 0 /* cmp channel */, [0.0, 0.0, 0.0, 0.0] /* border color */, true /* seamless cube map */);
+
+		// Default textures.
+		/** @type {es3fShaderTextureFunctionTests.TextureSpec} */ var tex2DFixed = new es3fShaderTextureFunctionTests.TextureSpec(es3fShaderTextureFunctionTests.TextureType.TEXTURETYPE_2D, gl.RGBA8, 256, 256, 1, 1, samplerLinearNoMipmap);
+		/** @type {es3fShaderTextureFunctionTests.TextureSpec} */ var tex2DFloat = new es3fShaderTextureFunctionTests.TextureSpec(es3fShaderTextureFunctionTests.TextureType.TEXTURETYPE_2D, gl.RGBA16F, 256, 256, 1, 1, samplerLinearNoMipmap);
+		/** @type {es3fShaderTextureFunctionTests.TextureSpec} */ var tex2DInt = new es3fShaderTextureFunctionTests.TextureSpec(es3fShaderTextureFunctionTests.TextureType.TEXTURETYPE_2D, gl.RGBA8I, 256, 256, 1, 1, samplerNearestNoMipmap);
+		/** @type {es3fShaderTextureFunctionTests.TextureSpec} */ var tex2DUint = new es3fShaderTextureFunctionTests.TextureSpec(es3fShaderTextureFunctionTests.TextureType.TEXTURETYPE_2D, gl.RGBA8UI, 256, 256, 1, 1, samplerNearestNoMipmap);
+		/** @type {es3fShaderTextureFunctionTests.TextureSpec} */ var tex2DMipmapFixed = new es3fShaderTextureFunctionTests.TextureSpec(es3fShaderTextureFunctionTests.TextureType.TEXTURETYPE_2D, gl.RGBA8, 256, 256, 1, 9, samplerLinearMipmap);
+		/** @type {es3fShaderTextureFunctionTests.TextureSpec} */ var tex2DMipmapFloat = new es3fShaderTextureFunctionTests.TextureSpec(es3fShaderTextureFunctionTests.TextureType.TEXTURETYPE_2D, gl.RGBA16F, 256, 256, 1, 9, samplerLinearMipmap);
+		/** @type {es3fShaderTextureFunctionTests.TextureSpec} */ var tex2DMipmapInt = new es3fShaderTextureFunctionTests.TextureSpec(es3fShaderTextureFunctionTests.TextureType.TEXTURETYPE_2D, gl.RGBA8I, 256, 256, 1, 9, samplerNearestMipmap);
+		/** @type {es3fShaderTextureFunctionTests.TextureSpec} */ var tex2DMipmapUint = new es3fShaderTextureFunctionTests.TextureSpec(es3fShaderTextureFunctionTests.TextureType.TEXTURETYPE_2D, gl.RGBA8UI, 256, 256, 1, 9, samplerNearestMipmap);
+
+		/** @type {es3fShaderTextureFunctionTests.TextureSpec} */ var tex2DShadow = new es3fShaderTextureFunctionTests.TextureSpec(es3fShaderTextureFunctionTests.TextureType.TEXTURETYPE_2D, gl.DEPTH_COMPONENT16, 256, 256, 1, 9, samplerShadowNoMipmap);
+		/** @type {es3fShaderTextureFunctionTests.TextureSpec} */ var tex2DMipmapShadow = new es3fShaderTextureFunctionTests.TextureSpec(es3fShaderTextureFunctionTests.TextureType.TEXTURETYPE_2D, gl.DEPTH_COMPONENT16, 256, 256, 1, 9, samplerShadowMipmap);
+
+		/** @type {es3fShaderTextureFunctionTests.TextureSpec} */ var tex2DTexelFetchFixed = new es3fShaderTextureFunctionTests.TextureSpec(es3fShaderTextureFunctionTests.TextureType.TEXTURETYPE_2D, gl.RGBA8, 256, 256, 1, 9, samplerTexelFetch);
+		/** @type {es3fShaderTextureFunctionTests.TextureSpec} */ var tex2DTexelFetchFloat = new es3fShaderTextureFunctionTests.TextureSpec(es3fShaderTextureFunctionTests.TextureType.TEXTURETYPE_2D, gl.RGBA16F, 256, 256, 1, 9, samplerTexelFetch);
+		/** @type {es3fShaderTextureFunctionTests.TextureSpec} */ var tex2DTexelFetchInt = new es3fShaderTextureFunctionTests.TextureSpec(es3fShaderTextureFunctionTests.TextureType.TEXTURETYPE_2D, gl.RGBA8I, 256, 256, 1, 9, samplerTexelFetch);
+		/** @type {es3fShaderTextureFunctionTests.TextureSpec} */ var tex2DTexelFetchUint = new es3fShaderTextureFunctionTests.TextureSpec(es3fShaderTextureFunctionTests.TextureType.TEXTURETYPE_2D, gl.RGBA8UI, 256, 256, 1, 9, samplerTexelFetch);
+
+		/** @type {es3fShaderTextureFunctionTests.TextureSpec} */ var texCubeFixed = new es3fShaderTextureFunctionTests.TextureSpec(es3fShaderTextureFunctionTests.TextureType.TEXTURETYPE_CUBE_MAP, gl.RGBA8, 256, 256, 1, 1, samplerLinearNoMipmap);
+		/** @type {es3fShaderTextureFunctionTests.TextureSpec} */ var texCubeFloat = new es3fShaderTextureFunctionTests.TextureSpec(es3fShaderTextureFunctionTests.TextureType.TEXTURETYPE_CUBE_MAP, gl.RGBA16F, 256, 256, 1, 1, samplerLinearNoMipmap);
+		/** @type {es3fShaderTextureFunctionTests.TextureSpec} */ var texCubeInt = new es3fShaderTextureFunctionTests.TextureSpec(es3fShaderTextureFunctionTests.TextureType.TEXTURETYPE_CUBE_MAP, gl.RGBA8I, 256, 256, 1, 1, samplerNearestNoMipmap);
+		/** @type {es3fShaderTextureFunctionTests.TextureSpec} */ var texCubeUint = new es3fShaderTextureFunctionTests.TextureSpec(es3fShaderTextureFunctionTests.TextureType.TEXTURETYPE_CUBE_MAP, gl.RGBA8UI, 256, 256, 1, 1, samplerNearestNoMipmap);
+		/** @type {es3fShaderTextureFunctionTests.TextureSpec} */ var texCubeMipmapFixed = new es3fShaderTextureFunctionTests.TextureSpec(es3fShaderTextureFunctionTests.TextureType.TEXTURETYPE_CUBE_MAP, gl.RGBA8, 256, 256, 1, 9, samplerLinearMipmap);
+		/** @type {es3fShaderTextureFunctionTests.TextureSpec} */ var texCubeMipmapFloat = new es3fShaderTextureFunctionTests.TextureSpec(es3fShaderTextureFunctionTests.TextureType.TEXTURETYPE_CUBE_MAP, gl.RGBA16F, 128, 128, 1, 8, samplerLinearMipmap);
+		/** @type {es3fShaderTextureFunctionTests.TextureSpec} */ var texCubeMipmapInt = new es3fShaderTextureFunctionTests.TextureSpec(es3fShaderTextureFunctionTests.TextureType.TEXTURETYPE_CUBE_MAP, gl.RGBA8I, 256, 256, 1, 9, samplerNearestMipmap);
+		/** @type {es3fShaderTextureFunctionTests.TextureSpec} */ var texCubeMipmapUint = new es3fShaderTextureFunctionTests.TextureSpec(es3fShaderTextureFunctionTests.TextureType.TEXTURETYPE_CUBE_MAP, gl.RGBA8UI, 256, 256, 1, 9, samplerNearestMipmap);
+
+		/** @type {es3fShaderTextureFunctionTests.TextureSpec} */ var texCubeShadow = new es3fShaderTextureFunctionTests.TextureSpec(es3fShaderTextureFunctionTests.TextureType.TEXTURETYPE_CUBE_MAP, gl.DEPTH_COMPONENT16, 256, 256, 1, 1, samplerShadowNoMipmap);
+		/** @type {es3fShaderTextureFunctionTests.TextureSpec} */ var texCubeMipmapShadow = new es3fShaderTextureFunctionTests.TextureSpec(es3fShaderTextureFunctionTests.TextureType.TEXTURETYPE_CUBE_MAP, gl.DEPTH_COMPONENT16, 256, 256, 1, 9, samplerShadowMipmap);
+
+		/** @type {es3fShaderTextureFunctionTests.TextureSpec} */ var tex2DArrayFixed = new es3fShaderTextureFunctionTests.TextureSpec(es3fShaderTextureFunctionTests.TextureType.TEXTURETYPE_2D_ARRAY, gl.RGBA8, 128, 128, 4, 1, samplerLinearNoMipmap);
+		/** @type {es3fShaderTextureFunctionTests.TextureSpec} */ var tex2DArrayFloat = new es3fShaderTextureFunctionTests.TextureSpec(es3fShaderTextureFunctionTests.TextureType.TEXTURETYPE_2D_ARRAY, gl.RGBA16F, 128, 128, 4, 1, samplerLinearNoMipmap);
+		/** @type {es3fShaderTextureFunctionTests.TextureSpec} */ var tex2DArrayInt = new es3fShaderTextureFunctionTests.TextureSpec(es3fShaderTextureFunctionTests.TextureType.TEXTURETYPE_2D_ARRAY, gl.RGBA8I, 128, 128, 4, 1, samplerNearestNoMipmap);
+		/** @type {es3fShaderTextureFunctionTests.TextureSpec} */ var tex2DArrayUint = new es3fShaderTextureFunctionTests.TextureSpec(es3fShaderTextureFunctionTests.TextureType.TEXTURETYPE_2D_ARRAY, gl.RGBA8UI, 128, 128, 4, 1, samplerNearestNoMipmap);
+		/** @type {es3fShaderTextureFunctionTests.TextureSpec} */ var tex2DArrayMipmapFixed = new es3fShaderTextureFunctionTests.TextureSpec(es3fShaderTextureFunctionTests.TextureType.TEXTURETYPE_2D_ARRAY, gl.RGBA8, 128, 128, 4, 8, samplerLinearMipmap);
+		/** @type {es3fShaderTextureFunctionTests.TextureSpec} */ var tex2DArrayMipmapFloat = new es3fShaderTextureFunctionTests.TextureSpec(es3fShaderTextureFunctionTests.TextureType.TEXTURETYPE_2D_ARRAY, gl.RGBA16F, 128, 128, 4, 8, samplerLinearMipmap);
+		/** @type {es3fShaderTextureFunctionTests.TextureSpec} */ var tex2DArrayMipmapInt = new es3fShaderTextureFunctionTests.TextureSpec(es3fShaderTextureFunctionTests.TextureType.TEXTURETYPE_2D_ARRAY, gl.RGBA8I, 128, 128, 4, 8, samplerNearestMipmap);
+		/** @type {es3fShaderTextureFunctionTests.TextureSpec} */ var tex2DArrayMipmapUint = new es3fShaderTextureFunctionTests.TextureSpec(es3fShaderTextureFunctionTests.TextureType.TEXTURETYPE_2D_ARRAY, gl.RGBA8UI, 128, 128, 4, 8, samplerNearestMipmap);
+
+		/** @type {es3fShaderTextureFunctionTests.TextureSpec} */ var tex2DArrayShadow = new es3fShaderTextureFunctionTests.TextureSpec(es3fShaderTextureFunctionTests.TextureType.TEXTURETYPE_2D_ARRAY, gl.DEPTH_COMPONENT16, 128, 128, 4, 1, samplerShadowNoMipmap);
+		/** @type {es3fShaderTextureFunctionTests.TextureSpec} */ var tex2DArrayMipmapShadow = new es3fShaderTextureFunctionTests.TextureSpec(es3fShaderTextureFunctionTests.TextureType.TEXTURETYPE_2D_ARRAY, gl.DEPTH_COMPONENT16, 128, 128, 4, 8, samplerShadowMipmap);
+
+		/** @type {es3fShaderTextureFunctionTests.TextureSpec} */ var tex2DArrayTexelFetchFixed = new es3fShaderTextureFunctionTests.TextureSpec(es3fShaderTextureFunctionTests.TextureType.TEXTURETYPE_2D_ARRAY, gl.RGBA8, 128, 128, 4, 8, samplerTexelFetch);
+		/** @type {es3fShaderTextureFunctionTests.TextureSpec} */ var tex2DArrayTexelFetchFloat = new es3fShaderTextureFunctionTests.TextureSpec(es3fShaderTextureFunctionTests.TextureType.TEXTURETYPE_2D_ARRAY, gl.RGBA16F, 128, 128, 4, 8, samplerTexelFetch);
+		/** @type {es3fShaderTextureFunctionTests.TextureSpec} */ var tex2DArrayTexelFetchInt = new es3fShaderTextureFunctionTests.TextureSpec(es3fShaderTextureFunctionTests.TextureType.TEXTURETYPE_2D_ARRAY, gl.RGBA8I, 128, 128, 4, 8, samplerTexelFetch);
+		/** @type {es3fShaderTextureFunctionTests.TextureSpec} */ var tex2DArrayTexelFetchUint = new es3fShaderTextureFunctionTests.TextureSpec(es3fShaderTextureFunctionTests.TextureType.TEXTURETYPE_2D_ARRAY, gl.RGBA8UI, 128, 128, 4, 8, samplerTexelFetch);
+
+		/** @type {es3fShaderTextureFunctionTests.TextureSpec} */ var tex3DFixed = new es3fShaderTextureFunctionTests.TextureSpec(es3fShaderTextureFunctionTests.TextureType.TEXTURETYPE_3D, gl.RGBA8, 64, 32, 32, 1, samplerLinearNoMipmap);
+		/** @type {es3fShaderTextureFunctionTests.TextureSpec} */ var tex3DFloat = new es3fShaderTextureFunctionTests.TextureSpec(es3fShaderTextureFunctionTests.TextureType.TEXTURETYPE_3D, gl.RGBA16F, 64, 32, 32, 1, samplerLinearNoMipmap);
+		/** @type {es3fShaderTextureFunctionTests.TextureSpec} */ var tex3DInt = new es3fShaderTextureFunctionTests.TextureSpec(es3fShaderTextureFunctionTests.TextureType.TEXTURETYPE_3D, gl.RGBA8I, 64, 32, 32, 1, samplerNearestNoMipmap);
+		/** @type {es3fShaderTextureFunctionTests.TextureSpec} */ var tex3DUint = new es3fShaderTextureFunctionTests.TextureSpec(es3fShaderTextureFunctionTests.TextureType.TEXTURETYPE_3D, gl.RGBA8UI, 64, 32, 32, 1, samplerNearestNoMipmap);
+		/** @type {es3fShaderTextureFunctionTests.TextureSpec} */ var tex3DMipmapFixed = new es3fShaderTextureFunctionTests.TextureSpec(es3fShaderTextureFunctionTests.TextureType.TEXTURETYPE_3D, gl.RGBA8, 64, 32, 32, 7, samplerLinearMipmap);
+		/** @type {es3fShaderTextureFunctionTests.TextureSpec} */ var tex3DMipmapFloat = new es3fShaderTextureFunctionTests.TextureSpec(es3fShaderTextureFunctionTests.TextureType.TEXTURETYPE_3D, gl.RGBA16F, 64, 32, 32, 7, samplerLinearMipmap);
+		/** @type {es3fShaderTextureFunctionTests.TextureSpec} */ var tex3DMipmapInt = new es3fShaderTextureFunctionTests.TextureSpec(es3fShaderTextureFunctionTests.TextureType.TEXTURETYPE_3D, gl.RGBA8I, 64, 32, 32, 7, samplerNearestMipmap);
+		/** @type {es3fShaderTextureFunctionTests.TextureSpec} */ var tex3DMipmapUint = new es3fShaderTextureFunctionTests.TextureSpec(es3fShaderTextureFunctionTests.TextureType.TEXTURETYPE_3D, gl.RGBA8UI, 64, 32, 32, 7, samplerNearestMipmap);
+
+		/** @type {es3fShaderTextureFunctionTests.TextureSpec} */ var tex3DTexelFetchFixed = new es3fShaderTextureFunctionTests.TextureSpec(es3fShaderTextureFunctionTests.TextureType.TEXTURETYPE_3D, gl.RGBA8, 64, 32, 32, 7, samplerTexelFetch);
+		/** @type {es3fShaderTextureFunctionTests.TextureSpec} */ var tex3DTexelFetchFloat = new es3fShaderTextureFunctionTests.TextureSpec(es3fShaderTextureFunctionTests.TextureType.TEXTURETYPE_3D, gl.RGBA16F, 64, 32, 32, 7, samplerTexelFetch);
+		/** @type {es3fShaderTextureFunctionTests.TextureSpec} */ var tex3DTexelFetchInt = new es3fShaderTextureFunctionTests.TextureSpec(es3fShaderTextureFunctionTests.TextureType.TEXTURETYPE_3D, gl.RGBA8I, 64, 32, 32, 7, samplerTexelFetch);
+		/** @type {es3fShaderTextureFunctionTests.TextureSpec} */ var tex3DTexelFetchUint = new es3fShaderTextureFunctionTests.TextureSpec(es3fShaderTextureFunctionTests.TextureType.TEXTURETYPE_3D, gl.RGBA8UI, 64, 32, 32, 7, samplerTexelFetch);
+
+
+		var testGroup = tcuTestCase.runner.testCases;
+		// texture() cases
+			/** @type {es3fShaderTextureFunctionTests.TexFuncCaseSpec} */ var textureCases =
+			[
+				es3fShaderTextureFunctionTests.getCaseSpec('sampler2d_fixed', es3fShaderTextureFunctionTests.Function.TEXTURE, [-0.2, -0.4, 0.0, 0.0], [1.5, 2.3, 0.0, 0.0],	false,	0.0,	0.0,	false, [0, 0, 0],	tex2DFixed, es3fShaderTextureFunctionTests.evalTexture2D, es3fShaderTextureFunctionTests.CaseFlags.VERTEX),
+				es3fShaderTextureFunctionTests.getCaseSpec('sampler2d_fixed', es3fShaderTextureFunctionTests.Function.TEXTURE, [-0.2, -0.4, 0.0, 0.0], [1.5, 2.3, 0.0, 0.0],	false,	0.0,	0.0,	false, [0, 0, 0],	tex2DMipmapFixed, es3fShaderTextureFunctionTests.evalTexture2D, es3fShaderTextureFunctionTests.CaseFlags.FRAGMENT),
+				es3fShaderTextureFunctionTests.getCaseSpec('sampler2d_float', es3fShaderTextureFunctionTests.Function.TEXTURE, [-0.2, -0.4, 0.0, 0.0], [1.5, 2.3, 0.0, 0.0],	false,	0.0,	0.0,	false, [0, 0, 0],	tex2DFloat, es3fShaderTextureFunctionTests.evalTexture2D, es3fShaderTextureFunctionTests.CaseFlags.VERTEX),
+				es3fShaderTextureFunctionTests.getCaseSpec('sampler2d_float', es3fShaderTextureFunctionTests.Function.TEXTURE, [-0.2, -0.4, 0.0, 0.0], [1.5, 2.3, 0.0, 0.0],	false,	0.0,	0.0,	false, [0, 0, 0],	tex2DMipmapFloat, es3fShaderTextureFunctionTests.evalTexture2D, es3fShaderTextureFunctionTests.CaseFlags.FRAGMENT),
+				es3fShaderTextureFunctionTests.getCaseSpec('isampler2d', es3fShaderTextureFunctionTests.Function.TEXTURE, [-0.2, -0.4, 0.0, 0.0], [1.5, 2.3, 0.0, 0.0],	false,	0.0,	0.0,	false, [0, 0, 0],	tex2DInt, es3fShaderTextureFunctionTests.evalTexture2D, es3fShaderTextureFunctionTests.CaseFlags.VERTEX),
+				es3fShaderTextureFunctionTests.getCaseSpec('isampler2d', es3fShaderTextureFunctionTests.Function.TEXTURE, [-0.2, -0.4, 0.0, 0.0], [1.5, 2.3, 0.0, 0.0],	false,	0.0,	0.0,	false, [0, 0, 0],	tex2DMipmapInt, es3fShaderTextureFunctionTests.evalTexture2D, es3fShaderTextureFunctionTests.CaseFlags.FRAGMENT),
+				es3fShaderTextureFunctionTests.getCaseSpec('usampler2d', es3fShaderTextureFunctionTests.Function.TEXTURE, [-0.2, -0.4, 0.0, 0.0], [1.5, 2.3, 0.0, 0.0],	false,	0.0,	0.0,	false, [0, 0, 0],	tex2DUint, es3fShaderTextureFunctionTests.evalTexture2D, es3fShaderTextureFunctionTests.CaseFlags.VERTEX),
+				es3fShaderTextureFunctionTests.getCaseSpec('usampler2d', es3fShaderTextureFunctionTests.Function.TEXTURE, [-0.2, -0.4, 0.0, 0.0], [1.5, 2.3, 0.0, 0.0],	false,	0.0,	0.0,	false, [0, 0, 0],	tex2DMipmapUint, es3fShaderTextureFunctionTests.evalTexture2D, es3fShaderTextureFunctionTests.CaseFlags.FRAGMENT),
+
+				es3fShaderTextureFunctionTests.getCaseSpec('sampler2d_bias_fixed', es3fShaderTextureFunctionTests.Function.TEXTURE, [-0.2, -0.4, 0.0, 0.0], [1.5, 2.3, 0.0, 0.0],	true,	-2.0,	2.0,	false, [0, 0, 0],	tex2DMipmapFixed, es3fShaderTextureFunctionTests.evalTexture2DBias, es3fShaderTextureFunctionTests.CaseFlags.FRAGMENT),
+				es3fShaderTextureFunctionTests.getCaseSpec('sampler2d_bias_float', es3fShaderTextureFunctionTests.Function.TEXTURE, [-0.2, -0.4, 0.0, 0.0], [1.5, 2.3, 0.0, 0.0],	true,	-2.0,	2.0,	false, [0, 0, 0],	tex2DMipmapFloat, es3fShaderTextureFunctionTests.evalTexture2DBias, es3fShaderTextureFunctionTests.CaseFlags.FRAGMENT),
+				es3fShaderTextureFunctionTests.getCaseSpec('isampler2d_bias', es3fShaderTextureFunctionTests.Function.TEXTURE, [-0.2, -0.4, 0.0, 0.0], [1.5, 2.3, 0.0, 0.0],	true,	-2.0,	2.0,	false, [0, 0, 0],	tex2DMipmapInt, es3fShaderTextureFunctionTests.evalTexture2DBias, es3fShaderTextureFunctionTests.CaseFlags.FRAGMENT),
+				es3fShaderTextureFunctionTests.getCaseSpec('usampler2d_bias', es3fShaderTextureFunctionTests.Function.TEXTURE, [-0.2, -0.4, 0.0, 0.0], [1.5, 2.3, 0.0, 0.0],	true,	-2.0,	2.0,	false, [0, 0, 0],	tex2DMipmapUint, es3fShaderTextureFunctionTests.evalTexture2DBias, es3fShaderTextureFunctionTests.CaseFlags.FRAGMENT),
+
+				es3fShaderTextureFunctionTests.getCaseSpec('samplercube_fixed', es3fShaderTextureFunctionTests.Function.TEXTURE, [-1.0, -1.0, 1.01, 0.0], [1.0, 1.0, 1.01, 0.0],	false,	0.0,	0.0,	false, [0, 0, 0],	texCubeFixed, es3fShaderTextureFunctionTests.evalTextureCube, es3fShaderTextureFunctionTests.CaseFlags.VERTEX),
+				es3fShaderTextureFunctionTests.getCaseSpec('samplercube_fixed', es3fShaderTextureFunctionTests.Function.TEXTURE, [-1.0, -1.0, 1.01, 0.0], [1.0, 1.0, 1.01, 0.0],	false,	0.0,	0.0,	false, [0, 0, 0],	texCubeMipmapFixed, es3fShaderTextureFunctionTests.evalTextureCube, es3fShaderTextureFunctionTests.CaseFlags.FRAGMENT),
+				es3fShaderTextureFunctionTests.getCaseSpec('samplercube_float', es3fShaderTextureFunctionTests.Function.TEXTURE, [-1.0, -1.0, -1.01, 0.0], [1.0, 1.0, -1.01, 0.0],	false,	0.0,	0.0,	false, [0, 0, 0],	texCubeFloat, es3fShaderTextureFunctionTests.evalTextureCube, es3fShaderTextureFunctionTests.CaseFlags.VERTEX),
+				es3fShaderTextureFunctionTests.getCaseSpec('samplercube_float', es3fShaderTextureFunctionTests.Function.TEXTURE, [-1.0, -1.0, -1.01, 0.0], [1.0, 1.0, -1.01, 0.0],	false,	0.0,	0.0,	false, [0, 0, 0],	texCubeMipmapFloat, es3fShaderTextureFunctionTests.evalTextureCube, es3fShaderTextureFunctionTests.CaseFlags.FRAGMENT),
+				es3fShaderTextureFunctionTests.getCaseSpec('isamplercube', es3fShaderTextureFunctionTests.Function.TEXTURE, [-1.0, -1.0, 1.01, 0.0], [1.0, 1.0, 1.01, 0.0],	false,	0.0,	0.0,	false, [0, 0, 0],	texCubeInt, es3fShaderTextureFunctionTests.evalTextureCube, es3fShaderTextureFunctionTests.CaseFlags.VERTEX),
+				es3fShaderTextureFunctionTests.getCaseSpec('isamplercube', es3fShaderTextureFunctionTests.Function.TEXTURE, [-1.0, -1.0, 1.01, 0.0], [1.0, 1.0, 1.01, 0.0],	false,	0.0,	0.0,	false, [0, 0, 0],	texCubeMipmapInt, es3fShaderTextureFunctionTests.evalTextureCube, es3fShaderTextureFunctionTests.CaseFlags.FRAGMENT),
+				es3fShaderTextureFunctionTests.getCaseSpec('usamplercube', es3fShaderTextureFunctionTests.Function.TEXTURE, [-1.0, -1.0, -1.01, 0.0], [1.0, 1.0, -1.01, 0.0],	false,	0.0,	0.0,	false, [0, 0, 0],	texCubeUint, es3fShaderTextureFunctionTests.evalTextureCube, es3fShaderTextureFunctionTests.CaseFlags.VERTEX),
+				es3fShaderTextureFunctionTests.getCaseSpec('usamplercube', es3fShaderTextureFunctionTests.Function.TEXTURE, [-1.0, -1.0, -1.01, 0.0], [1.0, 1.0, -1.01, 0.0],	false,	0.0,	0.0,	false, [0, 0, 0],	texCubeMipmapUint, es3fShaderTextureFunctionTests.evalTextureCube, es3fShaderTextureFunctionTests.CaseFlags.FRAGMENT),
+
+				es3fShaderTextureFunctionTests.getCaseSpec('samplercube_bias_fixed', es3fShaderTextureFunctionTests.Function.TEXTURE, [-1.0, -1.0, 1.01, 0.0], [1.0, 1.0, 1.01, 0.0],	true,	-2.0,	2.0,	false, [0, 0, 0],	texCubeMipmapFixed, es3fShaderTextureFunctionTests.evalTextureCubeBias, es3fShaderTextureFunctionTests.CaseFlags.FRAGMENT),
+				es3fShaderTextureFunctionTests.getCaseSpec('samplercube_bias_float', es3fShaderTextureFunctionTests.Function.TEXTURE, [-1.0, -1.0, -1.01, 0.0], [1.0, 1.0, -1.01, 0.0],	true,	-2.0,	2.0,	false, [0, 0, 0],	texCubeMipmapFloat, es3fShaderTextureFunctionTests.evalTextureCubeBias, es3fShaderTextureFunctionTests.CaseFlags.FRAGMENT),
+				es3fShaderTextureFunctionTests.getCaseSpec('isamplercube_bias', es3fShaderTextureFunctionTests.Function.TEXTURE, [-1.0, -1.0, 1.01, 0.0], [1.0, 1.0, 1.01, 0.0],	true,	-2.0,	2.0,	false, [0, 0, 0],	texCubeMipmapInt, es3fShaderTextureFunctionTests.evalTextureCubeBias, es3fShaderTextureFunctionTests.CaseFlags.FRAGMENT),
+				es3fShaderTextureFunctionTests.getCaseSpec('usamplercube_bias', es3fShaderTextureFunctionTests.Function.TEXTURE, [-1.0, -1.0, -1.01, 0.0], [1.0, 1.0, -1.01, 0.0],	true,	-2.0,	2.0,	false, [0, 0, 0],	texCubeMipmapUint, es3fShaderTextureFunctionTests.evalTextureCubeBias, es3fShaderTextureFunctionTests.CaseFlags.FRAGMENT),
+
+				es3fShaderTextureFunctionTests.getCaseSpec('sampler2darray_fixed', es3fShaderTextureFunctionTests.Function.TEXTURE, [-1.2, -0.4, -0.5, 0.0], [1.5, 2.3, 3.5, 0.0],	false,	0.0,	0.0,	false, [0, 0, 0],	tex2DArrayFixed, es3fShaderTextureFunctionTests.evalTexture2DArray, es3fShaderTextureFunctionTests.CaseFlags.VERTEX),
+				es3fShaderTextureFunctionTests.getCaseSpec('sampler2darray_fixed', es3fShaderTextureFunctionTests.Function.TEXTURE, [-1.2, -0.4, -0.5, 0.0], [1.5, 2.3, 3.5, 0.0],	false,	0.0,	0.0,	false, [0, 0, 0],	tex2DArrayMipmapFixed, es3fShaderTextureFunctionTests.evalTexture2DArray, es3fShaderTextureFunctionTests.CaseFlags.FRAGMENT),
+				es3fShaderTextureFunctionTests.getCaseSpec('sampler2darray_float', es3fShaderTextureFunctionTests.Function.TEXTURE, [-1.2, -0.4, -0.5, 0.0], [1.5, 2.3, 3.5, 0.0],	false,	0.0,	0.0,	false, [0, 0, 0],	tex2DArrayFloat, es3fShaderTextureFunctionTests.evalTexture2DArray, es3fShaderTextureFunctionTests.CaseFlags.VERTEX),
+				es3fShaderTextureFunctionTests.getCaseSpec('sampler2darray_float', es3fShaderTextureFunctionTests.Function.TEXTURE, [-1.2, -0.4, -0.5, 0.0], [1.5, 2.3, 3.5, 0.0],	false,	0.0,	0.0,	false, [0, 0, 0],	tex2DArrayMipmapFloat, es3fShaderTextureFunctionTests.evalTexture2DArray, es3fShaderTextureFunctionTests.CaseFlags.FRAGMENT),
+				es3fShaderTextureFunctionTests.getCaseSpec('isampler2darray', es3fShaderTextureFunctionTests.Function.TEXTURE, [-1.2, -0.4, -0.5, 0.0], [1.5, 2.3, 3.5, 0.0],	false,	0.0,	0.0,	false, [0, 0, 0],	tex2DArrayInt, es3fShaderTextureFunctionTests.evalTexture2DArray, es3fShaderTextureFunctionTests.CaseFlags.VERTEX),
+				es3fShaderTextureFunctionTests.getCaseSpec('isampler2darray', es3fShaderTextureFunctionTests.Function.TEXTURE, [-1.2, -0.4, -0.5, 0.0], [1.5, 2.3, 3.5, 0.0],	false,	0.0,	0.0,	false, [0, 0, 0],	tex2DArrayMipmapInt, es3fShaderTextureFunctionTests.evalTexture2DArray, es3fShaderTextureFunctionTests.CaseFlags.FRAGMENT),
+				es3fShaderTextureFunctionTests.getCaseSpec('usampler2darray', es3fShaderTextureFunctionTests.Function.TEXTURE, [-1.2, -0.4, -0.5, 0.0], [1.5, 2.3, 3.5, 0.0],	false,	0.0,	0.0,	false, [0, 0, 0],	tex2DArrayUint, es3fShaderTextureFunctionTests.evalTexture2DArray, es3fShaderTextureFunctionTests.CaseFlags.VERTEX),
+				es3fShaderTextureFunctionTests.getCaseSpec('usampler2darray', es3fShaderTextureFunctionTests.Function.TEXTURE, [-1.2, -0.4, -0.5, 0.0], [1.5, 2.3, 3.5, 0.0],	false,	0.0,	0.0,	false, [0, 0, 0],	tex2DArrayMipmapUint, es3fShaderTextureFunctionTests.evalTexture2DArray, es3fShaderTextureFunctionTests.CaseFlags.FRAGMENT),
+
+				es3fShaderTextureFunctionTests.getCaseSpec('sampler2darray_bias_fixed', es3fShaderTextureFunctionTests.Function.TEXTURE, [-1.2, -0.4, -0.5, 0.0], [1.5, 2.3, 3.5, 0.0],	true,	-2.0,	2.0,	false, [0, 0, 0],	tex2DArrayMipmapFixed, es3fShaderTextureFunctionTests.evalTexture2DArrayBias, es3fShaderTextureFunctionTests.CaseFlags.FRAGMENT),
+				es3fShaderTextureFunctionTests.getCaseSpec('sampler2darray_bias_float', es3fShaderTextureFunctionTests.Function.TEXTURE, [-1.2, -0.4, -0.5, 0.0], [1.5, 2.3, 3.5, 0.0],	true,	-2.0,	2.0,	false, [0, 0, 0],	tex2DArrayMipmapFloat, es3fShaderTextureFunctionTests.evalTexture2DArrayBias, es3fShaderTextureFunctionTests.CaseFlags.FRAGMENT),
+				es3fShaderTextureFunctionTests.getCaseSpec('isampler2darray_bias', es3fShaderTextureFunctionTests.Function.TEXTURE, [-1.2, -0.4, -0.5, 0.0], [1.5, 2.3, 3.5, 0.0],	true,	-2.0,	2.0,	false, [0, 0, 0],	tex2DArrayMipmapInt, es3fShaderTextureFunctionTests.evalTexture2DArrayBias, es3fShaderTextureFunctionTests.CaseFlags.FRAGMENT),
+				es3fShaderTextureFunctionTests.getCaseSpec('usampler2darray_bias', es3fShaderTextureFunctionTests.Function.TEXTURE, [-1.2, -0.4, -0.5, 0.0], [1.5, 2.3, 3.5, 0.0],	true,	-2.0,	2.0,	false, [0, 0, 0],	tex2DArrayMipmapUint, es3fShaderTextureFunctionTests.evalTexture2DArrayBias, es3fShaderTextureFunctionTests.CaseFlags.FRAGMENT),
+
+				es3fShaderTextureFunctionTests.getCaseSpec('sampler3d_fixed', es3fShaderTextureFunctionTests.Function.TEXTURE, [-1.2, -1.4, 0.1, 0.0], [1.5, 2.3, 2.3, 0.0],	false,	0.0,	0.0,	false, [0, 0, 0],	tex3DFixed, es3fShaderTextureFunctionTests.evalTexture3D, es3fShaderTextureFunctionTests.CaseFlags.VERTEX),
+				es3fShaderTextureFunctionTests.getCaseSpec('sampler3d_fixed', es3fShaderTextureFunctionTests.Function.TEXTURE, [-1.2, -1.4, 0.1, 0.0], [1.5, 2.3, 2.3, 0.0],	false,	0.0,	0.0,	false, [0, 0, 0],	tex3DMipmapFixed, es3fShaderTextureFunctionTests.evalTexture3D, es3fShaderTextureFunctionTests.CaseFlags.FRAGMENT),
+				es3fShaderTextureFunctionTests.getCaseSpec('sampler3d_float', es3fShaderTextureFunctionTests.Function.TEXTURE, [-1.2, -1.4, 0.1, 0.0], [1.5, 2.3, 2.3, 0.0],	false,	0.0,	0.0,	false, [0, 0, 0],	tex3DFloat, es3fShaderTextureFunctionTests.evalTexture3D, es3fShaderTextureFunctionTests.CaseFlags.VERTEX),
+				es3fShaderTextureFunctionTests.getCaseSpec('sampler3d_float', es3fShaderTextureFunctionTests.Function.TEXTURE, [-1.2, -1.4, 0.1, 0.0], [1.5, 2.3, 2.3, 0.0],	false,	0.0,	0.0,	false, [0, 0, 0],	tex3DMipmapFloat, es3fShaderTextureFunctionTests.evalTexture3D, es3fShaderTextureFunctionTests.CaseFlags.FRAGMENT),
+				es3fShaderTextureFunctionTests.getCaseSpec('isampler3d', es3fShaderTextureFunctionTests.Function.TEXTURE, [-1.2, -1.4, 0.1, 0.0], [1.5, 2.3, 2.3, 0.0],	false,	0.0,	0.0,	false, [0, 0, 0],	tex3DInt, es3fShaderTextureFunctionTests.evalTexture3D, es3fShaderTextureFunctionTests.CaseFlags.VERTEX),
+				es3fShaderTextureFunctionTests.getCaseSpec('isampler3d', es3fShaderTextureFunctionTests.Function.TEXTURE, [-1.2, -1.4, 0.1, 0.0], [1.5, 2.3, 2.3, 0.0],	false,	0.0,	0.0,	false, [0, 0, 0],	tex3DMipmapInt, es3fShaderTextureFunctionTests.evalTexture3D, es3fShaderTextureFunctionTests.CaseFlags.FRAGMENT),
+				es3fShaderTextureFunctionTests.getCaseSpec('usampler3d', es3fShaderTextureFunctionTests.Function.TEXTURE, [-1.2, -1.4, 0.1, 0.0], [1.5, 2.3, 2.3, 0.0],	false,	0.0,	0.0,	false, [0, 0, 0],	tex3DUint, es3fShaderTextureFunctionTests.evalTexture3D, es3fShaderTextureFunctionTests.CaseFlags.VERTEX),
+				es3fShaderTextureFunctionTests.getCaseSpec('usampler3d', es3fShaderTextureFunctionTests.Function.TEXTURE, [-1.2, -1.4, 0.1, 0.0], [1.5, 2.3, 2.3, 0.0],	false,	0.0,	0.0,	false, [0, 0, 0],	tex3DMipmapUint, es3fShaderTextureFunctionTests.evalTexture3D, es3fShaderTextureFunctionTests.CaseFlags.FRAGMENT),
+
+				es3fShaderTextureFunctionTests.getCaseSpec('sampler3d_bias_fixed', es3fShaderTextureFunctionTests.Function.TEXTURE, [-1.2, -1.4, 0.1, 0.0], [1.5, 2.3, 2.3, 0.0],	true,	-2.0,	1.0,	false, [0, 0, 0],	tex3DMipmapFixed, es3fShaderTextureFunctionTests.evalTexture3DBias, es3fShaderTextureFunctionTests.CaseFlags.FRAGMENT),
+				es3fShaderTextureFunctionTests.getCaseSpec('sampler3d_bias_float', es3fShaderTextureFunctionTests.Function.TEXTURE, [-1.2, -1.4, 0.1, 0.0], [1.5, 2.3, 2.3, 0.0],	true,	-2.0,	1.0,	false, [0, 0, 0],	tex3DMipmapFloat, es3fShaderTextureFunctionTests.evalTexture3DBias, es3fShaderTextureFunctionTests.CaseFlags.FRAGMENT),
+				es3fShaderTextureFunctionTests.getCaseSpec('isampler3d_bias', es3fShaderTextureFunctionTests.Function.TEXTURE, [-1.2, -1.4, 0.1, 0.0], [1.5, 2.3, 2.3, 0.0],	true,	-2.0,	2.0,	false, [0, 0, 0],	tex3DMipmapInt, es3fShaderTextureFunctionTests.evalTexture3DBias, es3fShaderTextureFunctionTests.CaseFlags.FRAGMENT),
+				es3fShaderTextureFunctionTests.getCaseSpec('usampler3d_bias', es3fShaderTextureFunctionTests.Function.TEXTURE, [-1.2, -1.4, 0.1, 0.0], [1.5, 2.3, 2.3, 0.0],	true,	-2.0,	2.0,	false, [0, 0, 0],	tex3DMipmapUint, es3fShaderTextureFunctionTests.evalTexture3DBias, es3fShaderTextureFunctionTests.CaseFlags.FRAGMENT),
+
+				es3fShaderTextureFunctionTests.getCaseSpec('sampler2dshadow', es3fShaderTextureFunctionTests.Function.TEXTURE, [-0.2, -0.4, 0.0, 0.0], [1.5, 2.3, 1.0, 0.0],	false,	0.0,	0.0,	false, [0, 0, 0],	tex2DShadow, es3fShaderTextureFunctionTests.evalTexture2DShadow, es3fShaderTextureFunctionTests.CaseFlags.VERTEX),
+				es3fShaderTextureFunctionTests.getCaseSpec('sampler2dshadow', es3fShaderTextureFunctionTests.Function.TEXTURE, [-0.2, -0.4, 0.0, 0.0], [1.5, 2.3, 1.0, 0.0],	false,	0.0,	0.0,	false, [0, 0, 0],	tex2DMipmapShadow, es3fShaderTextureFunctionTests.evalTexture2DShadow, es3fShaderTextureFunctionTests.CaseFlags.FRAGMENT),
+				es3fShaderTextureFunctionTests.getCaseSpec('sampler2dshadow_bias', es3fShaderTextureFunctionTests.Function.TEXTURE, [-0.2, -0.4, 0.0, 0.0], [1.5, 2.3, 1.0, 0.0],	true,	-2.0,	2.0,	false, [0, 0, 0],	tex2DMipmapShadow, es3fShaderTextureFunctionTests.evalTexture2DShadowBias, es3fShaderTextureFunctionTests.CaseFlags.FRAGMENT),
+
+				es3fShaderTextureFunctionTests.getCaseSpec('samplercubeshadow', es3fShaderTextureFunctionTests.Function.TEXTURE, [-1.0, -1.0, 1.01, 0.0], [1.0, 1.0, 1.01, 1.0],	false,	0.0,	0.0,	false, [0, 0, 0],	texCubeShadow, es3fShaderTextureFunctionTests.evalTextureCubeShadow, es3fShaderTextureFunctionTests.CaseFlags.VERTEX),
+				es3fShaderTextureFunctionTests.getCaseSpec('samplercubeshadow', es3fShaderTextureFunctionTests.Function.TEXTURE, [-1.0, -1.0, 1.01, 0.0], [1.0, 1.0, 1.01, 1.0],	false,	0.0,	0.0,	false, [0, 0, 0],	texCubeMipmapShadow, es3fShaderTextureFunctionTests.evalTextureCubeShadow, es3fShaderTextureFunctionTests.CaseFlags.FRAGMENT),
+				es3fShaderTextureFunctionTests.getCaseSpec('samplercubeshadow_bias', es3fShaderTextureFunctionTests.Function.TEXTURE, [-1.0, -1.0, 1.01, 0.0], [1.0, 1.0, 1.01, 1.0],	true,	-2.0,	2.0,	false, [0, 0, 0],	texCubeMipmapShadow, es3fShaderTextureFunctionTests.evalTextureCubeShadowBias, es3fShaderTextureFunctionTests.CaseFlags.FRAGMENT),
+
+				es3fShaderTextureFunctionTests.getCaseSpec('sampler2darrayshadow', es3fShaderTextureFunctionTests.Function.TEXTURE, [-1.2, -0.4, -0.5, 0.0], [1.5, 2.3, 3.5, 1.0],	false,	0.0,	0.0,	false, [0, 0, 0],	tex2DArrayShadow, es3fShaderTextureFunctionTests.evalTexture2DArrayShadow, es3fShaderTextureFunctionTests.CaseFlags.VERTEX),
+				es3fShaderTextureFunctionTests.getCaseSpec('sampler2darrayshadow', es3fShaderTextureFunctionTests.Function.TEXTURE, [-1.2, -0.4, -0.5, 0.0], [1.5, 2.3, 3.5, 1.0],	false,	0.0,	0.0,	false, [0, 0, 0],	tex2DArrayMipmapShadow, es3fShaderTextureFunctionTests.evalTexture2DArrayShadow,		es3fShaderTextureFunctionTests.CaseFlags.FRAGMENT)
+
+				// Not in spec.
+		//		es3fShaderTextureFunctionTests.getCaseSpec('sampler2darrayshadow_bias',	(es3fShaderTextureFunctionTests.Function.TEXTURE, [-1.2, -0.4, -0.5, 0.0], [1.5, 2.3, 3.5, 1.0],	true,	-2.0,	2.0,	Vec2(0.0),	Vec2(0.0), false, [0, 0, 0]),	tex2DArrayMipmapShadow, es3fShaderTextureFunctionTests.evalTexture2DArrayShadowBias,	FRAGMENT)
+			];
+			es3fShaderTextureFunctionTests.createCaseGroup(this, "texture", "texture() Tests", textureCases);
+
+			// textureOffset() cases
+			// \note _bias variants are not using mipmap thanks to wide allowed range for LOD computation
+			/** @type {es3fShaderTextureFunctionTests.TexFuncCaseSpec} */ var textureOffsetCases = [
+				es3fShaderTextureFunctionTests.getCaseSpec('sampler2d_fixed', es3fShaderTextureFunctionTests.Function.TEXTURE, [-0.2, -0.4, 0.0, 0.0], [1.5, 2.3, 0.0, 0.0],	false,	0.0,	0.0,	true, [-8, 7, 0],	tex2DFixed, es3fShaderTextureFunctionTests.evalTexture2DOffset, es3fShaderTextureFunctionTests.CaseFlags.VERTEX),
+				es3fShaderTextureFunctionTests.getCaseSpec('sampler2d_fixed', es3fShaderTextureFunctionTests.Function.TEXTURE, [-0.2, -0.4, 0.0, 0.0], [1.5, 2.3, 0.0, 0.0],	false,	0.0,	0.0,	true, [7, -8, 0],	tex2DMipmapFixed, es3fShaderTextureFunctionTests.evalTexture2DOffset, es3fShaderTextureFunctionTests.CaseFlags.FRAGMENT),
+				es3fShaderTextureFunctionTests.getCaseSpec('sampler2d_float', es3fShaderTextureFunctionTests.Function.TEXTURE, [-0.2, -0.4, 0.0, 0.0], [1.5, 2.3, 0.0, 0.0],	false,	0.0,	0.0,	true, [-8, 7, 0],	tex2DFloat, es3fShaderTextureFunctionTests.evalTexture2DOffset, es3fShaderTextureFunctionTests.CaseFlags.VERTEX),
+				es3fShaderTextureFunctionTests.getCaseSpec('sampler2d_float', es3fShaderTextureFunctionTests.Function.TEXTURE, [-0.2, -0.4, 0.0, 0.0], [1.5, 2.3, 0.0, 0.0],	false,	0.0,	0.0,	true, [7, -8, 0],	tex2DMipmapFloat, es3fShaderTextureFunctionTests.evalTexture2DOffset, es3fShaderTextureFunctionTests.CaseFlags.FRAGMENT),
+				es3fShaderTextureFunctionTests.getCaseSpec('isampler2d', es3fShaderTextureFunctionTests.Function.TEXTURE, [-0.2, -0.4, 0.0, 0.0], [1.5, 2.3, 0.0, 0.0],	false,	0.0,	0.0,	true, [-8, 7, 0],	tex2DInt, es3fShaderTextureFunctionTests.evalTexture2DOffset, es3fShaderTextureFunctionTests.CaseFlags.VERTEX),
+				es3fShaderTextureFunctionTests.getCaseSpec('isampler2d', es3fShaderTextureFunctionTests.Function.TEXTURE, [-0.2, -0.4, 0.0, 0.0], [1.5, 2.3, 0.0, 0.0],	false,	0.0,	0.0,	true, [7, -8, 0],	tex2DMipmapInt, es3fShaderTextureFunctionTests.evalTexture2DOffset, es3fShaderTextureFunctionTests.CaseFlags.FRAGMENT),
+				es3fShaderTextureFunctionTests.getCaseSpec('usampler2d', es3fShaderTextureFunctionTests.Function.TEXTURE, [-0.2, -0.4, 0.0, 0.0], [1.5, 2.3, 0.0, 0.0],	false,	0.0,	0.0,	true, [-8, 7, 0],	tex2DUint, es3fShaderTextureFunctionTests.evalTexture2DOffset, es3fShaderTextureFunctionTests.CaseFlags.VERTEX),
+				es3fShaderTextureFunctionTests.getCaseSpec('usampler2d', es3fShaderTextureFunctionTests.Function.TEXTURE, [-0.2, -0.4, 0.0, 0.0], [1.5, 2.3, 0.0, 0.0],	false,	0.0,	0.0,	true, [7, -8, 0],	tex2DMipmapUint, es3fShaderTextureFunctionTests.evalTexture2DOffset, es3fShaderTextureFunctionTests.CaseFlags.FRAGMENT),
+
+				es3fShaderTextureFunctionTests.getCaseSpec('sampler2d_bias_fixed', es3fShaderTextureFunctionTests.Function.TEXTURE, [-0.2, -0.4, 0.0, 0.0], [1.5, 2.3, 0.0, 0.0],	true,	-2.0,	2.0,	true, [-8, 7, 0],	tex2DFixed, es3fShaderTextureFunctionTests.evalTexture2DOffsetBias, es3fShaderTextureFunctionTests.CaseFlags.FRAGMENT),
+				es3fShaderTextureFunctionTests.getCaseSpec('sampler2d_bias_float', es3fShaderTextureFunctionTests.Function.TEXTURE, [-0.2, -0.4, 0.0, 0.0], [1.5, 2.3, 0.0, 0.0],	true,	-2.0,	2.0,	true, [7, -8, 0],	tex2DFloat, es3fShaderTextureFunctionTests.evalTexture2DOffsetBias, es3fShaderTextureFunctionTests.CaseFlags.FRAGMENT),
+				es3fShaderTextureFunctionTests.getCaseSpec('isampler2d_bias', es3fShaderTextureFunctionTests.Function.TEXTURE, [-0.2, -0.4, 0.0, 0.0], [1.5, 2.3, 0.0, 0.0],	true,	-2.0,	2.0,	true, [-8, 7, 0],	tex2DInt, es3fShaderTextureFunctionTests.evalTexture2DOffsetBias, es3fShaderTextureFunctionTests.CaseFlags.FRAGMENT),
+				es3fShaderTextureFunctionTests.getCaseSpec('usampler2d_bias', es3fShaderTextureFunctionTests.Function.TEXTURE, [-0.2, -0.4, 0.0, 0.0], [1.5, 2.3, 0.0, 0.0],	true,	-2.0,	2.0,	true, [7, -8, 0],	tex2DUint, es3fShaderTextureFunctionTests.evalTexture2DOffsetBias, es3fShaderTextureFunctionTests.CaseFlags.FRAGMENT),
+
+				es3fShaderTextureFunctionTests.getCaseSpec('sampler2darray_fixed', es3fShaderTextureFunctionTests.Function.TEXTURE, [-1.2, -0.4, -0.5, 0.0], [1.5, 2.3, 3.5, 0.0],	false,	0.0,	0.0,	true, [-8, 7, 0],	tex2DArrayFixed, es3fShaderTextureFunctionTests.evalTexture2DArrayOffset, es3fShaderTextureFunctionTests.CaseFlags.VERTEX),
+				es3fShaderTextureFunctionTests.getCaseSpec('sampler2darray_fixed', es3fShaderTextureFunctionTests.Function.TEXTURE, [-1.2, -0.4, -0.5, 0.0], [1.5, 2.3, 3.5, 0.0],	false,	0.0,	0.0,	true, [7, -8, 0],	tex2DArrayMipmapFixed, es3fShaderTextureFunctionTests.evalTexture2DArrayOffset, es3fShaderTextureFunctionTests.CaseFlags.FRAGMENT),
+				es3fShaderTextureFunctionTests.getCaseSpec('sampler2darray_float', es3fShaderTextureFunctionTests.Function.TEXTURE, [-1.2, -0.4, -0.5, 0.0], [1.5, 2.3, 3.5, 0.0],	false,	0.0,	0.0,	true, [-8, 7, 0],	tex2DArrayFloat, es3fShaderTextureFunctionTests.evalTexture2DArrayOffset, es3fShaderTextureFunctionTests.CaseFlags.VERTEX),
+				es3fShaderTextureFunctionTests.getCaseSpec('sampler2darray_float', es3fShaderTextureFunctionTests.Function.TEXTURE, [-1.2, -0.4, -0.5, 0.0], [1.5, 2.3, 3.5, 0.0],	false,	0.0,	0.0,	true, [7, -8, 0],	tex2DArrayMipmapFloat, es3fShaderTextureFunctionTests.evalTexture2DArrayOffset, es3fShaderTextureFunctionTests.CaseFlags.FRAGMENT),
+				es3fShaderTextureFunctionTests.getCaseSpec('isampler2darray', es3fShaderTextureFunctionTests.Function.TEXTURE, [-1.2, -0.4, -0.5, 0.0], [1.5, 2.3, 3.5, 0.0],	false,	0.0,	0.0,	true, [-8, 7, 0],	tex2DArrayInt, es3fShaderTextureFunctionTests.evalTexture2DArrayOffset, es3fShaderTextureFunctionTests.CaseFlags.VERTEX),
+				es3fShaderTextureFunctionTests.getCaseSpec('isampler2darray', es3fShaderTextureFunctionTests.Function.TEXTURE, [-1.2, -0.4, -0.5, 0.0], [1.5, 2.3, 3.5, 0.0],	false,	0.0,	0.0,	true, [7, -8, 0],	tex2DArrayMipmapInt, es3fShaderTextureFunctionTests.evalTexture2DArrayOffset, es3fShaderTextureFunctionTests.CaseFlags.FRAGMENT),
+				es3fShaderTextureFunctionTests.getCaseSpec('usampler2darray', es3fShaderTextureFunctionTests.Function.TEXTURE, [-1.2, -0.4, -0.5, 0.0], [1.5, 2.3, 3.5, 0.0],	false,	0.0,	0.0,	true, [-8, 7, 0],	tex2DArrayUint, es3fShaderTextureFunctionTests.evalTexture2DArrayOffset, es3fShaderTextureFunctionTests.CaseFlags.VERTEX),
+				es3fShaderTextureFunctionTests.getCaseSpec('usampler2darray', es3fShaderTextureFunctionTests.Function.TEXTURE, [-1.2, -0.4, -0.5, 0.0], [1.5, 2.3, 3.5, 0.0],	false,	0.0,	0.0,	true, [7, -8, 0],	tex2DArrayMipmapUint, es3fShaderTextureFunctionTests.evalTexture2DArrayOffset, es3fShaderTextureFunctionTests.CaseFlags.FRAGMENT),
+
+				es3fShaderTextureFunctionTests.getCaseSpec('sampler2darray_bias_fixed', es3fShaderTextureFunctionTests.Function.TEXTURE, [-1.2, -0.4, -0.5, 0.0], [1.5, 2.3, 3.5, 0.0],	true,	-2.0,	2.0,	true, [-8, 7, 0],	tex2DArrayFixed, es3fShaderTextureFunctionTests.evalTexture2DArrayOffsetBias, es3fShaderTextureFunctionTests.CaseFlags.FRAGMENT),
+				es3fShaderTextureFunctionTests.getCaseSpec('sampler2darray_bias_float', es3fShaderTextureFunctionTests.Function.TEXTURE, [-1.2, -0.4, -0.5, 0.0], [1.5, 2.3, 3.5, 0.0],	true,	-2.0,	2.0,	true, [7, -8, 0],	tex2DArrayFloat, es3fShaderTextureFunctionTests.evalTexture2DArrayOffsetBias, es3fShaderTextureFunctionTests.CaseFlags.FRAGMENT),
+				es3fShaderTextureFunctionTests.getCaseSpec('isampler2darray_bias', es3fShaderTextureFunctionTests.Function.TEXTURE, [-1.2, -0.4, -0.5, 0.0], [1.5, 2.3, 3.5, 0.0],	true,	-2.0,	2.0,	true, [-8, 7, 0],	tex2DArrayInt, es3fShaderTextureFunctionTests.evalTexture2DArrayOffsetBias, es3fShaderTextureFunctionTests.CaseFlags.FRAGMENT),
+				es3fShaderTextureFunctionTests.getCaseSpec('usampler2darray_bias', es3fShaderTextureFunctionTests.Function.TEXTURE, [-1.2, -0.4, -0.5, 0.0], [1.5, 2.3, 3.5, 0.0],	true,	-2.0,	2.0,	true, [7, -8, 0],	tex2DArrayUint, es3fShaderTextureFunctionTests.evalTexture2DArrayOffsetBias, es3fShaderTextureFunctionTests.CaseFlags.FRAGMENT),
+
+				es3fShaderTextureFunctionTests.getCaseSpec('sampler3d_fixed', es3fShaderTextureFunctionTests.Function.TEXTURE, [-1.2, -1.4, 0.1, 0.0], [1.5, 2.3, 2.3, 0.0],	false,	0.0,	0.0,	true, [-8, 7, 3],	tex3DFixed, es3fShaderTextureFunctionTests.evalTexture3DOffset, es3fShaderTextureFunctionTests.CaseFlags.VERTEX),
+				es3fShaderTextureFunctionTests.getCaseSpec('sampler3d_fixed', es3fShaderTextureFunctionTests.Function.TEXTURE, [-1.2, -1.4, 0.1, 0.0], [1.5, 2.3, 2.3, 0.0],	false,	0.0,	0.0,	true, [7, 3, -8],	tex3DMipmapFixed, es3fShaderTextureFunctionTests.evalTexture3DOffset, es3fShaderTextureFunctionTests.CaseFlags.FRAGMENT),
+				es3fShaderTextureFunctionTests.getCaseSpec('sampler3d_float', es3fShaderTextureFunctionTests.Function.TEXTURE, [-1.2, -1.4, 0.1, 0.0], [1.5, 2.3, 2.3, 0.0],	false,	0.0,	0.0,	true, [3, -8, 7],	tex3DFloat, es3fShaderTextureFunctionTests.evalTexture3DOffset, es3fShaderTextureFunctionTests.CaseFlags.VERTEX),
+				es3fShaderTextureFunctionTests.getCaseSpec('sampler3d_float', es3fShaderTextureFunctionTests.Function.TEXTURE, [-1.2, -1.4, 0.1, 0.0], [1.5, 2.3, 2.3, 0.0],	false,	0.0,	0.0,	true, [-8, 7, 3],	tex3DMipmapFloat, es3fShaderTextureFunctionTests.evalTexture3DOffset, es3fShaderTextureFunctionTests.CaseFlags.FRAGMENT),
+				es3fShaderTextureFunctionTests.getCaseSpec('isampler3d', es3fShaderTextureFunctionTests.Function.TEXTURE, [-1.2, -1.4, 0.1, 0.0], [1.5, 2.3, 2.3, 0.0],	false,	0.0,	0.0,	true, [7, 3, -8],	tex3DInt, es3fShaderTextureFunctionTests.evalTexture3DOffset, es3fShaderTextureFunctionTests.CaseFlags.VERTEX),
+				es3fShaderTextureFunctionTests.getCaseSpec('isampler3d', es3fShaderTextureFunctionTests.Function.TEXTURE, [-1.2, -1.4, 0.1, 0.0], [1.5, 2.3, 2.3, 0.0],	false,	0.0,	0.0,	true, [3, -8, 7],	tex3DMipmapInt, es3fShaderTextureFunctionTests.evalTexture3DOffset, es3fShaderTextureFunctionTests.CaseFlags.FRAGMENT),
+				es3fShaderTextureFunctionTests.getCaseSpec('usampler3d', es3fShaderTextureFunctionTests.Function.TEXTURE, [-1.2, -1.4, 0.1, 0.0], [1.5, 2.3, 2.3, 0.0],	false,	0.0,	0.0,	true, [-8, 7, 3],	tex3DUint, es3fShaderTextureFunctionTests.evalTexture3DOffset, es3fShaderTextureFunctionTests.CaseFlags.VERTEX),
+				es3fShaderTextureFunctionTests.getCaseSpec('usampler3d', es3fShaderTextureFunctionTests.Function.TEXTURE, [-1.2, -1.4, 0.1, 0.0], [1.5, 2.3, 2.3, 0.0],	false,	0.0,	0.0,	true, [7, 3, -8],	tex3DMipmapUint, es3fShaderTextureFunctionTests.evalTexture3DOffset, es3fShaderTextureFunctionTests.CaseFlags.FRAGMENT),
+
+				es3fShaderTextureFunctionTests.getCaseSpec('sampler3d_bias_fixed', es3fShaderTextureFunctionTests.Function.TEXTURE, [-1.2, -1.4, 0.1, 0.0], [1.5, 2.3, 2.3, 0.0],	true,	-2.0,	1.0,	true, [-8, 7, 3],	tex3DFixed, es3fShaderTextureFunctionTests.evalTexture3DOffsetBias, es3fShaderTextureFunctionTests.CaseFlags.FRAGMENT),
+				es3fShaderTextureFunctionTests.getCaseSpec('sampler3d_bias_float', es3fShaderTextureFunctionTests.Function.TEXTURE, [-1.2, -1.4, 0.1, 0.0], [1.5, 2.3, 2.3, 0.0],	true,	-2.0,	1.0,	true, [7, 3, -8],	tex3DFloat, es3fShaderTextureFunctionTests.evalTexture3DOffsetBias, es3fShaderTextureFunctionTests.CaseFlags.FRAGMENT),
+				es3fShaderTextureFunctionTests.getCaseSpec('isampler3d_bias', es3fShaderTextureFunctionTests.Function.TEXTURE, [-1.2, -1.4, 0.1, 0.0], [1.5, 2.3, 2.3, 0.0],	true,	-2.0,	2.0,	true, [3, -8, 7],	tex3DInt, es3fShaderTextureFunctionTests.evalTexture3DOffsetBias, es3fShaderTextureFunctionTests.CaseFlags.FRAGMENT),
+				es3fShaderTextureFunctionTests.getCaseSpec('usampler3d_bias', es3fShaderTextureFunctionTests.Function.TEXTURE, [-1.2, -1.4, 0.1, 0.0], [1.5, 2.3, 2.3, 0.0],	true,	-2.0,	2.0,	true, [-8, 7, 3],	tex3DUint, es3fShaderTextureFunctionTests.evalTexture3DOffsetBias, es3fShaderTextureFunctionTests.CaseFlags.FRAGMENT),
+
+				es3fShaderTextureFunctionTests.getCaseSpec('sampler2dshadow', es3fShaderTextureFunctionTests.Function.TEXTURE, [-0.2, -0.4, 0.0, 0.0], [1.5, 2.3, 1.0, 0.0],	false,	0.0,	0.0,	true, [-8, 7, 0],	tex2DShadow, es3fShaderTextureFunctionTests.evalTexture2DShadowOffset, es3fShaderTextureFunctionTests.CaseFlags.VERTEX),
+				es3fShaderTextureFunctionTests.getCaseSpec('sampler2dshadow', es3fShaderTextureFunctionTests.Function.TEXTURE, [-0.2, -0.4, 0.0, 0.0], [1.5, 2.3, 1.0, 0.0],	false,	0.0,	0.0,	true, [7, -8, 0],	tex2DMipmapShadow, es3fShaderTextureFunctionTests.evalTexture2DShadowOffset, es3fShaderTextureFunctionTests.CaseFlags.FRAGMENT),
+				es3fShaderTextureFunctionTests.getCaseSpec('sampler2dshadow_bias', es3fShaderTextureFunctionTests.Function.TEXTURE, [-0.2, -0.4, 0.0, 0.0], [1.5, 2.3, 1.0, 0.0],	true,	-2.0,	2.0,	true, [-8, 7, 0],	tex2DShadow, es3fShaderTextureFunctionTests.evalTexture2DShadowOffsetBias,	es3fShaderTextureFunctionTests.CaseFlags.FRAGMENT)
+			];
+			es3fShaderTextureFunctionTests.createCaseGroup(this, "textureoffset", "textureOffset() Tests", textureOffsetCases);
+
+			// textureProj() cases
+			// \note Currently uses constant divider!
+			/** @type {es3fShaderTextureFunctionTests.TexFuncCaseSpec} */ var textureProjCases = [
+				es3fShaderTextureFunctionTests.getCaseSpec('sampler2d_vec3_fixed', es3fShaderTextureFunctionTests.Function.TEXTUREPROJ3, [-0.3, -0.6, 1.5, 0.0], [2.25, 3.45, 1.5, 0.0],	false,	0.0,	0.0,	false, [0, 0, 0],	tex2DFixed, es3fShaderTextureFunctionTests.evalTexture2DProj3, es3fShaderTextureFunctionTests.CaseFlags.VERTEX),
+				es3fShaderTextureFunctionTests.getCaseSpec('sampler2d_vec3_fixed', es3fShaderTextureFunctionTests.Function.TEXTUREPROJ3, [-0.3, -0.6, 1.5, 0.0], [2.25, 3.45, 1.5, 0.0],	false,	0.0,	0.0,	false, [0, 0, 0],	tex2DMipmapFixed, es3fShaderTextureFunctionTests.evalTexture2DProj3, es3fShaderTextureFunctionTests.CaseFlags.FRAGMENT),
+				es3fShaderTextureFunctionTests.getCaseSpec('sampler2d_vec3_float', es3fShaderTextureFunctionTests.Function.TEXTUREPROJ3, [-0.3, -0.6, 1.5, 0.0], [2.25, 3.45, 1.5, 0.0],	false,	0.0,	0.0,	false, [0, 0, 0],	tex2DFloat, es3fShaderTextureFunctionTests.evalTexture2DProj3, es3fShaderTextureFunctionTests.CaseFlags.VERTEX),
+				es3fShaderTextureFunctionTests.getCaseSpec('sampler2d_vec3_float', es3fShaderTextureFunctionTests.Function.TEXTUREPROJ3, [-0.3, -0.6, 1.5, 0.0], [2.25, 3.45, 1.5, 0.0],	false,	0.0,	0.0,	false, [0, 0, 0],	tex2DMipmapFloat, es3fShaderTextureFunctionTests.evalTexture2DProj3, es3fShaderTextureFunctionTests.CaseFlags.FRAGMENT),
+				es3fShaderTextureFunctionTests.getCaseSpec('isampler2d_vec3', es3fShaderTextureFunctionTests.Function.TEXTUREPROJ3, [-0.3, -0.6, 1.5, 0.0], [2.25, 3.45, 1.5, 0.0],	false,	0.0,	0.0,	false, [0, 0, 0],	tex2DInt, es3fShaderTextureFunctionTests.evalTexture2DProj3, es3fShaderTextureFunctionTests.CaseFlags.VERTEX),
+				es3fShaderTextureFunctionTests.getCaseSpec('isampler2d_vec3', es3fShaderTextureFunctionTests.Function.TEXTUREPROJ3, [-0.3, -0.6, 1.5, 0.0], [2.25, 3.45, 1.5, 0.0],	false,	0.0,	0.0,	false, [0, 0, 0],	tex2DMipmapInt, es3fShaderTextureFunctionTests.evalTexture2DProj3, es3fShaderTextureFunctionTests.CaseFlags.FRAGMENT),
+				es3fShaderTextureFunctionTests.getCaseSpec('usampler2d_vec3', es3fShaderTextureFunctionTests.Function.TEXTUREPROJ3, [-0.3, -0.6, 1.5, 0.0], [2.25, 3.45, 1.5, 0.0],	false,	0.0,	0.0,	false, [0, 0, 0],	tex2DUint, es3fShaderTextureFunctionTests.evalTexture2DProj3, es3fShaderTextureFunctionTests.CaseFlags.VERTEX),
+				es3fShaderTextureFunctionTests.getCaseSpec('usampler2d_vec3', es3fShaderTextureFunctionTests.Function.TEXTUREPROJ3, [-0.3, -0.6, 1.5, 0.0], [2.25, 3.45, 1.5, 0.0],	false,	0.0,	0.0,	false, [0, 0, 0],	tex2DMipmapUint, es3fShaderTextureFunctionTests.evalTexture2DProj3, es3fShaderTextureFunctionTests.CaseFlags.FRAGMENT),
+
+				es3fShaderTextureFunctionTests.getCaseSpec('sampler2d_vec3_bias_fixed', es3fShaderTextureFunctionTests.Function.TEXTUREPROJ3, [-0.3, -0.6, 1.5, 0.0], [2.25, 3.45, 1.5, 0.0],	true,	-2.0,	2.0,	false, [0, 0, 0],	tex2DMipmapFixed, es3fShaderTextureFunctionTests.evalTexture2DProj3Bias, es3fShaderTextureFunctionTests.CaseFlags.FRAGMENT),
+				es3fShaderTextureFunctionTests.getCaseSpec('sampler2d_vec3_bias_float', es3fShaderTextureFunctionTests.Function.TEXTUREPROJ3, [-0.3, -0.6, 1.5, 0.0], [2.25, 3.45, 1.5, 0.0],	true,	-2.0,	2.0,	false, [0, 0, 0],	tex2DMipmapFloat, es3fShaderTextureFunctionTests.evalTexture2DProj3Bias, es3fShaderTextureFunctionTests.CaseFlags.FRAGMENT),
+				es3fShaderTextureFunctionTests.getCaseSpec('isampler2d_vec3_bias', es3fShaderTextureFunctionTests.Function.TEXTUREPROJ3, [-0.3, -0.6, 1.5, 0.0], [2.25, 3.45, 1.5, 0.0],	true,	-2.0,	2.0,	false, [0, 0, 0],	tex2DMipmapInt, es3fShaderTextureFunctionTests.evalTexture2DProj3Bias, es3fShaderTextureFunctionTests.CaseFlags.FRAGMENT),
+				es3fShaderTextureFunctionTests.getCaseSpec('usampler2d_vec3_bias', es3fShaderTextureFunctionTests.Function.TEXTUREPROJ3, [-0.3, -0.6, 1.5, 0.0], [2.25, 3.45, 1.5, 0.0],	true,	-2.0,	2.0,	false, [0, 0, 0],	tex2DMipmapUint, es3fShaderTextureFunctionTests.evalTexture2DProj3Bias, es3fShaderTextureFunctionTests.CaseFlags.FRAGMENT),
+
+				es3fShaderTextureFunctionTests.getCaseSpec('sampler2d_vec4_fixed', es3fShaderTextureFunctionTests.Function.TEXTUREPROJ, [-0.3, -0.6, 0.0, 1.5], [2.25, 3.45, 0.0, 1.5],	false,	0.0,	0.0,	false, [0, 0, 0],	tex2DFixed, es3fShaderTextureFunctionTests.evalTexture2DProj, es3fShaderTextureFunctionTests.CaseFlags.VERTEX),
+				es3fShaderTextureFunctionTests.getCaseSpec('sampler2d_vec4_fixed', es3fShaderTextureFunctionTests.Function.TEXTUREPROJ, [-0.3, -0.6, 0.0, 1.5], [2.25, 3.45, 0.0, 1.5],	false,	0.0,	0.0,	false, [0, 0, 0],	tex2DMipmapFixed, es3fShaderTextureFunctionTests.evalTexture2DProj, es3fShaderTextureFunctionTests.CaseFlags.FRAGMENT),
+				es3fShaderTextureFunctionTests.getCaseSpec('sampler2d_vec4_float', es3fShaderTextureFunctionTests.Function.TEXTUREPROJ, [-0.3, -0.6, 0.0, 1.5], [2.25, 3.45, 0.0, 1.5],	false,	0.0,	0.0,	false, [0, 0, 0],	tex2DFloat, es3fShaderTextureFunctionTests.evalTexture2DProj, es3fShaderTextureFunctionTests.CaseFlags.VERTEX),
+				es3fShaderTextureFunctionTests.getCaseSpec('sampler2d_vec4_float', es3fShaderTextureFunctionTests.Function.TEXTUREPROJ, [-0.3, -0.6, 0.0, 1.5], [2.25, 3.45, 0.0, 1.5],	false,	0.0,	0.0,	false, [0, 0, 0],	tex2DMipmapFloat, es3fShaderTextureFunctionTests.evalTexture2DProj, es3fShaderTextureFunctionTests.CaseFlags.FRAGMENT),
+				es3fShaderTextureFunctionTests.getCaseSpec('isampler2d_vec4', es3fShaderTextureFunctionTests.Function.TEXTUREPROJ, [-0.3, -0.6, 0.0, 1.5], [2.25, 3.45, 0.0, 1.5],	false,	0.0,	0.0,	false, [0, 0, 0],	tex2DInt, es3fShaderTextureFunctionTests.evalTexture2DProj, es3fShaderTextureFunctionTests.CaseFlags.VERTEX),
+				es3fShaderTextureFunctionTests.getCaseSpec('isampler2d_vec4', es3fShaderTextureFunctionTests.Function.TEXTUREPROJ, [-0.3, -0.6, 0.0, 1.5], [2.25, 3.45, 0.0, 1.5],	false,	0.0,	0.0,	false, [0, 0, 0],	tex2DMipmapInt, es3fShaderTextureFunctionTests.evalTexture2DProj, es3fShaderTextureFunctionTests.CaseFlags.FRAGMENT),
+				es3fShaderTextureFunctionTests.getCaseSpec('usampler2d_vec4', es3fShaderTextureFunctionTests.Function.TEXTUREPROJ, [-0.3, -0.6, 0.0, 1.5], [2.25, 3.45, 0.0, 1.5],	false,	0.0,	0.0,	false, [0, 0, 0],	tex2DUint, es3fShaderTextureFunctionTests.evalTexture2DProj, es3fShaderTextureFunctionTests.CaseFlags.VERTEX),
+				es3fShaderTextureFunctionTests.getCaseSpec('usampler2d_vec4', es3fShaderTextureFunctionTests.Function.TEXTUREPROJ, [-0.3, -0.6, 0.0, 1.5], [2.25, 3.45, 0.0, 1.5],	false,	0.0,	0.0,	false, [0, 0, 0],	tex2DMipmapUint, es3fShaderTextureFunctionTests.evalTexture2DProj, es3fShaderTextureFunctionTests.CaseFlags.FRAGMENT),
+
+				es3fShaderTextureFunctionTests.getCaseSpec('sampler2d_vec4_bias_fixed', es3fShaderTextureFunctionTests.Function.TEXTUREPROJ, [-0.3, -0.6, 0.0, 1.5], [2.25, 3.45, 0.0, 1.5],	true,	-2.0,	2.0,	false, [0, 0, 0],	tex2DMipmapFixed, es3fShaderTextureFunctionTests.evalTexture2DProjBias, es3fShaderTextureFunctionTests.CaseFlags.FRAGMENT),
+				es3fShaderTextureFunctionTests.getCaseSpec('sampler2d_vec4_bias_float', es3fShaderTextureFunctionTests.Function.TEXTUREPROJ, [-0.3, -0.6, 0.0, 1.5], [2.25, 3.45, 0.0, 1.5],	true,	-2.0,	2.0,	false, [0, 0, 0],	tex2DMipmapFloat, es3fShaderTextureFunctionTests.evalTexture2DProjBias, es3fShaderTextureFunctionTests.CaseFlags.FRAGMENT),
+				es3fShaderTextureFunctionTests.getCaseSpec('isampler2d_vec4_bias', es3fShaderTextureFunctionTests.Function.TEXTUREPROJ, [-0.3, -0.6, 0.0, 1.5], [2.25, 3.45, 0.0, 1.5],	true,	-2.0,	2.0,	false, [0, 0, 0],	tex2DMipmapInt, es3fShaderTextureFunctionTests.evalTexture2DProjBias, es3fShaderTextureFunctionTests.CaseFlags.FRAGMENT),
+				es3fShaderTextureFunctionTests.getCaseSpec('usampler2d_vec4_bias', es3fShaderTextureFunctionTests.Function.TEXTUREPROJ, [-0.3, -0.6, 0.0, 1.5], [2.25, 3.45, 0.0, 1.5],	true,	-2.0,	2.0,	false, [0, 0, 0],	tex2DMipmapUint, es3fShaderTextureFunctionTests.evalTexture2DProjBias, es3fShaderTextureFunctionTests.CaseFlags.FRAGMENT),
+
+				es3fShaderTextureFunctionTests.getCaseSpec('sampler3d_fixed', es3fShaderTextureFunctionTests.Function.TEXTUREPROJ, [0.9, 1.05, -0.08, -0.75], [-1.13, -1.7, -1.7, -0.75],	false,	0.0,	0.0,	false, [0, 0, 0],	tex3DFixed, es3fShaderTextureFunctionTests.evalTexture3DProj, es3fShaderTextureFunctionTests.CaseFlags.VERTEX),
+				es3fShaderTextureFunctionTests.getCaseSpec('sampler3d_fixed', es3fShaderTextureFunctionTests.Function.TEXTUREPROJ, [0.9, 1.05, -0.08, -0.75], [-1.13, -1.7, -1.7, -0.75],	false,	0.0,	0.0,	false, [0, 0, 0],	tex3DMipmapFixed, es3fShaderTextureFunctionTests.evalTexture3DProj, es3fShaderTextureFunctionTests.CaseFlags.FRAGMENT),
+				es3fShaderTextureFunctionTests.getCaseSpec('sampler3d_float', es3fShaderTextureFunctionTests.Function.TEXTUREPROJ, [0.9, 1.05, -0.08, -0.75], [-1.13, -1.7, -1.7, -0.75],	false,	0.0,	0.0,	false, [0, 0, 0],	tex3DFloat, es3fShaderTextureFunctionTests.evalTexture3DProj, es3fShaderTextureFunctionTests.CaseFlags.VERTEX),
+				es3fShaderTextureFunctionTests.getCaseSpec('sampler3d_float', es3fShaderTextureFunctionTests.Function.TEXTUREPROJ, [0.9, 1.05, -0.08, -0.75], [-1.13, -1.7, -1.7, -0.75],	false,	0.0,	0.0,	false, [0, 0, 0],	tex3DMipmapFloat, es3fShaderTextureFunctionTests.evalTexture3DProj, es3fShaderTextureFunctionTests.CaseFlags.FRAGMENT),
+				es3fShaderTextureFunctionTests.getCaseSpec('isampler3d', es3fShaderTextureFunctionTests.Function.TEXTUREPROJ, [0.9, 1.05, -0.08, -0.75], [-1.13, -1.7, -1.7, -0.75],	false,	0.0,	0.0,	false, [0, 0, 0],	tex3DInt, es3fShaderTextureFunctionTests.evalTexture3DProj, es3fShaderTextureFunctionTests.CaseFlags.VERTEX),
+				es3fShaderTextureFunctionTests.getCaseSpec('isampler3d', es3fShaderTextureFunctionTests.Function.TEXTUREPROJ, [0.9, 1.05, -0.08, -0.75], [-1.13, -1.7, -1.7, -0.75],	false,	0.0,	0.0,	false, [0, 0, 0],	tex3DMipmapInt, es3fShaderTextureFunctionTests.evalTexture3DProj, es3fShaderTextureFunctionTests.CaseFlags.FRAGMENT),
+				es3fShaderTextureFunctionTests.getCaseSpec('usampler3d', es3fShaderTextureFunctionTests.Function.TEXTUREPROJ, [0.9, 1.05, -0.08, -0.75], [-1.13, -1.7, -1.7, -0.75],	false,	0.0,	0.0,	false, [0, 0, 0],	tex3DUint, es3fShaderTextureFunctionTests.evalTexture3DProj, es3fShaderTextureFunctionTests.CaseFlags.VERTEX),
+				es3fShaderTextureFunctionTests.getCaseSpec('usampler3d', es3fShaderTextureFunctionTests.Function.TEXTUREPROJ, [0.9, 1.05, -0.08, -0.75], [-1.13, -1.7, -1.7, -0.75],	false,	0.0,	0.0,	false, [0, 0, 0],	tex3DMipmapUint, es3fShaderTextureFunctionTests.evalTexture3DProj, es3fShaderTextureFunctionTests.CaseFlags.FRAGMENT),
+
+				es3fShaderTextureFunctionTests.getCaseSpec('sampler3d_bias_fixed', es3fShaderTextureFunctionTests.Function.TEXTUREPROJ, [0.9, 1.05, -0.08, -0.75], [-1.13, -1.7, -1.7, -0.75],	true,	-2.0,	1.0,	false, [0, 0, 0],	tex3DMipmapFixed, es3fShaderTextureFunctionTests.evalTexture3DProjBias, es3fShaderTextureFunctionTests.CaseFlags.FRAGMENT),
+				es3fShaderTextureFunctionTests.getCaseSpec('sampler3d_bias_float', es3fShaderTextureFunctionTests.Function.TEXTUREPROJ, [0.9, 1.05, -0.08, -0.75], [-1.13, -1.7, -1.7, -0.75],	true,	-2.0,	1.0,	false, [0, 0, 0],	tex3DMipmapFloat, es3fShaderTextureFunctionTests.evalTexture3DProjBias, es3fShaderTextureFunctionTests.CaseFlags.FRAGMENT),
+				es3fShaderTextureFunctionTests.getCaseSpec('isampler3d_bias', es3fShaderTextureFunctionTests.Function.TEXTUREPROJ, [0.9, 1.05, -0.08, -0.75], [-1.13, -1.7, -1.7, -0.75],	true,	-2.0,	2.0,	false, [0, 0, 0],	tex3DMipmapInt, es3fShaderTextureFunctionTests.evalTexture3DProjBias, es3fShaderTextureFunctionTests.CaseFlags.FRAGMENT),
+				es3fShaderTextureFunctionTests.getCaseSpec('usampler3d_bias', es3fShaderTextureFunctionTests.Function.TEXTUREPROJ, [0.9, 1.05, -0.08, -0.75], [-1.13, -1.7, -1.7, -0.75],	true,	-2.0,	2.0,	false, [0, 0, 0],	tex3DMipmapUint, es3fShaderTextureFunctionTests.evalTexture3DProjBias, es3fShaderTextureFunctionTests.CaseFlags.FRAGMENT),
+
+				es3fShaderTextureFunctionTests.getCaseSpec('sampler2dshadow', es3fShaderTextureFunctionTests.Function.TEXTUREPROJ, [0.2, 0.6, 0.0, 1.5], [-2.25, -3.45, 1.5, 1.5],	false,	0.0,	0.0,	false, [0, 0, 0],	tex2DShadow, es3fShaderTextureFunctionTests.evalTexture2DShadowProj, es3fShaderTextureFunctionTests.CaseFlags.VERTEX),
+				es3fShaderTextureFunctionTests.getCaseSpec('sampler2dshadow', es3fShaderTextureFunctionTests.Function.TEXTUREPROJ, [0.2, 0.6, 0.0, 1.5], [-2.25, -3.45, 1.5, 1.5],	false,	0.0,	0.0,	false, [0, 0, 0],	tex2DMipmapShadow, es3fShaderTextureFunctionTests.evalTexture2DShadowProj, es3fShaderTextureFunctionTests.CaseFlags.FRAGMENT),
+				es3fShaderTextureFunctionTests.getCaseSpec('sampler2dshadow_bias', es3fShaderTextureFunctionTests.Function.TEXTUREPROJ, [0.2, 0.6, 0.0, 1.5], [-2.25, -3.45, 1.5, 1.5],	true,	-2.0,	2.0,	false, [0, 0, 0],	tex2DMipmapShadow, es3fShaderTextureFunctionTests.evalTexture2DShadowProjBias,	es3fShaderTextureFunctionTests.CaseFlags.FRAGMENT)
+			];
+			es3fShaderTextureFunctionTests.createCaseGroup(this, "textureproj", "textureProj() Tests", textureProjCases);
+
+			// textureProjOffset() cases
+			// \note Currently uses constant divider!
+			/** @type {es3fShaderTextureFunctionTests.TexFuncCaseSpec} */ var textureProjOffsetCases = [
+				es3fShaderTextureFunctionTests.getCaseSpec('sampler2d_vec3_fixed', es3fShaderTextureFunctionTests.Function.TEXTUREPROJ3, [-0.3, -0.6, 1.5, 0.0], [2.25, 3.45, 1.5, 0.0],	false,	0.0,	0.0,	true, [-8, 7, 0],	tex2DFixed, es3fShaderTextureFunctionTests.evalTexture2DProj3Offset, es3fShaderTextureFunctionTests.CaseFlags.VERTEX),
+				es3fShaderTextureFunctionTests.getCaseSpec('sampler2d_vec3_fixed', es3fShaderTextureFunctionTests.Function.TEXTUREPROJ3, [-0.3, -0.6, 1.5, 0.0], [2.25, 3.45, 1.5, 0.0],	false,	0.0,	0.0,	true, [7, -8, 0],	tex2DMipmapFixed, es3fShaderTextureFunctionTests.evalTexture2DProj3Offset, es3fShaderTextureFunctionTests.CaseFlags.FRAGMENT),
+				es3fShaderTextureFunctionTests.getCaseSpec('sampler2d_vec3_float', es3fShaderTextureFunctionTests.Function.TEXTUREPROJ3, [-0.3, -0.6, 1.5, 0.0], [2.25, 3.45, 1.5, 0.0],	false,	0.0,	0.0,	true, [-8, 7, 0],	tex2DFloat, es3fShaderTextureFunctionTests.evalTexture2DProj3Offset, es3fShaderTextureFunctionTests.CaseFlags.VERTEX),
+				es3fShaderTextureFunctionTests.getCaseSpec('sampler2d_vec3_float', es3fShaderTextureFunctionTests.Function.TEXTUREPROJ3, [-0.3, -0.6, 1.5, 0.0], [2.25, 3.45, 1.5, 0.0],	false,	0.0,	0.0,	true, [7, -8, 0],	tex2DMipmapFloat, es3fShaderTextureFunctionTests.evalTexture2DProj3Offset, es3fShaderTextureFunctionTests.CaseFlags.FRAGMENT),
+				es3fShaderTextureFunctionTests.getCaseSpec('isampler2d_vec3', es3fShaderTextureFunctionTests.Function.TEXTUREPROJ3, [-0.3, -0.6, 1.5, 0.0], [2.25, 3.45, 1.5, 0.0],	false,	0.0,	0.0,	true, [-8, 7, 0],	tex2DInt, es3fShaderTextureFunctionTests.evalTexture2DProj3Offset, es3fShaderTextureFunctionTests.CaseFlags.VERTEX),
+				es3fShaderTextureFunctionTests.getCaseSpec('isampler2d_vec3', es3fShaderTextureFunctionTests.Function.TEXTUREPROJ3, [-0.3, -0.6, 1.5, 0.0], [2.25, 3.45, 1.5, 0.0],	false,	0.0,	0.0,	true, [7, -8, 0],	tex2DMipmapInt, es3fShaderTextureFunctionTests.evalTexture2DProj3Offset, es3fShaderTextureFunctionTests.CaseFlags.FRAGMENT),
+				es3fShaderTextureFunctionTests.getCaseSpec('usampler2d_vec3', es3fShaderTextureFunctionTests.Function.TEXTUREPROJ3, [-0.3, -0.6, 1.5, 0.0], [2.25, 3.45, 1.5, 0.0],	false,	0.0,	0.0,	true, [-8, 7, 0],	tex2DUint, es3fShaderTextureFunctionTests.evalTexture2DProj3Offset, es3fShaderTextureFunctionTests.CaseFlags.VERTEX),
+				es3fShaderTextureFunctionTests.getCaseSpec('usampler2d_vec3', es3fShaderTextureFunctionTests.Function.TEXTUREPROJ3, [-0.3, -0.6, 1.5, 0.0], [2.25, 3.45, 1.5, 0.0],	false,	0.0,	0.0,	true, [7, -8, 0],	tex2DMipmapUint, es3fShaderTextureFunctionTests.evalTexture2DProj3Offset, es3fShaderTextureFunctionTests.CaseFlags.FRAGMENT),
+
+				es3fShaderTextureFunctionTests.getCaseSpec('sampler2d_vec3_bias_fixed', es3fShaderTextureFunctionTests.Function.TEXTUREPROJ3, [-0.3, -0.6, 1.5, 0.0], [2.25, 3.45, 1.5, 0.0],	true,	-2.0,	2.0,	true, [-8, 7, 0],	tex2DFixed, es3fShaderTextureFunctionTests.evalTexture2DProj3OffsetBias, es3fShaderTextureFunctionTests.CaseFlags.FRAGMENT),
+				es3fShaderTextureFunctionTests.getCaseSpec('sampler2d_vec3_bias_float', es3fShaderTextureFunctionTests.Function.TEXTUREPROJ3, [-0.3, -0.6, 1.5, 0.0], [2.25, 3.45, 1.5, 0.0],	true,	-2.0,	2.0,	true, [7, -8, 0],	tex2DFloat, es3fShaderTextureFunctionTests.evalTexture2DProj3OffsetBias, es3fShaderTextureFunctionTests.CaseFlags.FRAGMENT),
+				es3fShaderTextureFunctionTests.getCaseSpec('isampler2d_vec3_bias', es3fShaderTextureFunctionTests.Function.TEXTUREPROJ3, [-0.3, -0.6, 1.5, 0.0], [2.25, 3.45, 1.5, 0.0],	true,	-2.0,	2.0,	true, [-8, 7, 0],	tex2DInt, es3fShaderTextureFunctionTests.evalTexture2DProj3OffsetBias, es3fShaderTextureFunctionTests.CaseFlags.FRAGMENT),
+				es3fShaderTextureFunctionTests.getCaseSpec('usampler2d_vec3_bias', es3fShaderTextureFunctionTests.Function.TEXTUREPROJ3, [-0.3, -0.6, 1.5, 0.0], [2.25, 3.45, 1.5, 0.0],	true,	-2.0,	2.0,	true, [7, -8, 0],	tex2DUint, es3fShaderTextureFunctionTests.evalTexture2DProj3OffsetBias, es3fShaderTextureFunctionTests.CaseFlags.FRAGMENT),
+
+				es3fShaderTextureFunctionTests.getCaseSpec('sampler2d_vec4_fixed', es3fShaderTextureFunctionTests.Function.TEXTUREPROJ, [-0.3, -0.6, 0.0, 1.5], [2.25, 3.45, 0.0, 1.5],	false,	0.0,	0.0,	true, [-8, 7, 0],	tex2DFixed, es3fShaderTextureFunctionTests.evalTexture2DProjOffset, es3fShaderTextureFunctionTests.CaseFlags.VERTEX),
+				es3fShaderTextureFunctionTests.getCaseSpec('sampler2d_vec4_fixed', es3fShaderTextureFunctionTests.Function.TEXTUREPROJ, [-0.3, -0.6, 0.0, 1.5], [2.25, 3.45, 0.0, 1.5],	false,	0.0,	0.0,	true, [7, -8, 0],	tex2DMipmapFixed, es3fShaderTextureFunctionTests.evalTexture2DProjOffset, es3fShaderTextureFunctionTests.CaseFlags.FRAGMENT),
+				es3fShaderTextureFunctionTests.getCaseSpec('sampler2d_vec4_float', es3fShaderTextureFunctionTests.Function.TEXTUREPROJ, [-0.3, -0.6, 0.0, 1.5], [2.25, 3.45, 0.0, 1.5],	false,	0.0,	0.0,	true, [-8, 7, 0],	tex2DFloat, es3fShaderTextureFunctionTests.evalTexture2DProjOffset, es3fShaderTextureFunctionTests.CaseFlags.VERTEX),
+				es3fShaderTextureFunctionTests.getCaseSpec('sampler2d_vec4_float', es3fShaderTextureFunctionTests.Function.TEXTUREPROJ, [-0.3, -0.6, 0.0, 1.5], [2.25, 3.45, 0.0, 1.5],	false,	0.0,	0.0,	true, [7, -8, 0],	tex2DMipmapFloat, es3fShaderTextureFunctionTests.evalTexture2DProjOffset, es3fShaderTextureFunctionTests.CaseFlags.FRAGMENT),
+				es3fShaderTextureFunctionTests.getCaseSpec('isampler2d_vec4', es3fShaderTextureFunctionTests.Function.TEXTUREPROJ, [-0.3, -0.6, 0.0, 1.5], [2.25, 3.45, 0.0, 1.5],	false,	0.0,	0.0,	true, [-8, 7, 0],	tex2DInt, es3fShaderTextureFunctionTests.evalTexture2DProjOffset, es3fShaderTextureFunctionTests.CaseFlags.VERTEX),
+				es3fShaderTextureFunctionTests.getCaseSpec('isampler2d_vec4', es3fShaderTextureFunctionTests.Function.TEXTUREPROJ, [-0.3, -0.6, 0.0, 1.5], [2.25, 3.45, 0.0, 1.5],	false,	0.0,	0.0,	true, [7, -8, 0],	tex2DMipmapInt, es3fShaderTextureFunctionTests.evalTexture2DProjOffset, es3fShaderTextureFunctionTests.CaseFlags.FRAGMENT),
+				es3fShaderTextureFunctionTests.getCaseSpec('usampler2d_vec4', es3fShaderTextureFunctionTests.Function.TEXTUREPROJ, [-0.3, -0.6, 0.0, 1.5], [2.25, 3.45, 0.0, 1.5],	false,	0.0,	0.0,	true, [-8, 7, 0],	tex2DUint, es3fShaderTextureFunctionTests.evalTexture2DProjOffset, es3fShaderTextureFunctionTests.CaseFlags.VERTEX),
+				es3fShaderTextureFunctionTests.getCaseSpec('usampler2d_vec4', es3fShaderTextureFunctionTests.Function.TEXTUREPROJ, [-0.3, -0.6, 0.0, 1.5], [2.25, 3.45, 0.0, 1.5],	false,	0.0,	0.0,	true, [7, -8, 0],	tex2DMipmapUint, es3fShaderTextureFunctionTests.evalTexture2DProjOffset, es3fShaderTextureFunctionTests.CaseFlags.FRAGMENT),
+
+				es3fShaderTextureFunctionTests.getCaseSpec('sampler2d_vec4_bias_fixed', es3fShaderTextureFunctionTests.Function.TEXTUREPROJ, [-0.3, -0.6, 0.0, 1.5], [2.25, 3.45, 0.0, 1.5],	true,	-2.0,	2.0,	true, [-8, 7, 0],	tex2DFixed, es3fShaderTextureFunctionTests.evalTexture2DProjOffsetBias, es3fShaderTextureFunctionTests.CaseFlags.FRAGMENT),
+				es3fShaderTextureFunctionTests.getCaseSpec('sampler2d_vec4_bias_float', es3fShaderTextureFunctionTests.Function.TEXTUREPROJ, [-0.3, -0.6, 0.0, 1.5], [2.25, 3.45, 0.0, 1.5],	true,	-2.0,	2.0,	true, [7, -8, 0],	tex2DFloat, es3fShaderTextureFunctionTests.evalTexture2DProjOffsetBias, es3fShaderTextureFunctionTests.CaseFlags.FRAGMENT),
+				es3fShaderTextureFunctionTests.getCaseSpec('isampler2d_vec4_bias', es3fShaderTextureFunctionTests.Function.TEXTUREPROJ, [-0.3, -0.6, 0.0, 1.5], [2.25, 3.45, 0.0, 1.5],	true,	-2.0,	2.0,	true, [-8, 7, 0],	tex2DInt, es3fShaderTextureFunctionTests.evalTexture2DProjOffsetBias, es3fShaderTextureFunctionTests.CaseFlags.FRAGMENT),
+				es3fShaderTextureFunctionTests.getCaseSpec('usampler2d_vec4_bias', es3fShaderTextureFunctionTests.Function.TEXTUREPROJ, [-0.3, -0.6, 0.0, 1.5], [2.25, 3.45, 0.0, 1.5],	true,	-2.0,	2.0,	true, [7, -8, 0],	tex2DUint, es3fShaderTextureFunctionTests.evalTexture2DProjOffsetBias, es3fShaderTextureFunctionTests.CaseFlags.FRAGMENT),
+
+				es3fShaderTextureFunctionTests.getCaseSpec('sampler3d_fixed', es3fShaderTextureFunctionTests.Function.TEXTUREPROJ, [0.9, 1.05, -0.08, -0.75], [-1.13, -1.7, -1.7, -0.75],	false,	0.0,	0.0,	true, [-8, 7, 3],	tex3DFixed, es3fShaderTextureFunctionTests.evalTexture3DProjOffset, es3fShaderTextureFunctionTests.CaseFlags.VERTEX),
+				es3fShaderTextureFunctionTests.getCaseSpec('sampler3d_fixed', es3fShaderTextureFunctionTests.Function.TEXTUREPROJ, [0.9, 1.05, -0.08, -0.75], [-1.13, -1.7, -1.7, -0.75],	false,	0.0,	0.0,	true, [7, 3, -8],	tex3DMipmapFixed, es3fShaderTextureFunctionTests.evalTexture3DProjOffset, es3fShaderTextureFunctionTests.CaseFlags.FRAGMENT),
+				es3fShaderTextureFunctionTests.getCaseSpec('sampler3d_float', es3fShaderTextureFunctionTests.Function.TEXTUREPROJ, [0.9, 1.05, -0.08, -0.75], [-1.13, -1.7, -1.7, -0.75],	false,	0.0,	0.0,	true, [3, -8, 7],	tex3DFloat, es3fShaderTextureFunctionTests.evalTexture3DProjOffset, es3fShaderTextureFunctionTests.CaseFlags.VERTEX),
+				es3fShaderTextureFunctionTests.getCaseSpec('sampler3d_float', es3fShaderTextureFunctionTests.Function.TEXTUREPROJ, [0.9, 1.05, -0.08, -0.75], [-1.13, -1.7, -1.7, -0.75],	false,	0.0,	0.0,	true, [-8, 7, 3],	tex3DMipmapFloat, es3fShaderTextureFunctionTests.evalTexture3DProjOffset, es3fShaderTextureFunctionTests.CaseFlags.FRAGMENT),
+				es3fShaderTextureFunctionTests.getCaseSpec('isampler3d', es3fShaderTextureFunctionTests.Function.TEXTUREPROJ, [0.9, 1.05, -0.08, -0.75], [-1.13, -1.7, -1.7, -0.75],	false,	0.0,	0.0,	true, [7, 3, -8],	tex3DInt, es3fShaderTextureFunctionTests.evalTexture3DProjOffset, es3fShaderTextureFunctionTests.CaseFlags.VERTEX),
+				es3fShaderTextureFunctionTests.getCaseSpec('isampler3d', es3fShaderTextureFunctionTests.Function.TEXTUREPROJ, [0.9, 1.05, -0.08, -0.75], [-1.13, -1.7, -1.7, -0.75],	false,	0.0,	0.0,	true, [3, -8, 7],	tex3DMipmapInt, es3fShaderTextureFunctionTests.evalTexture3DProjOffset, es3fShaderTextureFunctionTests.CaseFlags.FRAGMENT),
+				es3fShaderTextureFunctionTests.getCaseSpec('usampler3d', es3fShaderTextureFunctionTests.Function.TEXTUREPROJ, [0.9, 1.05, -0.08, -0.75], [-1.13, -1.7, -1.7, -0.75],	false,	0.0,	0.0,	true, [-8, 7, 3],	tex3DUint, es3fShaderTextureFunctionTests.evalTexture3DProjOffset, es3fShaderTextureFunctionTests.CaseFlags.VERTEX),
+				es3fShaderTextureFunctionTests.getCaseSpec('usampler3d', es3fShaderTextureFunctionTests.Function.TEXTUREPROJ, [0.9, 1.05, -0.08, -0.75], [-1.13, -1.7, -1.7, -0.75],	false,	0.0,	0.0,	true, [7, 3, -8],	tex3DMipmapUint, es3fShaderTextureFunctionTests.evalTexture3DProjOffset, es3fShaderTextureFunctionTests.CaseFlags.FRAGMENT),
+
+				es3fShaderTextureFunctionTests.getCaseSpec('sampler3d_bias_fixed', es3fShaderTextureFunctionTests.Function.TEXTUREPROJ, [0.9, 1.05, -0.08, -0.75], [-1.13, -1.7, -1.7, -0.75],	true,	-2.0,	2.0,	true, [-8, 7, 3],	tex3DFixed, es3fShaderTextureFunctionTests.evalTexture3DProjOffsetBias, es3fShaderTextureFunctionTests.CaseFlags.FRAGMENT),
+				es3fShaderTextureFunctionTests.getCaseSpec('sampler3d_bias_float', es3fShaderTextureFunctionTests.Function.TEXTUREPROJ, [0.9, 1.05, -0.08, -0.75], [-1.13, -1.7, -1.7, -0.75],	true,	-2.0,	2.0,	true, [7, 3, -8],	tex3DFloat, es3fShaderTextureFunctionTests.evalTexture3DProjOffsetBias, es3fShaderTextureFunctionTests.CaseFlags.FRAGMENT),
+				es3fShaderTextureFunctionTests.getCaseSpec('isampler3d_bias', es3fShaderTextureFunctionTests.Function.TEXTUREPROJ, [0.9, 1.05, -0.08, -0.75], [-1.13, -1.7, -1.7, -0.75],	true,	-2.0,	2.0,	true, [3, -8, 7],	tex3DInt, es3fShaderTextureFunctionTests.evalTexture3DProjOffsetBias, es3fShaderTextureFunctionTests.CaseFlags.FRAGMENT),
+				es3fShaderTextureFunctionTests.getCaseSpec('usampler3d_bias', es3fShaderTextureFunctionTests.Function.TEXTUREPROJ, [0.9, 1.05, -0.08, -0.75], [-1.13, -1.7, -1.7, -0.75],	true,	-2.0,	2.0,	true, [-8, 7, 3],	tex3DUint, es3fShaderTextureFunctionTests.evalTexture3DProjOffsetBias, es3fShaderTextureFunctionTests.CaseFlags.FRAGMENT),
+
+				es3fShaderTextureFunctionTests.getCaseSpec('sampler2dshadow', es3fShaderTextureFunctionTests.Function.TEXTUREPROJ, [0.2, 0.6, 0.0, 1.5], [-2.25, -3.45, 1.5, 1.5],	false,	0.0,	0.0,	true, [-8, 7, 0],	tex2DShadow, es3fShaderTextureFunctionTests.evalTexture2DShadowProjOffset, es3fShaderTextureFunctionTests.CaseFlags.VERTEX),
+				es3fShaderTextureFunctionTests.getCaseSpec('sampler2dshadow', es3fShaderTextureFunctionTests.Function.TEXTUREPROJ, [0.2, 0.6, 0.0, 1.5], [-2.25, -3.45, 1.5, 1.5],	false,	0.0,	0.0,	true, [7, -8, 0],	tex2DMipmapShadow, es3fShaderTextureFunctionTests.evalTexture2DShadowProjOffset, es3fShaderTextureFunctionTests.CaseFlags.FRAGMENT),
+				es3fShaderTextureFunctionTests.getCaseSpec('sampler2dshadow_bias', es3fShaderTextureFunctionTests.Function.TEXTUREPROJ, [0.2, 0.6, 0.0, 1.5], [-2.25, -3.45, 1.5, 1.5],	true,	-2.0,	2.0,	true, [-8, 7, 0],	tex2DShadow, es3fShaderTextureFunctionTests.evalTexture2DShadowProjOffsetBias,	es3fShaderTextureFunctionTests.CaseFlags.FRAGMENT)
+			];
+			es3fShaderTextureFunctionTests.createCaseGroup(this, "textureprojoffset", "textureOffsetProj() Tests", textureProjOffsetCases);
+
+			// textureLod() cases
+			/** @type {es3fShaderTextureFunctionTests.TexFuncCaseSpec} */ var textureLodCases = [
+				es3fShaderTextureFunctionTests.getCaseSpec('sampler2d_fixed', es3fShaderTextureFunctionTests.Function.TEXTURELOD, [-0.2, -0.4, 0.0, 0.0], [1.5, 2.3, 0.0, 0.0],	false,	-1.0,	9.0,	false, [0, 0, 0],	tex2DMipmapFixed, es3fShaderTextureFunctionTests.evalTexture2DLod, es3fShaderTextureFunctionTests.CaseFlags.BOTH),
+				es3fShaderTextureFunctionTests.getCaseSpec('sampler2d_float', es3fShaderTextureFunctionTests.Function.TEXTURELOD, [-0.2, -0.4, 0.0, 0.0], [1.5, 2.3, 0.0, 0.0],	false,	-1.0,	9.0,	false, [0, 0, 0],	tex2DMipmapFloat, es3fShaderTextureFunctionTests.evalTexture2DLod, es3fShaderTextureFunctionTests.CaseFlags.BOTH),
+				es3fShaderTextureFunctionTests.getCaseSpec('isampler2d', es3fShaderTextureFunctionTests.Function.TEXTURELOD, [-0.2, -0.4, 0.0, 0.0], [1.5, 2.3, 0.0, 0.0],	false,	-1.0,	9.0,	false, [0, 0, 0],	tex2DMipmapInt, es3fShaderTextureFunctionTests.evalTexture2DLod, es3fShaderTextureFunctionTests.CaseFlags.BOTH),
+				es3fShaderTextureFunctionTests.getCaseSpec('usampler2d', es3fShaderTextureFunctionTests.Function.TEXTURELOD, [-0.2, -0.4, 0.0, 0.0], [1.5, 2.3, 0.0, 0.0],	false,	-1.0,	9.0,	false, [0, 0, 0],	tex2DMipmapUint, es3fShaderTextureFunctionTests.evalTexture2DLod, es3fShaderTextureFunctionTests.CaseFlags.BOTH),
+
+				es3fShaderTextureFunctionTests.getCaseSpec('samplercube_fixed', es3fShaderTextureFunctionTests.Function.TEXTURELOD, [-1.0, -1.0, 1.01, 0.0], [1.0, 1.0, 1.01, 0.0],	false,	-1.0,	9.0,	false, [0, 0, 0],	texCubeMipmapFixed, es3fShaderTextureFunctionTests.evalTextureCubeLod, es3fShaderTextureFunctionTests.CaseFlags.BOTH),
+				es3fShaderTextureFunctionTests.getCaseSpec('samplercube_float', es3fShaderTextureFunctionTests.Function.TEXTURELOD, [-1.0, -1.0, -1.01, 0.0], [1.0, 1.0, -1.01, 0.0],	false,	-1.0,	9.0,	false, [0, 0, 0],	texCubeMipmapFloat, es3fShaderTextureFunctionTests.evalTextureCubeLod, es3fShaderTextureFunctionTests.CaseFlags.BOTH),
+				es3fShaderTextureFunctionTests.getCaseSpec('isamplercube', es3fShaderTextureFunctionTests.Function.TEXTURELOD, [-1.0, -1.0, 1.01, 0.0], [1.0, 1.0, 1.01, 0.0],	false,	-1.0,	9.0,	false, [0, 0, 0],	texCubeMipmapInt, es3fShaderTextureFunctionTests.evalTextureCubeLod, es3fShaderTextureFunctionTests.CaseFlags.BOTH),
+				es3fShaderTextureFunctionTests.getCaseSpec('usamplercube', es3fShaderTextureFunctionTests.Function.TEXTURELOD, [-1.0, -1.0, -1.01, 0.0], [1.0, 1.0, -1.01, 0.0],	false,	-1.0,	9.0,	false, [0, 0, 0],	texCubeMipmapUint, es3fShaderTextureFunctionTests.evalTextureCubeLod, es3fShaderTextureFunctionTests.CaseFlags.BOTH),
+
+				es3fShaderTextureFunctionTests.getCaseSpec('sampler2darray_fixed', es3fShaderTextureFunctionTests.Function.TEXTURELOD, [-1.2, -0.4, -0.5, 0.0], [1.5, 2.3, 3.5, 0.0],	false,	-1.0,	8.0,	false, [0, 0, 0],	tex2DArrayMipmapFixed, es3fShaderTextureFunctionTests.evalTexture2DArrayLod, es3fShaderTextureFunctionTests.CaseFlags.BOTH),
+				es3fShaderTextureFunctionTests.getCaseSpec('sampler2darray_float', es3fShaderTextureFunctionTests.Function.TEXTURELOD, [-1.2, -0.4, -0.5, 0.0], [1.5, 2.3, 3.5, 0.0],	false,	-1.0,	8.0,	false, [0, 0, 0],	tex2DArrayMipmapFloat, es3fShaderTextureFunctionTests.evalTexture2DArrayLod, es3fShaderTextureFunctionTests.CaseFlags.BOTH),
+				es3fShaderTextureFunctionTests.getCaseSpec('isampler2darray', es3fShaderTextureFunctionTests.Function.TEXTURELOD, [-1.2, -0.4, -0.5, 0.0], [1.5, 2.3, 3.5, 0.0],	false,	-1.0,	8.0,	false, [0, 0, 0],	tex2DArrayMipmapInt, es3fShaderTextureFunctionTests.evalTexture2DArrayLod, es3fShaderTextureFunctionTests.CaseFlags.BOTH),
+				es3fShaderTextureFunctionTests.getCaseSpec('usampler2darray', es3fShaderTextureFunctionTests.Function.TEXTURELOD, [-1.2, -0.4, -0.5, 0.0], [1.5, 2.3, 3.5, 0.0],	false,	-1.0,	8.0,	false, [0, 0, 0],	tex2DArrayMipmapUint, es3fShaderTextureFunctionTests.evalTexture2DArrayLod, es3fShaderTextureFunctionTests.CaseFlags.BOTH),
+
+				es3fShaderTextureFunctionTests.getCaseSpec('sampler3d_fixed', es3fShaderTextureFunctionTests.Function.TEXTURELOD, [-1.2, -1.4, 0.1, 0.0], [1.5, 2.3, 2.3, 0.0],	false,	-1.0,	7.0,	false, [0, 0, 0],	tex3DMipmapFixed, es3fShaderTextureFunctionTests.evalTexture3DLod, es3fShaderTextureFunctionTests.CaseFlags.BOTH),
+				es3fShaderTextureFunctionTests.getCaseSpec('sampler3d_float', es3fShaderTextureFunctionTests.Function.TEXTURELOD, [-1.2, -1.4, 0.1, 0.0], [1.5, 2.3, 2.3, 0.0],	false,	-1.0,	7.0,	false, [0, 0, 0],	tex3DMipmapFloat, es3fShaderTextureFunctionTests.evalTexture3DLod, es3fShaderTextureFunctionTests.CaseFlags.BOTH),
+				es3fShaderTextureFunctionTests.getCaseSpec('isampler3d', es3fShaderTextureFunctionTests.Function.TEXTURELOD, [-1.2, -1.4, 0.1, 0.0], [1.5, 2.3, 2.3, 0.0],	false,	-1.0,	7.0,	false, [0, 0, 0],	tex3DMipmapInt, es3fShaderTextureFunctionTests.evalTexture3DLod, es3fShaderTextureFunctionTests.CaseFlags.BOTH),
+				es3fShaderTextureFunctionTests.getCaseSpec('usampler3d', es3fShaderTextureFunctionTests.Function.TEXTURELOD, [-1.2, -1.4, 0.1, 0.0], [1.5, 2.3, 2.3, 0.0],	false,	-1.0,	7.0,	false, [0, 0, 0],	tex3DMipmapUint, es3fShaderTextureFunctionTests.evalTexture3DLod, es3fShaderTextureFunctionTests.CaseFlags.BOTH),
+
+				es3fShaderTextureFunctionTests.getCaseSpec('sampler2dshadow', es3fShaderTextureFunctionTests.Function.TEXTURELOD, [-0.2, -0.4, 0.0, 0.0], [1.5, 2.3, 1.0, 0.0],	false,	-1.0,	9.0,	false, [0, 0, 0],	tex2DMipmapShadow, es3fShaderTextureFunctionTests.evalTexture2DShadowLod,	es3fShaderTextureFunctionTests.CaseFlags.BOTH)
+			];
+			es3fShaderTextureFunctionTests.createCaseGroup(this, "texturelod", "textureLod() Tests", textureLodCases);
+
+			// textureLodOffset() cases
+			/** @type {es3fShaderTextureFunctionTests.TexFuncCaseSpec} */ var textureLodOffsetCases = [
+				es3fShaderTextureFunctionTests.getCaseSpec('sampler2d_fixed', es3fShaderTextureFunctionTests.Function.TEXTURELOD, [-0.2, -0.4, 0.0, 0.0], [1.5, 2.3, 0.0, 0.0],	false,	-1.0,	9.0,	true, [-8, 7, 0],	tex2DMipmapFixed, es3fShaderTextureFunctionTests.evalTexture2DLodOffset, es3fShaderTextureFunctionTests.CaseFlags.BOTH),
+				es3fShaderTextureFunctionTests.getCaseSpec('sampler2d_float', es3fShaderTextureFunctionTests.Function.TEXTURELOD, [-0.2, -0.4, 0.0, 0.0], [1.5, 2.3, 0.0, 0.0],	false,	-1.0,	9.0,	true, [7, -8, 0],	tex2DMipmapFloat, es3fShaderTextureFunctionTests.evalTexture2DLodOffset, es3fShaderTextureFunctionTests.CaseFlags.BOTH),
+				es3fShaderTextureFunctionTests.getCaseSpec('isampler2d', es3fShaderTextureFunctionTests.Function.TEXTURELOD, [-0.2, -0.4, 0.0, 0.0], [1.5, 2.3, 0.0, 0.0],	false,	-1.0,	9.0,	true, [-8, 7, 0],	tex2DMipmapInt, es3fShaderTextureFunctionTests.evalTexture2DLodOffset, es3fShaderTextureFunctionTests.CaseFlags.BOTH),
+				es3fShaderTextureFunctionTests.getCaseSpec('usampler2d', es3fShaderTextureFunctionTests.Function.TEXTURELOD, [-0.2, -0.4, 0.0, 0.0], [1.5, 2.3, 0.0, 0.0],	false,	-1.0,	9.0,	true, [7, -8, 0],	tex2DMipmapUint, es3fShaderTextureFunctionTests.evalTexture2DLodOffset, es3fShaderTextureFunctionTests.CaseFlags.BOTH),
+
+				es3fShaderTextureFunctionTests.getCaseSpec('sampler2darray_fixed', es3fShaderTextureFunctionTests.Function.TEXTURELOD, [-1.2, -0.4, -0.5, 0.0], [1.5, 2.3, 3.5, 0.0],	false,	-1.0,	8.0,	true, [-8, 7, 0],	tex2DArrayMipmapFixed, es3fShaderTextureFunctionTests.evalTexture2DArrayLodOffset, es3fShaderTextureFunctionTests.CaseFlags.BOTH),
+				es3fShaderTextureFunctionTests.getCaseSpec('sampler2darray_float', es3fShaderTextureFunctionTests.Function.TEXTURELOD, [-1.2, -0.4, -0.5, 0.0], [1.5, 2.3, 3.5, 0.0],	false,	-1.0,	8.0,	true, [7, -8, 0],	tex2DArrayMipmapFloat, es3fShaderTextureFunctionTests.evalTexture2DArrayLodOffset, es3fShaderTextureFunctionTests.CaseFlags.BOTH),
+				es3fShaderTextureFunctionTests.getCaseSpec('isampler2darray', es3fShaderTextureFunctionTests.Function.TEXTURELOD, [-1.2, -0.4, -0.5, 0.0], [1.5, 2.3, 3.5, 0.0],	false,	-1.0,	8.0,	true, [-8, 7, 0],	tex2DArrayMipmapInt, es3fShaderTextureFunctionTests.evalTexture2DArrayLodOffset, es3fShaderTextureFunctionTests.CaseFlags.BOTH),
+				es3fShaderTextureFunctionTests.getCaseSpec('usampler2darray', es3fShaderTextureFunctionTests.Function.TEXTURELOD, [-1.2, -0.4, -0.5, 0.0], [1.5, 2.3, 3.5, 0.0],	false,	-1.0,	8.0,	true, [7, -8, 0],	tex2DArrayMipmapUint, es3fShaderTextureFunctionTests.evalTexture2DArrayLodOffset, es3fShaderTextureFunctionTests.CaseFlags.BOTH),
+
+				es3fShaderTextureFunctionTests.getCaseSpec('sampler3d_fixed', es3fShaderTextureFunctionTests.Function.TEXTURELOD, [-1.2, -1.4, 0.1, 0.0], [1.5, 2.3, 2.3, 0.0],	false,	-1.0,	7.0,	true, [-8, 7, 3],	tex3DMipmapFixed, es3fShaderTextureFunctionTests.evalTexture3DLodOffset, es3fShaderTextureFunctionTests.CaseFlags.BOTH),
+				es3fShaderTextureFunctionTests.getCaseSpec('sampler3d_float', es3fShaderTextureFunctionTests.Function.TEXTURELOD, [-1.2, -1.4, 0.1, 0.0], [1.5, 2.3, 2.3, 0.0],	false,	-1.0,	7.0,	true, [7, 3, -8],	tex3DMipmapFloat, es3fShaderTextureFunctionTests.evalTexture3DLodOffset, es3fShaderTextureFunctionTests.CaseFlags.BOTH),
+				es3fShaderTextureFunctionTests.getCaseSpec('isampler3d', es3fShaderTextureFunctionTests.Function.TEXTURELOD, [-1.2, -1.4, 0.1, 0.0], [1.5, 2.3, 2.3, 0.0],	false,	-1.0,	7.0,	true, [3, -8, 7],	tex3DMipmapInt, es3fShaderTextureFunctionTests.evalTexture3DLodOffset, es3fShaderTextureFunctionTests.CaseFlags.BOTH),
+				es3fShaderTextureFunctionTests.getCaseSpec('usampler3d', es3fShaderTextureFunctionTests.Function.TEXTURELOD, [-1.2, -1.4, 0.1, 0.0], [1.5, 2.3, 2.3, 0.0],	false,	-1.0,	7.0,	true, [-8, 7, 3],	tex3DMipmapUint, es3fShaderTextureFunctionTests.evalTexture3DLodOffset, es3fShaderTextureFunctionTests.CaseFlags.BOTH),
+
+				es3fShaderTextureFunctionTests.getCaseSpec('sampler2dshadow', es3fShaderTextureFunctionTests.Function.TEXTURELOD, [-0.2, -0.4, 0.0, 0.0], [1.5, 2.3, 1.0, 0.0],	false,	-1.0,	9.0,	true, [-8, 7, 0],	tex2DMipmapShadow, es3fShaderTextureFunctionTests.evalTexture2DShadowLodOffset,	es3fShaderTextureFunctionTests.CaseFlags.BOTH)
+			];
+			es3fShaderTextureFunctionTests.createCaseGroup(this, "texturelodoffset", "textureLodOffset() Tests", textureLodOffsetCases);
+
+			// textureProjLod() cases
+			/** @type {es3fShaderTextureFunctionTests.TexFuncCaseSpec} */ var textureProjLodCases = [
+				es3fShaderTextureFunctionTests.getCaseSpec('sampler2d_vec3_fixed', es3fShaderTextureFunctionTests.Function.TEXTUREPROJLOD3, [-0.3, -0.6, 1.5, 0.0], [2.25, 3.45, 1.5, 0.0],	false,	-1.0,	9.0,	false, [0, 0, 0],	tex2DMipmapFixed, es3fShaderTextureFunctionTests.evalTexture2DProjLod3, es3fShaderTextureFunctionTests.CaseFlags.BOTH),
+				es3fShaderTextureFunctionTests.getCaseSpec('sampler2d_vec3_float', es3fShaderTextureFunctionTests.Function.TEXTUREPROJLOD3, [-0.3, -0.6, 1.5, 0.0], [2.25, 3.45, 1.5, 0.0],	false,	-1.0,	9.0,	false, [0, 0, 0],	tex2DMipmapFloat, es3fShaderTextureFunctionTests.evalTexture2DProjLod3, es3fShaderTextureFunctionTests.CaseFlags.BOTH),
+				es3fShaderTextureFunctionTests.getCaseSpec('isampler2d_vec3', es3fShaderTextureFunctionTests.Function.TEXTUREPROJLOD3, [-0.3, -0.6, 1.5, 0.0], [2.25, 3.45, 1.5, 0.0],	false,	-1.0,	9.0,	false, [0, 0, 0],	tex2DMipmapInt, es3fShaderTextureFunctionTests.evalTexture2DProjLod3, es3fShaderTextureFunctionTests.CaseFlags.BOTH),
+				es3fShaderTextureFunctionTests.getCaseSpec('usampler2d_vec3', es3fShaderTextureFunctionTests.Function.TEXTUREPROJLOD3, [-0.3, -0.6, 1.5, 0.0], [2.25, 3.45, 1.5, 0.0],	false,	-1.0,	9.0,	false, [0, 0, 0],	tex2DMipmapUint, es3fShaderTextureFunctionTests.evalTexture2DProjLod3, es3fShaderTextureFunctionTests.CaseFlags.BOTH),
+
+				es3fShaderTextureFunctionTests.getCaseSpec('sampler2d_vec4_fixed', es3fShaderTextureFunctionTests.Function.TEXTUREPROJLOD, [-0.3, -0.6, 0.0, 1.5], [2.25, 3.45, 0.0, 1.5],	false,	-1.0,	9.0,	false, [0, 0, 0],	tex2DMipmapFixed, es3fShaderTextureFunctionTests.evalTexture2DProjLod, es3fShaderTextureFunctionTests.CaseFlags.BOTH),
+				es3fShaderTextureFunctionTests.getCaseSpec('sampler2d_vec4_float', es3fShaderTextureFunctionTests.Function.TEXTUREPROJLOD, [-0.3, -0.6, 0.0, 1.5], [2.25, 3.45, 0.0, 1.5],	false,	-1.0,	9.0,	false, [0, 0, 0],	tex2DMipmapFloat, es3fShaderTextureFunctionTests.evalTexture2DProjLod, es3fShaderTextureFunctionTests.CaseFlags.BOTH),
+				es3fShaderTextureFunctionTests.getCaseSpec('isampler2d_vec4', es3fShaderTextureFunctionTests.Function.TEXTUREPROJLOD, [-0.3, -0.6, 0.0, 1.5], [2.25, 3.45, 0.0, 1.5],	false,	-1.0,	9.0,	false, [0, 0, 0],	tex2DMipmapInt, es3fShaderTextureFunctionTests.evalTexture2DProjLod, es3fShaderTextureFunctionTests.CaseFlags.BOTH),
+				es3fShaderTextureFunctionTests.getCaseSpec('usampler2d_vec4', es3fShaderTextureFunctionTests.Function.TEXTUREPROJLOD, [-0.3, -0.6, 0.0, 1.5], [2.25, 3.45, 0.0, 1.5],	false,	-1.0,	9.0,	false, [0, 0, 0],	tex2DMipmapUint, es3fShaderTextureFunctionTests.evalTexture2DProjLod, es3fShaderTextureFunctionTests.CaseFlags.BOTH),
+
+				es3fShaderTextureFunctionTests.getCaseSpec('sampler3d_fixed', es3fShaderTextureFunctionTests.Function.TEXTUREPROJLOD, [0.9, 1.05, -0.08, -0.75], [-1.13, -1.7, -1.7, -0.75],	false,	-1.0,	7.0,	false, [0, 0, 0],	tex3DMipmapFixed, es3fShaderTextureFunctionTests.evalTexture3DProjLod, es3fShaderTextureFunctionTests.CaseFlags.BOTH),
+				es3fShaderTextureFunctionTests.getCaseSpec('sampler3d_float', es3fShaderTextureFunctionTests.Function.TEXTUREPROJLOD, [0.9, 1.05, -0.08, -0.75], [-1.13, -1.7, -1.7, -0.75],	false,	-1.0,	7.0,	false, [0, 0, 0],	tex3DMipmapFloat, es3fShaderTextureFunctionTests.evalTexture3DProjLod, es3fShaderTextureFunctionTests.CaseFlags.BOTH),
+				es3fShaderTextureFunctionTests.getCaseSpec('isampler3d', es3fShaderTextureFunctionTests.Function.TEXTUREPROJLOD, [0.9, 1.05, -0.08, -0.75], [-1.13, -1.7, -1.7, -0.75],	false,	-1.0,	7.0,	false, [0, 0, 0],	tex3DMipmapInt, es3fShaderTextureFunctionTests.evalTexture3DProjLod, es3fShaderTextureFunctionTests.CaseFlags.BOTH),
+				es3fShaderTextureFunctionTests.getCaseSpec('usampler3d', es3fShaderTextureFunctionTests.Function.TEXTUREPROJLOD, [0.9, 1.05, -0.08, -0.75], [-1.13, -1.7, -1.7, -0.75],	false,	-1.0,	7.0,	false, [0, 0, 0],	tex3DMipmapUint, es3fShaderTextureFunctionTests.evalTexture3DProjLod, es3fShaderTextureFunctionTests.CaseFlags.BOTH),
+
+				es3fShaderTextureFunctionTests.getCaseSpec('sampler2dshadow', es3fShaderTextureFunctionTests.Function.TEXTUREPROJLOD, [0.2, 0.6, 0.0, 1.5], [-2.25, -3.45, 1.5, 1.5],	false,	-1.0,	9.0,	false, [0, 0, 0],	tex2DMipmapShadow, es3fShaderTextureFunctionTests.evalTexture2DShadowProjLod,	es3fShaderTextureFunctionTests.CaseFlags.BOTH)
+			];
+			es3fShaderTextureFunctionTests.createCaseGroup(this, "textureprojlod", "textureProjLod() Tests", textureProjLodCases);
+
+			// textureProjLodOffset() cases
+			/** @type {es3fShaderTextureFunctionTests.TexFuncCaseSpec} */ var textureProjLodOffsetCases = [
+				es3fShaderTextureFunctionTests.getCaseSpec('sampler2d_vec3_fixed', es3fShaderTextureFunctionTests.Function.TEXTUREPROJLOD3, [-0.3, -0.6, 1.5, 0.0], [2.25, 3.45, 1.5, 0.0],	false,	-1.0,	9.0,	true, [-8, 7, 0],	tex2DMipmapFixed, es3fShaderTextureFunctionTests.evalTexture2DProjLod3Offset, es3fShaderTextureFunctionTests.CaseFlags.BOTH),
+				es3fShaderTextureFunctionTests.getCaseSpec('sampler2d_vec3_float', es3fShaderTextureFunctionTests.Function.TEXTUREPROJLOD3, [-0.3, -0.6, 1.5, 0.0], [2.25, 3.45, 1.5, 0.0],	false,	-1.0,	9.0,	true, [7, -8, 0],	tex2DMipmapFloat, es3fShaderTextureFunctionTests.evalTexture2DProjLod3Offset, es3fShaderTextureFunctionTests.CaseFlags.BOTH),
+				es3fShaderTextureFunctionTests.getCaseSpec('isampler2d_vec3', es3fShaderTextureFunctionTests.Function.TEXTUREPROJLOD3, [-0.3, -0.6, 1.5, 0.0], [2.25, 3.45, 1.5, 0.0],	false,	-1.0,	9.0,	true, [-8, 7, 0],	tex2DMipmapInt, es3fShaderTextureFunctionTests.evalTexture2DProjLod3Offset, es3fShaderTextureFunctionTests.CaseFlags.BOTH),
+				es3fShaderTextureFunctionTests.getCaseSpec('usampler2d_vec3', es3fShaderTextureFunctionTests.Function.TEXTUREPROJLOD3, [-0.3, -0.6, 1.5, 0.0], [2.25, 3.45, 1.5, 0.0],	false,	-1.0,	9.0,	true, [7, -8, 0],	tex2DMipmapUint, es3fShaderTextureFunctionTests.evalTexture2DProjLod3Offset, es3fShaderTextureFunctionTests.CaseFlags.BOTH),
+
+				es3fShaderTextureFunctionTests.getCaseSpec('sampler2d_vec4_fixed', es3fShaderTextureFunctionTests.Function.TEXTUREPROJLOD, [-0.3, -0.6, 0.0, 1.5], [2.25, 3.45, 0.0, 1.5],	false,	-1.0,	9.0,	true, [-8, 7, 0],	tex2DMipmapFixed, es3fShaderTextureFunctionTests.evalTexture2DProjLodOffset, es3fShaderTextureFunctionTests.CaseFlags.BOTH),
+				es3fShaderTextureFunctionTests.getCaseSpec('sampler2d_vec4_float', es3fShaderTextureFunctionTests.Function.TEXTUREPROJLOD, [-0.3, -0.6, 0.0, 1.5], [2.25, 3.45, 0.0, 1.5],	false,	-1.0,	9.0,	true, [7, -8, 0],	tex2DMipmapFloat, es3fShaderTextureFunctionTests.evalTexture2DProjLodOffset, es3fShaderTextureFunctionTests.CaseFlags.BOTH),
+				es3fShaderTextureFunctionTests.getCaseSpec('isampler2d_vec4', es3fShaderTextureFunctionTests.Function.TEXTUREPROJLOD, [-0.3, -0.6, 0.0, 1.5], [2.25, 3.45, 0.0, 1.5],	false,	-1.0,	9.0,	true, [-8, 7, 0],	tex2DMipmapInt, es3fShaderTextureFunctionTests.evalTexture2DProjLodOffset, es3fShaderTextureFunctionTests.CaseFlags.BOTH),
+				es3fShaderTextureFunctionTests.getCaseSpec('usampler2d_vec4', es3fShaderTextureFunctionTests.Function.TEXTUREPROJLOD, [-0.3, -0.6, 0.0, 1.5], [2.25, 3.45, 0.0, 1.5],	false,	-1.0,	9.0,	true, [7, -8, 0],	tex2DMipmapUint, es3fShaderTextureFunctionTests.evalTexture2DProjLodOffset, es3fShaderTextureFunctionTests.CaseFlags.BOTH),
+
+				es3fShaderTextureFunctionTests.getCaseSpec('sampler3d_fixed', es3fShaderTextureFunctionTests.Function.TEXTUREPROJLOD, [0.9, 1.05, -0.08, -0.75], [-1.13, -1.7, -1.7, -0.75],	false,	-1.0,	7.0,	true, [-8, 7, 3],	tex3DMipmapFixed, es3fShaderTextureFunctionTests.evalTexture3DProjLodOffset, es3fShaderTextureFunctionTests.CaseFlags.BOTH),
+				es3fShaderTextureFunctionTests.getCaseSpec('sampler3d_float', es3fShaderTextureFunctionTests.Function.TEXTUREPROJLOD, [0.9, 1.05, -0.08, -0.75], [-1.13, -1.7, -1.7, -0.75],	false,	-1.0,	7.0,	true, [7, 3, -8],	tex3DMipmapFloat, es3fShaderTextureFunctionTests.evalTexture3DProjLodOffset, es3fShaderTextureFunctionTests.CaseFlags.BOTH),
+				es3fShaderTextureFunctionTests.getCaseSpec('isampler3d', es3fShaderTextureFunctionTests.Function.TEXTUREPROJLOD, [0.9, 1.05, -0.08, -0.75], [-1.13, -1.7, -1.7, -0.75],	false,	-1.0,	7.0,	true, [3, -8, 7],	tex3DMipmapInt, es3fShaderTextureFunctionTests.evalTexture3DProjLodOffset, es3fShaderTextureFunctionTests.CaseFlags.BOTH),
+				es3fShaderTextureFunctionTests.getCaseSpec('usampler3d', es3fShaderTextureFunctionTests.Function.TEXTUREPROJLOD, [0.9, 1.05, -0.08, -0.75], [-1.13, -1.7, -1.7, -0.75],	false,	-1.0,	7.0,	true, [-8, 7, 3],	tex3DMipmapUint, es3fShaderTextureFunctionTests.evalTexture3DProjLodOffset, es3fShaderTextureFunctionTests.CaseFlags.BOTH),
+
+				es3fShaderTextureFunctionTests.getCaseSpec('sampler2dshadow', es3fShaderTextureFunctionTests.Function.TEXTUREPROJLOD, [0.2, 0.6, 0.0, 1.5], [-2.25, -3.45, 1.5, 1.5],	false,	-1.0,	9.0,	true, [-8, 7, 0],	tex2DMipmapShadow, es3fShaderTextureFunctionTests.evalTexture2DShadowProjLodOffset,	es3fShaderTextureFunctionTests.CaseFlags.BOTH)
+			];
+			es3fShaderTextureFunctionTests.createCaseGroup(this, "textureprojlodoffset", "textureProjLodOffset() Tests", textureProjLodOffsetCases);
+
+			// textureGrad() cases
+			// \note Only one of dudx, dudy, dvdx, dvdy is non-zero since spec allows approximating p from derivates by various methods.
+			/** @type {es3fShaderTextureFunctionTests.TexFuncCaseSpec} */ var textureGradCases = [
+				es3fShaderTextureFunctionTests.getGradCaseSpec('sampler2d_fixed', es3fShaderTextureFunctionTests.Function.TEXTUREGRAD, [-0.2, -0.4, 0.0, 0.0], [1.5, 2.3, 0.0, 0.0], [0.0, 0.0, 0.0], [0.2, 0.0, 0.0], [0.0, 0.0, 0.0], [0.0, 0.0, 0.0],	false, [0, 0, 0],	tex2DMipmapFixed, es3fShaderTextureFunctionTests.evalTexture2DGrad, es3fShaderTextureFunctionTests.CaseFlags.BOTH),
+				es3fShaderTextureFunctionTests.getGradCaseSpec('sampler2d_float', es3fShaderTextureFunctionTests.Function.TEXTUREGRAD, [-0.2, -0.4, 0.0, 0.0], [1.5, 2.3, 0.0, 0.0], [0.0, 0.0, 0.0], [0.0, -0.2, 0.0], [0.0, 0.0, 0.0], [0.0, 0.0, 0.0],	false, [0, 0, 0],	tex2DMipmapFloat, es3fShaderTextureFunctionTests.evalTexture2DGrad, es3fShaderTextureFunctionTests.CaseFlags.BOTH),
+				es3fShaderTextureFunctionTests.getGradCaseSpec('isampler2d', es3fShaderTextureFunctionTests.Function.TEXTUREGRAD, [-0.2, -0.4, 0.0, 0.0], [1.5, 2.3, 0.0, 0.0], [0.0, 0.0, 0.0], [0.0, 0.0, 0.0], [0.0, 0.0, 0.0], [-0.2, 0.0, 0.0],	false, [0, 0, 0],	tex2DMipmapInt, es3fShaderTextureFunctionTests.evalTexture2DGrad, es3fShaderTextureFunctionTests.CaseFlags.BOTH),
+				es3fShaderTextureFunctionTests.getGradCaseSpec('usampler2d', es3fShaderTextureFunctionTests.Function.TEXTUREGRAD, [-0.2, -0.4, 0.0, 0.0], [1.5, 2.3, 0.0, 0.0], [0.0, 0.0, 0.0], [0.0, 0.0, 0.0], [0.0, 0.0, 0.0], [0.0, 0.2, 0.0],	false, [0, 0, 0],	tex2DMipmapUint, es3fShaderTextureFunctionTests.evalTexture2DGrad, es3fShaderTextureFunctionTests.CaseFlags.BOTH),
+
+				es3fShaderTextureFunctionTests.getGradCaseSpec('samplercube_fixed', es3fShaderTextureFunctionTests.Function.TEXTUREGRAD, [-1.0, -1.0, 1.01, 0.0], [1.0, 1.0, 1.01, 0.0], [0.0, 0.0, 0.0], [0.2, 0.0, 0.0], [0.0, 0.0, 0.0], [0.0, 0.0, 0.0],	false, [0, 0, 0],	texCubeMipmapFixed, es3fShaderTextureFunctionTests.evalTextureCubeGrad, es3fShaderTextureFunctionTests.CaseFlags.BOTH),
+				es3fShaderTextureFunctionTests.getGradCaseSpec('samplercube_float', es3fShaderTextureFunctionTests.Function.TEXTUREGRAD, [-1.0, -1.0, -1.01, 0.0], [1.0, 1.0, -1.01, 0.0], [0.0, 0.0, 0.0], [0.0, -0.2, 0.0], [0.0, 0.0, 0.0], [0.0, 0.0, 0.0],	false, [0, 0, 0],	texCubeMipmapFloat, es3fShaderTextureFunctionTests.evalTextureCubeGrad, es3fShaderTextureFunctionTests.CaseFlags.BOTH),
+				es3fShaderTextureFunctionTests.getGradCaseSpec('isamplercube', es3fShaderTextureFunctionTests.Function.TEXTUREGRAD, [-1.0, -1.0, 1.01, 0.0], [1.0, 1.0, 1.01, 0.0], [0.0, 0.0, 0.0], [0.0, 0.0, 0.0], [0.0, 0.0, 0.0], [-0.2, 0.0, 0.0],	false, [0, 0, 0],	texCubeMipmapInt, es3fShaderTextureFunctionTests.evalTextureCubeGrad, es3fShaderTextureFunctionTests.CaseFlags.BOTH),
+				es3fShaderTextureFunctionTests.getGradCaseSpec('usamplercube', es3fShaderTextureFunctionTests.Function.TEXTUREGRAD, [-1.0, -1.0, -1.01, 0.0], [1.0, 1.0, -1.01, 0.0], [0.0, 0.0, 0.0], [0.0, 0.0, 0.0], [0.0, 0.0, 0.0], [0.0, 0.2, 0.0],	false, [0, 0, 0],	texCubeMipmapUint, es3fShaderTextureFunctionTests.evalTextureCubeGrad, es3fShaderTextureFunctionTests.CaseFlags.BOTH),
+
+				es3fShaderTextureFunctionTests.getGradCaseSpec('sampler2darray_fixed', es3fShaderTextureFunctionTests.Function.TEXTUREGRAD, [-1.2, -0.4, -0.5, 0.0], [1.5, 2.3, 3.5, 0.0], [0.0, 0.0, 0.0], [0.2, 0.0, 0.0], [0.0, 0.0, 0.0], [0.0, 0.0, 0.0],	false, [0, 0, 0],	tex2DArrayMipmapFixed, es3fShaderTextureFunctionTests.evalTexture2DArrayGrad, es3fShaderTextureFunctionTests.CaseFlags.BOTH),
+				es3fShaderTextureFunctionTests.getGradCaseSpec('sampler2darray_float', es3fShaderTextureFunctionTests.Function.TEXTUREGRAD, [-1.2, -0.4, -0.5, 0.0], [1.5, 2.3, 3.5, 0.0], [0.0, 0.0, 0.0], [0.0, -0.2, 0.0], [0.0, 0.0, 0.0], [0.0, 0.0, 0.0],	false, [0, 0, 0],	tex2DArrayMipmapFloat, es3fShaderTextureFunctionTests.evalTexture2DArrayGrad, es3fShaderTextureFunctionTests.CaseFlags.BOTH),
+				es3fShaderTextureFunctionTests.getGradCaseSpec('isampler2darray', es3fShaderTextureFunctionTests.Function.TEXTUREGRAD, [-1.2, -0.4, -0.5, 0.0], [1.5, 2.3, 3.5, 0.0], [0.0, 0.0, 0.0], [0.0, 0.0, 0.0], [0.0, 0.0, 0.0], [-0.2, 0.0, 0.0],	false, [0, 0, 0],	tex2DArrayMipmapInt, es3fShaderTextureFunctionTests.evalTexture2DArrayGrad, es3fShaderTextureFunctionTests.CaseFlags.BOTH),
+				es3fShaderTextureFunctionTests.getGradCaseSpec('usampler2darray', es3fShaderTextureFunctionTests.Function.TEXTUREGRAD, [-1.2, -0.4, -0.5, 0.0], [1.5, 2.3, 3.5, 0.0], [0.0, 0.0, 0.0], [0.0, 0.0, 0.0], [0.0, 0.0, 0.0], [0.0, 0.2, 0.0],	false, [0, 0, 0],	tex2DArrayMipmapUint, es3fShaderTextureFunctionTests.evalTexture2DArrayGrad, es3fShaderTextureFunctionTests.CaseFlags.BOTH),
+
+				es3fShaderTextureFunctionTests.getGradCaseSpec('sampler3d_fixed', es3fShaderTextureFunctionTests.Function.TEXTUREGRAD, [-1.2, -1.4, 0.1, 0.0], [1.5, 2.3, 2.3, 0.0], [0.0, 0.0, 0.0], [0.2, 0.0, 0.0], [0.0, 0.0, 0.0], [0.0, 0.0, 0.0],	false, [0, 0, 0],	tex3DMipmapFixed, es3fShaderTextureFunctionTests.evalTexture3DGrad, es3fShaderTextureFunctionTests.CaseFlags.BOTH),
+				es3fShaderTextureFunctionTests.getGradCaseSpec('sampler3d_float', es3fShaderTextureFunctionTests.Function.TEXTUREGRAD, [-1.2, -1.4, 0.1, 0.0], [1.5, 2.3, 2.3, 0.0], [0.0, 0.0, 0.0], [0.0, -0.2, 0.0], [0.0, 0.0, 0.0], [0.0, 0.0, 0.0],	false, [0, 0, 0],	tex3DMipmapFloat, es3fShaderTextureFunctionTests.evalTexture3DGrad, es3fShaderTextureFunctionTests.CaseFlags.VERTEX),
+				es3fShaderTextureFunctionTests.getGradCaseSpec('sampler3d_float', es3fShaderTextureFunctionTests.Function.TEXTUREGRAD, [-1.2, -1.4, 0.1, 0.0], [1.5, 2.3, 2.3, 0.0], [0.0, 0.0, 0.0], [0.0, 0.0, 0.2], [0.0, 0.0, 0.0], [0.0, 0.0, 0.0],	false, [0, 0, 0],	tex3DMipmapFloat, es3fShaderTextureFunctionTests.evalTexture3DGrad, es3fShaderTextureFunctionTests.CaseFlags.FRAGMENT),
+				es3fShaderTextureFunctionTests.getGradCaseSpec('isampler3d', es3fShaderTextureFunctionTests.Function.TEXTUREGRAD, [-1.2, -1.4, 0.1, 0.0], [1.5, 2.3, 2.3, 0.0], [0.0, 0.0, 0.0], [0.0, 0.0, 0.0], [0.0, 0.0, 0.0], [-0.2, 0.0, 0.0],	false, [0, 0, 0],	tex3DMipmapInt, es3fShaderTextureFunctionTests.evalTexture3DGrad, es3fShaderTextureFunctionTests.CaseFlags.BOTH),
+				es3fShaderTextureFunctionTests.getGradCaseSpec('usampler3d', es3fShaderTextureFunctionTests.Function.TEXTUREGRAD, [-1.2, -1.4, 0.1, 0.0], [1.5, 2.3, 2.3, 0.0], [0.0, 0.0, 0.0], [0.0, 0.0, 0.0], [0.0, 0.0, 0.0], [0.0, 0.2, 0.0],	false, [0, 0, 0],	tex3DMipmapUint, es3fShaderTextureFunctionTests.evalTexture3DGrad, es3fShaderTextureFunctionTests.CaseFlags.VERTEX),
+				es3fShaderTextureFunctionTests.getGradCaseSpec('usampler3d', es3fShaderTextureFunctionTests.Function.TEXTUREGRAD, [-1.2, -1.4, 0.1, 0.0], [1.5, 2.3, 2.3, 0.0], [0.0, 0.0, 0.0], [0.0, 0.0, 0.0], [0.0, 0.0, 0.0], [0.0, 0.0, -0.2],	false, [0, 0, 0],	tex3DMipmapUint, es3fShaderTextureFunctionTests.evalTexture3DGrad, es3fShaderTextureFunctionTests.CaseFlags.FRAGMENT),
+
+				es3fShaderTextureFunctionTests.getGradCaseSpec('sampler2dshadow', es3fShaderTextureFunctionTests.Function.TEXTUREGRAD, [-0.2, -0.4, 0.0, 0.0], [1.5, 2.3, 1.0, 0.0], [0.0, 0.0, 0.0], [0.2, 0.0, 0.0], [0.0, 0.0, 0.0], [0.0, 0.0, 0.0],	false, [0, 0, 0],	tex2DMipmapShadow, es3fShaderTextureFunctionTests.evalTexture2DShadowGrad, es3fShaderTextureFunctionTests.CaseFlags.BOTH),
+				es3fShaderTextureFunctionTests.getGradCaseSpec('samplercubeshadow', es3fShaderTextureFunctionTests.Function.TEXTUREGRAD, [-1.0, -1.0, 1.01, 0.0], [1.0, 1.0, 1.01, 1.0], [0.0, 0.0, 0.0], [0.0, 0.2, 0.0], [0.0, 0.0, 0.0], [0.0, 0.0, 0.0],	false, [0, 0, 0],	texCubeMipmapShadow, es3fShaderTextureFunctionTests.evalTextureCubeShadowGrad, es3fShaderTextureFunctionTests.CaseFlags.BOTH),
+				es3fShaderTextureFunctionTests.getGradCaseSpec('sampler2darrayshadow', es3fShaderTextureFunctionTests.Function.TEXTUREGRAD, [-1.2, -0.4, -0.5, 0.0], [1.5, 2.3, 3.5, 1.0], [0.0, 0.0, 0.0], [0.0, 0.0, 0.0], [0.0, 0.0, 0.0], [0.2, 0.0, 0.0],	false, [0, 0, 0],	tex2DArrayMipmapShadow, es3fShaderTextureFunctionTests.evalTexture2DArrayShadowGrad, es3fShaderTextureFunctionTests.CaseFlags.VERTEX),
+				es3fShaderTextureFunctionTests.getGradCaseSpec('sampler2darrayshadow', es3fShaderTextureFunctionTests.Function.TEXTUREGRAD, [-1.2, -0.4, -0.5, 0.0], [1.5, 2.3, 3.5, 1.0], [0.0, 0.0, 0.0], [0.0, 0.0, 0.0], [0.0, 0.0, 0.0], [0.0, -0.2, 0.0],	false, [0, 0, 0],	tex2DArrayMipmapShadow, es3fShaderTextureFunctionTests.evalTexture2DArrayShadowGrad, es3fShaderTextureFunctionTests.CaseFlags.FRAGMENT)
+			];
+			es3fShaderTextureFunctionTests.createCaseGroup(this, "texturegrad", "textureGrad() Tests", textureGradCases);
+
+			// textureGradOffset() cases
+			/** @type {es3fShaderTextureFunctionTests.TexFuncCaseSpec} */ var textureGradOffsetCases = [
+				es3fShaderTextureFunctionTests.getGradCaseSpec('sampler2d_fixed', es3fShaderTextureFunctionTests.Function.TEXTUREGRAD, [-0.2, -0.4, 0.0, 0.0], [1.5, 2.3, 0.0, 0.0], [0.0, 0.0, 0.0], [0.2, 0.0, 0.0], [0.0, 0.0, 0.0], [0.0, 0.0, 0.0],	true, [-8, 7, 0],	tex2DMipmapFixed, es3fShaderTextureFunctionTests.evalTexture2DGradOffset, es3fShaderTextureFunctionTests.CaseFlags.BOTH),
+				es3fShaderTextureFunctionTests.getGradCaseSpec('sampler2d_float', es3fShaderTextureFunctionTests.Function.TEXTUREGRAD, [-0.2, -0.4, 0.0, 0.0], [1.5, 2.3, 0.0, 0.0], [0.0, 0.0, 0.0], [0.0, -0.2, 0.0], [0.0, 0.0, 0.0], [0.0, 0.0, 0.0],	true, [7, -8, 0],	tex2DMipmapFloat, es3fShaderTextureFunctionTests.evalTexture2DGradOffset, es3fShaderTextureFunctionTests.CaseFlags.BOTH),
+				es3fShaderTextureFunctionTests.getGradCaseSpec('isampler2d', es3fShaderTextureFunctionTests.Function.TEXTUREGRAD, [-0.2, -0.4, 0.0, 0.0], [1.5, 2.3, 0.0, 0.0], [0.0, 0.0, 0.0], [0.0, 0.0, 0.0], [0.0, 0.0, 0.0], [-0.2, 0.0, 0.0],	true, [-8, 7, 0],	tex2DMipmapInt, es3fShaderTextureFunctionTests.evalTexture2DGradOffset, es3fShaderTextureFunctionTests.CaseFlags.BOTH),
+				es3fShaderTextureFunctionTests.getGradCaseSpec('usampler2d', es3fShaderTextureFunctionTests.Function.TEXTUREGRAD, [-0.2, -0.4, 0.0, 0.0], [1.5, 2.3, 0.0, 0.0], [0.0, 0.0, 0.0], [0.0, 0.0, 0.0], [0.0, 0.0, 0.0], [0.0, 0.2, 0.0],	true, [7, -8, 0],	tex2DMipmapUint, es3fShaderTextureFunctionTests.evalTexture2DGradOffset, es3fShaderTextureFunctionTests.CaseFlags.BOTH),
+
+				es3fShaderTextureFunctionTests.getGradCaseSpec('sampler2darray_fixed', es3fShaderTextureFunctionTests.Function.TEXTUREGRAD, [-1.2, -0.4, -0.5, 0.0], [1.5, 2.3, 3.5, 0.0], [0.0, 0.0, 0.0], [0.2, 0.0, 0.0], [0.0, 0.0, 0.0], [0.0, 0.0, 0.0],	true, [-8, 7, 0],	tex2DArrayMipmapFixed, es3fShaderTextureFunctionTests.evalTexture2DArrayGradOffset, es3fShaderTextureFunctionTests.CaseFlags.BOTH),
+				es3fShaderTextureFunctionTests.getGradCaseSpec('sampler2darray_float', es3fShaderTextureFunctionTests.Function.TEXTUREGRAD, [-1.2, -0.4, -0.5, 0.0], [1.5, 2.3, 3.5, 0.0], [0.0, 0.0, 0.0], [0.0, -0.2, 0.0], [0.0, 0.0, 0.0], [0.0, 0.0, 0.0],	true, [7, -8, 0],	tex2DArrayMipmapFloat, es3fShaderTextureFunctionTests.evalTexture2DArrayGradOffset, es3fShaderTextureFunctionTests.CaseFlags.BOTH),
+				es3fShaderTextureFunctionTests.getGradCaseSpec('isampler2darray', es3fShaderTextureFunctionTests.Function.TEXTUREGRAD, [-1.2, -0.4, -0.5, 0.0], [1.5, 2.3, 3.5, 0.0], [0.0, 0.0, 0.0], [0.0, 0.0, 0.0], [0.0, 0.0, 0.0], [-0.2, 0.0, 0.0],	true, [-8, 7, 0],	tex2DArrayMipmapInt, es3fShaderTextureFunctionTests.evalTexture2DArrayGradOffset, es3fShaderTextureFunctionTests.CaseFlags.BOTH),
+				es3fShaderTextureFunctionTests.getGradCaseSpec('usampler2darray', es3fShaderTextureFunctionTests.Function.TEXTUREGRAD, [-1.2, -0.4, -0.5, 0.0], [1.5, 2.3, 3.5, 0.0], [0.0, 0.0, 0.0], [0.0, 0.0, 0.0], [0.0, 0.0, 0.0], [0.0, 0.2, 0.0],	true, [7, -8, 0],	tex2DArrayMipmapUint, es3fShaderTextureFunctionTests.evalTexture2DArrayGradOffset, es3fShaderTextureFunctionTests.CaseFlags.BOTH),
+
+				es3fShaderTextureFunctionTests.getGradCaseSpec('sampler3d_fixed', es3fShaderTextureFunctionTests.Function.TEXTUREGRAD, [-1.2, -1.4, 0.1, 0.0], [1.5, 2.3, 2.3, 0.0], [0.0, 0.0, 0.0], [0.2, 0.0, 0.0], [0.0, 0.0, 0.0], [0.0, 0.0, 0.0],	true, [-8, 7, 3],	tex3DMipmapFixed, es3fShaderTextureFunctionTests.evalTexture3DGradOffset, es3fShaderTextureFunctionTests.CaseFlags.BOTH),
+				es3fShaderTextureFunctionTests.getGradCaseSpec('sampler3d_float', es3fShaderTextureFunctionTests.Function.TEXTUREGRAD, [-1.2, -1.4, 0.1, 0.0], [1.5, 2.3, 2.3, 0.0], [0.0, 0.0, 0.0], [0.0, -0.2, 0.0], [0.0, 0.0, 0.0], [0.0, 0.0, 0.0],	true, [7, 3, -8],	tex3DMipmapFloat, es3fShaderTextureFunctionTests.evalTexture3DGradOffset, es3fShaderTextureFunctionTests.CaseFlags.VERTEX),
+				es3fShaderTextureFunctionTests.getGradCaseSpec('sampler3d_float', es3fShaderTextureFunctionTests.Function.TEXTUREGRAD, [-1.2, -1.4, 0.1, 0.0], [1.5, 2.3, 2.3, 0.0], [0.0, 0.0, 0.0], [0.0, 0.0, 0.2], [0.0, 0.0, 0.0], [0.0, 0.0, 0.0],	true, [3, -8, 7],	tex3DMipmapFloat, es3fShaderTextureFunctionTests.evalTexture3DGradOffset, es3fShaderTextureFunctionTests.CaseFlags.FRAGMENT),
+				es3fShaderTextureFunctionTests.getGradCaseSpec('isampler3d', es3fShaderTextureFunctionTests.Function.TEXTUREGRAD, [-1.2, -1.4, 0.1, 0.0], [1.5, 2.3, 2.3, 0.0], [0.0, 0.0, 0.0], [0.0, 0.0, 0.0], [0.0, 0.0, 0.0], [-0.2, 0.0, 0.0],	true, [-8, 7, 3],	tex3DMipmapInt, es3fShaderTextureFunctionTests.evalTexture3DGradOffset, es3fShaderTextureFunctionTests.CaseFlags.BOTH),
+				es3fShaderTextureFunctionTests.getGradCaseSpec('usampler3d', es3fShaderTextureFunctionTests.Function.TEXTUREGRAD, [-1.2, -1.4, 0.1, 0.0], [1.5, 2.3, 2.3, 0.0], [0.0, 0.0, 0.0], [0.0, 0.0, 0.0], [0.0, 0.0, 0.0], [0.0, 0.2, 0.0],	true, [7, 3, -8],	tex3DMipmapUint, es3fShaderTextureFunctionTests.evalTexture3DGradOffset, es3fShaderTextureFunctionTests.CaseFlags.VERTEX),
+				es3fShaderTextureFunctionTests.getGradCaseSpec('usampler3d', es3fShaderTextureFunctionTests.Function.TEXTUREGRAD, [-1.2, -1.4, 0.1, 0.0], [1.5, 2.3, 2.3, 0.0], [0.0, 0.0, 0.0], [0.0, 0.0, 0.0], [0.0, 0.0, 0.0], [0.0, 0.0, -0.2],	true, [3, -8, 7],	tex3DMipmapUint, es3fShaderTextureFunctionTests.evalTexture3DGradOffset, es3fShaderTextureFunctionTests.CaseFlags.FRAGMENT),
+
+				es3fShaderTextureFunctionTests.getGradCaseSpec('sampler2dshadow', es3fShaderTextureFunctionTests.Function.TEXTUREGRAD, [-0.2, -0.4, 0.0, 0.0], [1.5, 2.3, 1.0, 0.0], [0.0, 0.0, 0.0], [0.2, 0.0, 0.0], [0.0, 0.0, 0.0], [0.0, 0.0, 0.0],	true, [-8, 7, 0],	tex2DMipmapShadow, es3fShaderTextureFunctionTests.evalTexture2DShadowGradOffset, es3fShaderTextureFunctionTests.CaseFlags.VERTEX),
+				es3fShaderTextureFunctionTests.getGradCaseSpec('sampler2dshadow', es3fShaderTextureFunctionTests.Function.TEXTUREGRAD, [-0.2, -0.4, 0.0, 0.0], [1.5, 2.3, 1.0, 0.0], [0.0, 0.0, 0.0], [0.0, 0.2, 0.0], [0.0, 0.0, 0.0], [0.0, 0.0, 0.0],	true, [7, -8, 0],	tex2DMipmapShadow, es3fShaderTextureFunctionTests.evalTexture2DShadowGradOffset, es3fShaderTextureFunctionTests.CaseFlags.FRAGMENT),
+				es3fShaderTextureFunctionTests.getGradCaseSpec('sampler2darrayshadow', es3fShaderTextureFunctionTests.Function.TEXTUREGRAD, [-1.2, -0.4, -0.5, 0.0], [1.5, 2.3, 3.5, 1.0], [0.0, 0.0, 0.0], [0.0, 0.0, 0.0], [0.0, 0.0, 0.0], [0.2, 0.0, 0.0],	true, [-8, 7, 0],	tex2DArrayMipmapShadow, es3fShaderTextureFunctionTests.evalTexture2DArrayShadowGradOffset, es3fShaderTextureFunctionTests.CaseFlags.VERTEX),
+				es3fShaderTextureFunctionTests.getGradCaseSpec('sampler2darrayshadow', es3fShaderTextureFunctionTests.Function.TEXTUREGRAD, [-1.2, -0.4, -0.5, 0.0], [1.5, 2.3, 3.5, 1.0], [0.0, 0.0, 0.0], [0.0, 0.0, 0.0], [0.0, 0.0, 0.0], [0.0, -0.2, 0.0],	true, [7, -8, 0],	tex2DArrayMipmapShadow, es3fShaderTextureFunctionTests.evalTexture2DArrayShadowGradOffset,	es3fShaderTextureFunctionTests.CaseFlags.FRAGMENT)
+			];
+			es3fShaderTextureFunctionTests.createCaseGroup(this, "texturegradoffset", "textureGradOffset() Tests", textureGradOffsetCases);
+
+			// textureProjGrad() cases
+			/** @type {es3fShaderTextureFunctionTests.TexFuncCaseSpec} */ var textureProjGradCases = [
+				es3fShaderTextureFunctionTests.getGradCaseSpec('sampler2d_vec3_fixed', es3fShaderTextureFunctionTests.Function.TEXTUREPROJGRAD3, [-0.3, -0.6, 1.5, 0.0], [2.25, 3.45, 1.5, 0.0], [0.0, 0.0, 0.0], [0.2, 0.0, 0.0], [0.0, 0.0, 0.0], [0.0, 0.0, 0.0],	false, [0, 0, 0],	tex2DMipmapFixed, es3fShaderTextureFunctionTests.evalTexture2DProjGrad3, es3fShaderTextureFunctionTests.CaseFlags.BOTH),
+				es3fShaderTextureFunctionTests.getGradCaseSpec('sampler2d_vec3_float', es3fShaderTextureFunctionTests.Function.TEXTUREPROJGRAD3, [-0.3, -0.6, 1.5, 0.0], [2.25, 3.45, 1.5, 0.0], [0.0, 0.0, 0.0], [0.0, -0.2, 0.0], [0.0, 0.0, 0.0], [0.0, 0.0, 0.0],	false, [0, 0, 0],	tex2DMipmapFloat, es3fShaderTextureFunctionTests.evalTexture2DProjGrad3, es3fShaderTextureFunctionTests.CaseFlags.BOTH),
+				es3fShaderTextureFunctionTests.getGradCaseSpec('isampler2d_vec3', es3fShaderTextureFunctionTests.Function.TEXTUREPROJGRAD3, [-0.3, -0.6, 1.5, 0.0], [2.25, 3.45, 1.5, 0.0], [0.0, 0.0, 0.0], [0.0, 0.0, 0.0], [0.0, 0.0, 0.0], [-0.2, 0.0, 0.0],	false, [0, 0, 0],	tex2DMipmapInt, es3fShaderTextureFunctionTests.evalTexture2DProjGrad3, es3fShaderTextureFunctionTests.CaseFlags.BOTH),
+				es3fShaderTextureFunctionTests.getGradCaseSpec('usampler2d_vec3', es3fShaderTextureFunctionTests.Function.TEXTUREPROJGRAD3, [-0.3, -0.6, 1.5, 0.0], [2.25, 3.45, 1.5, 0.0], [0.0, 0.0, 0.0], [0.0, 0.0, 0.0], [0.0, 0.0, 0.0], [0.0, 0.2, 0.0],	false, [0, 0, 0],	tex2DMipmapUint, es3fShaderTextureFunctionTests.evalTexture2DProjGrad3, es3fShaderTextureFunctionTests.CaseFlags.BOTH),
+
+				es3fShaderTextureFunctionTests.getGradCaseSpec('sampler2d_vec4_fixed', es3fShaderTextureFunctionTests.Function.TEXTUREPROJGRAD, [-0.3, -0.6, 0.0, 1.5], [2.25, 3.45, 0.0, 1.5], [0.0, 0.0, 0.0], [0.2, 0.0, 0.0], [0.0, 0.0, 0.0], [0.0, 0.0, 0.0],	false, [0, 0, 0],	tex2DMipmapFixed, es3fShaderTextureFunctionTests.evalTexture2DProjGrad, es3fShaderTextureFunctionTests.CaseFlags.BOTH),
+				es3fShaderTextureFunctionTests.getGradCaseSpec('sampler2d_vec4_float', es3fShaderTextureFunctionTests.Function.TEXTUREPROJGRAD, [-0.3, -0.6, 0.0, 1.5], [2.25, 3.45, 0.0, 1.5], [0.0, 0.0, 0.0], [0.0, -0.2, 0.0], [0.0, 0.0, 0.0], [0.0, 0.0, 0.0],	false, [0, 0, 0],	tex2DMipmapFloat, es3fShaderTextureFunctionTests.evalTexture2DProjGrad, es3fShaderTextureFunctionTests.CaseFlags.BOTH),
+				es3fShaderTextureFunctionTests.getGradCaseSpec('isampler2d_vec4', es3fShaderTextureFunctionTests.Function.TEXTUREPROJGRAD, [-0.3, -0.6, 0.0, 1.5], [2.25, 3.45, 0.0, 1.5], [0.0, 0.0, 0.0], [0.0, 0.0, 0.0], [0.0, 0.0, 0.0], [-0.2, 0.0, 0.0],	false, [0, 0, 0],	tex2DMipmapInt, es3fShaderTextureFunctionTests.evalTexture2DProjGrad, es3fShaderTextureFunctionTests.CaseFlags.BOTH),
+				es3fShaderTextureFunctionTests.getGradCaseSpec('usampler2d_vec4', es3fShaderTextureFunctionTests.Function.TEXTUREPROJGRAD, [-0.3, -0.6, 0.0, 1.5], [2.25, 3.45, 0.0, 1.5], [0.0, 0.0, 0.0], [0.0, 0.0, 0.0], [0.0, 0.0, 0.0], [0.0, 0.2, 0.0],	false, [0, 0, 0],	tex2DMipmapUint, es3fShaderTextureFunctionTests.evalTexture2DProjGrad, es3fShaderTextureFunctionTests.CaseFlags.BOTH),
+
+				es3fShaderTextureFunctionTests.getGradCaseSpec('sampler3d_fixed', es3fShaderTextureFunctionTests.Function.TEXTUREPROJGRAD, [0.9, 1.05, -0.08, -0.75], [-1.13, -1.7, -1.7, -0.75], [0.0, 0.0, 0.0], [0.2, 0.0, 0.0], [0.0, 0.0, 0.0], [0.0, 0.0, 0.0],	false, [0, 0, 0],	tex3DMipmapFixed, es3fShaderTextureFunctionTests.evalTexture3DProjGrad, es3fShaderTextureFunctionTests.CaseFlags.BOTH),
+				es3fShaderTextureFunctionTests.getGradCaseSpec('sampler3d_float', es3fShaderTextureFunctionTests.Function.TEXTUREPROJGRAD, [0.9, 1.05, -0.08, -0.75], [-1.13, -1.7, -1.7, -0.75], [0.0, 0.0, 0.0], [0.0, -0.2, 0.0], [0.0, 0.0, 0.0], [0.0, 0.0, 0.0],	false, [0, 0, 0],	tex3DMipmapFloat, es3fShaderTextureFunctionTests.evalTexture3DProjGrad, es3fShaderTextureFunctionTests.CaseFlags.VERTEX),
+				es3fShaderTextureFunctionTests.getGradCaseSpec('sampler3d_float', es3fShaderTextureFunctionTests.Function.TEXTUREPROJGRAD, [0.9, 1.05, -0.08, -0.75], [-1.13, -1.7, -1.7, -0.75], [0.0, 0.0, 0.0], [0.0, 0.0, 0.2], [0.0, 0.0, 0.0], [0.0, 0.0, 0.0],	false, [0, 0, 0],	tex3DMipmapFloat, es3fShaderTextureFunctionTests.evalTexture3DProjGrad, es3fShaderTextureFunctionTests.CaseFlags.FRAGMENT),
+				es3fShaderTextureFunctionTests.getGradCaseSpec('isampler3d', es3fShaderTextureFunctionTests.Function.TEXTUREPROJGRAD, [0.9, 1.05, -0.08, -0.75], [-1.13, -1.7, -1.7, -0.75], [0.0, 0.0, 0.0], [0.0, 0.0, 0.0], [0.0, 0.0, 0.0], [-0.2, 0.0, 0.0],	false, [0, 0, 0],	tex3DMipmapInt, es3fShaderTextureFunctionTests.evalTexture3DProjGrad, es3fShaderTextureFunctionTests.CaseFlags.BOTH),
+				es3fShaderTextureFunctionTests.getGradCaseSpec('usampler3d', es3fShaderTextureFunctionTests.Function.TEXTUREPROJGRAD, [0.9, 1.05, -0.08, -0.75], [-1.13, -1.7, -1.7, -0.75], [0.0, 0.0, 0.0], [0.0, 0.0, 0.0], [0.0, 0.0, 0.0], [0.0, 0.2, 0.0],	false, [0, 0, 0],	tex3DMipmapUint, es3fShaderTextureFunctionTests.evalTexture3DProjGrad, es3fShaderTextureFunctionTests.CaseFlags.VERTEX),
+				es3fShaderTextureFunctionTests.getGradCaseSpec('usampler3d', es3fShaderTextureFunctionTests.Function.TEXTUREPROJGRAD, [0.9, 1.05, -0.08, -0.75], [-1.13, -1.7, -1.7, -0.75], [0.0, 0.0, 0.0], [0.0, 0.0, 0.0], [0.0, 0.0, 0.0], [0.0, 0.0, -0.2],	false, [0, 0, 0],	tex3DMipmapUint, es3fShaderTextureFunctionTests.evalTexture3DProjGrad, es3fShaderTextureFunctionTests.CaseFlags.FRAGMENT),
+
+				es3fShaderTextureFunctionTests.getGradCaseSpec('sampler2dshadow', es3fShaderTextureFunctionTests.Function.TEXTUREPROJGRAD, [0.2, 0.6, 0.0, -1.5], [-2.25, -3.45, -1.5, -1.5], [0.0, 0.0, 0.0], [0.2, 0.0, 0.0], [0.0, 0.0, 0.0], [0.0, 0.0, 0.0],	false, [0, 0, 0],	tex2DMipmapShadow, es3fShaderTextureFunctionTests.evalTexture2DShadowProjGrad, es3fShaderTextureFunctionTests.CaseFlags.VERTEX),
+				es3fShaderTextureFunctionTests.getGradCaseSpec('sampler2dshadow', es3fShaderTextureFunctionTests.Function.TEXTUREPROJGRAD, [0.2, 0.6, 0.0, -1.5], [-2.25, -3.45, -1.5, -1.5], [0.0, 0.0, 0.0], [0.0, 0.0, 0.0], [0.0, 0.0, 0.0], [0.0, -0.2, 0.0],	false, [0, 0, 0],	tex2DMipmapShadow, es3fShaderTextureFunctionTests.evalTexture2DShadowProjGrad,	es3fShaderTextureFunctionTests.CaseFlags.FRAGMENT)
+			];
+			es3fShaderTextureFunctionTests.createCaseGroup(this, "textureprojgrad", "textureProjGrad() Tests", textureProjGradCases);
+
+			// textureProjGradOffset() cases
+			/** @type {es3fShaderTextureFunctionTests.TexFuncCaseSpec} */ var textureProjGradOffsetCases = [
+				es3fShaderTextureFunctionTests.getGradCaseSpec('sampler2d_vec3_fixed', es3fShaderTextureFunctionTests.Function.TEXTUREPROJGRAD3, [-0.3, -0.6, 1.5, 0.0], [2.25, 3.45, 1.5, 0.0], [0.0, 0.0, 0.0], [0.2, 0.0, 0.0], [0.0, 0.0, 0.0], [0.0, 0.0, 0.0],	true, [-8, 7, 0],	tex2DMipmapFixed, es3fShaderTextureFunctionTests.evalTexture2DProjGrad3Offset, es3fShaderTextureFunctionTests.CaseFlags.BOTH),
+				es3fShaderTextureFunctionTests.getGradCaseSpec('sampler2d_vec3_float', es3fShaderTextureFunctionTests.Function.TEXTUREPROJGRAD3, [-0.3, -0.6, 1.5, 0.0], [2.25, 3.45, 1.5, 0.0], [0.0, 0.0, 0.0], [0.0, -0.2, 0.0], [0.0, 0.0, 0.0], [0.0, 0.0, 0.0],	true, [7, -8, 0],	tex2DMipmapFloat, es3fShaderTextureFunctionTests.evalTexture2DProjGrad3Offset, es3fShaderTextureFunctionTests.CaseFlags.BOTH),
+				es3fShaderTextureFunctionTests.getGradCaseSpec('isampler2d_vec3', es3fShaderTextureFunctionTests.Function.TEXTUREPROJGRAD3, [-0.3, -0.6, 1.5, 0.0], [2.25, 3.45, 1.5, 0.0], [0.0, 0.0, 0.0], [0.0, 0.0, 0.0], [0.0, 0.0, 0.0], [-0.2, 0.0, 0.0],	true, [-8, 7, 0],	tex2DMipmapInt, es3fShaderTextureFunctionTests.evalTexture2DProjGrad3Offset, es3fShaderTextureFunctionTests.CaseFlags.BOTH),
+				es3fShaderTextureFunctionTests.getGradCaseSpec('usampler2d_vec3', es3fShaderTextureFunctionTests.Function.TEXTUREPROJGRAD3, [-0.3, -0.6, 1.5, 0.0], [2.25, 3.45, 1.5, 0.0], [0.0, 0.0, 0.0], [0.0, 0.0, 0.0], [0.0, 0.0, 0.0], [0.0, 0.2, 0.0],	true, [7, -8, 0],	tex2DMipmapUint, es3fShaderTextureFunctionTests.evalTexture2DProjGrad3Offset, es3fShaderTextureFunctionTests.CaseFlags.BOTH),
+
+				es3fShaderTextureFunctionTests.getGradCaseSpec('sampler2d_vec4_fixed', es3fShaderTextureFunctionTests.Function.TEXTUREPROJGRAD, [-0.3, -0.6, 0.0, 1.5], [2.25, 3.45, 0.0, 1.5], [0.0, 0.0, 0.0], [0.2, 0.0, 0.0], [0.0, 0.0, 0.0], [0.0, 0.0, 0.0],	true, [-8, 7, 0],	tex2DMipmapFixed, es3fShaderTextureFunctionTests.evalTexture2DProjGradOffset, es3fShaderTextureFunctionTests.CaseFlags.BOTH),
+				es3fShaderTextureFunctionTests.getGradCaseSpec('sampler2d_vec4_float', es3fShaderTextureFunctionTests.Function.TEXTUREPROJGRAD, [-0.3, -0.6, 0.0, 1.5], [2.25, 3.45, 0.0, 1.5], [0.0, 0.0, 0.0], [0.0, -0.2, 0.0], [0.0, 0.0, 0.0], [0.0, 0.0, 0.0],	true, [7, -8, 0],	tex2DMipmapFloat, es3fShaderTextureFunctionTests.evalTexture2DProjGradOffset, es3fShaderTextureFunctionTests.CaseFlags.BOTH),
+				es3fShaderTextureFunctionTests.getGradCaseSpec('isampler2d_vec4', es3fShaderTextureFunctionTests.Function.TEXTUREPROJGRAD, [-0.3, -0.6, 0.0, 1.5], [2.25, 3.45, 0.0, 1.5], [0.0, 0.0, 0.0], [0.0, 0.0, 0.0], [0.0, 0.0, 0.0], [-0.2, 0.0, 0.0],	true, [-8, 7, 0],	tex2DMipmapInt, es3fShaderTextureFunctionTests.evalTexture2DProjGradOffset, es3fShaderTextureFunctionTests.CaseFlags.BOTH),
+				es3fShaderTextureFunctionTests.getGradCaseSpec('usampler2d_vec4', es3fShaderTextureFunctionTests.Function.TEXTUREPROJGRAD, [-0.3, -0.6, 0.0, 1.5], [2.25, 3.45, 0.0, 1.5], [0.0, 0.0, 0.0], [0.0, 0.0, 0.0], [0.0, 0.0, 0.0], [0.0, 0.2, 0.0],	true, [7, -8, 0],	tex2DMipmapUint, es3fShaderTextureFunctionTests.evalTexture2DProjGradOffset, es3fShaderTextureFunctionTests.CaseFlags.BOTH),
+
+				es3fShaderTextureFunctionTests.getGradCaseSpec('sampler3d_fixed', es3fShaderTextureFunctionTests.Function.TEXTUREPROJGRAD, [0.9, 1.05, -0.08, -0.75], [-1.13, -1.7, -1.7, -0.75], [0.0, 0.0, 0.0], [0.2, 0.0, 0.0], [0.0, 0.0, 0.0], [0.0, 0.0, 0.0],	true, [-8, 7, 3],	tex3DMipmapFixed, es3fShaderTextureFunctionTests.evalTexture3DProjGradOffset, es3fShaderTextureFunctionTests.CaseFlags.BOTH),
+				es3fShaderTextureFunctionTests.getGradCaseSpec('sampler3d_float', es3fShaderTextureFunctionTests.Function.TEXTUREPROJGRAD, [0.9, 1.05, -0.08, -0.75], [-1.13, -1.7, -1.7, -0.75], [0.0, 0.0, 0.0], [0.0, -0.2, 0.0], [0.0, 0.0, 0.0], [0.0, 0.0, 0.0],	true, [7, 3, -8],	tex3DMipmapFloat, es3fShaderTextureFunctionTests.evalTexture3DProjGradOffset, es3fShaderTextureFunctionTests.CaseFlags.VERTEX),
+				es3fShaderTextureFunctionTests.getGradCaseSpec('sampler3d_float', es3fShaderTextureFunctionTests.Function.TEXTUREPROJGRAD, [0.9, 1.05, -0.08, -0.75], [-1.13, -1.7, -1.7, -0.75], [0.0, 0.0, 0.0], [0.0, 0.0, 0.2], [0.0, 0.0, 0.0], [0.0, 0.0, 0.0],	true, [3, -8, 7],	tex3DMipmapFloat, es3fShaderTextureFunctionTests.evalTexture3DProjGradOffset, es3fShaderTextureFunctionTests.CaseFlags.FRAGMENT),
+				es3fShaderTextureFunctionTests.getGradCaseSpec('isampler3d', es3fShaderTextureFunctionTests.Function.TEXTUREPROJGRAD, [0.9, 1.05, -0.08, -0.75], [-1.13, -1.7, -1.7, -0.75], [0.0, 0.0, 0.0], [0.0, 0.0, 0.0], [0.0, 0.0, 0.0], [-0.2, 0.0, 0.0],	true, [-8, 7, 3],	tex3DMipmapInt, es3fShaderTextureFunctionTests.evalTexture3DProjGradOffset, es3fShaderTextureFunctionTests.CaseFlags.BOTH),
+				es3fShaderTextureFunctionTests.getGradCaseSpec('usampler3d', es3fShaderTextureFunctionTests.Function.TEXTUREPROJGRAD, [0.9, 1.05, -0.08, -0.75], [-1.13, -1.7, -1.7, -0.75], [0.0, 0.0, 0.0], [0.0, 0.0, 0.0], [0.0, 0.0, 0.0], [0.0, 0.2, 0.0],	true, [7, 3, -8],	tex3DMipmapUint, es3fShaderTextureFunctionTests.evalTexture3DProjGradOffset, es3fShaderTextureFunctionTests.CaseFlags.VERTEX),
+				es3fShaderTextureFunctionTests.getGradCaseSpec('usampler3d', es3fShaderTextureFunctionTests.Function.TEXTUREPROJGRAD, [0.9, 1.05, -0.08, -0.75], [-1.13, -1.7, -1.7, -0.75], [0.0, 0.0, 0.0], [0.0, 0.0, 0.0], [0.0, 0.0, 0.0], [0.0, 0.0, -0.2],	true, [3, -8, 7],	tex3DMipmapUint, es3fShaderTextureFunctionTests.evalTexture3DProjGradOffset, es3fShaderTextureFunctionTests.CaseFlags.FRAGMENT),
+
+				es3fShaderTextureFunctionTests.getGradCaseSpec('sampler2dshadow', es3fShaderTextureFunctionTests.Function.TEXTUREPROJGRAD, [0.2, 0.6, 0.0, -1.5], [-2.25, -3.45, -1.5, -1.5], [0.0, 0.0, 0.0], [0.2, 0.0, 0.0], [0.0, 0.0, 0.0], [0.0, 0.0, 0.0],	true, [-8, 7, 0],	tex2DMipmapShadow, es3fShaderTextureFunctionTests.evalTexture2DShadowProjGradOffset, es3fShaderTextureFunctionTests.CaseFlags.VERTEX),
+				es3fShaderTextureFunctionTests.getGradCaseSpec('sampler2dshadow', es3fShaderTextureFunctionTests.Function.TEXTUREPROJGRAD, [0.2, 0.6, 0.0, -1.5], [-2.25, -3.45, -1.5, -1.5], [0.0, 0.0, 0.0], [0.0, 0.0, 0.0], [0.0, 0.0, 0.0], [0.0, -0.2, 0.0],	true, [7, -8, 0],	tex2DMipmapShadow, es3fShaderTextureFunctionTests.evalTexture2DShadowProjGradOffset,	es3fShaderTextureFunctionTests.CaseFlags.FRAGMENT)
+			];
+			es3fShaderTextureFunctionTests.createCaseGroup(this, "textureprojgradoffset", "textureProjGradOffset() Tests", textureProjGradOffsetCases);
+
+			// texelFetch() cases
+			// \note Level is constant across quad
+			/** @type {es3fShaderTextureFunctionTests.TexFuncCaseSpec} */ var texelFetchCases = [
+				es3fShaderTextureFunctionTests.getCaseSpec('sampler2d_fixed', es3fShaderTextureFunctionTests.Function.TEXELFETCH, [0.0, 0.0, 0.0, 0.0], [255.9, 255.9, 0.0, 0.0],	false,	0.0,	0.0,	false, [0, 0, 0],	tex2DTexelFetchFixed, es3fShaderTextureFunctionTests.evalTexelFetch2D, es3fShaderTextureFunctionTests.CaseFlags.BOTH),
+				es3fShaderTextureFunctionTests.getCaseSpec('sampler2d_float', es3fShaderTextureFunctionTests.Function.TEXELFETCH, [0.0, 0.0, 0.0, 0.0], [127.9, 127.9, 0.0, 0.0],	false,	1.0,	1.0,	false, [0, 0, 0],	tex2DTexelFetchFloat, es3fShaderTextureFunctionTests.evalTexelFetch2D, es3fShaderTextureFunctionTests.CaseFlags.BOTH),
+				es3fShaderTextureFunctionTests.getCaseSpec('isampler2d', es3fShaderTextureFunctionTests.Function.TEXELFETCH, [0.0, 0.0, 0.0, 0.0], [63.9, 63.9, 0.0, 0.0],	false,	2.0,	2.0,	false, [0, 0, 0],	tex2DTexelFetchInt, es3fShaderTextureFunctionTests.evalTexelFetch2D, es3fShaderTextureFunctionTests.CaseFlags.BOTH),
+				es3fShaderTextureFunctionTests.getCaseSpec('usampler2d', es3fShaderTextureFunctionTests.Function.TEXELFETCH, [0.0, 0.0, 0.0, 0.0], [15.9, 15.9, 0.0, 0.0],	false,	4.0,	4.0,	false, [0, 0, 0],	tex2DTexelFetchUint, es3fShaderTextureFunctionTests.evalTexelFetch2D, es3fShaderTextureFunctionTests.CaseFlags.BOTH),
+
+				es3fShaderTextureFunctionTests.getCaseSpec('sampler2darray_fixed', es3fShaderTextureFunctionTests.Function.TEXELFETCH, [0.0, 0.0, 0.0, 0.0], [127.9, 127.9, 3.9, 0.0],	false,	0.0,	0.0,	false, [0, 0, 0],	tex2DArrayTexelFetchFixed, es3fShaderTextureFunctionTests.evalTexelFetch2DArray, es3fShaderTextureFunctionTests.CaseFlags.BOTH),
+				es3fShaderTextureFunctionTests.getCaseSpec('sampler2darray_float', es3fShaderTextureFunctionTests.Function.TEXELFETCH, [0.0, 0.0, 0.0, 0.0], [63.9, 63.9, 3.9, 0.0],	false,	1.0,	1.0,	false, [0, 0, 0],	tex2DArrayTexelFetchFloat, es3fShaderTextureFunctionTests.evalTexelFetch2DArray, es3fShaderTextureFunctionTests.CaseFlags.BOTH),
+				es3fShaderTextureFunctionTests.getCaseSpec('isampler2darray', es3fShaderTextureFunctionTests.Function.TEXELFETCH, [0.0, 0.0, 0.0, 0.0], [31.9, 31.9, 3.9, 0.0],	false,	2.0,	2.0,	false, [0, 0, 0],	tex2DArrayTexelFetchInt, es3fShaderTextureFunctionTests.evalTexelFetch2DArray, es3fShaderTextureFunctionTests.CaseFlags.BOTH),
+				es3fShaderTextureFunctionTests.getCaseSpec('usampler2darray', es3fShaderTextureFunctionTests.Function.TEXELFETCH, [0.0, 0.0, 0.0, 0.0], [15.9, 15.9, 3.9, 0.0],	false,	3.0,	3.0,	false, [0, 0, 0],	tex2DArrayTexelFetchUint, es3fShaderTextureFunctionTests.evalTexelFetch2DArray, es3fShaderTextureFunctionTests.CaseFlags.BOTH),
+
+				es3fShaderTextureFunctionTests.getCaseSpec('sampler3d_fixed', es3fShaderTextureFunctionTests.Function.TEXELFETCH, [0.0, 0.0, 0.0, 0.0], [63.9, 31.9, 31.9, 0.0],	false,	0.0,	0.0,	false, [0, 0, 0],	tex3DTexelFetchFixed, es3fShaderTextureFunctionTests.evalTexelFetch3D, es3fShaderTextureFunctionTests.CaseFlags.BOTH),
+				es3fShaderTextureFunctionTests.getCaseSpec('sampler3d_float', es3fShaderTextureFunctionTests.Function.TEXELFETCH, [0.0, 0.0, 0.0, 0.0], [31.9, 15.9, 15.9, 0.0],	false,	1.0,	1.0,	false, [0, 0, 0],	tex3DTexelFetchFloat, es3fShaderTextureFunctionTests.evalTexelFetch3D, es3fShaderTextureFunctionTests.CaseFlags.BOTH),
+				es3fShaderTextureFunctionTests.getCaseSpec('isampler3d', es3fShaderTextureFunctionTests.Function.TEXELFETCH, [0.0, 0.0, 0.0, 0.0], [15.9,  7.9,  7.9, 0.0],	false,	2.0,	2.0,	false, [0, 0, 0],	tex3DTexelFetchInt, es3fShaderTextureFunctionTests.evalTexelFetch3D, es3fShaderTextureFunctionTests.CaseFlags.BOTH),
+				es3fShaderTextureFunctionTests.getCaseSpec('usampler3d', es3fShaderTextureFunctionTests.Function.TEXELFETCH, [0.0, 0.0, 0.0, 0.0], [63.9, 31.9, 31.9, 0.0],	false,	0.0,	0.0,	false, [0, 0, 0],	tex3DTexelFetchUint, es3fShaderTextureFunctionTests.evalTexelFetch3D,		es3fShaderTextureFunctionTests.CaseFlags.BOTH)
+			];
+			es3fShaderTextureFunctionTests.createCaseGroup(this, "texelfetch", "texelFetch() Tests", texelFetchCases);
+
+			// texelFetchOffset() cases
+			/** @type {es3fShaderTextureFunctionTests.TexFuncCaseSpec} */ var texelFetchOffsetCases = [
+				es3fShaderTextureFunctionTests.getCaseSpec('sampler2d_fixed', es3fShaderTextureFunctionTests.Function.TEXELFETCH, [8.0, -7.0, 0.0, 0.0], [263.9, 248.9, 0.0, 0.0],	false,	0.0,	0.0,	true, [-8, 7, 0],	tex2DTexelFetchFixed, es3fShaderTextureFunctionTests.evalTexelFetch2D, es3fShaderTextureFunctionTests.CaseFlags.BOTH),
+				es3fShaderTextureFunctionTests.getCaseSpec('sampler2d_float', es3fShaderTextureFunctionTests.Function.TEXELFETCH, [-7.0, 8.0, 0.0, 0.0], [120.9, 135.9, 0.0, 0.0],	false,	1.0,	1.0,	true, [7, -8, 0],	tex2DTexelFetchFloat, es3fShaderTextureFunctionTests.evalTexelFetch2D, es3fShaderTextureFunctionTests.CaseFlags.BOTH),
+				es3fShaderTextureFunctionTests.getCaseSpec('isampler2d', es3fShaderTextureFunctionTests.Function.TEXELFETCH, [8.0, -7.0, 0.0, 0.0], [71.9, 56.9, 0.0, 0.0],	false,	2.0,	2.0,	true, [-8, 7, 0],	tex2DTexelFetchInt, es3fShaderTextureFunctionTests.evalTexelFetch2D, es3fShaderTextureFunctionTests.CaseFlags.BOTH),
+				es3fShaderTextureFunctionTests.getCaseSpec('usampler2d', es3fShaderTextureFunctionTests.Function.TEXELFETCH, [-7.0, 8.0, 0.0, 0.0], [8.9, 23.9, 0.0, 0.0],	false,	4.0,	4.0,	true, [7, -8, 0],	tex2DTexelFetchUint, es3fShaderTextureFunctionTests.evalTexelFetch2D, es3fShaderTextureFunctionTests.CaseFlags.BOTH),
+
+				es3fShaderTextureFunctionTests.getCaseSpec('sampler2darray_fixed', es3fShaderTextureFunctionTests.Function.TEXELFETCH, [8.0, -7.0, 0.0, 0.0], [135.9, 120.9, 3.9, 0.0],	false,	0.0,	0.0,	true, [-8, 7, 0],	tex2DArrayTexelFetchFixed, es3fShaderTextureFunctionTests.evalTexelFetch2DArray, es3fShaderTextureFunctionTests.CaseFlags.BOTH),
+				es3fShaderTextureFunctionTests.getCaseSpec('sampler2darray_float', es3fShaderTextureFunctionTests.Function.TEXELFETCH, [-7.0, 8.0, 0.0, 0.0], [56.9, 71.9, 3.9, 0.0],	false,	1.0,	1.0,	true, [7, -8, 0],	tex2DArrayTexelFetchFloat, es3fShaderTextureFunctionTests.evalTexelFetch2DArray, es3fShaderTextureFunctionTests.CaseFlags.BOTH),
+				es3fShaderTextureFunctionTests.getCaseSpec('isampler2darray', es3fShaderTextureFunctionTests.Function.TEXELFETCH, [8.0, -7.0, 0.0, 0.0], [39.9, 24.9, 3.9, 0.0],	false,	2.0,	2.0,	true, [-8, 7, 0],	tex2DArrayTexelFetchInt, es3fShaderTextureFunctionTests.evalTexelFetch2DArray, es3fShaderTextureFunctionTests.CaseFlags.BOTH),
+				es3fShaderTextureFunctionTests.getCaseSpec('usampler2darray', es3fShaderTextureFunctionTests.Function.TEXELFETCH, [-7.0, 8.0, 0.0, 0.0], [8.9, 23.9, 3.9, 0.0],	false,	3.0,	3.0,	true, [7, -8, 0],	tex2DArrayTexelFetchUint, es3fShaderTextureFunctionTests.evalTexelFetch2DArray, es3fShaderTextureFunctionTests.CaseFlags.BOTH),
+
+				es3fShaderTextureFunctionTests.getCaseSpec('sampler3d_fixed', es3fShaderTextureFunctionTests.Function.TEXELFETCH, [8.0, -7.0, -3.0, 0.0], [71.9, 24.9, 28.9, 0.0],	false,	0.0,	0.0,	true, [-8, 7, 3],	tex3DTexelFetchFixed, es3fShaderTextureFunctionTests.evalTexelFetch3D, es3fShaderTextureFunctionTests.CaseFlags.BOTH),
+				es3fShaderTextureFunctionTests.getCaseSpec('sampler3d_float', es3fShaderTextureFunctionTests.Function.TEXELFETCH, [-7.0, -3.0, 8.0, 0.0], [24.9, 12.9, 23.9, 0.0],	false,	1.0,	1.0,	true, [7, 3, -8],	tex3DTexelFetchFloat, es3fShaderTextureFunctionTests.evalTexelFetch3D, es3fShaderTextureFunctionTests.CaseFlags.BOTH),
+				es3fShaderTextureFunctionTests.getCaseSpec('isampler3d', es3fShaderTextureFunctionTests.Function.TEXELFETCH, [-3.0, 8.0, -7.0, 0.0], [12.9, 15.9,  0.9, 0.0],	false,	2.0,	2.0,	true, [3, -8, 7],	tex3DTexelFetchInt, es3fShaderTextureFunctionTests.evalTexelFetch3D, es3fShaderTextureFunctionTests.CaseFlags.BOTH),
+				es3fShaderTextureFunctionTests.getCaseSpec('usampler3d', es3fShaderTextureFunctionTests.Function.TEXELFETCH, [8.0, -7.0, -3.0, 0.0], [71.9, 24.9, 28.9, 0.0],	false,	0.0,	0.0,	true, [-8, 7, 3],	tex3DTexelFetchUint, es3fShaderTextureFunctionTests.evalTexelFetch3D,		es3fShaderTextureFunctionTests.CaseFlags.BOTH)
+			];
+			es3fShaderTextureFunctionTests.createCaseGroup(this, "texelfetchoffset", "texelFetchOffset() Tests", texelFetchOffsetCases);
+
+			// textureSize() cases
+			/**
+			 * @struct
+			 * @constructor
+			 * @param  {string} name
+			 * @param  {string} samplerName
+			 * @param  {es3fShaderTextureFunctionTests.TextureSpec} textureSpec
+			 */
+			var TextureSizeCaseSpec = function(name, samplerName, textureSpec) {
+				/** @type {string} */ var name = name;
+				/** @type {string} */ var amplerName = amplerName;
+				/** @type {es3fShaderTextureFunctionTests.TextureSpec} */ var textureSpec = textureSpec;
+			};
+
+			/** @type {Array<TextureSizeCaseSpec>} */ var  textureSizeCases = [
+				new TextureSizeCaseSpec("sampler2d_fixed", "sampler2D", tex2DFixed),
+				new TextureSizeCaseSpec("sampler2d_float", "sampler2D", tex2DFloat),
+				new TextureSizeCaseSpec("isampler2d", "isampler2D", tex2DInt),
+				new TextureSizeCaseSpec("usampler2d", "usampler2D", tex2DUint),
+				new TextureSizeCaseSpec("sampler2dshadow", "sampler2DShadow", tex2DShadow),
+				new TextureSizeCaseSpec("sampler3d_fixed", "sampler3D", tex3DFixed),
+				new TextureSizeCaseSpec("sampler3d_float", "sampler3D", tex3DFloat),
+				new TextureSizeCaseSpec("isampler3d", "isampler3D", tex3DInt),
+				new TextureSizeCaseSpec("usampler3d", "usampler3D", tex3DUint),
+				new TextureSizeCaseSpec("samplercube_fixed", "samplerCube", texCubeFixed),
+				new TextureSizeCaseSpec("samplercube_float", "samplerCube", texCubeFloat),
+				new TextureSizeCaseSpec("isamplercube", "isamplerCube", texCubeInt),
+				new TextureSizeCaseSpec("usamplercube", "usamplerCube", texCubeUint),
+				new TextureSizeCaseSpec("samplercubeshadow", "samplerCubeShadow", texCubeShadow),
+				new TextureSizeCaseSpec("sampler2darray_fixed", "sampler2DArray", tex2DArrayFixed),
+				new TextureSizeCaseSpec("sampler2darray_float", "sampler2DArray", tex2DArrayFloat),
+				new TextureSizeCaseSpec("isampler2darray", "isampler2DArray", tex2DArrayInt),
+				new TextureSizeCaseSpec("usampler2darray", "usampler2DArray", tex2DArrayUint),
+				new TextureSizeCaseSpec("sampler2darrayshadow", "sampler2DArrayShadow", tex2DArrayShadow)
+			];
+
+			/** @type {tcuTestCase.DeqpTest} */ var group = tcuTestCase.newTest("texturesize", "textureSize() Tests");
+			testGroup.addChild(group);
+
+			for (var ndx = 0; ndx < textureSizeCases.length; ++ndx) {
+				group.addChild(new es3fShaderTextureFunctionTests.TextureSizeCase(textureSizeCases[ndx].name + "_vertex",  "", textureSizeCases[ndx].samplerName, textureSizeCases[ndx].textureSpec, true));
+				group.addChild(new es3fShaderTextureFunctionTests.TextureSizeCase(textureSizeCases[ndx].name + "_fragment", "", textureSizeCases[ndx].samplerName, textureSizeCases[ndx].textureSpec, false));
+			}
+
+			// Negative cases.
+			// gls::ShaderLibrary library(m_testCtx, m_context.getRenderContext(), m_context.getContextInfo());
+			// std::vector<tcu::TestNode*> negativeCases = library.loadShaderFile("shaders/invalid_texture_functions.test");
+			//
+			// tcu::TestCaseGroup* group = new tcu::TestCaseGroup(m_testCtx, "invalid", "Invalid texture function usage", negativeCases);
+			// addChild(group);
 
     };
 
