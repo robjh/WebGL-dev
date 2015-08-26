@@ -373,14 +373,20 @@ tcuFloat.newDeFloatFromParameters = function(jsnumber, description) {
  * Returns the raw binary representation value of the tcuFloat.deFloat
  * @return {number}
  */
-tcuFloat.deFloat.prototype.bits = function() {return deMath.arrayToNumber(this.array);};
+tcuFloat.deFloat.prototype.bits = function() {
+    if (typeof this.bitValue === 'undefined')
+        this.bitValue = deMath.arrayToNumber(this.array);
+    return this.bitValue;
+};
 
 /**
  * Returns the raw binary sign bit
  * @return {number}
  */
 tcuFloat.deFloat.prototype.signBit = function() {
-    return deMath.getBitRange(this.array, this.description.totalBitSize - 1, this.description.totalBitSize);
+    if (typeof this.signValue === 'undefined')
+        this.signValue = deMath.getBitRange(this.array, this.description.totalBitSize - 1, this.description.totalBitSize);
+    return this.signValue;
 };
 
 /**
@@ -388,7 +394,9 @@ tcuFloat.deFloat.prototype.signBit = function() {
  * @return {number}
  */
 tcuFloat.deFloat.prototype.exponentBits = function() {
-    return deMath.getBitRange(this.array, this.description.MantissaBits, this.description.MantissaBits + this.description.ExponentBits);
+    if (typeof this.expValue === 'undefined')
+        this.expValue = deMath.getBitRange(this.array, this.description.MantissaBits, this.description.MantissaBits + this.description.ExponentBits);
+    return this.expValue;
 };
 
 /**
@@ -396,7 +404,9 @@ tcuFloat.deFloat.prototype.exponentBits = function() {
  * @return {number}
  */
 tcuFloat.deFloat.prototype.mantissaBits = function() {
-    return deMath.getBitRange(this.array, 0, this.description.MantissaBits);
+    if (typeof this.mantissaValue === 'undefined')
+        this.mantissaValue = deMath.getBitRange(this.array, 0, this.description.MantissaBits);
+    return this.mantissaValue;
 };
 
 /**
