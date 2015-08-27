@@ -367,18 +367,50 @@ deMath.rint = function(a) {
     return floorVal + (roundUp ? 1 : 0);
 };
 
-// Round number to int by dropping fractional part
-deMath.intCast = function(a) {
-    if (a >= 0)
-        return Math.floor(a);
-    return Math.ceil(a);
+/**
+ * wrap the number, so that it fits in the range [minValue, maxValue]
+ * @param {number} v
+ * @param {number} minValue
+ * @param {number} maxValue
+ * @return {number}
+ */
+deMath.wrap = function(v, minValue, maxValue) {
+    var range = maxValue - minValue + 1;
+
+    if (v < minValue) {
+        v += range * (Math.floor((minValue - v) / range) + 1);
+    }
+    return minValue + Math.floor((v - minValue) % range);
 };
 
-// Round number to uint32 by dropping fractional part
-deMath.uintCast = function(a) {
+/*
+ * Round number to int by dropping fractional part
+ * it is equivalent of GLSL int() constructor
+ * @param {number} a
+ * @return {number}
+ */
+deMath.intCast = function(a) {
+    var v;
     if (a >= 0)
-        return Math.floor(a);
-    return Math.floor(0xFFFFFFFF + a);
+        v = Math.floor(a);
+    else
+        v = Math.ceil(a);
+    return deMath.wrap(v, -0x80000000, 0x7FFFFFFF);
+};
+
+/*
+ * Round number to uint by dropping fractional part
+ * it is equivalent of GLSL uint() constructor
+ * @param {number} a
+ * @return {number}
+ */
+deMath.uintCast = function(a) {
+    var v;
+    if (a >= 0)
+        v = Math.floor(a);
+    else
+        v = Math.ceil(a);
+    return deMath.wrap(v, 0, 0xFFFFFFFF);
 };
 
 /**
