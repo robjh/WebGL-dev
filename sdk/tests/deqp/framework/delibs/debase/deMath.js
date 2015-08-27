@@ -600,6 +600,13 @@ deMath.binaryNot = function(value) {
  * @return {number}
  */
 deMath.shiftLeft = function(value, steps) {
+    //quick path
+    if (steps < 31) {
+        var v = value * (1 << steps);
+        if (deMath.deInRange32(v, -0x80000000, 0x7FFFFFFF))
+            return v;
+    }
+
     if (steps == 0)
         return value;
     else if (steps < 32) {
