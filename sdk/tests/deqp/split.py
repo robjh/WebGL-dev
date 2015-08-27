@@ -25,9 +25,8 @@
 
 # Author: Mobica LTD
 
+import math
 import sys
-import re
-import os
 
 def read_file(filename):
     with open(filename, 'r') as input:
@@ -45,9 +44,12 @@ def add_range(contents, start, end = float('inf')):
     return modified
 
 def write_file(template, index, contents):
-    filename = template.replace('.html', str(index) + '.html')
+    filename = template.replace('.html', index + '.html')
     with open(filename, 'w') as output:
         output.write(contents)
+
+def get_suffix(x, length):
+    return ('{0:0>' + str(length) + '}').format(x)
 
 def main(argv):
     if len(argv) < 2:
@@ -59,17 +61,22 @@ def main(argv):
     if len(argv) == 3:
         step = int(argv[2])
     contents = read_file(template)
+
+    #figure out file suffix
+    num_length = int(math.log(range_max, 10)) + 1;
+    print num_length
+
     for start in range(0, range_max, step):
         end  = start + step
         if end >= range_max:
             end = float('inf');
         current = add_range(contents, start, end)
-        write_file(template, start, current)
+        write_file(template, get_suffix(start, num_length), current)
 
     #the last entry
     if end != float('inf'):
         current = add_range(contents, range_max)
-        write_file(template, range_max, current)
+        write_file(template, get_suffix(range_max, num_length), current)
 
 if __name__ == '__main__':
     main(sys.argv[1:])
