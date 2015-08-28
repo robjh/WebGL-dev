@@ -243,6 +243,23 @@ deMath.subtract = function(a, b) {
 };
 
 /**
+ * Subtract vector and scalar, element by element
+ * @param {goog.NumberArray} a
+ * @param {number} b
+ * @return {Array<number>} Result array
+ */
+deMath.subScalar = function(a, b) {
+    if (!Array.isArray(a))
+        throw new Error('First argument must be an array.');
+    if (typeof b !== 'number')
+        throw new Error('Second argument must be a number.');
+    var dst = [];
+    for (var i = 0; i < a.length; i++)
+        dst.push(a[i] - b);
+    return dst;
+};
+
+/**
  * Calculate absolute difference between two vectors
  * @param {goog.NumberArray} a
  * @param {goog.NumberArray} b
@@ -383,7 +400,7 @@ deMath.wrap = function(v, minValue, maxValue) {
     return minValue + Math.floor((v - minValue) % range);
 };
 
-/*
+/**
  * Round number to int by dropping fractional part
  * it is equivalent of GLSL int() constructor
  * @param {number} a
@@ -398,7 +415,7 @@ deMath.intCast = function(a) {
     return deMath.wrap(v, -0x80000000, 0x7FFFFFFF);
 };
 
-/*
+/**
  * Round number to uint by dropping fractional part
  * it is equivalent of GLSL uint() constructor
  * @param {number} a
