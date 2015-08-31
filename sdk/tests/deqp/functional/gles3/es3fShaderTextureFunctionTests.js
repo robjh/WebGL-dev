@@ -23,6 +23,7 @@ goog.provide('functional.gles3.es3fShaderTextureFunctionTests');
 goog.require('framework.opengl.gluTextureUtil');
 goog.require('framework.opengl.gluTexture');
 goog.require('framework.opengl.gluShaderProgram');
+goog.require('framework.opengl.gluShaderUtil');
 goog.require('framework.common.tcuMatrix');
 goog.require('framework.common.tcuSurface');
 goog.require('framework.common.tcuTestCase');
@@ -40,6 +41,7 @@ goog.scope(function() {
 	var gluTextureUtil = framework.opengl.gluTextureUtil;
 	var gluTexture = framework.opengl.gluTexture;
 	var gluShaderProgram = framework.opengl.gluShaderProgram;
+	var gluShaderUtil = framework.opengl.gluShaderUtil;
 	var glsShaderRenderCase = modules.shared.glsShaderRenderCase;
 
 	/**
@@ -378,7 +380,7 @@ goog.scope(function() {
 	 * @return {number}
 	 */
 	es3fShaderTextureFunctionTests.texture2DShadow = function(c, ref, s, t, lod) {
-		return c.textures[0].tex2D.sampleCompare(c.textures[0].sampler, ref, s, t, lod);
+		return c.textures[0].tex2D.getView().sampleCompare(c.textures[0].sampler, ref, [s, t], lod);
 	};
 
 	/**
@@ -391,7 +393,7 @@ goog.scope(function() {
 	 * @return {number}
 	 */
 	es3fShaderTextureFunctionTests.textureCubeShadow = function(c, ref, s, t, r, lod) {
-		return c.textures[0].texCube.sampleCompare(c.textures[0].sampler, ref, s, t, r, lod);
+		return c.textures[0].texCube.getView().sampleCompare(c.textures[0].sampler, ref, [s, t, r], lod);
 	};
 
 	/**
@@ -404,7 +406,7 @@ goog.scope(function() {
 	 * @return {number}
 	 */
 	es3fShaderTextureFunctionTests.texture2DArrayShadow = function(c, ref, s, t, r, lod) {
-		return c.textures[0].tex2DArray.sampleCompare(c.textures[0].sampler, ref, s, t, r, lod);
+		return c.textures[0].tex2DArray.getView().sampleCompare(c.textures[0].sampler, ref, [s, t, r], lod);
 	};
 
 	/**
@@ -416,7 +418,7 @@ goog.scope(function() {
 	 * @return {Array<number>}
 	 */
 	es3fShaderTextureFunctionTests.texture2DOffset = function(c, s, t, lod, offset) {
-		return c.textures[0].tex2D.sampleOffset(c.textures[0].sampler, s, t, lod, offset);
+		return c.textures[0].tex2D.getView().sampleOffset(c.textures[0].sampler, [s, t], lod, offset);
 	};
 
 	/**
@@ -429,7 +431,7 @@ goog.scope(function() {
 	 * @return {Array<number>}
 	 */
 	es3fShaderTextureFunctionTests.texture2DArrayOffset = function(c, s, t, r, lod, offset) {
-		return c.textures[0].tex2DArray.sampleOffset(c.textures[0].sampler, s, t, r, lod, offset);
+		return c.textures[0].tex2DArray.getView().sampleOffset(c.textures[0].sampler, [s, t, r], lod, offset);
 	};
 
 	/**
@@ -442,7 +444,7 @@ goog.scope(function() {
 	 * @return {Array<number>}
 	 */
 	es3fShaderTextureFunctionTests.texture3DOffset = function(c, s, t, r, lod, offset) {
-		return c.textures[0].tex3D.sampleOffset(c.textures[0].sampler, s, t, r, lod, offset);
+		return c.textures[0].tex3D.getView().sampleOffset(c.textures[0].sampler, [s, t, r], lod, offset);
 	};
 
 	/**
@@ -1147,7 +1149,7 @@ goog.scope(function() {
 	 */
 	es3fShaderTextureFunctionTests.ShaderTextureFunctionCase = function(name, desc, lookup, texture, evalFunc, isVertexCase) {
 		// TODO: ShadeRenderCase takes this.m_evaluator. Should we construct the local evaluator first and pass it to the superclass?
-		glsShaderRenderCase.ShaderRenderCase.call(this, name, desc, isVertexCase, null /*this.m_evaluator*/);
+		glsShaderRenderCase.ShaderRenderCase.call(this, name, desc, isVertexCase); // original test passes this.m_evaluator as last argument
 
 		/** @type {es3fShaderTextureFunctionTests.TextureLookupSpec} */ this.m_lookupSpec = lookup;
 		/** @type {es3fShaderTextureFunctionTests.TextureSpec} */ this.m_textureSpec = texture;
@@ -1408,14 +1410,14 @@ goog.scope(function() {
 	};
 
 	es3fShaderTextureFunctionTests.ShaderTextureFunctionCase.prototype.initShaderSources = function() {
-		/** @type {es3fShaderTextureFunctionTests.Function} */ var function_ = this.m_lookupSpec.function;
+		/** @type {es3fShaderTextureFunctionTests.Function} */ var function_ = this.m_lookupSpec.func;
 		/** @type {boolean} */ var isVtxCase = this.m_isVertexCase;
-		/** @type {boolean} */ var isProj = functionHasProj(function_);
-		/** @type {boolean} */ var isGrad = functionHasGrad(function_);
+		/** @type {boolean} */ var isProj = es3fShaderTextureFunctionTests.functionHasProj(function_);
+		/** @type {boolean} */ var isGrad = es3fShaderTextureFunctionTests.functionHasGrad(function_);
 		/** @type {boolean} */ var isShadow = this.m_textureSpec.sampler.compare !== tcuTexture.CompareMode.COMPAREMODE_NONE;
 		/** @type {boolean} */ var is2DProj4 = !isShadow && this.m_textureSpec.type === es3fShaderTextureFunctionTests.TextureType.TEXTURETYPE_2D && (function_ === es3fShaderTextureFunctionTests.Function.TEXTUREPROJ || function_ === es3fShaderTextureFunctionTests.Function.TEXTUREPROJLOD || function_ === es3fShaderTextureFunctionTests.Function.TEXTUREPROJGRAD);
 		/** @type {boolean} */ var isIntCoord = function_ === es3fShaderTextureFunctionTests.Function.TEXELFETCH;
-		/** @type {boolean} */ var hasLodBias = functionHasLod(this.m_lookupSpec.function) || this.m_lookupSpec.useBias;
+		/** @type {boolean} */ var hasLodBias = es3fShaderTextureFunctionTests.functionHasLod(this.m_lookupSpec.func) || this.m_lookupSpec.useBias;
 		/** @type {number} */ var texCoordComps = this.m_textureSpec.type === es3fShaderTextureFunctionTests.TextureType.TEXTURETYPE_2D ? 2 : 3;
 		/** @type {number} */ var extraCoordComps = (isProj ? (is2DProj4 ? 2 : 1) : 0) + (isShadow ? 1 : 0);
 		/** @type {gluShaderUtil.DataType} */ var coordType = gluShaderUtil.getDataTypeVector(gluShaderUtil.DataType.FLOAT, texCoordComps+extraCoordComps);
@@ -1448,7 +1450,7 @@ goog.scope(function() {
 				throw new Error('Unexpected type.');
 		}
 
-		switch (this.m_lookupSpec.function)
+		switch (this.m_lookupSpec.funct)
 		{
 			case es3fShaderTextureFunctionTests.Function.TEXTURE: baseFuncName = "texture"; break;
 			case es3fShaderTextureFunctionTests.Function.TEXTUREPROJ: baseFuncName = "textureProj"; break;
@@ -1509,7 +1511,7 @@ goog.scope(function() {
 		      "uniform highp vec4 u_scale;\n" +
 		      "uniform highp vec4 u_bias;\n";
 
-		vtx += isVtxCase ? op : '';
+		vert += isVtxCase ? op : '';
 		frag += isVtxCase ? '' : op;
 		op = '';
 
@@ -1544,7 +1546,7 @@ goog.scope(function() {
 		if (isGrad)
 			op += ", " + gradX + ", " + gradY;
 
-		if (functionHasLod(function_)) {
+		if (es3fShaderTextureFunctionTests.functionHasLod(function_)) {
 			if (isIntCoord)
 				op += ", int(" + lodBias + ")";
 			else
@@ -1575,7 +1577,7 @@ goog.scope(function() {
 
 		op += ";\n";
 
-		vtx += isVtxCase ? op : '';
+		vert += isVtxCase ? op : '';
 		frag += isVtxCase ? '' : op;
 		op = '';
 
@@ -1608,11 +1610,11 @@ goog.scope(function() {
 	};
 
 	/**
-	 * @param  {number} programID
+	 * @param  {WebGLProgram} programID
 	 * @param  {Array<number>} constCoords
 	 */
 	es3fShaderTextureFunctionTests.ShaderTextureFunctionCase.prototype.setupUniforms = function(programID, constCoords) {
-		gl.uniform1i(gl.getUniformLocation(programID, "u_sampler"),	null);
+		gl.uniform1i(gl.getUniformLocation(programID, "u_sampler"),	0);
 		gl.uniform4fv(gl.getUniformLocation(programID, "u_scale"), this.m_lookupParams.scale);
 		gl.uniform4fv(gl.getUniformLocation(programID, "u_bias"), this.m_lookupParams.bias);
 	};
@@ -1620,6 +1622,7 @@ goog.scope(function() {
 
 	/**
 	 * @struct
+	 * @constructor
 	 * @param {Array<number>} textureSize
 	 * @param {number} lod
 	 * @param {number} lodBase
@@ -1635,11 +1638,11 @@ goog.scope(function() {
 	/**
 	 * @constructor
 	 * @extends {tcuTestCase.DeqpTest}
-	 * @type {string} name
-	 * @type {string} desc
-	 * @type {string} samplerType
-	 * @type {es3fShaderTextureFunctionTests.TextureSpec} texture
-	 * @type {boolean} isVertexCase
+	 * @param {string} name
+	 * @param {string} desc
+	 * @param {string} samplerType
+	 * @param {es3fShaderTextureFunctionTests.TextureSpec} texture
+	 * @param {boolean} isVertexCase
 	 */
 	es3fShaderTextureFunctionTests.TextureSizeCase = function(name, desc, samplerType, texture, isVertexCase) {
 		tcuTestCase.DeqpTest.call(this, name, desc);
@@ -1663,7 +1666,7 @@ goog.scope(function() {
 	 */
 	es3fShaderTextureFunctionTests.TextureSizeCase.prototype.iterate = function() {
 		/** @type {number} */ var currentIteration = this.m_iterationCounter++;
-		/** @type {Array<es3fShaderTextureFunctionTests.TestSize>} */ var estSizes = [
+		/** @type {Array<es3fShaderTextureFunctionTests.TestSize>} */ var testSizes = [
 			new es3fShaderTextureFunctionTests.TestSize([1, 2, 1], 1, 0, [1, 1, 1]),
 			new es3fShaderTextureFunctionTests.TestSize([1, 2, 1], 0, 0, [1, 2, 1]),
 
@@ -1715,18 +1718,20 @@ goog.scope(function() {
 
 		// TODO: result reporting
 		if (currentIteration === 0) {
-			m_testCtx.setTestResult(QP_TEST_RESULT_PASS, "Pass");
+			//m_testCtx.setTestResult(QP_TEST_RESULT_PASS, "Pass");
+			testPassedOptions('Pass', true);
 			return this.initShader() ? tcuTestCase.IterateResult.CONTINUE : tcuTestCase.IterateResult.STOP;
 		}
 		else if (currentIteration === lastIterationIndex) {
 			this.freeShader();
 			return tcuTestCase.IterateResult.STOP;
 		}
-		else
-		{
-			if (!testTextureSize(testSizes[currentIteration - 1]))
-				if (m_testCtx.getTestResult() !== QP_TEST_RESULT_FAIL)
-					m_testCtx.setTestResult(QP_TEST_RESULT_FAIL, "Got unexpected texture size");
+		else {
+			if (!this.testTextureSize(testSizes[currentIteration - 1])) {
+				// if (m_testCtx.getTestResult() !== QP_TEST_RESULT_FAIL)
+				// 	m_testCtx.setTestResult(QP_TEST_RESULT_FAIL, "Got unexpected texture size");
+				testFailedOptions('Fail', false);
+			}
 			return tcuTestCase.IterateResult.CONTINUE;
 		}
 	};
@@ -1743,7 +1748,8 @@ goog.scope(function() {
 		bufferedLogToConsole(this.m_program.getProgramInfo().infoLog);
 
 		if (!this.m_program.isOk()) {
-			m_testCtx.setTestResult(QP_TEST_RESULT_FAIL, "Shader failed");
+			//m_testCtx.setTestResult(QP_TEST_RESULT_FAIL, "Shader failed");
+			testFailedOptions('Shader failed', false);
 			return false;
 		}
 
@@ -1789,7 +1795,12 @@ goog.scope(function() {
 		gl.uniform1i(samplerLoc, 0);
 		gl.clearColor(0.5, 0.5, 0.5, 1.0);
 		gl.viewport(0, 0, 1, 1);
-		gl.vertexAttribPointer(positionLoc, 4, gl.FLOAT, false, 0, triangle);
+
+		/** @type {WebGLBuffer} */ var triangleGlBuffer = gl.createBuffer();
+		gl.bindBuffer(gl.ARRAY_BUFFER, triangleGlBuffer);
+		gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(triangle), gl.STATIC_DRAW);
+
+		gl.vertexAttribPointer(positionLoc, 4, gl.FLOAT, false, 0, 0);
 		gl.enableVertexAttribArray(positionLoc);
 
 		// setup texture
@@ -1812,8 +1823,8 @@ goog.scope(function() {
 				bufferedLogToConsole("Lod: " + testSize.lod + ", base level: " + testSize.lodBase);
 				bufferedLogToConsole("Expecting: " + testSize.expectedSize[0] + "x" + testSize.expectedSize[1] + "x" + testSize.expectedSize[2]);
 
-				gl.uniform3iv(sizeLoc, testSize.expectedSize.m_data);
-				gl.uniform1iv(lodLoc, testSize.lod);
+				gl.uniform3iv(sizeLoc, testSize.expectedSize);
+				gl.uniform1iv(lodLoc, [testSize.lod]);
 
 				gl.texStorage3D(textureTarget, levels, this.m_textureSpec.format, testSize.textureSize[0], testSize.textureSize[1], testSize.textureSize[2]);
 				break;
@@ -1824,8 +1835,8 @@ goog.scope(function() {
 				bufferedLogToConsole("Lod: " + testSize.lod + ", base level: " + testSize.lodBase);
 				bufferedLogToConsole("Expecting: " + testSize.expectedSize[0] + "x" + testSize.expectedSize[1]);
 
-				gl.uniform2iv(sizeLoc, testSize.expectedSize.m_data);
-				gl.uniform1iv(lodLoc, testSize.lod);
+				gl.uniform2iv(sizeLoc, testSize.expectedSize);
+				gl.uniform1iv(lodLoc, [testSize.lod]);
 
 				gl.texStorage2D(textureTarget, levels, this.m_textureSpec.format, testSize.textureSize[0], testSize.textureSize[1]);
 				break;
@@ -1838,7 +1849,7 @@ goog.scope(function() {
 				bufferedLogToConsole("Expecting: " + testSize.expectedSize[0] + "x" + testSize.expectedSize[1] + " and " + testSize.textureSize[2] + " layer(s)");
 
 				gl.uniform3iv(sizeLoc, expectedSize);
-				gl.uniform1iv(lodLoc, testSize.lod);
+				gl.uniform1iv(lodLoc, [testSize.lod]);
 
 				gl.texStorage3D(textureTarget, levels, this.m_textureSpec.format, testSize.textureSize[0], testSize.textureSize[1], testSize.textureSize[2]);
 				break;
@@ -1983,7 +1994,7 @@ goog.scope(function() {
 	 */
 	es3fShaderTextureFunctionTests.getCaseSpec = function(name, func, minCoord, maxCoord, useBias, minLodBias, maxLodBias, useOffset, offset, texSpec, evalFunc, flags) {
 		return [name,
-			es3fShaderTextureFunctionTests.TextureLookupSpec(func, minCoord, maxCoord, useBias, minLodBias, maxLodBias, [0.0, 0.0, 0.0], [0.0, 0.0, 0.0], [0.0, 0.0, 0.0], [0.0, 0.0, 0.0], useOffset, offset),
+			new es3fShaderTextureFunctionTests.TextureLookupSpec(func, minCoord, maxCoord, useBias, minLodBias, maxLodBias, [0.0, 0.0, 0.0], [0.0, 0.0, 0.0], [0.0, 0.0, 0.0], [0.0, 0.0, 0.0], useOffset, offset),
 			texSpec,
 			evalFunc,
 			flags];
@@ -2007,7 +2018,7 @@ goog.scope(function() {
 	 */
 	es3fShaderTextureFunctionTests.getGradCaseSpec = function(name, func, minCoord, maxCoord, mindx, maxdx, mindy, maxdy, useOffset, offset, texSpec, evalFunc, flags) {
 		return [name,
-			es3fShaderTextureFunctionTests.TextureLookupSpec(func, minCoord, maxCoord, false, 0.0, 0.0, mindx, maxdx, mindy, maxdy, useOffset, offset),
+			new es3fShaderTextureFunctionTests.TextureLookupSpec(func, minCoord, maxCoord, false, 0.0, 0.0, mindx, maxdx, mindy, maxdy, useOffset, offset),
 			texSpec,
 			evalFunc,
 			flags];
@@ -2043,7 +2054,7 @@ goog.scope(function() {
 	 * @param  {tcuTestCase.DeqpTest} parent
 	 * @param  {string} groupName
 	 * @param  {string} groupDesc
-	 * @param  {es3fShaderTextureFunctionTests.TexFuncCaseSpec} cases
+	 * @param  {Array<es3fShaderTextureFunctionTests.TexFuncCaseSpec>} cases
 	 */
 	es3fShaderTextureFunctionTests.createCaseGroup = function(parent, groupName, groupDesc, cases) {
 		/** @type {tcuTestCase.DeqpTest} */ var group = tcuTestCase.newTest(groupName, groupDesc);
@@ -2166,8 +2177,7 @@ goog.scope(function() {
 
 		var testGroup = tcuTestCase.runner.testCases;
 		// texture() cases
-			/** @type {es3fShaderTextureFunctionTests.TexFuncCaseSpec} */ var textureCases =
-			[
+			/** @type {Array<es3fShaderTextureFunctionTests.TexFuncCaseSpec>} */ var textureCases = [
 				es3fShaderTextureFunctionTests.getCaseSpec('sampler2d_fixed', es3fShaderTextureFunctionTests.Function.TEXTURE, [-0.2, -0.4, 0.0, 0.0], [1.5, 2.3, 0.0, 0.0],	false,	0.0,	0.0,	false, [0, 0, 0],	tex2DFixed, es3fShaderTextureFunctionTests.evalTexture2D, es3fShaderTextureFunctionTests.CaseFlags.VERTEX),
 				es3fShaderTextureFunctionTests.getCaseSpec('sampler2d_fixed', es3fShaderTextureFunctionTests.Function.TEXTURE, [-0.2, -0.4, 0.0, 0.0], [1.5, 2.3, 0.0, 0.0],	false,	0.0,	0.0,	false, [0, 0, 0],	tex2DMipmapFixed, es3fShaderTextureFunctionTests.evalTexture2D, es3fShaderTextureFunctionTests.CaseFlags.FRAGMENT),
 				es3fShaderTextureFunctionTests.getCaseSpec('sampler2d_float', es3fShaderTextureFunctionTests.Function.TEXTURE, [-0.2, -0.4, 0.0, 0.0], [1.5, 2.3, 0.0, 0.0],	false,	0.0,	0.0,	false, [0, 0, 0],	tex2DFloat, es3fShaderTextureFunctionTests.evalTexture2D, es3fShaderTextureFunctionTests.CaseFlags.VERTEX),
@@ -2242,7 +2252,7 @@ goog.scope(function() {
 
 			// textureOffset() cases
 			// \note _bias variants are not using mipmap thanks to wide allowed range for LOD computation
-			/** @type {es3fShaderTextureFunctionTests.TexFuncCaseSpec} */ var textureOffsetCases = [
+			/** @type {Array<es3fShaderTextureFunctionTests.TexFuncCaseSpec>} */ var textureOffsetCases = [
 				es3fShaderTextureFunctionTests.getCaseSpec('sampler2d_fixed', es3fShaderTextureFunctionTests.Function.TEXTURE, [-0.2, -0.4, 0.0, 0.0], [1.5, 2.3, 0.0, 0.0],	false,	0.0,	0.0,	true, [-8, 7, 0],	tex2DFixed, es3fShaderTextureFunctionTests.evalTexture2DOffset, es3fShaderTextureFunctionTests.CaseFlags.VERTEX),
 				es3fShaderTextureFunctionTests.getCaseSpec('sampler2d_fixed', es3fShaderTextureFunctionTests.Function.TEXTURE, [-0.2, -0.4, 0.0, 0.0], [1.5, 2.3, 0.0, 0.0],	false,	0.0,	0.0,	true, [7, -8, 0],	tex2DMipmapFixed, es3fShaderTextureFunctionTests.evalTexture2DOffset, es3fShaderTextureFunctionTests.CaseFlags.FRAGMENT),
 				es3fShaderTextureFunctionTests.getCaseSpec('sampler2d_float', es3fShaderTextureFunctionTests.Function.TEXTURE, [-0.2, -0.4, 0.0, 0.0], [1.5, 2.3, 0.0, 0.0],	false,	0.0,	0.0,	true, [-8, 7, 0],	tex2DFloat, es3fShaderTextureFunctionTests.evalTexture2DOffset, es3fShaderTextureFunctionTests.CaseFlags.VERTEX),
@@ -2293,7 +2303,7 @@ goog.scope(function() {
 
 			// textureProj() cases
 			// \note Currently uses constant divider!
-			/** @type {es3fShaderTextureFunctionTests.TexFuncCaseSpec} */ var textureProjCases = [
+			/** @type {Array<es3fShaderTextureFunctionTests.TexFuncCaseSpec>} */ var textureProjCases = [
 				es3fShaderTextureFunctionTests.getCaseSpec('sampler2d_vec3_fixed', es3fShaderTextureFunctionTests.Function.TEXTUREPROJ3, [-0.3, -0.6, 1.5, 0.0], [2.25, 3.45, 1.5, 0.0],	false,	0.0,	0.0,	false, [0, 0, 0],	tex2DFixed, es3fShaderTextureFunctionTests.evalTexture2DProj3, es3fShaderTextureFunctionTests.CaseFlags.VERTEX),
 				es3fShaderTextureFunctionTests.getCaseSpec('sampler2d_vec3_fixed', es3fShaderTextureFunctionTests.Function.TEXTUREPROJ3, [-0.3, -0.6, 1.5, 0.0], [2.25, 3.45, 1.5, 0.0],	false,	0.0,	0.0,	false, [0, 0, 0],	tex2DMipmapFixed, es3fShaderTextureFunctionTests.evalTexture2DProj3, es3fShaderTextureFunctionTests.CaseFlags.FRAGMENT),
 				es3fShaderTextureFunctionTests.getCaseSpec('sampler2d_vec3_float', es3fShaderTextureFunctionTests.Function.TEXTUREPROJ3, [-0.3, -0.6, 1.5, 0.0], [2.25, 3.45, 1.5, 0.0],	false,	0.0,	0.0,	false, [0, 0, 0],	tex2DFloat, es3fShaderTextureFunctionTests.evalTexture2DProj3, es3fShaderTextureFunctionTests.CaseFlags.VERTEX),
@@ -2344,7 +2354,7 @@ goog.scope(function() {
 
 			// textureProjOffset() cases
 			// \note Currently uses constant divider!
-			/** @type {es3fShaderTextureFunctionTests.TexFuncCaseSpec} */ var textureProjOffsetCases = [
+			/** @type {Array<es3fShaderTextureFunctionTests.TexFuncCaseSpec>} */ var textureProjOffsetCases = [
 				es3fShaderTextureFunctionTests.getCaseSpec('sampler2d_vec3_fixed', es3fShaderTextureFunctionTests.Function.TEXTUREPROJ3, [-0.3, -0.6, 1.5, 0.0], [2.25, 3.45, 1.5, 0.0],	false,	0.0,	0.0,	true, [-8, 7, 0],	tex2DFixed, es3fShaderTextureFunctionTests.evalTexture2DProj3Offset, es3fShaderTextureFunctionTests.CaseFlags.VERTEX),
 				es3fShaderTextureFunctionTests.getCaseSpec('sampler2d_vec3_fixed', es3fShaderTextureFunctionTests.Function.TEXTUREPROJ3, [-0.3, -0.6, 1.5, 0.0], [2.25, 3.45, 1.5, 0.0],	false,	0.0,	0.0,	true, [7, -8, 0],	tex2DMipmapFixed, es3fShaderTextureFunctionTests.evalTexture2DProj3Offset, es3fShaderTextureFunctionTests.CaseFlags.FRAGMENT),
 				es3fShaderTextureFunctionTests.getCaseSpec('sampler2d_vec3_float', es3fShaderTextureFunctionTests.Function.TEXTUREPROJ3, [-0.3, -0.6, 1.5, 0.0], [2.25, 3.45, 1.5, 0.0],	false,	0.0,	0.0,	true, [-8, 7, 0],	tex2DFloat, es3fShaderTextureFunctionTests.evalTexture2DProj3Offset, es3fShaderTextureFunctionTests.CaseFlags.VERTEX),
@@ -2394,7 +2404,7 @@ goog.scope(function() {
 			es3fShaderTextureFunctionTests.createCaseGroup(this, "textureprojoffset", "textureOffsetProj() Tests", textureProjOffsetCases);
 
 			// textureLod() cases
-			/** @type {es3fShaderTextureFunctionTests.TexFuncCaseSpec} */ var textureLodCases = [
+			/** @type {Array<es3fShaderTextureFunctionTests.TexFuncCaseSpec>} */ var textureLodCases = [
 				es3fShaderTextureFunctionTests.getCaseSpec('sampler2d_fixed', es3fShaderTextureFunctionTests.Function.TEXTURELOD, [-0.2, -0.4, 0.0, 0.0], [1.5, 2.3, 0.0, 0.0],	false,	-1.0,	9.0,	false, [0, 0, 0],	tex2DMipmapFixed, es3fShaderTextureFunctionTests.evalTexture2DLod, es3fShaderTextureFunctionTests.CaseFlags.BOTH),
 				es3fShaderTextureFunctionTests.getCaseSpec('sampler2d_float', es3fShaderTextureFunctionTests.Function.TEXTURELOD, [-0.2, -0.4, 0.0, 0.0], [1.5, 2.3, 0.0, 0.0],	false,	-1.0,	9.0,	false, [0, 0, 0],	tex2DMipmapFloat, es3fShaderTextureFunctionTests.evalTexture2DLod, es3fShaderTextureFunctionTests.CaseFlags.BOTH),
 				es3fShaderTextureFunctionTests.getCaseSpec('isampler2d', es3fShaderTextureFunctionTests.Function.TEXTURELOD, [-0.2, -0.4, 0.0, 0.0], [1.5, 2.3, 0.0, 0.0],	false,	-1.0,	9.0,	false, [0, 0, 0],	tex2DMipmapInt, es3fShaderTextureFunctionTests.evalTexture2DLod, es3fShaderTextureFunctionTests.CaseFlags.BOTH),
@@ -2420,7 +2430,7 @@ goog.scope(function() {
 			es3fShaderTextureFunctionTests.createCaseGroup(this, "texturelod", "textureLod() Tests", textureLodCases);
 
 			// textureLodOffset() cases
-			/** @type {es3fShaderTextureFunctionTests.TexFuncCaseSpec} */ var textureLodOffsetCases = [
+			/** @type {Array<es3fShaderTextureFunctionTests.TexFuncCaseSpec>} */ var textureLodOffsetCases = [
 				es3fShaderTextureFunctionTests.getCaseSpec('sampler2d_fixed', es3fShaderTextureFunctionTests.Function.TEXTURELOD, [-0.2, -0.4, 0.0, 0.0], [1.5, 2.3, 0.0, 0.0],	false,	-1.0,	9.0,	true, [-8, 7, 0],	tex2DMipmapFixed, es3fShaderTextureFunctionTests.evalTexture2DLodOffset, es3fShaderTextureFunctionTests.CaseFlags.BOTH),
 				es3fShaderTextureFunctionTests.getCaseSpec('sampler2d_float', es3fShaderTextureFunctionTests.Function.TEXTURELOD, [-0.2, -0.4, 0.0, 0.0], [1.5, 2.3, 0.0, 0.0],	false,	-1.0,	9.0,	true, [7, -8, 0],	tex2DMipmapFloat, es3fShaderTextureFunctionTests.evalTexture2DLodOffset, es3fShaderTextureFunctionTests.CaseFlags.BOTH),
 				es3fShaderTextureFunctionTests.getCaseSpec('isampler2d', es3fShaderTextureFunctionTests.Function.TEXTURELOD, [-0.2, -0.4, 0.0, 0.0], [1.5, 2.3, 0.0, 0.0],	false,	-1.0,	9.0,	true, [-8, 7, 0],	tex2DMipmapInt, es3fShaderTextureFunctionTests.evalTexture2DLodOffset, es3fShaderTextureFunctionTests.CaseFlags.BOTH),
@@ -2441,7 +2451,7 @@ goog.scope(function() {
 			es3fShaderTextureFunctionTests.createCaseGroup(this, "texturelodoffset", "textureLodOffset() Tests", textureLodOffsetCases);
 
 			// textureProjLod() cases
-			/** @type {es3fShaderTextureFunctionTests.TexFuncCaseSpec} */ var textureProjLodCases = [
+			/** @type {Array<es3fShaderTextureFunctionTests.TexFuncCaseSpec>} */ var textureProjLodCases = [
 				es3fShaderTextureFunctionTests.getCaseSpec('sampler2d_vec3_fixed', es3fShaderTextureFunctionTests.Function.TEXTUREPROJLOD3, [-0.3, -0.6, 1.5, 0.0], [2.25, 3.45, 1.5, 0.0],	false,	-1.0,	9.0,	false, [0, 0, 0],	tex2DMipmapFixed, es3fShaderTextureFunctionTests.evalTexture2DProjLod3, es3fShaderTextureFunctionTests.CaseFlags.BOTH),
 				es3fShaderTextureFunctionTests.getCaseSpec('sampler2d_vec3_float', es3fShaderTextureFunctionTests.Function.TEXTUREPROJLOD3, [-0.3, -0.6, 1.5, 0.0], [2.25, 3.45, 1.5, 0.0],	false,	-1.0,	9.0,	false, [0, 0, 0],	tex2DMipmapFloat, es3fShaderTextureFunctionTests.evalTexture2DProjLod3, es3fShaderTextureFunctionTests.CaseFlags.BOTH),
 				es3fShaderTextureFunctionTests.getCaseSpec('isampler2d_vec3', es3fShaderTextureFunctionTests.Function.TEXTUREPROJLOD3, [-0.3, -0.6, 1.5, 0.0], [2.25, 3.45, 1.5, 0.0],	false,	-1.0,	9.0,	false, [0, 0, 0],	tex2DMipmapInt, es3fShaderTextureFunctionTests.evalTexture2DProjLod3, es3fShaderTextureFunctionTests.CaseFlags.BOTH),
@@ -2462,7 +2472,7 @@ goog.scope(function() {
 			es3fShaderTextureFunctionTests.createCaseGroup(this, "textureprojlod", "textureProjLod() Tests", textureProjLodCases);
 
 			// textureProjLodOffset() cases
-			/** @type {es3fShaderTextureFunctionTests.TexFuncCaseSpec} */ var textureProjLodOffsetCases = [
+			/** @type {Array<es3fShaderTextureFunctionTests.TexFuncCaseSpec>} */ var textureProjLodOffsetCases = [
 				es3fShaderTextureFunctionTests.getCaseSpec('sampler2d_vec3_fixed', es3fShaderTextureFunctionTests.Function.TEXTUREPROJLOD3, [-0.3, -0.6, 1.5, 0.0], [2.25, 3.45, 1.5, 0.0],	false,	-1.0,	9.0,	true, [-8, 7, 0],	tex2DMipmapFixed, es3fShaderTextureFunctionTests.evalTexture2DProjLod3Offset, es3fShaderTextureFunctionTests.CaseFlags.BOTH),
 				es3fShaderTextureFunctionTests.getCaseSpec('sampler2d_vec3_float', es3fShaderTextureFunctionTests.Function.TEXTUREPROJLOD3, [-0.3, -0.6, 1.5, 0.0], [2.25, 3.45, 1.5, 0.0],	false,	-1.0,	9.0,	true, [7, -8, 0],	tex2DMipmapFloat, es3fShaderTextureFunctionTests.evalTexture2DProjLod3Offset, es3fShaderTextureFunctionTests.CaseFlags.BOTH),
 				es3fShaderTextureFunctionTests.getCaseSpec('isampler2d_vec3', es3fShaderTextureFunctionTests.Function.TEXTUREPROJLOD3, [-0.3, -0.6, 1.5, 0.0], [2.25, 3.45, 1.5, 0.0],	false,	-1.0,	9.0,	true, [-8, 7, 0],	tex2DMipmapInt, es3fShaderTextureFunctionTests.evalTexture2DProjLod3Offset, es3fShaderTextureFunctionTests.CaseFlags.BOTH),
@@ -2484,7 +2494,7 @@ goog.scope(function() {
 
 			// textureGrad() cases
 			// \note Only one of dudx, dudy, dvdx, dvdy is non-zero since spec allows approximating p from derivates by various methods.
-			/** @type {es3fShaderTextureFunctionTests.TexFuncCaseSpec} */ var textureGradCases = [
+			/** @type {Array<es3fShaderTextureFunctionTests.TexFuncCaseSpec>} */ var textureGradCases = [
 				es3fShaderTextureFunctionTests.getGradCaseSpec('sampler2d_fixed', es3fShaderTextureFunctionTests.Function.TEXTUREGRAD, [-0.2, -0.4, 0.0, 0.0], [1.5, 2.3, 0.0, 0.0], [0.0, 0.0, 0.0], [0.2, 0.0, 0.0], [0.0, 0.0, 0.0], [0.0, 0.0, 0.0],	false, [0, 0, 0],	tex2DMipmapFixed, es3fShaderTextureFunctionTests.evalTexture2DGrad, es3fShaderTextureFunctionTests.CaseFlags.BOTH),
 				es3fShaderTextureFunctionTests.getGradCaseSpec('sampler2d_float', es3fShaderTextureFunctionTests.Function.TEXTUREGRAD, [-0.2, -0.4, 0.0, 0.0], [1.5, 2.3, 0.0, 0.0], [0.0, 0.0, 0.0], [0.0, -0.2, 0.0], [0.0, 0.0, 0.0], [0.0, 0.0, 0.0],	false, [0, 0, 0],	tex2DMipmapFloat, es3fShaderTextureFunctionTests.evalTexture2DGrad, es3fShaderTextureFunctionTests.CaseFlags.BOTH),
 				es3fShaderTextureFunctionTests.getGradCaseSpec('isampler2d', es3fShaderTextureFunctionTests.Function.TEXTUREGRAD, [-0.2, -0.4, 0.0, 0.0], [1.5, 2.3, 0.0, 0.0], [0.0, 0.0, 0.0], [0.0, 0.0, 0.0], [0.0, 0.0, 0.0], [-0.2, 0.0, 0.0],	false, [0, 0, 0],	tex2DMipmapInt, es3fShaderTextureFunctionTests.evalTexture2DGrad, es3fShaderTextureFunctionTests.CaseFlags.BOTH),
@@ -2515,7 +2525,7 @@ goog.scope(function() {
 			es3fShaderTextureFunctionTests.createCaseGroup(this, "texturegrad", "textureGrad() Tests", textureGradCases);
 
 			// textureGradOffset() cases
-			/** @type {es3fShaderTextureFunctionTests.TexFuncCaseSpec} */ var textureGradOffsetCases = [
+			/** @type {Array<es3fShaderTextureFunctionTests.TexFuncCaseSpec>} */ var textureGradOffsetCases = [
 				es3fShaderTextureFunctionTests.getGradCaseSpec('sampler2d_fixed', es3fShaderTextureFunctionTests.Function.TEXTUREGRAD, [-0.2, -0.4, 0.0, 0.0], [1.5, 2.3, 0.0, 0.0], [0.0, 0.0, 0.0], [0.2, 0.0, 0.0], [0.0, 0.0, 0.0], [0.0, 0.0, 0.0],	true, [-8, 7, 0],	tex2DMipmapFixed, es3fShaderTextureFunctionTests.evalTexture2DGradOffset, es3fShaderTextureFunctionTests.CaseFlags.BOTH),
 				es3fShaderTextureFunctionTests.getGradCaseSpec('sampler2d_float', es3fShaderTextureFunctionTests.Function.TEXTUREGRAD, [-0.2, -0.4, 0.0, 0.0], [1.5, 2.3, 0.0, 0.0], [0.0, 0.0, 0.0], [0.0, -0.2, 0.0], [0.0, 0.0, 0.0], [0.0, 0.0, 0.0],	true, [7, -8, 0],	tex2DMipmapFloat, es3fShaderTextureFunctionTests.evalTexture2DGradOffset, es3fShaderTextureFunctionTests.CaseFlags.BOTH),
 				es3fShaderTextureFunctionTests.getGradCaseSpec('isampler2d', es3fShaderTextureFunctionTests.Function.TEXTUREGRAD, [-0.2, -0.4, 0.0, 0.0], [1.5, 2.3, 0.0, 0.0], [0.0, 0.0, 0.0], [0.0, 0.0, 0.0], [0.0, 0.0, 0.0], [-0.2, 0.0, 0.0],	true, [-8, 7, 0],	tex2DMipmapInt, es3fShaderTextureFunctionTests.evalTexture2DGradOffset, es3fShaderTextureFunctionTests.CaseFlags.BOTH),
@@ -2541,7 +2551,7 @@ goog.scope(function() {
 			es3fShaderTextureFunctionTests.createCaseGroup(this, "texturegradoffset", "textureGradOffset() Tests", textureGradOffsetCases);
 
 			// textureProjGrad() cases
-			/** @type {es3fShaderTextureFunctionTests.TexFuncCaseSpec} */ var textureProjGradCases = [
+			/** @type {Array<es3fShaderTextureFunctionTests.TexFuncCaseSpec>} */ var textureProjGradCases = [
 				es3fShaderTextureFunctionTests.getGradCaseSpec('sampler2d_vec3_fixed', es3fShaderTextureFunctionTests.Function.TEXTUREPROJGRAD3, [-0.3, -0.6, 1.5, 0.0], [2.25, 3.45, 1.5, 0.0], [0.0, 0.0, 0.0], [0.2, 0.0, 0.0], [0.0, 0.0, 0.0], [0.0, 0.0, 0.0],	false, [0, 0, 0],	tex2DMipmapFixed, es3fShaderTextureFunctionTests.evalTexture2DProjGrad3, es3fShaderTextureFunctionTests.CaseFlags.BOTH),
 				es3fShaderTextureFunctionTests.getGradCaseSpec('sampler2d_vec3_float', es3fShaderTextureFunctionTests.Function.TEXTUREPROJGRAD3, [-0.3, -0.6, 1.5, 0.0], [2.25, 3.45, 1.5, 0.0], [0.0, 0.0, 0.0], [0.0, -0.2, 0.0], [0.0, 0.0, 0.0], [0.0, 0.0, 0.0],	false, [0, 0, 0],	tex2DMipmapFloat, es3fShaderTextureFunctionTests.evalTexture2DProjGrad3, es3fShaderTextureFunctionTests.CaseFlags.BOTH),
 				es3fShaderTextureFunctionTests.getGradCaseSpec('isampler2d_vec3', es3fShaderTextureFunctionTests.Function.TEXTUREPROJGRAD3, [-0.3, -0.6, 1.5, 0.0], [2.25, 3.45, 1.5, 0.0], [0.0, 0.0, 0.0], [0.0, 0.0, 0.0], [0.0, 0.0, 0.0], [-0.2, 0.0, 0.0],	false, [0, 0, 0],	tex2DMipmapInt, es3fShaderTextureFunctionTests.evalTexture2DProjGrad3, es3fShaderTextureFunctionTests.CaseFlags.BOTH),
@@ -2565,7 +2575,7 @@ goog.scope(function() {
 			es3fShaderTextureFunctionTests.createCaseGroup(this, "textureprojgrad", "textureProjGrad() Tests", textureProjGradCases);
 
 			// textureProjGradOffset() cases
-			/** @type {es3fShaderTextureFunctionTests.TexFuncCaseSpec} */ var textureProjGradOffsetCases = [
+			/** @type {Array<es3fShaderTextureFunctionTests.TexFuncCaseSpec>} */ var textureProjGradOffsetCases = [
 				es3fShaderTextureFunctionTests.getGradCaseSpec('sampler2d_vec3_fixed', es3fShaderTextureFunctionTests.Function.TEXTUREPROJGRAD3, [-0.3, -0.6, 1.5, 0.0], [2.25, 3.45, 1.5, 0.0], [0.0, 0.0, 0.0], [0.2, 0.0, 0.0], [0.0, 0.0, 0.0], [0.0, 0.0, 0.0],	true, [-8, 7, 0],	tex2DMipmapFixed, es3fShaderTextureFunctionTests.evalTexture2DProjGrad3Offset, es3fShaderTextureFunctionTests.CaseFlags.BOTH),
 				es3fShaderTextureFunctionTests.getGradCaseSpec('sampler2d_vec3_float', es3fShaderTextureFunctionTests.Function.TEXTUREPROJGRAD3, [-0.3, -0.6, 1.5, 0.0], [2.25, 3.45, 1.5, 0.0], [0.0, 0.0, 0.0], [0.0, -0.2, 0.0], [0.0, 0.0, 0.0], [0.0, 0.0, 0.0],	true, [7, -8, 0],	tex2DMipmapFloat, es3fShaderTextureFunctionTests.evalTexture2DProjGrad3Offset, es3fShaderTextureFunctionTests.CaseFlags.BOTH),
 				es3fShaderTextureFunctionTests.getGradCaseSpec('isampler2d_vec3', es3fShaderTextureFunctionTests.Function.TEXTUREPROJGRAD3, [-0.3, -0.6, 1.5, 0.0], [2.25, 3.45, 1.5, 0.0], [0.0, 0.0, 0.0], [0.0, 0.0, 0.0], [0.0, 0.0, 0.0], [-0.2, 0.0, 0.0],	true, [-8, 7, 0],	tex2DMipmapInt, es3fShaderTextureFunctionTests.evalTexture2DProjGrad3Offset, es3fShaderTextureFunctionTests.CaseFlags.BOTH),
@@ -2590,7 +2600,7 @@ goog.scope(function() {
 
 			// texelFetch() cases
 			// \note Level is constant across quad
-			/** @type {es3fShaderTextureFunctionTests.TexFuncCaseSpec} */ var texelFetchCases = [
+			/** @type {Array<es3fShaderTextureFunctionTests.TexFuncCaseSpec>} */ var texelFetchCases = [
 				es3fShaderTextureFunctionTests.getCaseSpec('sampler2d_fixed', es3fShaderTextureFunctionTests.Function.TEXELFETCH, [0.0, 0.0, 0.0, 0.0], [255.9, 255.9, 0.0, 0.0],	false,	0.0,	0.0,	false, [0, 0, 0],	tex2DTexelFetchFixed, es3fShaderTextureFunctionTests.evalTexelFetch2D, es3fShaderTextureFunctionTests.CaseFlags.BOTH),
 				es3fShaderTextureFunctionTests.getCaseSpec('sampler2d_float', es3fShaderTextureFunctionTests.Function.TEXELFETCH, [0.0, 0.0, 0.0, 0.0], [127.9, 127.9, 0.0, 0.0],	false,	1.0,	1.0,	false, [0, 0, 0],	tex2DTexelFetchFloat, es3fShaderTextureFunctionTests.evalTexelFetch2D, es3fShaderTextureFunctionTests.CaseFlags.BOTH),
 				es3fShaderTextureFunctionTests.getCaseSpec('isampler2d', es3fShaderTextureFunctionTests.Function.TEXELFETCH, [0.0, 0.0, 0.0, 0.0], [63.9, 63.9, 0.0, 0.0],	false,	2.0,	2.0,	false, [0, 0, 0],	tex2DTexelFetchInt, es3fShaderTextureFunctionTests.evalTexelFetch2D, es3fShaderTextureFunctionTests.CaseFlags.BOTH),
@@ -2609,7 +2619,7 @@ goog.scope(function() {
 			es3fShaderTextureFunctionTests.createCaseGroup(this, "texelfetch", "texelFetch() Tests", texelFetchCases);
 
 			// texelFetchOffset() cases
-			/** @type {es3fShaderTextureFunctionTests.TexFuncCaseSpec} */ var texelFetchOffsetCases = [
+			/** @type {Array<es3fShaderTextureFunctionTests.TexFuncCaseSpec>} */ var texelFetchOffsetCases = [
 				es3fShaderTextureFunctionTests.getCaseSpec('sampler2d_fixed', es3fShaderTextureFunctionTests.Function.TEXELFETCH, [8.0, -7.0, 0.0, 0.0], [263.9, 248.9, 0.0, 0.0],	false,	0.0,	0.0,	true, [-8, 7, 0],	tex2DTexelFetchFixed, es3fShaderTextureFunctionTests.evalTexelFetch2D, es3fShaderTextureFunctionTests.CaseFlags.BOTH),
 				es3fShaderTextureFunctionTests.getCaseSpec('sampler2d_float', es3fShaderTextureFunctionTests.Function.TEXELFETCH, [-7.0, 8.0, 0.0, 0.0], [120.9, 135.9, 0.0, 0.0],	false,	1.0,	1.0,	true, [7, -8, 0],	tex2DTexelFetchFloat, es3fShaderTextureFunctionTests.evalTexelFetch2D, es3fShaderTextureFunctionTests.CaseFlags.BOTH),
 				es3fShaderTextureFunctionTests.getCaseSpec('isampler2d', es3fShaderTextureFunctionTests.Function.TEXELFETCH, [8.0, -7.0, 0.0, 0.0], [71.9, 56.9, 0.0, 0.0],	false,	2.0,	2.0,	true, [-8, 7, 0],	tex2DTexelFetchInt, es3fShaderTextureFunctionTests.evalTexelFetch2D, es3fShaderTextureFunctionTests.CaseFlags.BOTH),
@@ -2636,9 +2646,9 @@ goog.scope(function() {
 			 * @param  {es3fShaderTextureFunctionTests.TextureSpec} textureSpec
 			 */
 			var TextureSizeCaseSpec = function(name, samplerName, textureSpec) {
-				/** @type {string} */ var name = name;
-				/** @type {string} */ var amplerName = amplerName;
-				/** @type {es3fShaderTextureFunctionTests.TextureSpec} */ var textureSpec = textureSpec;
+				/** @type {string} */ this.name = name;
+				/** @type {string} */ this.samplerName = samplerName;
+				/** @type {es3fShaderTextureFunctionTests.TextureSpec} */ this.textureSpec = textureSpec;
 			};
 
 			/** @type {Array<TextureSizeCaseSpec>} */ var  textureSizeCases = [
