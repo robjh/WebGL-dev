@@ -78,6 +78,10 @@ var add = function(a, b) {
     return a + b;
 };
 
+var sub = function(a, b) {
+    return a - b;
+};
+
 var lessThan = function(a, b) {
     return a < b ? 1 : 0;
 }
@@ -955,7 +959,11 @@ es3fShaderOperatorTests.ShaderOperatorTests.prototype.init = function() {
     var UGT = es3fShaderOperatorTests.ValueType.UINT_GENTYPE;
     var IGT = es3fShaderOperatorTests.ValueType.INT_GENTYPE;
     var F = es3fShaderOperatorTests.ValueType.FLOAT;
+    var I = es3fShaderOperatorTests.ValueType.INT;
+    var U = es3fShaderOperatorTests.ValueType.UINT;
     var FV = es3fShaderOperatorTests.ValueType.FLOAT_VEC;
+    var IV = es3fShaderOperatorTests.ValueType.INT_VEC;
+    var UV = es3fShaderOperatorTests.ValueType.UINT_VEC;
     var B = es3fShaderOperatorTests.ValueType.BOOL;
     var lUMax = es3fShaderOperatorTests.Symbol.SYMBOL_LOWP_UINT_MAX;
     var mUMax = es3fShaderOperatorTests.Symbol.SYMBOL_MEDIUMP_UINT_MAX;
@@ -1129,10 +1137,64 @@ es3fShaderOperatorTests.ShaderOperatorTests.prototype.init = function() {
 
         binary.push(op(addName, addOp, FV, [v(FV, 0.0, 4e9), v(F, 0.0, 4e9)], f(1.0), f(0.0),
             all, es3fShaderOperatorTests.binaryVecScalarFuncs(deMath.addScalar)));
+        binary.push(op(addName, addOp, IV, [v(IV, -4.0, 6.0), v(I, -6.0, 5.0)], f(0.1), f(0.5),
+            mediump, es3fShaderOperatorTests.binaryVecScalarFuncs(deMath.addScalar, gluShaderUtil.DataType.INT,
+            gluShaderUtil.DataType.INT)));
+        binary.push(op(addName, addOp, IV, [v(IV, -2e9, 2e9), v(I, -2e9, 2e9)], f(4e-10), f(0.5),
+            highp, es3fShaderOperatorTests.binaryVecScalarFuncs(deMath.addScalar, gluShaderUtil.DataType.INT,
+            gluShaderUtil.DataType.INT)));
+        binary.push(op(addName, addOp, UV, [v(UV,  0.0, 1e2), v(U, 0.0, 1e2)], f(0.1), f(0.5),
+            mediump, es3fShaderOperatorTests.binaryVecScalarFuncs(deMath.addScalar, gluShaderUtil.DataType.INT,
+            gluShaderUtil.DataType.INT)));
+        binary.push(op(addName, addOp, UV, [v(UV, -2e9, 2e9), v(U, -2e9, 2e9)], f(4e-10), f(0.5),
+            highp, es3fShaderOperatorTests.binaryVecScalarFuncs(deMath.addScalar, gluShaderUtil.DataType.INT,
+            gluShaderUtil.DataType.INT)));
 
         if (isNormalOp) {
-            binary.push(op(addName, addOp,  FV, [v(F,   -1.0, 1.0),    v(FV,  -1.0, 1.0)],    f(1.0),   f(0.0),   all,  es3fShaderOperatorTests.binaryScalarVecFuncs(addScalarVec)));
+            binary.push(op(addName, addOp, FV, [v(F, -1.0, 1.0), v(FV, -1.0, 1.0)], f(1.0), f(0.0),
+                all, es3fShaderOperatorTests.binaryScalarVecFuncs(addScalarVec)));
+            binary.push(op(addName, addOp, IV, [v(I, -4.0, 6.0), v(IV, -6.0, 5.0)], f(0.1), f(0.5),
+                mediump, es3fShaderOperatorTests.binaryScalarVecFuncs(addScalarVec, gluShaderUtil.DataType.INT,
+                gluShaderUtil.DataType.INT)));
+            binary.push(op(addName, addOp, IV, [v(I, -2e9, 2e9), v(IV, -2e9, 2e9)], f(4e-10), f(0.5),
+                highp, es3fShaderOperatorTests.binaryScalarVecFuncs(addScalarVec, gluShaderUtil.DataType.INT,
+                gluShaderUtil.DataType.INT)));
+            binary.push(op(addName, addOp, UV, [v(U,  0.0, 1e2), v(UV, 0.0, 1e2)], f(0.1), f(0.5),
+                mediump, es3fShaderOperatorTests.binaryVecScalarFuncs(deMath.addScalar, gluShaderUtil.DataType.INT,
+                gluShaderUtil.DataType.INT)));
+            binary.push(op(addName, addOp, UV, [v(U, -2e9, 2e9), v(UV, -2e9, 2e9)], f(4e-10), f(0.5),
+                highp, es3fShaderOperatorTests.binaryVecScalarFuncs(deMath.addScalar, gluShaderUtil.DataType.INT,
+                gluShaderUtil.DataType.INT)));
         }
+
+        binary.push(op(subName,	subOp, GT, [v(GT, -1.0, 1.0), v(GT, -1.0, 1.0)], f(1.0), f(0.0),
+            all, es3fShaderOperatorTests.binaryGenTypeFuncs(sub)));
+		binary.push(op(subName,	subOp,	IGT, [v(IGT, -4.0, 6.0),	v(IGT, -6.0, 5.0)], f(0.1), f(0.5),
+            mediump, es3fShaderOperatorTests.binaryGenTypeFuncs(sub, gluShaderUtil.DataType.INT,
+            gluShaderUtil.DataType.INT)));
+		binary.push(op(subName,	subOp,	IGT, [v(IGT, -2e9, 2e9),	v(IGT, -2e9, 2e9)], f(4e-10), f(0.5),
+            highp, es3fShaderOperatorTests.binaryGenTypeFuncs(sub, gluShaderUtil.DataType.INT,
+            gluShaderUtil.DataType.INT)));
+		binary.push(op(subName,	subOp,	UGT, [v(UGT,  1e2, 2e2),	v(UGT,  0.0, 1e2)], f(5e-3),	f(0.0),
+            mediump, es3fShaderOperatorTests.binaryGenTypeFuncs(sub, gluShaderUtil.DataType.UINT,
+            gluShaderUtil.DataType.UINT)));
+		binary.push(op(subName,	subOp,	UGT, [v(UGT,  .5e9, 3.7e9),	v(UGT,  0.0, 3.9e9)], f(2e-10), f(0.0),
+            highp, es3fShaderOperatorTests.binaryGenTypeFuncs(sub, gluShaderUtil.DataType.UINT,
+            gluShaderUtil.DataType.UINT)));
+		binary.push(op(subName,	subOp,	FV, [v(FV,  -1.0, 1.0),	v(F,   -1.0, 1.0)], f(1.0), f(0.0),
+            all, es3fShaderOperatorTests.binaryVecScalarFuncs(deMath.subScalar)));
+		binary.push(op(subName,	subOp,	IV, [v(IV,  -4.0, 6.0),	v(I,   -6.0, 5.0)], f(0.1), f(0.5),
+            mediump, es3fShaderOperatorTests.binaryVecScalarFuncs(deMath.subScalar, gluShaderUtil.DataType.INT,
+            gluShaderUtil.DataType.INT)));
+		binary.push(op(subName,	subOp,	IV, [v(IV,  -2e9, 2e9),	v(I,   -2e9, 2e9)], f(4e-10), f(0.5),
+            highp, es3fShaderOperatorTests.binaryVecScalarFuncs(deMath.subScalar, gluShaderUtil.DataType.INT,
+            gluShaderUtil.DataType.INT)));
+		binary.push(op(subName,	subOp,	UV, [v(UV,   1e2, 2e2),	v(U,    0.0, 1e2)], f(5e-3),	f(0.0),
+            mediump, es3fShaderOperatorTests.binaryVecScalarFuncs(deMath.subScalar, gluShaderUtil.DataType.UINT,
+            gluShaderUtil.DataType.UINT)));
+		binary.push(op(subName,	subOp,	UV, [v(UV,   0.0, 4e9),	v(U,    0.0, 4e9)], f(2e-10), f(0.0),
+            highp, es3fShaderOperatorTests.binaryVecScalarFuncs(deMath.subScalar, gluShaderUtil.DataType.UINT,
+            gluShaderUtil.DataType.UINT)));
     }
 
     // Rest of binary operators.
