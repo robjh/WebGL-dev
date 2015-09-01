@@ -843,7 +843,7 @@ goog.scope(function() {
 	 * @param {glsShaderRenderCase.ShaderEvalContext} c
 	 * @param {es3fShaderTextureFunctionTests.TexLookupParams} p
 	 */
-	es3fShaderTextureFunctionTests.evalTexture2DShadowLod = function(c) {
+	es3fShaderTextureFunctionTests.evalTexture2DShadowLod = function(c, p) {
 		c.color[0] = es3fShaderTextureFunctionTests.texture2DShadow(c, c.in_[0][2], c.in_[0][0], c.in_[0][1], c.in_[1][0]);
 	};
 	/**
@@ -921,7 +921,7 @@ goog.scope(function() {
 	 * @param {es3fShaderTextureFunctionTests.TexLookupParams} p
 	 */
 	es3fShaderTextureFunctionTests.evalTexture2DGrad = function(c, p) {
-		c.color = es3fShaderTextureFunctionTests.texture2D(c, c.in_[0][0], c.in_[0][1], es3fShaderTextureFunctionTests.computeLodFromGrad2D(c)) * p.scale + p.bias;
+		c.color = deMath.add(deMath.multiply(es3fShaderTextureFunctionTests.texture2D(c, c.in_[0][0], c.in_[0][1], es3fShaderTextureFunctionTests.computeLodFromGrad2D(c)), p.scale), p.bias);
 	};
 
 	/**
@@ -929,7 +929,7 @@ goog.scope(function() {
 	 * @param {es3fShaderTextureFunctionTests.TexLookupParams} p
 	 */
 	es3fShaderTextureFunctionTests.evalTextureCubeGrad = function(c, p) {
-		c.color = es3fShaderTextureFunctionTests.textureCube(c, c.in_[0][0], c.in_[0][1], c.in_[0][2], es3fShaderTextureFunctionTests.computeLodFromGradCube(c)) * p.scale + p.bias;
+		c.color = deMath.add(deMath.multiply(es3fShaderTextureFunctionTests.textureCube(c, c.in_[0][0], c.in_[0][1], c.in_[0][2], es3fShaderTextureFunctionTests.computeLodFromGradCube(c)), p.scale), p.bias);
 	};
 
 	/**
@@ -937,7 +937,7 @@ goog.scope(function() {
 	 * @param {es3fShaderTextureFunctionTests.TexLookupParams} p
 	 */
 	es3fShaderTextureFunctionTests.evalTexture2DArrayGrad = function(c, p) {
-		c.color = es3fShaderTextureFunctionTests.texture2DArray(c, c.in_[0][0], c.in_[0][1], c.in_[0][2], es3fShaderTextureFunctionTests.computeLodFromGrad2DArray(c)) * p.scale + p.bias;
+		c.color = deMath.add(deMath.multiply(es3fShaderTextureFunctionTests.texture2DArray(c, c.in_[0][0], c.in_[0][1], c.in_[0][2], es3fShaderTextureFunctionTests.computeLodFromGrad2DArray(c)), p.scale), p.bias);
 	};
 
 	/**
@@ -945,7 +945,7 @@ goog.scope(function() {
 	 * @param {es3fShaderTextureFunctionTests.TexLookupParams} p
 	 */
 	es3fShaderTextureFunctionTests.evalTexture3DGrad = function(c, p) {
-		c.color = es3fShaderTextureFunctionTests.texture3D(c, c.in_[0][0], c.in_[0][1], c.in_[0][2], es3fShaderTextureFunctionTests.computeLodFromGrad3D(c)) * p.scale + p.bias;
+		c.color = deMath.add(deMath.multiply(es3fShaderTextureFunctionTests.texture3D(c, c.in_[0][0], c.in_[0][1], c.in_[0][2], es3fShaderTextureFunctionTests.computeLodFromGrad3D(c)), p.scale), p.bias);
 	};
 
 
@@ -953,7 +953,7 @@ goog.scope(function() {
 	 * @param {glsShaderRenderCase.ShaderEvalContext} c
 	 * @param {es3fShaderTextureFunctionTests.TexLookupParams} p
 	 */
-	es3fShaderTextureFunctionTests.evalTexture2DShadowGrad = function(c) {
+	es3fShaderTextureFunctionTests.evalTexture2DShadowGrad = function(c, p) {
 		c.color[0] = es3fShaderTextureFunctionTests.texture2DShadow(c, c.in_[0][2], c.in_[0][0], c.in_[0][1], es3fShaderTextureFunctionTests.computeLodFromGrad2D(c));
 	};
 
@@ -961,7 +961,7 @@ goog.scope(function() {
 	 * @param {glsShaderRenderCase.ShaderEvalContext} c
 	 * @param {es3fShaderTextureFunctionTests.TexLookupParams} p
 	 */
-	es3fShaderTextureFunctionTests.evalTextureCubeShadowGrad = function(c) {
+	es3fShaderTextureFunctionTests.evalTextureCubeShadowGrad = function(c, p) {
 		c.color[0] = es3fShaderTextureFunctionTests.textureCubeShadow(c, c.in_[0][3], c.in_[0][0], c.in_[0][1], c.in_[0][2], es3fShaderTextureFunctionTests.computeLodFromGradCube(c));
 	};
 
@@ -969,7 +969,7 @@ goog.scope(function() {
 	 * @param {glsShaderRenderCase.ShaderEvalContext} c
 	 * @param {es3fShaderTextureFunctionTests.TexLookupParams} p
 	 */
-	es3fShaderTextureFunctionTests.evalTexture2DArrayShadowGrad = function(c) {
+	es3fShaderTextureFunctionTests.evalTexture2DArrayShadowGrad = function(c, p) {
 		c.color[0] = es3fShaderTextureFunctionTests.texture2DArrayShadow(c, c.in_[0][3], c.in_[0][0], c.in_[0][1], c.in_[0][2], es3fShaderTextureFunctionTests.computeLodFromGrad2DArray(c));
 	};
 
@@ -979,7 +979,7 @@ goog.scope(function() {
 	 * @param {es3fShaderTextureFunctionTests.TexLookupParams} p
 	 */
 	es3fShaderTextureFunctionTests.evalTexture2DGradOffset = function(c, p) {
-		c.color = es3fShaderTextureFunctionTests.texture2DOffset(c, c.in_[0][0], c.in_[0][1], es3fShaderTextureFunctionTests.computeLodFromGrad2D(c), deMath.swizzle(p.offset, [0,1])) * p.scale + p.bias;
+		c.color = deMath.add(deMath.multiply(es3fShaderTextureFunctionTests.texture2DOffset(c, c.in_[0][0], c.in_[0][1], es3fShaderTextureFunctionTests.computeLodFromGrad2D(c), deMath.swizzle(p.offset, [0,1])), p.scale), p.bias);
 	};
 
 	/**
@@ -987,7 +987,7 @@ goog.scope(function() {
 	 * @param {es3fShaderTextureFunctionTests.TexLookupParams} p
 	 */
 	es3fShaderTextureFunctionTests.evalTexture2DArrayGradOffset = function(c, p) {
-		c.color = es3fShaderTextureFunctionTests.texture2DArrayOffset(c, c.in_[0][0], c.in_[0][1], c.in_[0][2], es3fShaderTextureFunctionTests.computeLodFromGrad2DArray(c), deMath.swizzle(p.offset, [0,1])) * p.scale + p.bias;
+		c.color = deMath.add(deMath.multiply(es3fShaderTextureFunctionTests.texture2DArrayOffset(c, c.in_[0][0], c.in_[0][1], c.in_[0][2], es3fShaderTextureFunctionTests.computeLodFromGrad2DArray(c), deMath.swizzle(p.offset, [0,1])), p.scale), p.bias);
 	};
 
 	/**
@@ -995,7 +995,7 @@ goog.scope(function() {
 	 * @param {es3fShaderTextureFunctionTests.TexLookupParams} p
 	 */
 	es3fShaderTextureFunctionTests.evalTexture3DGradOffset = function(c, p) {
-		c.color = es3fShaderTextureFunctionTests.texture3DOffset(c, c.in_[0][0], c.in_[0][1], c.in_[0][2], es3fShaderTextureFunctionTests.computeLodFromGrad3D(c), p.offset) * p.scale + p.bias;
+		c.color = deMath.add(deMath.multiply(es3fShaderTextureFunctionTests.texture3DOffset(c, c.in_[0][0], c.in_[0][1], c.in_[0][2], es3fShaderTextureFunctionTests.computeLodFromGrad3D(c), p.offset), p.scale), p.bias);
 	};
 
 
@@ -1020,7 +1020,7 @@ goog.scope(function() {
 	 * @param {glsShaderRenderCase.ShaderEvalContext} c
 	 * @param {es3fShaderTextureFunctionTests.TexLookupParams} p
 	 */
-	es3fShaderTextureFunctionTests.evalTexture2DShadowProjGrad = function(c) {
+	es3fShaderTextureFunctionTests.evalTexture2DShadowProjGrad = function(c, p) {
 		c.color[0] = es3fShaderTextureFunctionTests.texture2DShadow(c, c.in_[0][2]/c.in_[0][3], c.in_[0][0]/c.in_[0][3], c.in_[0][1]/c.in_[0][3], es3fShaderTextureFunctionTests.computeLodFromGrad2D(c));
 	};
 
@@ -1038,7 +1038,7 @@ goog.scope(function() {
 	 * @param {es3fShaderTextureFunctionTests.TexLookupParams} p
 	 */
 	es3fShaderTextureFunctionTests.evalTexture2DProjGrad3 = function(c, p) {
-		c.color = es3fShaderTextureFunctionTests.texture2D(c, c.in_[0][0]/c.in_[0][2], c.in_[0][1]/c.in_[0][2], es3fShaderTextureFunctionTests.computeLodFromGrad2D(c)) * p.scale + p.bias;
+		c.color = deMath.add(deMath.multiply(es3fShaderTextureFunctionTests.texture2D(c, c.in_[0][0]/c.in_[0][2], c.in_[0][1]/c.in_[0][2], es3fShaderTextureFunctionTests.computeLodFromGrad2D(c)), p.scale), p.bias);
 	};
 
 	/**
@@ -1046,7 +1046,7 @@ goog.scope(function() {
 	 * @param {es3fShaderTextureFunctionTests.TexLookupParams} p
 	 */
 	es3fShaderTextureFunctionTests.evalTexture2DProjGrad = function(c, p) {
-		c.color = es3fShaderTextureFunctionTests.texture2D(c, c.in_[0][0]/c.in_[0][3], c.in_[0][1]/c.in_[0][3], es3fShaderTextureFunctionTests.computeLodFromGrad2D(c)) * p.scale + p.bias;
+		c.color = deMath.add(deMath.multiply(es3fShaderTextureFunctionTests.texture2D(c, c.in_[0][0]/c.in_[0][3], c.in_[0][1]/c.in_[0][3], es3fShaderTextureFunctionTests.computeLodFromGrad2D(c)), p.scale), p.bias);
 	};
 
 	/**
@@ -1054,7 +1054,7 @@ goog.scope(function() {
 	 * @param {es3fShaderTextureFunctionTests.TexLookupParams} p
 	 */
 	es3fShaderTextureFunctionTests.evalTexture3DProjGrad = function(c, p) {
-		c.color = es3fShaderTextureFunctionTests.texture3D(c, c.in_[0][0]/c.in_[0][3], c.in_[0][1]/c.in_[0][3], c.in_[0][2]/c.in_[0][3], es3fShaderTextureFunctionTests.computeLodFromGrad3D(c)) * p.scale + p.bias;
+		c.color = deMath.add(deMath.multiply(es3fShaderTextureFunctionTests.texture3D(c, c.in_[0][0]/c.in_[0][3], c.in_[0][1]/c.in_[0][3], c.in_[0][2]/c.in_[0][3], es3fShaderTextureFunctionTests.computeLodFromGrad3D(c)), p.scale), p.bias);
 	};
 
 
@@ -1063,7 +1063,7 @@ goog.scope(function() {
 	 * @param {es3fShaderTextureFunctionTests.TexLookupParams} p
 	 */
 	es3fShaderTextureFunctionTests.evalTexture2DProjGrad3Offset = function(c, p) {
-		c.color = es3fShaderTextureFunctionTests.texture2DOffset(c, c.in_[0][0]/c.in_[0][2], c.in_[0][1]/c.in_[0][2], es3fShaderTextureFunctionTests.computeLodFromGrad2D(c), deMath.swizzle(p.offset, [0,1])) * p.scale + p.bias;
+		c.color = deMath.add(deMath.multiply(es3fShaderTextureFunctionTests.texture2DOffset(c, c.in_[0][0]/c.in_[0][2], c.in_[0][1]/c.in_[0][2], es3fShaderTextureFunctionTests.computeLodFromGrad2D(c), deMath.swizzle(p.offset, [0,1])), p.scale), p.bias);
 	};
 
 	/**
@@ -1071,7 +1071,7 @@ goog.scope(function() {
 	 * @param {es3fShaderTextureFunctionTests.TexLookupParams} p
 	 */
 	es3fShaderTextureFunctionTests.evalTexture2DProjGradOffset = function(c, p) {
-		c.color = es3fShaderTextureFunctionTests.texture2DOffset(c, c.in_[0][0]/c.in_[0][3], c.in_[0][1]/c.in_[0][3], es3fShaderTextureFunctionTests.computeLodFromGrad2D(c), deMath.swizzle(p.offset, [0,1])) * p.scale + p.bias;
+		c.color = deMath.add(deMath.multiply(es3fShaderTextureFunctionTests.texture2DOffset(c, c.in_[0][0]/c.in_[0][3], c.in_[0][1]/c.in_[0][3], es3fShaderTextureFunctionTests.computeLodFromGrad2D(c), deMath.swizzle(p.offset, [0,1])), p.scale), p.bias);
 	};
 
 	/**
@@ -1079,7 +1079,7 @@ goog.scope(function() {
 	 * @param {es3fShaderTextureFunctionTests.TexLookupParams} p
 	 */
 	es3fShaderTextureFunctionTests.evalTexture3DProjGradOffset = function(c, p) {
-		c.color = es3fShaderTextureFunctionTests.texture3DOffset(c, c.in_[0][0]/c.in_[0][3], c.in_[0][1]/c.in_[0][3], c.in_[0][2]/c.in_[0][3], es3fShaderTextureFunctionTests.computeLodFromGrad3D(c), p.offset) * p.scale + p.bias;
+		c.color = deMath.add(deMath.multiply(es3fShaderTextureFunctionTests.texture3DOffset(c, c.in_[0][0]/c.in_[0][3], c.in_[0][1]/c.in_[0][3], c.in_[0][2]/c.in_[0][3], es3fShaderTextureFunctionTests.computeLodFromGrad3D(c), p.offset), p.scale), p.bias);
 	};
 
 	// Texel fetch variants
@@ -1091,7 +1091,7 @@ goog.scope(function() {
 		/** @type {number} */ var x	= Math.floor(c.in_[0][0]) + p.offset[0];
 		/** @type {number} */ var y	= Math.floor(c.in_[0][1]) + p.offset[1];
 		/** @type {number} */ var lod = Math.floor(c.in_[1][0]);
-		c.color = c.textures[0].tex2D.getLevel(lod).getPixel(x, y) * p.scale + p.bias;
+		c.color = deMath.add(deMath.multiply(c.textures[0].tex2D.getLevel(lod).getPixel(x, y), p.scale), p.bias);
 	};
 
 	/**
@@ -1103,7 +1103,7 @@ goog.scope(function() {
 		/** @type {number} */ var y	= Math.floor(c.in_[0][1]) + p.offset[1];
 		/** @type {number} */ var l	= Math.floor(c.in_[0][2]);
 		/** @type {number} */ var lod = Math.floor(c.in_[1][0]);
-		c.color = c.textures[0].tex2DArray.getLevel(lod).getPixel(x, y, l) * p.scale + p.bias;
+		c.color = deMath.add(deMath.multiply(c.textures[0].tex2DArray.getLevel(lod).getPixel(x, y, l), p.scale), p.bias);
 	};
 
 	/**
@@ -1115,14 +1115,14 @@ goog.scope(function() {
 		/** @type {number} */ var y	= Math.floor(c.in_[0][1]) + p.offset[1];
 		/** @type {number} */ var z	= Math.floor(c.in_[0][2]) + p.offset[2];
 		/** @type {number} */ var lod = Math.floor(c.in_[1][0]);
-		c.color = c.textures[0].tex3D.getLevel(lod).getPixel(x, y, z) * p.scale + p.bias;
+		c.color = deMath.add(deMath.multiply(c.textures[0].tex3D.getLevel(lod).getPixel(x, y, z), p.scale), p.bias);
 	};
 
 	/**
 	 * @constructor
 	 * @extends {glsShaderRenderCase.ShaderEvaluator}
 	 * @param {es3fShaderTextureFunctionTests.TexEvalFunc} evalFunc
-	 * @param {es3fShaderTextureFunctionTests.TexLookupParams} evalookupParamslFunc
+	 * @param {es3fShaderTextureFunctionTests.TexLookupParams} lookupParams
 	 */
 	es3fShaderTextureFunctionTests.TexLookupEvaluator = function(evalFunc, lookupParams) {
 		/** @type {es3fShaderTextureFunctionTests.TexEvalFunc} */ this.m_evalFunc = evalFunc;
@@ -1170,10 +1170,10 @@ goog.scope(function() {
 	es3fShaderTextureFunctionTests.ShaderTextureFunctionCase.prototype.init = function() {
 
 		// Base coord scale & bias
-		/** @type {Array<number>} */ var s = this.m_lookupSpec.maxCoord - this.m_lookupSpec.minCoord;
-		/** @type {Array<number>} */ var b = this.m_lookupSpec.minCoord;
+		/** @type {(Array<number>|number)} */ var s = deMath.subtract(this.m_lookupSpec.maxCoord, this.m_lookupSpec.minCoord);
+		/** @type {(Array<number>|number)} */ var b = this.m_lookupSpec.minCoord;
 
-		/** @type {Array<number>} */ var baseCoordTrans =[
+		/** @type {Array<number>} */ var baseCoordTrans = [
 			s[0], 0.0, 0.0, b[0],
 			0.0, s[1], 0., b[1],
 			s[2]/2.0, -s[2]/2.0, 0.0, s[2]/2.0 + b[2],
@@ -1181,13 +1181,13 @@ goog.scope(function() {
 		];
 		this.m_userAttribTransforms.push(tcuMatrix.matrixFromArray(4, 4, baseCoordTrans));
 
-		/** @type {boolean} */ var hasLodBias	= es3fShaderTextureFunctionTests.functionHasLod(this.m_lookupSpec.function) || this.m_lookupSpec.useBias;
-		/** @type {boolean} */ var isGrad		= es3fShaderTextureFunctionTests.functionHasGrad(this.m_lookupSpec.function);
+		/** @type {boolean} */ var hasLodBias = es3fShaderTextureFunctionTests.functionHasLod(this.m_lookupSpec.func) || this.m_lookupSpec.useBias;
+		/** @type {boolean} */ var isGrad = es3fShaderTextureFunctionTests.functionHasGrad(this.m_lookupSpec.func);
 		assertMsgOptions(!isGrad || !hasLodBias, 'Assert Error. expected: isGrad || hasLodBias === false', false, true);
 
 		if (hasLodBias) {
-			/** @type {number} */ var s = this.m_lookupSpec.maxLodBias - this.m_lookupSpec.minLodBias;
-			/** @type {number} */ var b = this.m_lookupSpec.minLodBias;
+			s = this.m_lookupSpec.maxLodBias - this.m_lookupSpec.minLodBias;
+			b = this.m_lookupSpec.minLodBias;
 			/** @type {Array<number>} */ var lodCoordTrans = [
 				s/2.0, s/2.0, 0.0, b,
 				0.0, 0.0, 0.0, 0.0,
@@ -1198,8 +1198,8 @@ goog.scope(function() {
 			this.m_userAttribTransforms.push(tcuMatrix.matrixFromArray(4, 4, lodCoordTrans));
 		}
 		else if (isGrad) {
-			/** @type {Array<number>} */ var sx = this.m_lookupSpec.maxDX - this.m_lookupSpec.minDX;
-			/** @type {Array<number>} */ var sy = this.m_lookupSpec.maxDY - this.m_lookupSpec.minDY;
+			/** @type {Array<number>} */ var sx = deMath.subtract(this.m_lookupSpec.maxDX, this.m_lookupSpec.minDX);
+			/** @type {Array<number>} */ var sy = deMath.subtract(this.m_lookupSpec.maxDY, this.m_lookupSpec.minDY);
 			/** @type {Array<number>} */ var gradDxTrans = [
 				sx[0]/2.0, sx[0]/2.0, 0.0, this.m_lookupSpec.minDX[0],
 				sx[1]/2.0, sx[1]/2.0, 0.0, this.m_lookupSpec.minDX[1],
@@ -1225,7 +1225,7 @@ goog.scope(function() {
 	};
 
 	es3fShaderTextureFunctionTests.ShaderTextureFunctionCase.prototype.initTexture = function() {
-		/** @type {Array<number>} */ var texCubeSwz = [
+		/** @type {Array<Array<number>>} */ var texCubeSwz = [
 			[0, 0, 1, 1],
 			[1, 1, 0, 0],
 			[0, 1, 0, 1],
@@ -1249,21 +1249,21 @@ goog.scope(function() {
 		/** @type {number} */ var dudx;
 		/** @type {number} */ var dvdy;
 
-		/** @type {tcuTexture.TextureFormat} */ var exFmt = gluTextureUtil.mapGLInternalFormat(this.m_textureSpec.format);
+		/** @type {tcuTexture.TextureFormat} */ var texFmt = gluTextureUtil.mapGLInternalFormat(this.m_textureSpec.format);
 		/** @type {tcuTextureUtil.TextureFormatInfo} */ var fmtInfo = tcuTextureUtil.getTextureFormatInfo(texFmt);
 		/** @type {Array<number>} */ var viewportSize = this.getViewportSize();
-		/** @type {boolean} */ var isProj = es3fShaderTextureFunctionTests.functionHasProj(this.m_lookupSpec.function);
+		/** @type {boolean} */ var isProj = es3fShaderTextureFunctionTests.functionHasProj(this.m_lookupSpec.func);
 		/** @type {boolean} */ var isAutoLod = es3fShaderTextureFunctionTests.functionHasAutoLod(
 			this.m_isVertexCase ? gluShaderProgram.shaderType.VERTEX : gluShaderProgram.shaderType.FRAGMENT,
-			m_lookupSpec.function); // LOD can vary significantly
+			this.m_lookupSpec.func); // LOD can vary significantly
 		/** @type {number} */ var proj = isProj ?
-			1.0 / this.m_lookupSpec.minCoord[this.m_lookupSpec.function === es3fShaderTextureFunctionTests.Function.TEXTUREPROJ3 ? 2 : 3] :
+			1.0 / this.m_lookupSpec.minCoord[this.m_lookupSpec.func === es3fShaderTextureFunctionTests.Function.TEXTUREPROJ3 ? 2 : 3] :
 			1.0;
 
 		switch (this.m_textureSpec.type) {
 			case es3fShaderTextureFunctionTests.TextureType.TEXTURETYPE_2D:
 				levelStep = isAutoLod ? 0.0 : 1.0 / Math.max(1, this.m_textureSpec.numLevels - 1);
-				cScale = fmtInfo.valueMax - fmtInfo.valueMin;
+				cScale = deMath.subtract(fmtInfo.valueMax, fmtInfo.valueMin);
 				cBias = fmtInfo.valueMin;
 				baseCellSize = Math.min(this.m_textureSpec.width / 4, this.m_textureSpec.height / 4);
 
@@ -1271,13 +1271,13 @@ goog.scope(function() {
 				for (var level = 0; level < this.m_textureSpec.numLevels; level++) {
 					fA = level * levelStep;
 					fB = 1.0 - fA;
-					colorA = cBias + cScale * [fA, fB, fA, fB];
-					colorB = cBias + cScale * [fB, fA, fB, fA];
+					colorA = deMath.add(cBias, deMath.multiply(cScale, [fA, fB, fA, fB]));
+					colorB = deMath.add(cBias, deMath.multiply(cScale, [fB, fA, fB, fA]));
 
 					this.m_texture2D.getRefTexture().allocLevel(level);
 					tcuTextureUtil.fillWithGrid(this.m_texture2D.getRefTexture().getLevel(level), Math.max(1, baseCellSize >> level), colorA, colorB);
 				}
-				m_texture2D.upload();
+				this.m_texture2D.upload();
 
 				// Compute LOD.
 				dudx = (this.m_lookupSpec.maxCoord[0] - this.m_lookupSpec.minCoord[0]) * proj * this.m_textureSpec.width / viewportSize[0];
@@ -1290,9 +1290,9 @@ goog.scope(function() {
 
 			case es3fShaderTextureFunctionTests.TextureType.TEXTURETYPE_CUBE_MAP:
 				levelStep = isAutoLod ? 0.0 : 1.0 / Math.max(1, this.m_textureSpec.numLevels - 1);
-				cScale = fmtInfo.valueMax - fmtInfo.valueMin;
+				cScale = deMath.subtract(fmtInfo.valueMax, fmtInfo.valueMin);
 				cBias = fmtInfo.valueMin;
-				/** @type {Array<number>} */ var cCorner = cBias + cScale * 0.5;
+				/** @type {Array<number>} */ var cCorner = deMath.add(cBias, deMath.scale(cScale, 0.5));
 				baseCellSize = Math.min(this.m_textureSpec.width / 4, this.m_textureSpec.height / 4);
 
 				assertMsgOptions(this.m_textureSpec.width === this.m_textureSpec.height, 'Expected width === height', false, true);
@@ -1303,10 +1303,10 @@ goog.scope(function() {
 					/** @type {Array<number>} */ var f = [fA, fB];
 
 					for (var face = 0; face < 6 /*tcu::CUBEFACE_LAST*/; face++) {
-						/** @type {Array<number>} */ var swzA	= texCubeSwz[face];
-						/** @type {Array<number>} */ var swzB	= deMath.subtract([1, 1, 1, 1], swzA);
-						colorA = cBias + cScale * f.swizzle(swzA[0], swzA[1], swzA[2], swzA[3]);
-						colorB = cBias + cScale * f.swizzle(swzB[0], swzB[1], swzB[2], swzB[3]);
+						/** @type {Array<number>} */ var swzA = texCubeSwz[face];
+						/** @type {Array<number>} */ var swzB = deMath.subtract([1, 1, 1, 1], swzA);
+						colorA = deMath.add(cBias, deMath.scale(cScale, f.swizzle(swzA[0], swzA[1], swzA[2], swzA[3])));
+						colorB = deMath.add(cBias, deMath.scale(cScale, f.swizzle(swzB[0], swzB[1], swzB[2], swzB[3])));
 
 						this.m_textureCube.getRefTexture().allocLevel(face, level);
 
@@ -1343,7 +1343,7 @@ goog.scope(function() {
 			case es3fShaderTextureFunctionTests.TextureType.TEXTURETYPE_2D_ARRAY:
 				/** @type {number} */ var layerStep = 1.0 / this.m_textureSpec.depth;
 				levelStep = isAutoLod ? 0.0 : 1.0 / Math.max(1, this.m_textureSpec.numLevels - 1) * this.m_textureSpec.depth;
-				cScale = fmtInfo.valueMax - fmtInfo.valueMin;
+				cScale = deMath.subtract(fmtInfo.valueMax, fmtInfo.valueMin);
 				cBias = fmtInfo.valueMin;
 				baseCellSize = Math.min(this.m_textureSpec.width / 4, this.m_textureSpec.height / 4);
 
@@ -1355,8 +1355,8 @@ goog.scope(function() {
 					for (var layer = 0; layer < levelAccess.getDepth(); layer++) {
 						fA = layer * layerStep + level * levelStep;
 						fB = 1.0 - fA;
-						colorA = cBias + cScale * [fA, fB, fA, fB];
-						colorB = cBias + cScale * [fB, fA, fB, fA];
+						colorA = deMath.add(cBias, deMath.multiply(cScale, [fA, fB, fA, fB]));
+						colorB = deMath.add(cBias, deMath.multiply(cScale, [fB, fA, fB, fA]));
 
 						tcuTextureUtil.fillWithGrid(tcuTextureUtil.getSubregion(levelAccess, 0, 0, layer, levelAccess.getWidth(), levelAccess.getHeight(), 1), Math.max(1, baseCellSize >> level), colorA, colorB);
 					}
@@ -1382,11 +1382,11 @@ goog.scope(function() {
 				for (var level = 0; level < this.m_textureSpec.numLevels; level++) {
 					fA = level * levelStep;
 					fB = 1.0 - fA;
-					colorA = cBias + cScale * [fA, fB, fA, fB];
-					colorB = cBias + cScale * [fB, fA, fB, fA];
+					colorA = deMath.add(cBias, deMath.multiply(cScale, [fA, fB, fA, fB]));
+					colorB = deMath.add(cBias, deMath.multiply(cScale, [fB, fA, fB, fA]));
 
 					this.m_texture3D.getRefTexture().allocLevel(level);
-					tcuTextureUtil.fillWithGri(this.m_texture3D0getRefTexture().getLevel(level), Math.max(1, baseCellSize >> level), colorA, colorB);
+					tcuTextureUtil.fillWithGrid(this.m_texture3D0getRefTexture().getLevel(level), Math.max(1, baseCellSize >> level), colorA, colorB);
 				}
 				this.m_texture3D.upload();
 
