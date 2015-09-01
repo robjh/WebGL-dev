@@ -92,6 +92,7 @@ targets = {
     'fragdepth' : 'functional.gles3.es3fFragDepthTests',
     'shaderop' : 'functional.gles3.es3fShaderOperatorTests',
     'vao' : 'functional.gles3.es3fVertexArrayObjectTests',
+    'clip' : 'functional.gles3.es3fClippingTests',
     'shaderpackingfunction' : 'functional.gles3.es3fShaderPackingFunctionTests',
     'shadercommonfunction' : 'functional.gles3.es3fShaderCommonFunctionTests',
     'shadermatrix' : 'functional.gles3.es3fShaderMatrixTest',

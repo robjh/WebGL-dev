@@ -4744,4 +4744,7 @@ goog.scope(function() {
         }
     };
 
+    sglrReferenceContext.ReferenceContext.prototype.invalidateFramebuffer = function(target, attachments) {};
+    sglrReferenceContext.ReferenceContext.prototype.invalidateSubFramebuffer = function(target, attachments, x, y, width, height) {};
+
 });

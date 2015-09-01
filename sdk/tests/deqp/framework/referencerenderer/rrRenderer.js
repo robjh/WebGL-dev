@@ -542,6 +542,26 @@ rrRenderer.calculateDepth = function(x, y, depths) {
 };
 
 /**
+ * Check that point is in the clipping volume
+ * @param {number} x
+ * @param {number} y
+ * @param {number} z
+ * @param {rrRenderState.WindowRectangle} rect
+ * @return {boolean}
+ */
+rrRenderer.clipTest = function(x, y, z, rect) {
+    x = Math.round(x);
+    y = Math.round(y);
+    if (!deMath.deInBounds32(x, rect.left, rect.left + rect.width))
+        return false;
+    if (!deMath.deInBounds32(y, rect.bottom, rect.bottom + rect.height))
+        return false;
+    if (z < 0 || z > 1)
+        return false;
+    return true;
+};
+
+/**
  * @param {rrRenderState.RenderState} state
  * @param {rrRenderer.RenderTarget} renderTarget
  * @param {sglrShaderProgram.ShaderProgram} program
@@ -594,6 +614,11 @@ rrRenderer.drawQuads = function(state, renderTarget, program, vertexAttribs, pri
     }
     program.shadeVertices(vertexAttribs, vertexPackets, numVertexPackets);
 
+    var zn = state.viewport.zn;
+    var zf = state.viewport.zf;
+    var depthScale = (zf - zn)/2;
+    var depthBias = (zf + zn)/2;
+
     // For each quad, we get a group of six vertex packets
     for (var prim = primitives.getNextPrimitive(true); prim.length > 0; prim = primitives.getNextPrimitive()) {
         var quadPackets = selectVertices(vertexPackets, prim);
@@ -643,6 +668,9 @@ rrRenderer.drawQuads = function(state, renderTarget, program, vertexAttribs, pri
                 var xf = (i + 0.5) / width;
                 var yf = (j + 0.5) / height;
                 var depth = rrRenderer.calculateDepth(xf, yf, [v0[2], v1[2], v2[2], v3[2]]);
+                depth = depth * depthScale + depthBias;
+                if (!rrRenderer.clipTest(v0[0] + i, v1[1] + j, depth, state.viewport.rect))
+                    continue;
                 var triNdx = xf + yf >= 1;
                 if (!triNdx) {
                     var b = rrRenderer.getBarycentricCoefficients([x, y], v0, v1, v3);
@@ -728,6 +756,11 @@ rrRenderer.drawLines = function(state, renderTarget, program, vertexAttribs, pri
     }
     program.shadeVertices(vertexAttribs, vertexPackets, numVertexPackets);
 
+    var zn = state.viewport.zn;
+    var zf = state.viewport.zf;
+    var depthScale = (zf - zn)/2;
+    var depthBias = (zf + zn)/2;
+
     // For each quad, we get a group of six vertex packets
     for (var prim = primitives.getNextPrimitive(true); prim.length > 0; prim = primitives.getNextPrimitive()) {
         var linePackets = selectVertices(vertexPackets, prim);
@@ -769,7 +802,10 @@ rrRenderer.drawLines = function(state, renderTarget, program, vertexAttribs, pri
             var b = [0, 0, 0];
             b[0] = 1 - t;
             b[1] = t;
-            packets.push(new rrFragmentOperations.Fragment(b, [x, y], depth));
+
+            depth = depth * depthScale + depthBias;
+            if (rrRenderer.clipTest(x, y, depth, state.viewport.rect))
+                packets.push(new rrFragmentOperations.Fragment(b, [x, y], depth));
 
             if (x == v1[0] && y == v1[1])
                 break;
@@ -844,12 +880,18 @@ rrRenderer.drawPoints = function(state, renderTarget, program, vertexAttribs, pr
     }
     program.shadeVertices(vertexAttribs, vertexPackets, numVertexPackets);
 
+    var zn = state.viewport.zn;
+    var zf = state.viewport.zf;
+    var depthScale = (zf - zn)/2;
+    var depthBias = (zf + zn)/2;
+
     // For each primitive, we draw a point.
     for (var prim = primitives.getNextPrimitive(true); prim.length > 0; prim = primitives.getNextPrimitive()) {
         var pointPackets = selectVertices(vertexPackets, prim);
 
         var v0 = rrRenderer.transformGLToWindowCoords(state, pointPackets[0]);
         v0[2] = pointPackets[0].position[2];
+        var pointSize = pointPackets[0].pointSize;
 
         var shadingContext = new rrShadingContext.FragmentShadingContext(
             pointPackets[0].outputs,
@@ -862,7 +904,18 @@ rrRenderer.drawPoints = function(state, renderTarget, program, vertexAttribs, pr
         var y = v0[1];
         var depth = v0[2];
         var b = [1, 0, 0];
-        packets.push(new rrFragmentOperations.Fragment(b, [x, y], depth));
+        depth = depth * depthScale + depthBias;
+
+        for (var i = Math.floor(x - pointSize / 2); i < x + pointSize / 2; i++) {
+            for (var j = Math.floor(y - pointSize / 2); j < y + pointSize / 2; j++) {
+                var centerX = i + 0.5;
+                var centerY = j + 0.5;
+                if (Math.abs(centerX - x) < pointSize / 2 && 
+                    Math.abs(centerY - y) < pointSize / 2 &&
+                    rrRenderer.clipTest(i, j, depth, state.viewport.rect))
+                    packets.push(new rrFragmentOperations.Fragment(b, [i, j], depth));
+            }
+        }
 
         program.shadeFragments(packets, shadingContext);
 
