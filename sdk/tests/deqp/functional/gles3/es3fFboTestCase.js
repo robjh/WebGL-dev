@@ -95,7 +95,7 @@ var DE_ASSERT = function(x) {
      * @param {tcuSurface.Surface} reference
      * @param {tcuSurface.Surface} result
      */
-    es3fFboTestCase.FboTestCase.compare = function(reference, result) {
+    es3fFboTestCase.FboTestCase.prototype.compare = function(reference, result) {
         return tcuImageCompare.fuzzyCompare('Result', 'Image comparison result', reference.getAccess(), result.getAccess(), 0.05, tcuImageCompare.CompareLogMode.RESULT);
     };
 
@@ -245,7 +245,7 @@ var DE_ASSERT = function(x) {
         this.render(reference);
         this.setContext(null);
 
-        /** @type {boolean} */ var isOk = es3fFboTestCase.FboTestCase.compare(reference, result);
+        /** @type {boolean} */ var isOk = this.compare(reference, result);
 
         assertMsgOptions(isOk, '', true, false);
 
