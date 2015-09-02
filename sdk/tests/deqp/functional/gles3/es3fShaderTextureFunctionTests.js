@@ -459,7 +459,7 @@ goog.scope(function() {
      * @return {number}
      */
     es3fShaderTextureFunctionTests.texture2DShadowOffset = function(c, ref, s, t, lod, offset) {
-        return c.textures[0].tex2D.sampleCompareOffset(c.textures[0].sampler, ref, s, t, lod, offset);
+        return c.textures[0].tex2D.getView().sampleCompareOffset(c.textures[0].sampler, ref, [s, t], lod, offset);
     };
 
     /**
@@ -473,7 +473,7 @@ goog.scope(function() {
      * @return {number}
      */
     es3fShaderTextureFunctionTests.texture2DArrayShadowOffset = function(c, ref, s, t, r, lod, offset) {
-        return c.textures[0].tex2DArray.sampleCompareOffset(c.textures[0].sampler, ref, s, t, r, lod, offset);
+        return c.textures[0].tex2DArray.getView().sampleCompareOffset(c.textures[0].sampler, ref, [s, t, r], lod, offset);
     };
 
     // Eval functions.
@@ -1725,7 +1725,7 @@ goog.scope(function() {
         // TODO: result reporting
         if (currentIteration === 0) {
             //m_testCtx.setTestResult(QP_TEST_RESULT_PASS, "Pass");
-            testPassedOptions('Pass', true);
+
             return this.initShader() ? tcuTestCase.IterateResult.CONTINUE : tcuTestCase.IterateResult.STOP;
         }
         else if (currentIteration === lastIterationIndex) {
@@ -1737,7 +1737,9 @@ goog.scope(function() {
                 // if (m_testCtx.getTestResult() !== QP_TEST_RESULT_FAIL)
                 //     m_testCtx.setTestResult(QP_TEST_RESULT_FAIL, "Got unexpected texture size");
                 testFailedOptions('Fail', false);
-            }
+            } else {
+				testPassedOptions('Pass', true);
+			}
             return tcuTestCase.IterateResult.CONTINUE;
         }
     };
@@ -1840,7 +1842,7 @@ goog.scope(function() {
                 bufferedLogToConsole("Testing image size " + testSize.textureSize[0] + "x" + testSize.textureSize[1]);
                 bufferedLogToConsole("Lod: " + testSize.lod + ", base level: " + testSize.lodBase);
                 bufferedLogToConsole("Expecting: " + testSize.expectedSize[0] + "x" + testSize.expectedSize[1]);
-debugger;
+				
                 gl.uniform2iv(sizeLoc, testSize.expectedSize);
                 gl.uniform1iv(lodLoc, [testSize.lod]);
 

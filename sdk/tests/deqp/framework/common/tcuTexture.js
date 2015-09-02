@@ -2425,9 +2425,19 @@ tcuTexture.Texture2DArrayView.prototype.sample = function(sampler, texCoord, lod
  * @return {Array<number>}
  */
 tcuTexture.Texture2DArrayView.prototype.sampleOffset = function(sampler, texCoord, lod, offset) {
-    //return tcuTexture.sampleLevelArray2DCompare(this.m_levels, this.m_numLevels, sampler, ref, texCoord[0], texCoord[1], lod, [0, 0, this.selectLayer(texCoord[2])]);
-    //return m_view.sampleOffset(sampler, s, t, r, lod, offset);
     return tcuTexture.sampleLevelArray2DOffset(this.m_levels, this.m_numLevels, sampler, texCoord, lod, [offset[0], offset[1], this.selectLayer(texCoord[2])]);
+};
+
+/**
+ * @param {tcuTexture.Sampler} sampler
+ * @param {number} ref
+ * @param {Array<number>} texCoord
+ * @param {number} lod
+ * @param {Array<number>} offset
+ * @return {number}
+ */
+tcuTexture.Texture2DArrayView.prototype.sampleCompareOffset = function(sampler, ref, texCoord, lod, offset) {
+    return tcuTexture.sampleLevelArray2DCompare(this.m_levels, this.m_numLevels, sampler, ref, texCoord[0], texCoord[1], lod, [offset[0], offset[1], this.selectLayer(texCoord[2])]);
 };
 
 /**
