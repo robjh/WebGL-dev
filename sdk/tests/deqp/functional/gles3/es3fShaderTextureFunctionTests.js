@@ -4,14 +4,14 @@
  *
  * Copyright 2014 The Android Open Source Project
  *
- * Licensed under the Apache License, Version 2.0 (the 'License');
+ * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
  *
  *      http://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an 'AS IS' BASIS,
+ * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  * See the License for the specific language governing permissions and
  * limitations under the License.
@@ -107,8 +107,6 @@ goog.scope(function() {
                function_ === es3fShaderTextureFunctionTests.Function.TEXTUREPROJLOD3 ||
                function_ === es3fShaderTextureFunctionTests.Function.TEXELFETCH;
     };
-
-
 
     /**
      * @struct
@@ -276,7 +274,7 @@ goog.scope(function() {
         if (arguments.length === 4)
             return es3fShaderTextureFunctionTests.computeLodFromDerivates_UV(dudx, dvdx, dwdxOrdudy, dudyOrdvdy);
         else
-            return es3fShaderTextureFunctionTests.computeLodFromDerivates(dudx, dvdx, dwdxOrdudy, dudyOrdvdy, dvdy, dwdy);
+            return es3fShaderTextureFunctionTests.computeLodFromDerivates_UVW(dudx, dvdx, dwdxOrdudy, dudyOrdvdy, /** @type {number} */ (dvdy), /** @type {number} */ (dwdy));
     };
 
        /**
@@ -1267,7 +1265,7 @@ goog.scope(function() {
                 cBias = fmtInfo.valueMin;
                 baseCellSize = Math.min(this.m_textureSpec.width / 4, this.m_textureSpec.height / 4);
 
-                this.m_texture2D = new gluTexture.Texture2D(gl, this.m_textureSpec.format, this.m_textureSpec.width, this.m_textureSpec.height);
+                this.m_texture2D = gluTexture.texture2DFromInternalFormat(gl, this.m_textureSpec.format, this.m_textureSpec.width, this.m_textureSpec.height);
                 for (var level = 0; level < this.m_textureSpec.numLevels; level++) {
                     fA = level * levelStep;
                     fB = 1.0 - fA;
@@ -1458,16 +1456,16 @@ goog.scope(function() {
         }
 
         switch (this.m_lookupSpec.func) {
-            case es3fShaderTextureFunctionTests.Function.TEXTURE: baseFuncName = "texture"; break;
-            case es3fShaderTextureFunctionTests.Function.TEXTUREPROJ: baseFuncName = "textureProj"; break;
-            case es3fShaderTextureFunctionTests.Function.TEXTUREPROJ3: baseFuncName = "textureProj"; break;
-            case es3fShaderTextureFunctionTests.Function.TEXTURELOD: baseFuncName = "textureLod"; break;
-            case es3fShaderTextureFunctionTests.Function.TEXTUREPROJLOD: baseFuncName = "textureProjLod"; break;
-            case es3fShaderTextureFunctionTests.Function.TEXTUREPROJLOD3: baseFuncName = "textureProjLod"; break;
-            case es3fShaderTextureFunctionTests.Function.TEXTUREGRAD: baseFuncName = "textureGrad"; break;
-            case es3fShaderTextureFunctionTests.Function.TEXTUREPROJGRAD: baseFuncName = "textureProjGrad"; break;
-            case es3fShaderTextureFunctionTests.Function.TEXTUREPROJGRAD3: baseFuncName = "textureProjGrad"; break;
-            case es3fShaderTextureFunctionTests.Function.TEXELFETCH: baseFuncName = "texelFetch"; break;
+            case es3fShaderTextureFunctionTests.Function.TEXTURE: baseFuncName = 'texture'; break;
+            case es3fShaderTextureFunctionTests.Function.TEXTUREPROJ: baseFuncName = 'textureProj'; break;
+            case es3fShaderTextureFunctionTests.Function.TEXTUREPROJ3: baseFuncName = 'textureProj'; break;
+            case es3fShaderTextureFunctionTests.Function.TEXTURELOD: baseFuncName = 'textureLod'; break;
+            case es3fShaderTextureFunctionTests.Function.TEXTUREPROJLOD: baseFuncName = 'textureProjLod'; break;
+            case es3fShaderTextureFunctionTests.Function.TEXTUREPROJLOD3: baseFuncName = 'textureProjLod'; break;
+            case es3fShaderTextureFunctionTests.Function.TEXTUREGRAD: baseFuncName = 'textureGrad'; break;
+            case es3fShaderTextureFunctionTests.Function.TEXTUREPROJGRAD: baseFuncName = 'textureProjGrad'; break;
+            case es3fShaderTextureFunctionTests.Function.TEXTUREPROJGRAD3: baseFuncName = 'textureProjGrad'; break;
+            case es3fShaderTextureFunctionTests.Function.TEXELFETCH: baseFuncName = 'texelFetch'; break;
             default:
                 throw new Error('Unexpected function.');
         }
@@ -1476,132 +1474,132 @@ goog.scope(function() {
         /** @type {string} */ var frag = '';
         /** @type {string} */ var op = '';
 
-        vert += "#version 300 es\n" +
-                "in highp vec4 a_position;\n" +
-                "in " + coordPrecName + " " + coordTypeName + " a_in0;\n";
+        vert += '#version 300 es\n' +
+                'in highp vec4 a_position;\n' +
+                'in ' + coordPrecName + ' ' + coordTypeName + ' a_in0;\n';
 
         if (isGrad) {
-            vert += "in " + coordPrecName + " " + gradTypeName + " a_in1;\n";
-            vert += "in " + coordPrecName + " " + gradTypeName + " a_in2;\n";
+            vert += 'in ' + coordPrecName + ' ' + gradTypeName + ' a_in1;\n';
+            vert += 'in ' + coordPrecName + ' ' + gradTypeName + ' a_in2;\n';
         }
         else if (hasLodBias)
-            vert += "in " + coordPrecName + " float a_in1;\n";
+            vert += 'in ' + coordPrecName + ' float a_in1;\n';
 
-        frag += "#version 300 es\n" +
-                "layout(location = 0) out mediump vec4 o_color;\n";
+        frag += '#version 300 es\n' +
+                'layout(location = 0) out mediump vec4 o_color;\n';
 
         if (isVtxCase) {
-            vert += "out mediump vec4 v_color;\n";
-            frag += "in mediump vec4 v_color;\n";
+            vert += 'out mediump vec4 v_color;\n';
+            frag += 'in mediump vec4 v_color;\n';
         }
         else
         {
-            vert += "out " + coordPrecName + " " + coordTypeName + " v_texCoord;\n";
-            frag += "in " + coordPrecName + " " + coordTypeName + " v_texCoord;\n";
+            vert += 'out ' + coordPrecName + ' ' + coordTypeName + ' v_texCoord;\n';
+            frag += 'in ' + coordPrecName + ' ' + coordTypeName + ' v_texCoord;\n';
 
             if (isGrad) {
-                vert += "out " + coordPrecName + " " + gradTypeName + " v_gradX;\n";
-                vert += "out " + coordPrecName + " " + gradTypeName + " v_gradY;\n";
-                frag += "in " + coordPrecName + " " + gradTypeName + " v_gradX;\n";
-                frag += "in " + coordPrecName + " " + gradTypeName + " v_gradY;\n";
+                vert += 'out ' + coordPrecName + ' ' + gradTypeName + ' v_gradX;\n';
+                vert += 'out ' + coordPrecName + ' ' + gradTypeName + ' v_gradY;\n';
+                frag += 'in ' + coordPrecName + ' ' + gradTypeName + ' v_gradX;\n';
+                frag += 'in ' + coordPrecName + ' ' + gradTypeName + ' v_gradY;\n';
             }
 
             if (hasLodBias) {
-                vert += "out " + coordPrecName + " float v_lodBias;\n";
-                frag += "in " + coordPrecName + " float v_lodBias;\n";
+                vert += 'out ' + coordPrecName + ' float v_lodBias;\n';
+                frag += 'in ' + coordPrecName + ' float v_lodBias;\n';
             }
         }
 
         // Uniforms
-        op += "uniform highp " + gluShaderUtil.getDataTypeName(samplerType) + " u_sampler;\n" +
-              "uniform highp vec4 u_scale;\n" +
-              "uniform highp vec4 u_bias;\n";
+        op += 'uniform highp ' + gluShaderUtil.getDataTypeName(samplerType) + ' u_sampler;\n' +
+              'uniform highp vec4 u_scale;\n' +
+              'uniform highp vec4 u_bias;\n';
 
         vert += isVtxCase ? op : '';
         frag += isVtxCase ? '' : op;
         op = '';
 
-        vert += "\nvoid main()\n{\n" +
-                "\tgl_Position = a_position;\n";
-        frag += "\nvoid main()\n{\n";
+        vert += '\nvoid main()\n{\n' +
+                '\tgl_Position = a_position;\n';
+        frag += '\nvoid main()\n{\n';
 
         if (isVtxCase)
-            vert += "\tv_color = ";
+            vert += '\tv_color = ';
         else
-            frag += "\to_color = ";
+            frag += '\to_color = ';
 
         // Op.
-        /** @type {string} */ var texCoord = isVtxCase ? "a_in0" : "v_texCoord";
-        /** @type {string} */ var gradX = isVtxCase ? "a_in1" : "v_gradX";
-        /** @type {string} */ var gradY = isVtxCase ? "a_in2" : "v_gradY";
-        /** @type {string} */ var lodBias = isVtxCase ? "a_in1" : "v_lodBias";
+        /** @type {string} */ var texCoord = isVtxCase ? 'a_in0' : 'v_texCoord';
+        /** @type {string} */ var gradX = isVtxCase ? 'a_in1' : 'v_gradX';
+        /** @type {string} */ var gradY = isVtxCase ? 'a_in2' : 'v_gradY';
+        /** @type {string} */ var lodBias = isVtxCase ? 'a_in1' : 'v_lodBias';
 
-        op += "vec4(" + baseFuncName;
+        op += 'vec4(' + baseFuncName;
         if (this.m_lookupSpec.useOffset)
-            op += "Offset";
-        op += "(u_sampler, ";
+            op += 'Offset';
+        op += '(u_sampler, ';
 
         if (isIntCoord)
-            op += "ivec" + (texCoordComps+extraCoordComps) + "(";
+            op += 'ivec' + (texCoordComps+extraCoordComps) + '(';
 
         op += texCoord;
 
         if (isIntCoord)
-            op += ")";
+            op += ')';
 
         if (isGrad)
-            op += ", " + gradX + ", " + gradY;
+            op += ', ' + gradX + ', ' + gradY;
 
         if (es3fShaderTextureFunctionTests.functionHasLod(function_)) {
             if (isIntCoord)
-                op += ", int(" + lodBias + ")";
+                op += ', int(' + lodBias + ')';
             else
-                op += ", " + lodBias;
+                op += ', ' + lodBias;
         }
 
         if (this.m_lookupSpec.useOffset) {
             /** @type {number} */ var offsetComps = this.m_textureSpec.type === es3fShaderTextureFunctionTests.TextureType.TEXTURETYPE_3D ? 3 : 2;
 
-            op += ", ivec" + offsetComps + "(";
+            op += ', ivec' + offsetComps + '(';
             for (var ndx = 0; ndx < offsetComps; ndx++) {
                 if (ndx !== 0)
-                    op += ", ";
+                    op += ', ';
                 op += this.m_lookupSpec.offset[ndx];
             }
-            op += ")";
+            op += ')';
         }
 
         if (this.m_lookupSpec.useBias)
-            op += ", " + lodBias;
+            op += ', ' + lodBias;
 
-        op += ")";
+        op += ')';
 
         if (isShadow)
-            op += ", 0.0, 0.0, 1.0)";
+            op += ', 0.0, 0.0, 1.0)';
         else
-            op += ")*u_scale + u_bias";
+            op += ')*u_scale + u_bias';
 
-        op += ";\n";
+        op += ';\n';
 
         vert += isVtxCase ? op : '';
         frag += isVtxCase ? '' : op;
         op = '';
 
         if (isVtxCase)
-            frag += "\to_color = v_color;\n";
+            frag += '\to_color = v_color;\n';
         else {
-            vert += "\tv_texCoord = a_in0;\n";
+            vert += '\tv_texCoord = a_in0;\n';
 
             if (isGrad) {
-                vert += "\tv_gradX = a_in1;\n";
-                vert += "\tv_gradY = a_in2;\n";
+                vert += '\tv_gradX = a_in1;\n';
+                vert += '\tv_gradY = a_in2;\n';
             }
             else if (hasLodBias)
-                vert += "\tv_lodBias = a_in1;\n";
+                vert += '\tv_lodBias = a_in1;\n';
         }
 
-        vert += "}\n";
-        frag += "}\n";
+        vert += '}\n';
+        frag += '}\n';
 
         this.m_vertShaderSource = vert;
         this.m_fragShaderSource = frag;
@@ -1620,9 +1618,9 @@ goog.scope(function() {
      * @param  {Array<number>} constCoords
      */
     es3fShaderTextureFunctionTests.ShaderTextureFunctionCase.prototype.setupUniforms = function(programID, constCoords) {
-        gl.uniform1i(gl.getUniformLocation(programID, "u_sampler"),    0);
-        gl.uniform4fv(gl.getUniformLocation(programID, "u_scale"), this.m_lookupParams.scale);
-        gl.uniform4fv(gl.getUniformLocation(programID, "u_bias"), this.m_lookupParams.bias);
+        gl.uniform1i(gl.getUniformLocation(programID, 'u_sampler'), 0);
+        gl.uniform4fv(gl.getUniformLocation(programID, 'u_scale'), this.m_lookupParams.scale);
+        gl.uniform4fv(gl.getUniformLocation(programID, 'u_bias'), this.m_lookupParams.bias);
     };
 
 
@@ -1722,10 +1720,7 @@ goog.scope(function() {
         ];
         /** @type {number} */ var lastIterationIndex = testSizes.length + 1;
 
-        // TODO: result reporting
         if (currentIteration === 0) {
-            //m_testCtx.setTestResult(QP_TEST_RESULT_PASS, "Pass");
-
             return this.initShader() ? tcuTestCase.IterateResult.CONTINUE : tcuTestCase.IterateResult.STOP;
         }
         else if (currentIteration === lastIterationIndex) {
@@ -1733,13 +1728,11 @@ goog.scope(function() {
             return tcuTestCase.IterateResult.STOP;
         }
         else {
-            if (!this.testTextureSize(testSizes[currentIteration - 1])) {
-                // if (m_testCtx.getTestResult() !== QP_TEST_RESULT_FAIL)
-                //     m_testCtx.setTestResult(QP_TEST_RESULT_FAIL, "Got unexpected texture size");
-                testFailedOptions('Fail', false);
-            } else {
+            if (!this.testTextureSize(testSizes[currentIteration - 1]))
+                testFailedOptions('Fail: Case ' + (currentIteration - 1) + ' Got unexpected texture size', false);
+            else
 				testPassedOptions('Pass', true);
-			}
+
             return tcuTestCase.IterateResult.CONTINUE;
         }
     };
@@ -1756,8 +1749,7 @@ goog.scope(function() {
         bufferedLogToConsole(this.m_program.getProgramInfo().infoLog);
 
         if (!this.m_program.isOk()) {
-            //m_testCtx.setTestResult(QP_TEST_RESULT_FAIL, "Shader failed");
-            testFailedOptions('Shader failed', false);
+            testFailedOptions('Fail: Shader failed', false);
             return false;
         }
 
@@ -1798,7 +1790,6 @@ goog.scope(function() {
             return true;
 
         // setup rendering
-
         gl.useProgram(this.m_program.getProgram());
         gl.uniform1i(samplerLoc, 0);
         gl.clearColor(0.5, 0.5, 0.5, 1.0);
@@ -1827,9 +1818,9 @@ goog.scope(function() {
 
         switch (this.m_textureSpec.type) {
             case es3fShaderTextureFunctionTests.TextureType.TEXTURETYPE_3D:
-                bufferedLogToConsole("Testing image size " + testSize.textureSize[0] + "x" + testSize.textureSize[1] + "x" + testSize.textureSize[2]);
-                bufferedLogToConsole("Lod: " + testSize.lod + ", base level: " + testSize.lodBase);
-                bufferedLogToConsole("Expecting: " + testSize.expectedSize[0] + "x" + testSize.expectedSize[1] + "x" + testSize.expectedSize[2]);
+                bufferedLogToConsole('Testing image size ' + testSize.textureSize[0] + 'x' + testSize.textureSize[1] + 'x' + testSize.textureSize[2]);
+                bufferedLogToConsole('Lod: ' + testSize.lod + ', base level: ' + testSize.lodBase);
+                bufferedLogToConsole('Expecting: ' + testSize.expectedSize[0] + 'x' + testSize.expectedSize[1] + 'x' + testSize.expectedSize[2]);
 
                 gl.uniform3iv(sizeLoc, testSize.expectedSize);
                 gl.uniform1iv(lodLoc, [testSize.lod]);
@@ -1839,11 +1830,11 @@ goog.scope(function() {
 
             case es3fShaderTextureFunctionTests.TextureType.TEXTURETYPE_2D:
             case es3fShaderTextureFunctionTests.TextureType.TEXTURETYPE_CUBE_MAP:
-                bufferedLogToConsole("Testing image size " + testSize.textureSize[0] + "x" + testSize.textureSize[1]);
-                bufferedLogToConsole("Lod: " + testSize.lod + ", base level: " + testSize.lodBase);
-                bufferedLogToConsole("Expecting: " + testSize.expectedSize[0] + "x" + testSize.expectedSize[1]);
-				
-                gl.uniform2iv(sizeLoc, testSize.expectedSize);
+                bufferedLogToConsole('Testing image size ' + testSize.textureSize[0] + 'x' + testSize.textureSize[1]);
+                bufferedLogToConsole('Lod: ' + testSize.lod + ', base level: ' + testSize.lodBase);
+                bufferedLogToConsole('Expecting: ' + testSize.expectedSize[0] + 'x' + testSize.expectedSize[1]);
+
+                gl.uniform2iv(sizeLoc, testSize.expectedSize.slice(0,2));
                 gl.uniform1iv(lodLoc, [testSize.lod]);
 
                 gl.texStorage2D(textureTarget, levels, this.m_textureSpec.format, testSize.textureSize[0], testSize.textureSize[1]);
@@ -1852,9 +1843,9 @@ goog.scope(function() {
             case es3fShaderTextureFunctionTests.TextureType.TEXTURETYPE_2D_ARRAY:
                 /** @type {Array<number>} */ var expectedSize = [testSize.expectedSize[0], testSize.expectedSize[1], testSize.textureSize[2]];
 
-                bufferedLogToConsole("Testing image size " + testSize.textureSize[0] + "x" + testSize.textureSize[1] + " with " + testSize.textureSize[2] + " layer(s)");
-                bufferedLogToConsole("Lod: " + testSize.lod + ", base level: " + testSize.lodBase);
-                bufferedLogToConsole("Expecting: " + testSize.expectedSize[0] + "x" + testSize.expectedSize[1] + " and " + testSize.textureSize[2] + " layer(s)");
+                bufferedLogToConsole('Testing image size ' + testSize.textureSize[0] + 'x' + testSize.textureSize[1] + ' with ' + testSize.textureSize[2] + ' layer(s)');
+                bufferedLogToConsole('Lod: ' + testSize.lod + ', base level: ' + testSize.lodBase);
+                bufferedLogToConsole('Expecting: ' + testSize.expectedSize[0] + 'x' + testSize.expectedSize[1] + ' and ' + testSize.textureSize[2] + ' layer(s)');
 
                 gl.uniform3iv(sizeLoc, expectedSize);
                 gl.uniform1iv(lodLoc, [testSize.lod]);
@@ -1868,10 +1859,10 @@ goog.scope(function() {
 
         errorValue = gl.getError();
         if (errorValue === gl.OUT_OF_MEMORY)
-            throw new Error("Failed to allocate texture, got GL_OUT_OF_MEMORY. TexStorageXD");
+            throw new Error('Failed to allocate texture, got GL_OUT_OF_MEMORY. TexStorageXD');
         else if (errorValue !== gl.NO_ERROR) {
             // error is a failure too
-            bufferedLogToConsole("Failed, got " + wtu.glEnumToString(gl, errorValue) + "." );
+            bufferedLogToConsole('Failed, got ' + wtu.glEnumToString(gl, errorValue) + '.' );
             success = false;
         } else {
             // test
@@ -1892,10 +1883,10 @@ goog.scope(function() {
             if (outputColor[0] >= 1.0 - colorTolerance &&
                 outputColor[1] >= 1.0 - colorTolerance &&
                 outputColor[2] >= 1.0 - colorTolerance)
-                bufferedLogToConsole("Passed");
+                bufferedLogToConsole('Passed');
             else {
                 // failure
-                bufferedLogToConsole("Failed");
+                bufferedLogToConsole('Failed');
                 success = false;
             }
         }
@@ -1914,23 +1905,23 @@ goog.scope(function() {
      */
     es3fShaderTextureFunctionTests.TextureSizeCase.prototype.genVertexShader = function()  {
         /** @type {string} */ var vert = '';
-        vert += "#version 300 es\n" +
-                "in highp vec4 a_position;\n";
+        vert += '#version 300 es\n' +
+                'in highp vec4 a_position;\n';
 
         if (this.m_isVertexCase) {
-            vert += "out mediump vec4 v_color;\n" +
-                    "uniform highp " + this.m_samplerTypeStr + " u_sampler;\n" +
-                    "uniform highp ivec" + (this.m_has3DSize ? 3 : 2) + " u_texSize;\n" +
-                    "uniform highp int u_lod;\n";
+            vert += 'out mediump vec4 v_color;\n' +
+                    'uniform highp ' + this.m_samplerTypeStr + ' u_sampler;\n' +
+                    'uniform highp ivec' + (this.m_has3DSize ? 3 : 2) + ' u_texSize;\n' +
+                    'uniform highp int u_lod;\n';
         }
 
-        vert += "void main()\n{\n";
+        vert += 'void main()\n{\n';
 
         if (this.m_isVertexCase)
-            vert += "    v_color = (textureSize(u_sampler, u_lod) == u_texSize ? vec4(1.0, 1.0, 1.0, 1.0) : vec4(0.0, 0.0, 0.0, 1.0));\n";
+            vert += '    v_color = (textureSize(u_sampler, u_lod) == u_texSize ? vec4(1.0, 1.0, 1.0, 1.0) : vec4(0.0, 0.0, 0.0, 1.0));\n';
 
-        vert += "    gl_Position = a_position;\n" +
-                "}\n";
+        vert += '    gl_Position = a_position;\n' +
+                '}\n';
 
         return vert;
     };
@@ -1941,26 +1932,26 @@ goog.scope(function() {
     es3fShaderTextureFunctionTests.TextureSizeCase.prototype.genFragmentShader = function()  {
         /** @type {string} */ var frag = '';
 
-        frag += "#version 300 es\n" +
-                "layout(location = 0) out mediump vec4 o_color;\n";
+        frag += '#version 300 es\n' +
+                'layout(location = 0) out mediump vec4 o_color;\n';
 
         if (this.m_isVertexCase)
-                frag += "in mediump vec4 v_color;\n";
+                frag += 'in mediump vec4 v_color;\n';
 
         if (!this.m_isVertexCase) {
-            frag += "uniform highp " + this.m_samplerTypeStr + " u_sampler;\n" +
-                    "uniform highp ivec" + (this.m_has3DSize ? 3 : 2) + " u_texSize;\n" +
-                    "uniform highp int u_lod;\n";
+            frag += 'uniform highp ' + this.m_samplerTypeStr + ' u_sampler;\n' +
+                    'uniform highp ivec' + (this.m_has3DSize ? 3 : 2) + ' u_texSize;\n' +
+                    'uniform highp int u_lod;\n';
         }
 
-        frag += "void main()\n{\n";
+        frag += 'void main()\n{\n';
 
         if (!this.m_isVertexCase)
-            frag += "    o_color = (textureSize(u_sampler, u_lod) == u_texSize ? vec4(1.0, 1.0, 1.0, 1.0) : vec4(0.0, 0.0, 0.0, 1.0));\n";
+            frag += '    o_color = (textureSize(u_sampler, u_lod) == u_texSize ? vec4(1.0, 1.0, 1.0, 1.0) : vec4(0.0, 0.0, 0.0, 1.0));\n';
         else
-            frag += "    o_color = v_color;\n";
+            frag += '    o_color = v_color;\n';
 
-        frag += "}\n";
+        frag += '}\n';
 
         return frag;
     };
@@ -1998,14 +1989,14 @@ goog.scope(function() {
      * @param {es3fShaderTextureFunctionTests.TextureSpec} texSpec
      * @param {es3fShaderTextureFunctionTests.TexEvalFunc} evalFunc
      * @param {es3fShaderTextureFunctionTests.CaseFlags} flags
-     * @return {es3fShaderTextureFunctionTests.TestSpec}
+     * @return {es3fShaderTextureFunctionTests.TexFuncCaseSpec}
      */
     es3fShaderTextureFunctionTests.getCaseSpec = function(name, func, minCoord, maxCoord, useBias, minLodBias, maxLodBias, useOffset, offset, texSpec, evalFunc, flags) {
-        return [name,
+        return new es3fShaderTextureFunctionTests.TexFuncCaseSpec(name,
             new es3fShaderTextureFunctionTests.TextureLookupSpec(func, minCoord, maxCoord, useBias, minLodBias, maxLodBias, [0.0, 0.0, 0.0], [0.0, 0.0, 0.0], [0.0, 0.0, 0.0], [0.0, 0.0, 0.0], useOffset, offset),
             texSpec,
             evalFunc,
-            flags];
+            flags);
     };
 
     /**
@@ -2022,14 +2013,14 @@ goog.scope(function() {
      * @param {es3fShaderTextureFunctionTests.TextureSpec} texSpec
      * @param {es3fShaderTextureFunctionTests.TexEvalFunc} evalFunc
      * @param {es3fShaderTextureFunctionTests.CaseFlags} flags
-     * @return {es3fShaderTextureFunctionTests.TestSpec}
+     * @return {es3fShaderTextureFunctionTests.TexFuncCaseSpec}
      */
     es3fShaderTextureFunctionTests.getGradCaseSpec = function(name, func, minCoord, maxCoord, mindx, maxdx, mindy, maxdy, useOffset, offset, texSpec, evalFunc, flags) {
-        return [name,
+        return new es3fShaderTextureFunctionTests.TexFuncCaseSpec(name,
             new es3fShaderTextureFunctionTests.TextureLookupSpec(func, minCoord, maxCoord, false, 0.0, 0.0, mindx, maxdx, mindy, maxdy, useOffset, offset),
             texSpec,
             evalFunc,
-            flags];
+            flags);
     };
 
     /**
@@ -2071,9 +2062,9 @@ goog.scope(function() {
         for (var ndx = 0; ndx < cases.length; ndx++) {
             /** @type {string} */ var name = cases[ndx].name;
             if (cases[ndx].flags & es3fShaderTextureFunctionTests.CaseFlags.VERTEX)
-                group.addChild(new es3fShaderTextureFunctionTests.ShaderTextureFunctionCase(name + "_vertex", "", cases[ndx].lookupSpec, cases[ndx].texSpec, cases[ndx].evalFunc, true));
+                group.addChild(new es3fShaderTextureFunctionTests.ShaderTextureFunctionCase(name + '_vertex', '', cases[ndx].lookupSpec, cases[ndx].texSpec, cases[ndx].evalFunc, true));
             if (cases[ndx].flags & es3fShaderTextureFunctionTests.CaseFlags.FRAGMENT)
-                group.addChild(new es3fShaderTextureFunctionTests.ShaderTextureFunctionCase(name + "_fragment", "", cases[ndx].lookupSpec, cases[ndx].texSpec, cases[ndx].evalFunc, false));
+                group.addChild(new es3fShaderTextureFunctionTests.ShaderTextureFunctionCase(name + '_fragment', '', cases[ndx].lookupSpec, cases[ndx].texSpec, cases[ndx].evalFunc, false));
         }
     };
 
@@ -2182,7 +2173,6 @@ goog.scope(function() {
         /** @type {es3fShaderTextureFunctionTests.TextureSpec} */ var tex3DTexelFetchInt = new es3fShaderTextureFunctionTests.TextureSpec(es3fShaderTextureFunctionTests.TextureType.TEXTURETYPE_3D, gl.RGBA8I, 64, 32, 32, 7, samplerTexelFetch);
         /** @type {es3fShaderTextureFunctionTests.TextureSpec} */ var tex3DTexelFetchUint = new es3fShaderTextureFunctionTests.TextureSpec(es3fShaderTextureFunctionTests.TextureType.TEXTURETYPE_3D, gl.RGBA8UI, 64, 32, 32, 7, samplerTexelFetch);
 
-
         var testGroup = tcuTestCase.runner.testCases;
         // texture() cases
             /** @type {Array<es3fShaderTextureFunctionTests.TexFuncCaseSpec>} */ var textureCases = [
@@ -2256,7 +2246,7 @@ goog.scope(function() {
                 // Not in spec.
         //        es3fShaderTextureFunctionTests.getCaseSpec('sampler2darrayshadow_bias',    (es3fShaderTextureFunctionTests.Function.TEXTURE, [-1.2, -0.4, -0.5, 0.0], [1.5, 2.3, 3.5, 1.0],    true,    -2.0,    2.0,    Vec2(0.0),    Vec2(0.0), false, [0, 0, 0]),    tex2DArrayMipmapShadow, es3fShaderTextureFunctionTests.evalTexture2DArrayShadowBias,    FRAGMENT)
             ];
-            es3fShaderTextureFunctionTests.createCaseGroup(this, "texture", "texture() Tests", textureCases);
+            es3fShaderTextureFunctionTests.createCaseGroup(this, 'texture', 'texture() Tests', textureCases);
 
             // textureOffset() cases
             // \note _bias variants are not using mipmap thanks to wide allowed range for LOD computation
@@ -2307,7 +2297,7 @@ goog.scope(function() {
                 es3fShaderTextureFunctionTests.getCaseSpec('sampler2dshadow', es3fShaderTextureFunctionTests.Function.TEXTURE, [-0.2, -0.4, 0.0, 0.0], [1.5, 2.3, 1.0, 0.0],    false,    0.0,    0.0,    true, [7, -8, 0],    tex2DMipmapShadow, es3fShaderTextureFunctionTests.evalTexture2DShadowOffset, es3fShaderTextureFunctionTests.CaseFlags.FRAGMENT),
                 es3fShaderTextureFunctionTests.getCaseSpec('sampler2dshadow_bias', es3fShaderTextureFunctionTests.Function.TEXTURE, [-0.2, -0.4, 0.0, 0.0], [1.5, 2.3, 1.0, 0.0],    true,    -2.0,    2.0,    true, [-8, 7, 0],    tex2DShadow, es3fShaderTextureFunctionTests.evalTexture2DShadowOffsetBias,    es3fShaderTextureFunctionTests.CaseFlags.FRAGMENT)
             ];
-            es3fShaderTextureFunctionTests.createCaseGroup(this, "textureoffset", "textureOffset() Tests", textureOffsetCases);
+            es3fShaderTextureFunctionTests.createCaseGroup(this, 'textureoffset', 'textureOffset() Tests', textureOffsetCases);
 
             // textureProj() cases
             // \note Currently uses constant divider!
@@ -2358,7 +2348,7 @@ goog.scope(function() {
                 es3fShaderTextureFunctionTests.getCaseSpec('sampler2dshadow', es3fShaderTextureFunctionTests.Function.TEXTUREPROJ, [0.2, 0.6, 0.0, 1.5], [-2.25, -3.45, 1.5, 1.5],    false,    0.0,    0.0,    false, [0, 0, 0],    tex2DMipmapShadow, es3fShaderTextureFunctionTests.evalTexture2DShadowProj, es3fShaderTextureFunctionTests.CaseFlags.FRAGMENT),
                 es3fShaderTextureFunctionTests.getCaseSpec('sampler2dshadow_bias', es3fShaderTextureFunctionTests.Function.TEXTUREPROJ, [0.2, 0.6, 0.0, 1.5], [-2.25, -3.45, 1.5, 1.5],    true,    -2.0,    2.0,    false, [0, 0, 0],    tex2DMipmapShadow, es3fShaderTextureFunctionTests.evalTexture2DShadowProjBias,    es3fShaderTextureFunctionTests.CaseFlags.FRAGMENT)
             ];
-            es3fShaderTextureFunctionTests.createCaseGroup(this, "textureproj", "textureProj() Tests", textureProjCases);
+            es3fShaderTextureFunctionTests.createCaseGroup(this, 'textureproj', 'textureProj() Tests', textureProjCases);
 
             // textureProjOffset() cases
             // \note Currently uses constant divider!
@@ -2409,7 +2399,7 @@ goog.scope(function() {
                 es3fShaderTextureFunctionTests.getCaseSpec('sampler2dshadow', es3fShaderTextureFunctionTests.Function.TEXTUREPROJ, [0.2, 0.6, 0.0, 1.5], [-2.25, -3.45, 1.5, 1.5],    false,    0.0,    0.0,    true, [7, -8, 0],    tex2DMipmapShadow, es3fShaderTextureFunctionTests.evalTexture2DShadowProjOffset, es3fShaderTextureFunctionTests.CaseFlags.FRAGMENT),
                 es3fShaderTextureFunctionTests.getCaseSpec('sampler2dshadow_bias', es3fShaderTextureFunctionTests.Function.TEXTUREPROJ, [0.2, 0.6, 0.0, 1.5], [-2.25, -3.45, 1.5, 1.5],    true,    -2.0,    2.0,    true, [-8, 7, 0],    tex2DShadow, es3fShaderTextureFunctionTests.evalTexture2DShadowProjOffsetBias,    es3fShaderTextureFunctionTests.CaseFlags.FRAGMENT)
             ];
-            es3fShaderTextureFunctionTests.createCaseGroup(this, "textureprojoffset", "textureOffsetProj() Tests", textureProjOffsetCases);
+            es3fShaderTextureFunctionTests.createCaseGroup(this, 'textureprojoffset', 'textureOffsetProj() Tests', textureProjOffsetCases);
 
             // textureLod() cases
             /** @type {Array<es3fShaderTextureFunctionTests.TexFuncCaseSpec>} */ var textureLodCases = [
@@ -2435,7 +2425,7 @@ goog.scope(function() {
 
                 es3fShaderTextureFunctionTests.getCaseSpec('sampler2dshadow', es3fShaderTextureFunctionTests.Function.TEXTURELOD, [-0.2, -0.4, 0.0, 0.0], [1.5, 2.3, 1.0, 0.0],    false,    -1.0,    9.0,    false, [0, 0, 0],    tex2DMipmapShadow, es3fShaderTextureFunctionTests.evalTexture2DShadowLod,    es3fShaderTextureFunctionTests.CaseFlags.BOTH)
             ];
-            es3fShaderTextureFunctionTests.createCaseGroup(this, "texturelod", "textureLod() Tests", textureLodCases);
+            es3fShaderTextureFunctionTests.createCaseGroup(this, 'texturelod', 'textureLod() Tests', textureLodCases);
 
             // textureLodOffset() cases
             /** @type {Array<es3fShaderTextureFunctionTests.TexFuncCaseSpec>} */ var textureLodOffsetCases = [
@@ -2456,7 +2446,7 @@ goog.scope(function() {
 
                 es3fShaderTextureFunctionTests.getCaseSpec('sampler2dshadow', es3fShaderTextureFunctionTests.Function.TEXTURELOD, [-0.2, -0.4, 0.0, 0.0], [1.5, 2.3, 1.0, 0.0],    false,    -1.0,    9.0,    true, [-8, 7, 0],    tex2DMipmapShadow, es3fShaderTextureFunctionTests.evalTexture2DShadowLodOffset,    es3fShaderTextureFunctionTests.CaseFlags.BOTH)
             ];
-            es3fShaderTextureFunctionTests.createCaseGroup(this, "texturelodoffset", "textureLodOffset() Tests", textureLodOffsetCases);
+            es3fShaderTextureFunctionTests.createCaseGroup(this, 'texturelodoffset', 'textureLodOffset() Tests', textureLodOffsetCases);
 
             // textureProjLod() cases
             /** @type {Array<es3fShaderTextureFunctionTests.TexFuncCaseSpec>} */ var textureProjLodCases = [
@@ -2477,7 +2467,7 @@ goog.scope(function() {
 
                 es3fShaderTextureFunctionTests.getCaseSpec('sampler2dshadow', es3fShaderTextureFunctionTests.Function.TEXTUREPROJLOD, [0.2, 0.6, 0.0, 1.5], [-2.25, -3.45, 1.5, 1.5],    false,    -1.0,    9.0,    false, [0, 0, 0],    tex2DMipmapShadow, es3fShaderTextureFunctionTests.evalTexture2DShadowProjLod,    es3fShaderTextureFunctionTests.CaseFlags.BOTH)
             ];
-            es3fShaderTextureFunctionTests.createCaseGroup(this, "textureprojlod", "textureProjLod() Tests", textureProjLodCases);
+            es3fShaderTextureFunctionTests.createCaseGroup(this, 'textureprojlod', 'textureProjLod() Tests', textureProjLodCases);
 
             // textureProjLodOffset() cases
             /** @type {Array<es3fShaderTextureFunctionTests.TexFuncCaseSpec>} */ var textureProjLodOffsetCases = [
@@ -2498,7 +2488,7 @@ goog.scope(function() {
 
                 es3fShaderTextureFunctionTests.getCaseSpec('sampler2dshadow', es3fShaderTextureFunctionTests.Function.TEXTUREPROJLOD, [0.2, 0.6, 0.0, 1.5], [-2.25, -3.45, 1.5, 1.5],    false,    -1.0,    9.0,    true, [-8, 7, 0],    tex2DMipmapShadow, es3fShaderTextureFunctionTests.evalTexture2DShadowProjLodOffset,    es3fShaderTextureFunctionTests.CaseFlags.BOTH)
             ];
-            es3fShaderTextureFunctionTests.createCaseGroup(this, "textureprojlodoffset", "textureProjLodOffset() Tests", textureProjLodOffsetCases);
+            es3fShaderTextureFunctionTests.createCaseGroup(this, 'textureprojlodoffset', 'textureProjLodOffset() Tests', textureProjLodOffsetCases);
 
             // textureGrad() cases
             // \note Only one of dudx, dudy, dvdx, dvdy is non-zero since spec allows approximating p from derivates by various methods.
@@ -2530,7 +2520,7 @@ goog.scope(function() {
                 es3fShaderTextureFunctionTests.getGradCaseSpec('sampler2darrayshadow', es3fShaderTextureFunctionTests.Function.TEXTUREGRAD, [-1.2, -0.4, -0.5, 0.0], [1.5, 2.3, 3.5, 1.0], [0.0, 0.0, 0.0], [0.0, 0.0, 0.0], [0.0, 0.0, 0.0], [0.2, 0.0, 0.0],    false, [0, 0, 0],    tex2DArrayMipmapShadow, es3fShaderTextureFunctionTests.evalTexture2DArrayShadowGrad, es3fShaderTextureFunctionTests.CaseFlags.VERTEX),
                 es3fShaderTextureFunctionTests.getGradCaseSpec('sampler2darrayshadow', es3fShaderTextureFunctionTests.Function.TEXTUREGRAD, [-1.2, -0.4, -0.5, 0.0], [1.5, 2.3, 3.5, 1.0], [0.0, 0.0, 0.0], [0.0, 0.0, 0.0], [0.0, 0.0, 0.0], [0.0, -0.2, 0.0],    false, [0, 0, 0],    tex2DArrayMipmapShadow, es3fShaderTextureFunctionTests.evalTexture2DArrayShadowGrad, es3fShaderTextureFunctionTests.CaseFlags.FRAGMENT)
             ];
-            es3fShaderTextureFunctionTests.createCaseGroup(this, "texturegrad", "textureGrad() Tests", textureGradCases);
+            es3fShaderTextureFunctionTests.createCaseGroup(this, 'texturegrad', 'textureGrad() Tests', textureGradCases);
 
             // textureGradOffset() cases
             /** @type {Array<es3fShaderTextureFunctionTests.TexFuncCaseSpec>} */ var textureGradOffsetCases = [
@@ -2556,7 +2546,7 @@ goog.scope(function() {
                 es3fShaderTextureFunctionTests.getGradCaseSpec('sampler2darrayshadow', es3fShaderTextureFunctionTests.Function.TEXTUREGRAD, [-1.2, -0.4, -0.5, 0.0], [1.5, 2.3, 3.5, 1.0], [0.0, 0.0, 0.0], [0.0, 0.0, 0.0], [0.0, 0.0, 0.0], [0.2, 0.0, 0.0],    true, [-8, 7, 0],    tex2DArrayMipmapShadow, es3fShaderTextureFunctionTests.evalTexture2DArrayShadowGradOffset, es3fShaderTextureFunctionTests.CaseFlags.VERTEX),
                 es3fShaderTextureFunctionTests.getGradCaseSpec('sampler2darrayshadow', es3fShaderTextureFunctionTests.Function.TEXTUREGRAD, [-1.2, -0.4, -0.5, 0.0], [1.5, 2.3, 3.5, 1.0], [0.0, 0.0, 0.0], [0.0, 0.0, 0.0], [0.0, 0.0, 0.0], [0.0, -0.2, 0.0],    true, [7, -8, 0],    tex2DArrayMipmapShadow, es3fShaderTextureFunctionTests.evalTexture2DArrayShadowGradOffset,    es3fShaderTextureFunctionTests.CaseFlags.FRAGMENT)
             ];
-            es3fShaderTextureFunctionTests.createCaseGroup(this, "texturegradoffset", "textureGradOffset() Tests", textureGradOffsetCases);
+            es3fShaderTextureFunctionTests.createCaseGroup(this, 'texturegradoffset', 'textureGradOffset() Tests', textureGradOffsetCases);
 
             // textureProjGrad() cases
             /** @type {Array<es3fShaderTextureFunctionTests.TexFuncCaseSpec>} */ var textureProjGradCases = [
@@ -2580,7 +2570,7 @@ goog.scope(function() {
                 es3fShaderTextureFunctionTests.getGradCaseSpec('sampler2dshadow', es3fShaderTextureFunctionTests.Function.TEXTUREPROJGRAD, [0.2, 0.6, 0.0, -1.5], [-2.25, -3.45, -1.5, -1.5], [0.0, 0.0, 0.0], [0.2, 0.0, 0.0], [0.0, 0.0, 0.0], [0.0, 0.0, 0.0],    false, [0, 0, 0],    tex2DMipmapShadow, es3fShaderTextureFunctionTests.evalTexture2DShadowProjGrad, es3fShaderTextureFunctionTests.CaseFlags.VERTEX),
                 es3fShaderTextureFunctionTests.getGradCaseSpec('sampler2dshadow', es3fShaderTextureFunctionTests.Function.TEXTUREPROJGRAD, [0.2, 0.6, 0.0, -1.5], [-2.25, -3.45, -1.5, -1.5], [0.0, 0.0, 0.0], [0.0, 0.0, 0.0], [0.0, 0.0, 0.0], [0.0, -0.2, 0.0],    false, [0, 0, 0],    tex2DMipmapShadow, es3fShaderTextureFunctionTests.evalTexture2DShadowProjGrad,    es3fShaderTextureFunctionTests.CaseFlags.FRAGMENT)
             ];
-            es3fShaderTextureFunctionTests.createCaseGroup(this, "textureprojgrad", "textureProjGrad() Tests", textureProjGradCases);
+            es3fShaderTextureFunctionTests.createCaseGroup(this, 'textureprojgrad', 'textureProjGrad() Tests', textureProjGradCases);
 
             // textureProjGradOffset() cases
             /** @type {Array<es3fShaderTextureFunctionTests.TexFuncCaseSpec>} */ var textureProjGradOffsetCases = [
@@ -2604,7 +2594,7 @@ goog.scope(function() {
                 es3fShaderTextureFunctionTests.getGradCaseSpec('sampler2dshadow', es3fShaderTextureFunctionTests.Function.TEXTUREPROJGRAD, [0.2, 0.6, 0.0, -1.5], [-2.25, -3.45, -1.5, -1.5], [0.0, 0.0, 0.0], [0.2, 0.0, 0.0], [0.0, 0.0, 0.0], [0.0, 0.0, 0.0],    true, [-8, 7, 0],    tex2DMipmapShadow, es3fShaderTextureFunctionTests.evalTexture2DShadowProjGradOffset, es3fShaderTextureFunctionTests.CaseFlags.VERTEX),
                 es3fShaderTextureFunctionTests.getGradCaseSpec('sampler2dshadow', es3fShaderTextureFunctionTests.Function.TEXTUREPROJGRAD, [0.2, 0.6, 0.0, -1.5], [-2.25, -3.45, -1.5, -1.5], [0.0, 0.0, 0.0], [0.0, 0.0, 0.0], [0.0, 0.0, 0.0], [0.0, -0.2, 0.0],    true, [7, -8, 0],    tex2DMipmapShadow, es3fShaderTextureFunctionTests.evalTexture2DShadowProjGradOffset,    es3fShaderTextureFunctionTests.CaseFlags.FRAGMENT)
             ];
-            es3fShaderTextureFunctionTests.createCaseGroup(this, "textureprojgradoffset", "textureProjGradOffset() Tests", textureProjGradOffsetCases);
+            es3fShaderTextureFunctionTests.createCaseGroup(this, 'textureprojgradoffset', 'textureProjGradOffset() Tests', textureProjGradOffsetCases);
 
             // texelFetch() cases
             // \note Level is constant across quad
@@ -2624,7 +2614,7 @@ goog.scope(function() {
                 es3fShaderTextureFunctionTests.getCaseSpec('isampler3d', es3fShaderTextureFunctionTests.Function.TEXELFETCH, [0.0, 0.0, 0.0, 0.0], [15.9,  7.9,  7.9, 0.0],    false,    2.0,    2.0,    false, [0, 0, 0],    tex3DTexelFetchInt, es3fShaderTextureFunctionTests.evalTexelFetch3D, es3fShaderTextureFunctionTests.CaseFlags.BOTH),
                 es3fShaderTextureFunctionTests.getCaseSpec('usampler3d', es3fShaderTextureFunctionTests.Function.TEXELFETCH, [0.0, 0.0, 0.0, 0.0], [63.9, 31.9, 31.9, 0.0],    false,    0.0,    0.0,    false, [0, 0, 0],    tex3DTexelFetchUint, es3fShaderTextureFunctionTests.evalTexelFetch3D,        es3fShaderTextureFunctionTests.CaseFlags.BOTH)
             ];
-            es3fShaderTextureFunctionTests.createCaseGroup(this, "texelfetch", "texelFetch() Tests", texelFetchCases);
+            es3fShaderTextureFunctionTests.createCaseGroup(this, 'texelfetch', 'texelFetch() Tests', texelFetchCases);
 
             // texelFetchOffset() cases
             /** @type {Array<es3fShaderTextureFunctionTests.TexFuncCaseSpec>} */ var texelFetchOffsetCases = [
@@ -2643,7 +2633,7 @@ goog.scope(function() {
                 es3fShaderTextureFunctionTests.getCaseSpec('isampler3d', es3fShaderTextureFunctionTests.Function.TEXELFETCH, [-3.0, 8.0, -7.0, 0.0], [12.9, 15.9,  0.9, 0.0],    false,    2.0,    2.0,    true, [3, -8, 7],    tex3DTexelFetchInt, es3fShaderTextureFunctionTests.evalTexelFetch3D, es3fShaderTextureFunctionTests.CaseFlags.BOTH),
                 es3fShaderTextureFunctionTests.getCaseSpec('usampler3d', es3fShaderTextureFunctionTests.Function.TEXELFETCH, [8.0, -7.0, -3.0, 0.0], [71.9, 24.9, 28.9, 0.0],    false,    0.0,    0.0,    true, [-8, 7, 3],    tex3DTexelFetchUint, es3fShaderTextureFunctionTests.evalTexelFetch3D,        es3fShaderTextureFunctionTests.CaseFlags.BOTH)
             ];
-            es3fShaderTextureFunctionTests.createCaseGroup(this, "texelfetchoffset", "texelFetchOffset() Tests", texelFetchOffsetCases);
+            es3fShaderTextureFunctionTests.createCaseGroup(this, 'texelfetchoffset', 'texelFetchOffset() Tests', texelFetchOffsetCases);
 
             // textureSize() cases
             /**
@@ -2660,42 +2650,36 @@ goog.scope(function() {
             };
 
             /** @type {Array<TextureSizeCaseSpec>} */ var  textureSizeCases = [
-                new TextureSizeCaseSpec("sampler2d_fixed", "sampler2D", tex2DFixed),
-                new TextureSizeCaseSpec("sampler2d_float", "sampler2D", tex2DFloat),
-                new TextureSizeCaseSpec("isampler2d", "isampler2D", tex2DInt),
-                new TextureSizeCaseSpec("usampler2d", "usampler2D", tex2DUint),
-                new TextureSizeCaseSpec("sampler2dshadow", "sampler2DShadow", tex2DShadow),
-                new TextureSizeCaseSpec("sampler3d_fixed", "sampler3D", tex3DFixed),
-                new TextureSizeCaseSpec("sampler3d_float", "sampler3D", tex3DFloat),
-                new TextureSizeCaseSpec("isampler3d", "isampler3D", tex3DInt),
-                new TextureSizeCaseSpec("usampler3d", "usampler3D", tex3DUint),
-                new TextureSizeCaseSpec("samplercube_fixed", "samplerCube", texCubeFixed),
-                new TextureSizeCaseSpec("samplercube_float", "samplerCube", texCubeFloat),
-                new TextureSizeCaseSpec("isamplercube", "isamplerCube", texCubeInt),
-                new TextureSizeCaseSpec("usamplercube", "usamplerCube", texCubeUint),
-                new TextureSizeCaseSpec("samplercubeshadow", "samplerCubeShadow", texCubeShadow),
-                new TextureSizeCaseSpec("sampler2darray_fixed", "sampler2DArray", tex2DArrayFixed),
-                new TextureSizeCaseSpec("sampler2darray_float", "sampler2DArray", tex2DArrayFloat),
-                new TextureSizeCaseSpec("isampler2darray", "isampler2DArray", tex2DArrayInt),
-                new TextureSizeCaseSpec("usampler2darray", "usampler2DArray", tex2DArrayUint),
-                new TextureSizeCaseSpec("sampler2darrayshadow", "sampler2DArrayShadow", tex2DArrayShadow)
+                new TextureSizeCaseSpec('sampler2d_fixed', 'sampler2D', tex2DFixed),
+                new TextureSizeCaseSpec('sampler2d_float', 'sampler2D', tex2DFloat),
+                new TextureSizeCaseSpec('isampler2d', 'isampler2D', tex2DInt),
+                new TextureSizeCaseSpec('usampler2d', 'usampler2D', tex2DUint),
+                new TextureSizeCaseSpec('sampler2dshadow', 'sampler2DShadow', tex2DShadow),
+                new TextureSizeCaseSpec('sampler3d_fixed', 'sampler3D', tex3DFixed),
+                new TextureSizeCaseSpec('sampler3d_float', 'sampler3D', tex3DFloat),
+                new TextureSizeCaseSpec('isampler3d', 'isampler3D', tex3DInt),
+                new TextureSizeCaseSpec('usampler3d', 'usampler3D', tex3DUint),
+                new TextureSizeCaseSpec('samplercube_fixed', 'samplerCube', texCubeFixed),
+                new TextureSizeCaseSpec('samplercube_float', 'samplerCube', texCubeFloat),
+                new TextureSizeCaseSpec('isamplercube', 'isamplerCube', texCubeInt),
+                new TextureSizeCaseSpec('usamplercube', 'usamplerCube', texCubeUint),
+                new TextureSizeCaseSpec('samplercubeshadow', 'samplerCubeShadow', texCubeShadow),
+                new TextureSizeCaseSpec('sampler2darray_fixed', 'sampler2DArray', tex2DArrayFixed),
+                new TextureSizeCaseSpec('sampler2darray_float', 'sampler2DArray', tex2DArrayFloat),
+                new TextureSizeCaseSpec('isampler2darray', 'isampler2DArray', tex2DArrayInt),
+                new TextureSizeCaseSpec('usampler2darray', 'usampler2DArray', tex2DArrayUint),
+                new TextureSizeCaseSpec('sampler2darrayshadow', 'sampler2DArrayShadow', tex2DArrayShadow)
             ];
 
-            /** @type {tcuTestCase.DeqpTest} */ var group = tcuTestCase.newTest("texturesize", "textureSize() Tests");
+            /** @type {tcuTestCase.DeqpTest} */ var group = tcuTestCase.newTest('texturesize', 'textureSize() Tests');
             testGroup.addChild(group);
 
             for (var ndx = 0; ndx < textureSizeCases.length; ++ndx) {
-                group.addChild(new es3fShaderTextureFunctionTests.TextureSizeCase(textureSizeCases[ndx].name + "_vertex",  "", textureSizeCases[ndx].samplerName, textureSizeCases[ndx].textureSpec, true));
-                group.addChild(new es3fShaderTextureFunctionTests.TextureSizeCase(textureSizeCases[ndx].name + "_fragment", "", textureSizeCases[ndx].samplerName, textureSizeCases[ndx].textureSpec, false));
+                group.addChild(new es3fShaderTextureFunctionTests.TextureSizeCase(textureSizeCases[ndx].name + '_vertex',  '', textureSizeCases[ndx].samplerName, textureSizeCases[ndx].textureSpec, true));
+                group.addChild(new es3fShaderTextureFunctionTests.TextureSizeCase(textureSizeCases[ndx].name + '_fragment', '', textureSizeCases[ndx].samplerName, textureSizeCases[ndx].textureSpec, false));
             }
 
-            // Negative cases.
-            // gls::ShaderLibrary library(m_testCtx, m_context.getRenderContext(), m_context.getContextInfo());
-            // std::vector<tcu::TestNode*> negativeCases = library.loadShaderFile("shaders/invalid_texture_functions.test");
-            //
-            // tcu::TestCaseGroup* group = new tcu::TestCaseGroup(m_testCtx, "invalid", "Invalid texture function usage", negativeCases);
-            // addChild(group);
-
+            // Ignoring negative cases: shaders/invalid_texture_functions.test
     };
 
     /**
