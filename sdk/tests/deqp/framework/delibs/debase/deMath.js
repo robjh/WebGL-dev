@@ -182,6 +182,32 @@ deMath.divide = function(a, b) {
 };
 
 /**
+ * Divide vector by a scalar
+ * @param {goog.NumberArray} a
+ * @param {number} b
+ * @return {Array<number>} Result array
+ */
+deMath.divideScale = function(a, b) {
+    var dst = [];
+    for (var i = 0; i < a.length; i++)
+        dst.push(a[i] / b);
+    return dst;
+};
+
+/**
+ * Modulus vector by a scalar
+ * @param {goog.NumberArray} a
+ * @param {number} b
+ * @return {Array<number>} Result array
+ */
+deMath.modScale = function(a, b) {
+    var dst = [];
+    for (var i = 0; i < a.length; i++)
+        dst.push(a[i] % b);
+    return dst;
+};
+
+/**
  * Multiply vector by a scalar
  * @param {goog.NumberArray} a
  * @param {number} b
