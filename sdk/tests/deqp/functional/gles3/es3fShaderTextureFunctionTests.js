@@ -1746,7 +1746,6 @@ goog.scope(function() {
 
         assertMsgOptions(this.m_program === null, 'Program should be null', false, true);
         this.m_program = new gluShaderProgram.ShaderProgram(gl, gluShaderProgram.makeVtxFragSources(vertSrc, fragSrc));
-        bufferedLogToConsole(this.m_program.getProgramInfo().infoLog);
 
         if (!this.m_program.isOk()) {
             testFailedOptions('Fail: Shader failed', false);
@@ -1818,9 +1817,9 @@ goog.scope(function() {
 
         switch (this.m_textureSpec.type) {
             case es3fShaderTextureFunctionTests.TextureType.TEXTURETYPE_3D:
-                bufferedLogToConsole('Testing image size ' + testSize.textureSize[0] + 'x' + testSize.textureSize[1] + 'x' + testSize.textureSize[2]);
-                bufferedLogToConsole('Lod: ' + testSize.lod + ', base level: ' + testSize.lodBase);
-                bufferedLogToConsole('Expecting: ' + testSize.expectedSize[0] + 'x' + testSize.expectedSize[1] + 'x' + testSize.expectedSize[2]);
+                // bufferedLogToConsole('Testing image size ' + testSize.textureSize[0] + 'x' + testSize.textureSize[1] + 'x' + testSize.textureSize[2]);
+                // bufferedLogToConsole('Lod: ' + testSize.lod + ', base level: ' + testSize.lodBase);
+                // bufferedLogToConsole('Expecting: ' + testSize.expectedSize[0] + 'x' + testSize.expectedSize[1] + 'x' + testSize.expectedSize[2]);
 
                 gl.uniform3iv(sizeLoc, testSize.expectedSize);
                 gl.uniform1iv(lodLoc, [testSize.lod]);
@@ -1830,9 +1829,9 @@ goog.scope(function() {
 
             case es3fShaderTextureFunctionTests.TextureType.TEXTURETYPE_2D:
             case es3fShaderTextureFunctionTests.TextureType.TEXTURETYPE_CUBE_MAP:
-                bufferedLogToConsole('Testing image size ' + testSize.textureSize[0] + 'x' + testSize.textureSize[1]);
-                bufferedLogToConsole('Lod: ' + testSize.lod + ', base level: ' + testSize.lodBase);
-                bufferedLogToConsole('Expecting: ' + testSize.expectedSize[0] + 'x' + testSize.expectedSize[1]);
+                // bufferedLogToConsole('Testing image size ' + testSize.textureSize[0] + 'x' + testSize.textureSize[1]);
+                // bufferedLogToConsole('Lod: ' + testSize.lod + ', base level: ' + testSize.lodBase);
+                // bufferedLogToConsole('Expecting: ' + testSize.expectedSize[0] + 'x' + testSize.expectedSize[1]);
 
                 gl.uniform2iv(sizeLoc, testSize.expectedSize.slice(0,2));
                 gl.uniform1iv(lodLoc, [testSize.lod]);
@@ -1843,9 +1842,9 @@ goog.scope(function() {
             case es3fShaderTextureFunctionTests.TextureType.TEXTURETYPE_2D_ARRAY:
                 /** @type {Array<number>} */ var expectedSize = [testSize.expectedSize[0], testSize.expectedSize[1], testSize.textureSize[2]];
 
-                bufferedLogToConsole('Testing image size ' + testSize.textureSize[0] + 'x' + testSize.textureSize[1] + ' with ' + testSize.textureSize[2] + ' layer(s)');
-                bufferedLogToConsole('Lod: ' + testSize.lod + ', base level: ' + testSize.lodBase);
-                bufferedLogToConsole('Expecting: ' + testSize.expectedSize[0] + 'x' + testSize.expectedSize[1] + ' and ' + testSize.textureSize[2] + ' layer(s)');
+                // bufferedLogToConsole('Testing image size ' + testSize.textureSize[0] + 'x' + testSize.textureSize[1] + ' with ' + testSize.textureSize[2] + ' layer(s)');
+                // bufferedLogToConsole('Lod: ' + testSize.lod + ', base level: ' + testSize.lodBase);
+                // bufferedLogToConsole('Expecting: ' + testSize.expectedSize[0] + 'x' + testSize.expectedSize[1] + ' and ' + testSize.textureSize[2] + ' layer(s)');
 
                 gl.uniform3iv(sizeLoc, expectedSize);
                 gl.uniform1iv(lodLoc, [testSize.lod]);
@@ -1867,7 +1866,6 @@ goog.scope(function() {
         } else {
             // test
             /** @type {number} */ var colorTolerance = 0.1;
-            ///** @type {tcuTexture.TextureLevel} */ var sample = new tcuTexture.TextureLevel(new tcuTexture.TextureFormat(tcuTexture.ChannelOrder.RGBA, tcuTexture.ChannelType.UNORM_INT8), 1, 1);
             /** @type {tcuSurface.Surface} */ var sample = new tcuSurface.Surface(1, 1);
             /** @type {Array<number>} */ var outputColor;
 
@@ -1875,7 +1873,6 @@ goog.scope(function() {
             gl.drawArrays(gl.TRIANGLES, 0, 3);
             gl.finish();
 
-            //glu::readPixels        (m_context.getRenderContext(), 0, 0, sample.getAccess());
             sample.readViewport(gl, [0, 0, 1, 1]);
 
             outputColor = sample.getAccess().getPixel(0, 0);
@@ -2244,7 +2241,7 @@ goog.scope(function() {
                 es3fShaderTextureFunctionTests.getCaseSpec('sampler2darrayshadow', es3fShaderTextureFunctionTests.Function.TEXTURE, [-1.2, -0.4, -0.5, 0.0], [1.5, 2.3, 3.5, 1.0],    false,    0.0,    0.0,    false, [0, 0, 0],    tex2DArrayMipmapShadow, es3fShaderTextureFunctionTests.evalTexture2DArrayShadow,        es3fShaderTextureFunctionTests.CaseFlags.FRAGMENT)
 
                 // Not in spec.
-        //        es3fShaderTextureFunctionTests.getCaseSpec('sampler2darrayshadow_bias',    (es3fShaderTextureFunctionTests.Function.TEXTURE, [-1.2, -0.4, -0.5, 0.0], [1.5, 2.3, 3.5, 1.0],    true,    -2.0,    2.0,    Vec2(0.0),    Vec2(0.0), false, [0, 0, 0]),    tex2DArrayMipmapShadow, es3fShaderTextureFunctionTests.evalTexture2DArrayShadowBias,    FRAGMENT)
+                // es3fShaderTextureFunctionTests.getCaseSpec('sampler2darrayshadow_bias',    (es3fShaderTextureFunctionTests.Function.TEXTURE, [-1.2, -0.4, -0.5, 0.0], [1.5, 2.3, 3.5, 1.0],    true,    -2.0,    2.0,    Vec2(0.0),    Vec2(0.0), false, [0, 0, 0]),    tex2DArrayMipmapShadow, es3fShaderTextureFunctionTests.evalTexture2DArrayShadowBias,    FRAGMENT)
             ];
             es3fShaderTextureFunctionTests.createCaseGroup(this, 'texture', 'texture() Tests', textureCases);
 
@@ -2488,7 +2485,7 @@ goog.scope(function() {
 
                 es3fShaderTextureFunctionTests.getCaseSpec('sampler2dshadow', es3fShaderTextureFunctionTests.Function.TEXTUREPROJLOD, [0.2, 0.6, 0.0, 1.5], [-2.25, -3.45, 1.5, 1.5],    false,    -1.0,    9.0,    true, [-8, 7, 0],    tex2DMipmapShadow, es3fShaderTextureFunctionTests.evalTexture2DShadowProjLodOffset,    es3fShaderTextureFunctionTests.CaseFlags.BOTH)
             ];
-            es3fShaderTextureFunctionTests.createCaseGroup(this, 'textureprojlodoffset', 'textureProjLodOffset() Tests', textureProjLodOffsetCases);
+        	es3fShaderTextureFunctionTests.createCaseGroup(this, 'textureprojlodoffset', 'textureProjLodOffset() Tests', textureProjLodOffsetCases);
 
             // textureGrad() cases
             // \note Only one of dudx, dudy, dvdx, dvdy is non-zero since spec allows approximating p from derivates by various methods.
