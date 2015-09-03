@@ -2511,37 +2511,37 @@ tcuTexture.Texture2DArrayView.prototype.sampleCompare = function(sampler, ref, t
  * @return {Array<number>}
  */
 tcuTexture.sampleLevelArray2DOffset = function(levels, numLevels, sampler, texCoord, lod, offset) {
-	/** @type {boolean} */ var magnified = lod <= sampler.lodThreshold;
-	/** @type {tcuTexture.FilterMode} */ var filterMode	= magnified ? sampler.magFilter : sampler.minFilter;
+    /** @type {boolean} */ var magnified = lod <= sampler.lodThreshold;
+    /** @type {tcuTexture.FilterMode} */ var filterMode = magnified ? sampler.magFilter : sampler.minFilter;
     /** @type {number} */ var maxLevel;
     /** @type {tcuTexture.FilterMode} */ var levelFilter;
-	switch (filterMode) {
-		case tcuTexture.FilterMode.NEAREST:	return levels[0].sample2DOffset(sampler, filterMode, texCoord[0], texCoord[1], offset);
-		case tcuTexture.FilterMode.LINEAR:	return levels[0].sample2DOffset(sampler, filterMode, texCoord[0], texCoord[1], offset);
+    switch (filterMode) {
+        case tcuTexture.FilterMode.NEAREST: return levels[0].sample2DOffset(sampler, filterMode, texCoord[0], texCoord[1], offset);
+        case tcuTexture.FilterMode.LINEAR: return levels[0].sample2DOffset(sampler, filterMode, texCoord[0], texCoord[1], offset);
 
-		case tcuTexture.FilterMode.NEAREST_MIPMAP_NEAREST:
-		case tcuTexture.FilterMode.LINEAR_MIPMAP_NEAREST:
-			maxLevel = numLevels - 1;
-			/** @type {number} */ var level = deMath.clamp(Math.ceil(lod + 0.5) - 1, 0, maxLevel);
-			levelFilter = (filterMode === tcuTexture.FilterMode.LINEAR_MIPMAP_NEAREST) ? tcuTexture.FilterMode.LINEAR : tcuTexture.FilterMode.NEAREST;
+        case tcuTexture.FilterMode.NEAREST_MIPMAP_NEAREST:
+        case tcuTexture.FilterMode.LINEAR_MIPMAP_NEAREST:
+            maxLevel = numLevels - 1;
+            /** @type {number} */ var level = deMath.clamp(Math.ceil(lod + 0.5) - 1, 0, maxLevel);
+            levelFilter = (filterMode === tcuTexture.FilterMode.LINEAR_MIPMAP_NEAREST) ? tcuTexture.FilterMode.LINEAR : tcuTexture.FilterMode.NEAREST;
 
-			return levels[level].sample2DOffset(sampler, levelFilter, texCoord[0], texCoord[1], offset);
+            return levels[level].sample2DOffset(sampler, levelFilter, texCoord[0], texCoord[1], offset);
 
-		case tcuTexture.FilterMode.NEAREST_MIPMAP_LINEAR:
-		case tcuTexture.FilterMode.LINEAR_MIPMAP_LINEAR:
-			maxLevel = numLevels - 1;
-			/** @type {number} */ var level0 = deMath.clamp(Math.floor(lod), 0, maxLevel);
-			/** @type {number} */ var level1 = Math.min(maxLevel, level0 + 1);
-			levelFilter = (filterMode === tcuTexture.FilterMode.LINEAR_MIPMAP_LINEAR) ? tcuTexture.FilterMode.LINEAR : tcuTexture.FilterMode.NEAREST;
-			/** @type {number} */ var f = deMath.deFloatFrac(lod);
-			/** @type {Array<number>} */ var t0 = levels[level0].sample2DOffset(sampler, levelFilter, texCoord[0], texCoord[1], offset);
-			/** @type {Array<number>} */ var t1 = levels[level1].sample2DOffset(sampler, levelFilter, texCoord[0], texCoord[1], offset);
+        case tcuTexture.FilterMode.NEAREST_MIPMAP_LINEAR:
+        case tcuTexture.FilterMode.LINEAR_MIPMAP_LINEAR:
+            maxLevel = numLevels - 1;
+            /** @type {number} */ var level0 = deMath.clamp(Math.floor(lod), 0, maxLevel);
+            /** @type {number} */ var level1 = Math.min(maxLevel, level0 + 1);
+            levelFilter = (filterMode === tcuTexture.FilterMode.LINEAR_MIPMAP_LINEAR) ? tcuTexture.FilterMode.LINEAR : tcuTexture.FilterMode.NEAREST;
+            /** @type {number} */ var f = deMath.deFloatFrac(lod);
+            /** @type {Array<number>} */ var t0 = levels[level0].sample2DOffset(sampler, levelFilter, texCoord[0], texCoord[1], offset);
+            /** @type {Array<number>} */ var t1 = levels[level1].sample2DOffset(sampler, levelFilter, texCoord[0], texCoord[1], offset);
 
-			return deMath.add(deMath.scale(t0, (1.0 - f)), deMath.scale(t1, f));
+            return deMath.add(deMath.scale(t0, (1.0 - f)), deMath.scale(t1, f));
 
-		default:
-			return [0.0, 0.0, 0.0, 0.0];
-	}
+        default:
+            return [0.0, 0.0, 0.0, 0.0];
+    }
 };
 
 /**

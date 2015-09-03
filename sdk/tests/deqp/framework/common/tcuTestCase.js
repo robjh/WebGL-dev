@@ -246,7 +246,7 @@ goog.scope(function() {
     * @return {tcuTestCase.DeqpTest}
     */
     tcuTestCase.DeqpTest.prototype.nextInRange = function(pattern, range) {
-        while(true) {
+        while (true) {
             var test = this.next(pattern);
             if (!test)
                 return null;
@@ -255,7 +255,6 @@ goog.scope(function() {
                 return test;
         }
     };
-
 
     /**
     * Returns the full name of the test
