@@ -145,6 +145,10 @@ gluShaderProgram.Shader = function(gl, type) {
         return this.shader;
     };
 
+    this.destroy = function() {
+        this.gl.deleteShader(this.shader);
+    };
+
 };
 /**
  * Creates gluShaderProgram.ProgramInfo
@@ -180,11 +184,29 @@ gluShaderProgram.Program = function(gl, programID) {
 gluShaderProgram.Program.prototype.getProgram = function() { return this.program; };
 
 /**
+ * @return {gluShaderProgram.ProgramInfo}
+ */
+gluShaderProgram.Program.prototype.getInfo = function() { return this.info; };
+
+/**
+ * @return {boolean}
+ */
+gluShaderProgram.Program.prototype.getLinkStatus = function() { return this.info.linkOk; };
+
+/**
  * @param {WebGLShader} shader
  */
 gluShaderProgram.Program.prototype.attachShader = function(shader) {
     this.gl.attachShader(this.program, shader);
     assertMsgOptions(this.gl.getError() == this.gl.NO_ERROR, 'gl.attachShader()', false, true);
+};
+
+/**
+ * @param {WebGLShader} shader
+ */
+gluShaderProgram.Program.prototype.detachShader = function(shader) {
+    this.gl.detachShader(this.program, shader);
+    assertMsgOptions(this.gl.getError() == this.gl.NO_ERROR, 'gl.detachShader()', false, true);
 };
 
 /**
@@ -243,11 +265,11 @@ gluShaderProgram.ShaderProgram = function(gl, programSources) {
         shader.compile();
         this.shaders.push(shader);
         this.shadersOK = this.shadersOK && shader.getCompileStatus();
-        if (!shader.getCompileStatus()) {
+        // if (!shader.getCompileStatus()) {
             console.log('gluShaderProgram.Shader:\n' + programSources.sources[i].source);
             console.log('Compile status: ' + shader.getCompileStatus());
             console.log('Shader infoLog: ' + shader.info.infoLog);
-        }
+        // }
     }
 
     if (this.shadersOK) {

@@ -94,6 +94,7 @@ targets = {
     'vao' : 'functional.gles3.es3fVertexArrayObjectTests',
     'clip' : 'functional.gles3.es3fClippingTests',
     'inv' : 'functional.gles3.es3fFboInvalidateTests',
+    'shaderapi' : 'functional.gles3.es3fShaderApiTests',
     'shaderpackingfunction' : 'functional.gles3.es3fShaderPackingFunctionTests',
     'shadercommonfunction' : 'functional.gles3.es3fShaderCommonFunctionTests',
     'shadermatrix' : 'functional.gles3.es3fShaderMatrixTest',
