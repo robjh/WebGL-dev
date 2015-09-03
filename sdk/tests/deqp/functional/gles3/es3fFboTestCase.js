@@ -75,6 +75,14 @@ var DE_ASSERT = function(x) {
     es3fFboTestCase.FboTestCase.prototype = Object.create(tcuTestCase.DeqpTest.prototype);
     es3fFboTestCase.FboTestCase.prototype.constructor = es3fFboTestCase.FboTestCase;
 
+    es3fFboTestCase.FboTestCase.prototype.getWidth = function() {
+        return Math.min(gl.drawingBufferWidth, this.m_viewportWidth);
+    };
+
+    es3fFboTestCase.FboTestCase.prototype.getHeight = function() {
+        return Math.min(gl.drawingBufferHeight, this.m_viewportHeight);
+    };
+
     /**
      * Sets the current context (inherited from sglrContextWrapper)
      * @param {es3fFboTestCase.Context} context
@@ -196,6 +204,23 @@ var DE_ASSERT = function(x) {
         // Call preCheck() that can throw exception if some requirement is not met.
         if (this.preCheck)
             this.preCheck();
+
+        // clear some GL state variables
+        // TODO: maybe we should place in tuTestCase.js
+        gl.bindFramebuffer(gl.FRAMEBUFFER, null);
+        gl.bindRenderbuffer(gl.RENDERBUFFER, null);
+        gl.bindTexture(gl.TEXTURE_2D, null);
+        gl.depthFunc(gl.LESS);
+        gl.disable(gl.DEPTH_TEST);
+        gl.stencilOp(gl.KEEP, gl.KEEP, gl.REPLACE);
+        gl.stencilFunc(gl.ALWAYS, 0, 0xffff);
+        gl.disable(gl.STENCIL_TEST);
+        gl.blendFunc(gl.ONE, gl.ZERO);
+        gl.blendEquation(gl.FUNC_ADD);
+        gl.disable(gl.BLEND);
+        gl.clearColor(0, 0, 0, 0);
+        gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT | gl.STENCIL_BUFFER_BIT);
+        gl.scissor(0, 0, gl.drawingBufferWidth, gl.drawingBufferHeight);
 
         // Render using GLES3.
         try {

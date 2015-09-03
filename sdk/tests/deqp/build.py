@@ -93,6 +93,7 @@ targets = {
     'shaderop' : 'functional.gles3.es3fShaderOperatorTests',
     'vao' : 'functional.gles3.es3fVertexArrayObjectTests',
     'clip' : 'functional.gles3.es3fClippingTests',
+    'inv' : 'functional.gles3.es3fFboInvalidateTests',
     'shaderpackingfunction' : 'functional.gles3.es3fShaderPackingFunctionTests',
     'shadercommonfunction' : 'functional.gles3.es3fShaderCommonFunctionTests',
     'shadermatrix' : 'functional.gles3.es3fShaderMatrixTest',
