@@ -7253,7 +7253,6 @@ goog.scope(function() {
                 )
             );
         }
-        debug("number of tests:" + this.childrenTests.length);
     };
 
     /**
