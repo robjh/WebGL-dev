@@ -95,6 +95,7 @@ targets = {
     'clip' : 'functional.gles3.es3fClippingTests',
     'inv' : 'functional.gles3.es3fFboInvalidateTests',
     'defvertattr' : 'functional.gles3.es3fDefaultVertexAttributeTests',
+    'occlusion' : 'functional.gles3.es3fOcclusionQueryTests',
     'shaderapi' : 'functional.gles3.es3fShaderApiTests',
     'shaderpackingfunction' : 'functional.gles3.es3fShaderPackingFunctionTests',
     'shadercommonfunction' : 'functional.gles3.es3fShaderCommonFunctionTests',
