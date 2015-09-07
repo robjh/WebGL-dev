@@ -196,7 +196,118 @@ goog.scope(function() {
 	};
 
 	// continue @ line 235
-	es3fReadPixelTests.ReadPixelsTest.prototype.clearColor = function() {};
+	/**
+	 * @param  {tcuTexture.texture2D} reference
+	 * @param  {Array<number>} pixelData
+	 * @param  {boolean} align
+	 * @return {[type]}
+	 */
+	es3fReadPixelTests.ReadPixelsTest.prototype.clearColor = function(reference, pixelData, align, pixelSize) {
+		de::Random					rnd(m_seed);
+		/** @type {WebGLFramebuffer} */ var framebuffer;
+		/** @type {WebGLRenderbuffer} */ var renderbuffer;
+
+		if (this.m_format === gl.RGBA_INTEGER) {
+			if (this.m_type === gl.UNSIGNED_INT) {
+				renderbuffer = gl.createRenderbuffer();
+				gl.bindRenderbuffer(gl.RENDERBUFFER, renderbuffer);
+				gl.renderbufferStorage(gl.RENDERBUFFER, gl.RGBA32UI, this.m_width, this.m_height);
+			}
+			else if (this.m_type === gl.INT) {
+				renderbuffer = gl.createRenderbuffer();
+				gl.bindRenderbuffer(gl.RENDERBUFFER, renderbuffer);
+				gl.renderbufferStorage(gl.RENDERBUFFER, gl.RGBA32I, this.m_width, this.m_height);
+			}
+			else
+				throw new Error('Type not supported');
+
+			gl.bindRenderbuffer(gl.RENDERBUFFER);
+			framebuffer = gl.createFramebuffer();
+			gl.bindFramebuffer(gl.FRAMEBUFFER, framebuffer);
+			gl.framebufferRenderbuffer(gl.FRAMEBUFFER, gl.COLOR_ATTACHMENT0, gl.RENDERBUFFER, renderbuffer);
+		}
+		else if (this.m_format === gl.RGBA || this.m_format === gl.BGRA || this.m_format === gl.RGB) {
+			// Empty
+		}
+		else
+			throw new Error('Format not supported');
+
+		gl.viewport(0, 0, reference.getWidth(), reference.getHeight());
+
+		// Clear color
+		if (this.m_format === gl.RGBA || this.m_format === gl.BGRA || this.m_format === gl.RGB) {
+			/** @type {number} */ var red = rnd.getFloat();
+			/** @type {number} */ var green = rnd.getFloat();
+			/** @type {number} */ var blue = rnd.getFloat();
+			/** @type {number} */ var alpha = rnd.getFloat();
+
+			/** @type {Array<number>} */ var color = [red, green, blue, alpha];
+			// Clear target
+			gl.clearColor(red, green, blue, alpha);
+			bufferedLogToConsole("ClearColor: (" + red + ", " + green + ", " + blue + ")" );
+
+			gl.clearBufferfv(gl.COLOR, 0, color);
+
+			// Clear reference
+			for (var x = 0; x < reference.getWidth(); x++)
+				for (var y = 0; y < reference.getHeight(); y++)
+						reference.getLevel(0).setPixel([255.0 * red, 255.0 * green, 255.0 * blue, 255 * alpha], x, y);
+		}
+		else if (this.m_format === GL_RGBA_INTEGER) {
+			if (this.m_type === GL_INT) {
+				const GLint red		= rnd.getUint32();
+				const GLint green	= rnd.getUint32();
+				const GLint blue	= rnd.getUint32();
+				const GLint alpha	= rnd.getUint32();
+
+				const GLint color[] = { red, green, blue, alpha };
+				m_testCtx.getLog() << tcu::TestLog::Message << "ClearColor: (" << red << ", " << green << ", " << blue << ")" << tcu::TestLog::EndMessage;
+
+				GLU_CHECK_CALL(glClearBufferiv(GL_COLOR, 0, color));
+
+				// Clear reference
+				for (int x = 0; x < reference.getWidth(); x++)
+					for (int y = 0; y < reference.getHeight(); y++)
+							reference.getLevel(0).setPixel(tcu::IVec4(red, green, blue, alpha), x, y);
+			}
+			else if (m_type == GL_UNSIGNED_INT) {
+				const GLuint red	= rnd.getUint32();
+				const GLuint green	= rnd.getUint32();
+				const GLuint blue	= rnd.getUint32();
+				const GLuint alpha	= rnd.getUint32();
+
+				const GLuint color[] = { red, green, blue, alpha };
+				m_testCtx.getLog() << tcu::TestLog::Message << "ClearColor: (" << red << ", " << green << ", " << blue << ")" << tcu::TestLog::EndMessage;
+
+				GLU_CHECK_CALL(glClearBufferuiv(GL_COLOR, 0, color));
+
+				// Clear reference
+				for (int x = 0; x < reference.getWidth(); x++)
+					for (int y = 0; y < reference.getHeight(); y++)
+							reference.getLevel(0).setPixel(tcu::UVec4(red, green, blue, alpha), x, y);
+			}
+			else
+				DE_ASSERT(false);
+		}
+		else
+			DE_ASSERT(false);
+
+		render(reference);
+
+		const int rowWidth	= (m_rowLength == 0 ? m_width : m_rowLength) + m_skipPixels;
+		const int rowPitch	= (align ? m_alignment * deCeilFloatToInt32(pixelSize * rowWidth / (float)m_alignment) : rowWidth * pixelSize);
+
+		pixelData.resize(rowPitch * (m_height + m_skipRows), 0);
+
+		GLU_CHECK_CALL(glReadPixels(0, 0, m_width, m_height, m_format, m_type, &(pixelData[0])));
+
+		if (framebuffer)
+			GLU_CHECK_CALL(glDeleteFramebuffers(1, &framebuffer));
+
+		if (renderbuffer)
+			GLU_CHECK_CALL(glDeleteRenderbuffers(1, &renderbuffer));
+	};
+
 	es3fReadPixelTests.ReadPixelsTest.prototype.iterate = function() {};
 
     /**
