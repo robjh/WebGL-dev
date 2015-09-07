@@ -208,7 +208,7 @@ goog.scope(function() {
 
         switch (mode) {
             case es3fShaderTextureFunctionTests.LodMode.EXACT:
-                p = Math.max(Math.abs(dudx * dudx + dvdx * dvdx), Math.abs(dudy * dudy + dvdy * dvdy));
+                p = Math.max(Math.sqrt(dudx * dudx + dvdx * dvdx), Math.sqrt(dudy * dudy + dvdy * dvdy));
                 break;
 
             case es3fShaderTextureFunctionTests.LodMode.MIN_BOUND:
