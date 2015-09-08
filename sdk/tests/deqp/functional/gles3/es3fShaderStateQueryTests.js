@@ -665,14 +665,14 @@ es3fShaderStateQueryTests.ProgramUniformCase.prototype.test = function() {
         gl.linkProgram(program);
 
         // test
-        if (this.check(glsStateQuery.verifyProgram(program, gl.LINK_STATUS, true))) {
+        if (this.check(glsStateQuery.verifyProgram(program, gl.LINK_STATUS, true), 'Program link fail' + gl.getProgramInfoLog(program))) {
             var indices = gl.getUniformIndices(program, ['uniformValue']);
-            var info = gl.getActiveUniform(program, indices[0]);
-
-            this.check(glsStateQuery.compare(info.size, size));
-            this.check(glsStateQuery.compare(info.type, type));
-            /* TODO: How to get this value? */
-//            verifyActiveUniformParam(m_testCtx, *this, program, location, gl.UNIFORM_IS_ROW_MAJOR, uniformTypes[ndx].isRowMajor);
+            var info_type = gl.getActiveUniforms(program, indices[0], gl.UNIFORM_TYPE)[0];
+            var info_size = gl.getActiveUniforms(program, indices[0], gl.UNIFORM_SIZE)[0];
+            var info_is_row_major = gl.getActiveUniforms(program, indices[0], gl.UNIFORM_IS_ROW_MAJOR)[0];
+            this.check(glsStateQuery.compare(info_size, size));
+            this.check(glsStateQuery.compare(info_type, type));
+            this.check(glsStateQuery.compare(info_is_row_major, isRowMajor));
         }
     }
 
@@ -1951,7 +1951,7 @@ es3fShaderStateQueryTests.UniformValueArrayCase.prototype.test = function() {
     ];
 
     location = gl.getUniformLocation(program, 'arrayUniform');
-    gl.uniform1fv(location, new Float32Array(uniformValue.splice(0, 5)));
+    gl.uniform1fv(location, new Float32Array(uniformValue.slice(0, 5)));
 
     this.check(glsStateQuery.verifyUniform(program, gl.getUniformLocation(program, 'arrayUniform[0]'), uniformValue[0]));
     this.check(glsStateQuery.verifyUniform(program, gl.getUniformLocation(program, 'arrayUniform[1]'), uniformValue[1]));
@@ -1960,7 +1960,7 @@ es3fShaderStateQueryTests.UniformValueArrayCase.prototype.test = function() {
     this.check(glsStateQuery.verifyUniform(program, gl.getUniformLocation(program, 'arrayUniform[4]'), uniformValue[4]));
 
     location = gl.getUniformLocation(program, 'array2Uniform');
-    gl.uniform2fv(location, new Float32Array(uniformValue.splice(0, 10)));
+    gl.uniform2fv(location, new Float32Array(uniformValue.slice(0, 10)));
 
     this.check(glsStateQuery.verifyUniform(program, gl.getUniformLocation(program, 'array2Uniform[0]'), new Float32Array([uniformValue[2 * 0], uniformValue[(2 * 0) + 1]])));
     this.check(glsStateQuery.verifyUniform(program, gl.getUniformLocation(program, 'array2Uniform[1]'), new Float32Array([uniformValue[2 * 1], uniformValue[(2 * 1) + 1]])));
@@ -1969,7 +1969,7 @@ es3fShaderStateQueryTests.UniformValueArrayCase.prototype.test = function() {
     this.check(glsStateQuery.verifyUniform(program, gl.getUniformLocation(program, 'array2Uniform[4]'), new Float32Array([uniformValue[2 * 4], uniformValue[(2 * 4) + 1]])));
 
     location = gl.getUniformLocation(program, 'array3Uniform');
-    gl.uniform3fv(location, new Float32Array(uniformValue.splice(0, 15)));
+    gl.uniform3fv(location, new Float32Array(uniformValue.slice(0, 15)));
 
     this.check(glsStateQuery.verifyUniform(program, gl.getUniformLocation(program, 'array3Uniform[0]'), new Float32Array([uniformValue[3 * 0], uniformValue[(3 * 0) + 1], uniformValue[(3 * 0) + 2]])));
     this.check(glsStateQuery.verifyUniform(program, gl.getUniformLocation(program, 'array3Uniform[1]'), new Float32Array([uniformValue[3 * 1], uniformValue[(3 * 1) + 1], uniformValue[(3 * 1) + 2]])));

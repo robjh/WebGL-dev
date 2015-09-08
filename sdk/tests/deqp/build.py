@@ -103,6 +103,7 @@ targets = {
     'shaderprecision' : 'functional.gles3.es3fShaderPrecisionTests',
     'bstate': 'functional.gles3.es3fBooleanStateQuery',
     'shaderstate': 'functional.gles3.es3fShaderStateQueryTests',
+    'fbostate' : 'functional.gles3.es3fFboStateQueryTests',
     'texturespecification' : 'functional.gles3.es3fTextureSpecificationTests',
     'shadertexturefunction' : 'functional.gles3.es3fShaderTextureFunctionTests',
     'sync' : 'functional.gles3.es3fSyncTests',

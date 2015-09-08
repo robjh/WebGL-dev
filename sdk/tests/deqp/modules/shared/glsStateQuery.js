@@ -26,13 +26,18 @@ var glsStateQuery = modules.shared.glsStateQuery;
 
 /**
  * Compare two objects. Objects must have the same type and contents.
+ * If comparing numbers, allow some epsilon differences
  * @param {*} a
  * @param {*} b
  * return {boolean}
  */
 glsStateQuery.compare = function(a, b) {
+    /** @const */ var eps = 0.00001;
     if (a === b)
         return true;
+
+    if (typeof a === 'number' && typeof b === 'number')
+        return Math.abs(a - b) < eps;
 
     //compare array-like parameters
     if (typeof a == 'object' && typeof b == 'object') {
@@ -42,9 +47,13 @@ glsStateQuery.compare = function(a, b) {
         if ('length' in a && 'length' in b) {
             if (a.length !== b.length)
                 return false;
-            for (var i = 0; i < a.length; i++)
-                if (a[i] !== b[i])
+            for (var i = 0; i < a.length; i++) {
+                if (typeof a[i] === 'number' && typeof b[i] === 'number') {
+                    if (Math.abs(a[i] - b[i]) >= eps)
+                        return false;
+                } else if (a[i] !== b[i])
                     return false;
+            }
             return true;
         }
 
@@ -233,6 +242,34 @@ glsStateQuery.verifyMasked = function(param, reference, mask) {
         return false;
     }
     return true;
+};
+
+/**
+ * Verify that WebGL fbo attachment 'param' has the expected value
+ * @param {number} fbo
+ * @param {number} attachment
+ * @param {number} param
+ * @param {*} reference
+ * @return {boolean}
+ */
+glsStateQuery.verifyAttachment = function(fbo, attachment, param, reference) {
+    var value = gl.getFramebufferAttachmentParameter(fbo, attachment, param);
+    var result = glsStateQuery.compare(value, reference);
+    if (!result) {
+        bufferedLogToConsole('Result: ' + value + ' Expected: ' + reference);
+    }
+    return result;
+};
+
+/**
+ * Verify that WebGL fbo color attachment 'param' has the expected value
+ * @param {number} fbo
+ * @param {number} param
+ * @param {*} reference
+ * @return {boolean}
+ */
+glsStateQuery.verifyColorAttachment = function(fbo, param, reference) {
+    return glsStateQuery.verifyAttachment(fbo, gl.COLOR_ATTACHMENT0, param, reference);
 };
 
 });
