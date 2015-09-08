@@ -367,8 +367,7 @@ es3fDefaultVertexAttributeTests.AttributeCase.prototype.renderWithValue = functi
 };
 
 es3fDefaultVertexAttributeTests.AttributeCase.prototype.computeColor = function(value) {
-    var scale = this.m_normalizing ? 1 : s_valueRange;
-    var normalizedValue = deMath.scale(value, 1 / scale);
+    var normalizedValue = deMath.scale(value, 1 / s_valueRange);
     var positiveNormalizedValue = this.m_useNegativeValues ?
         deMath.scale(deMath.addScalar(normalizedValue, 1), 0.5) :
         normalizedValue;

@@ -68,6 +68,53 @@ glsStateQuery.verify = function(param, reference) {
 };
 
 /**
+ * Verify that WebGL current vertex attrib has the expected value
+ * @param {number} index
+ * @param {*} reference
+ * @return {boolean}
+ */
+glsStateQuery.verifyCurrentVertexAttrib = function(index, reference) {
+    var value = gl.getVertexAttrib(index, gl.CURRENT_VERTEX_ATTRIB);
+    var result = glsStateQuery.compare(value, reference);
+    if (!result) {
+        bufferedLogToConsole('Result: ' + value + ' Expected: ' + reference);
+    }
+    return result;
+};
+
+/**
+ * Verify that WebGL vertex attrib attribute 'param' has the expected value
+ * @param {number} index
+ * @param {number} param
+ * @param {*} reference
+ * @return {boolean}
+ */
+glsStateQuery.verifyVertexAttrib = function(index, param, reference) {
+    var value = gl.getVertexAttrib(index, param);
+    var result = glsStateQuery.compare(value, reference);
+    if (!result) {
+        bufferedLogToConsole('Result: ' + value + ' Expected: ' + reference);
+    }
+    return result;
+};
+
+/**
+ * Verify that WebGL uniform has the expected value
+ * @param {WebGLProgram} program
+ * @param {WebGLUniformLocation} location
+ * @param {*} reference
+ * @return {boolean}
+ */
+glsStateQuery.verifyUniform = function(program, location, reference) {
+    var value = gl.getUniform(program, location);
+    var result = glsStateQuery.compare(value, reference);
+    if (!result) {
+        bufferedLogToConsole('Result: ' + value + ' Expected: ' + reference);
+    }
+    return result;
+};
+
+/**
  * Verify that WebGL shader state 'param' has the expected value
  * @param {WebGLShader} shader
  * @param {number} param
