@@ -20,17 +20,27 @@
 
 'use strict';
 goog.provide('functional.gles3.es3fReadPixelTests');
+goog.require('framework.common.tcuImageCompare');
+goog.require('framework.common.tcuRGBA');
 goog.require('framework.common.tcuTestCase');
 goog.require('framework.common.tcuTexture');
+goog.require('framework.common.tcuTextureUtil');
 goog.require('framework.delibs.debase.deString');
+goog.require('framework.delibs.debase.deRandom');
 goog.require('framework.opengl.gluTextureUtil');
+goog.require('framework.opengl.gluShaderProgram');
 
 goog.scope(function() {
 	var es3fReadPixelTests = functional.gles3.es3fReadPixelTests;
+    var tcuImageCompare = framework.common.tcuImageCompare;
+    var tcuRGBA = framework.common.tcuRGBA;
     var tcuTestCase = framework.common.tcuTestCase;
     var tcuTexture = framework.common.tcuTexture;
+    var tcuTextureUtil = framework.common.tcuTextureUtil;
 	var deString = framework.delibs.debase.deString;
+	var deRandom = framework.delibs.debase.deRandom;
 	var gluTextureUtil = framework.opengl.gluTextureUtil;
+	var gluShaderProgram = framework.opengl.gluShaderProgram;
 
 	/**
 	 * @constructor
@@ -48,17 +58,14 @@ goog.scope(function() {
 	es3fReadPixelTests.ReadPixelsTest = function(name, description, chooseFormat, alignment, rowLength, skipRows, skipPixels, format, type) {
 		tcuTestCase.DeqpTest.call(this, name, description);
 
-		if (format === undefined) format = gl.RGBA;
-		if (type === undefined) format = gl.UNSIGNED_BYTE;
-
 		/** @type {number} */ this.m_seed = deString.deStringHash(name);
 		/** @type {boolean} */ this.m_chooseFormat = chooseFormat;
 		/** @type {number} */ this.m_alignment = alignment;
 		/** @type {number} */ this.m_rowLength = rowLength;
 		/** @type {number} */ this.m_skipRows = skipRows;
 		/** @type {number} */ this.m_skipPixels = skipPixels;
-		/** @type {number} */ this.m_format = format;
-		/** @type {number} */ this.m_type = type;
+		/** @type {number} */ this.m_format = format !== undefined ? format : gl.RGBA;
+		/** @type {number} */ this.m_type = type !== undefined ? type : gl.UNSIGNED_BYTE;
 
 		/** @const {number} */ this.m_width = 13;
 		/** @const {number} */ this.m_height = 13;
@@ -102,7 +109,7 @@ goog.scope(function() {
 
 		/** @type {gluShaderProgram.ShaderProgram} */ var program = new gluShaderProgram.ShaderProgram(gl, gluShaderProgram.makeVtxFragSources(vertexSource, fragmentSource));
 
-		assertMsgOptions(program.isOk(), "Program failed", false, true););
+		assertMsgOptions(program.isOk(), "Program failed", false, true);
 
 		// Render
 		/** @type {Array<number>} */ var coords = [
@@ -195,17 +202,21 @@ goog.scope(function() {
 		return {format: fmt, pixelSize: pxSize, align: align_};
 	};
 
-	// continue @ line 235
 	/**
-	 * @param  {tcuTexture.texture2D} reference
-	 * @param  {Array<number>} pixelData
+	 * @param  {tcuTexture.Texture2D} reference
 	 * @param  {boolean} align
-	 * @return {[type]}
+	 * @param  {number} pixelSize
+	 * @return {goog.TypedArray}
 	 */
-	es3fReadPixelTests.ReadPixelsTest.prototype.clearColor = function(reference, pixelData, align, pixelSize) {
-		de::Random					rnd(m_seed);
+	es3fReadPixelTests.ReadPixelsTest.prototype.clearColor = function(reference, align, pixelSize) {
+		/** @type {deRandom.Random} */ var rnd = new deRandom.Random(this.m_seed);
 		/** @type {WebGLFramebuffer} */ var framebuffer;
 		/** @type {WebGLRenderbuffer} */ var renderbuffer;
+		/** @type {number} */ var red;
+		/** @type {number} */ var green;
+		/** @type {number} */ var blue;
+		/** @type {number} */ var alpha;
+		/** @type {Array<number>} */ var color;
 
 		if (this.m_format === gl.RGBA_INTEGER) {
 			if (this.m_type === gl.UNSIGNED_INT) {
@@ -221,12 +232,12 @@ goog.scope(function() {
 			else
 				throw new Error('Type not supported');
 
-			gl.bindRenderbuffer(gl.RENDERBUFFER);
+			gl.bindRenderbuffer(gl.RENDERBUFFER, renderbuffer);
 			framebuffer = gl.createFramebuffer();
 			gl.bindFramebuffer(gl.FRAMEBUFFER, framebuffer);
 			gl.framebufferRenderbuffer(gl.FRAMEBUFFER, gl.COLOR_ATTACHMENT0, gl.RENDERBUFFER, renderbuffer);
 		}
-		else if (this.m_format === gl.RGBA || this.m_format === gl.BGRA || this.m_format === gl.RGB) {
+		else if (this.m_format === gl.RGBA || /*this.m_format === gl.BGRA ||*/ this.m_format === gl.RGB) {
 			// Empty
 		}
 		else
@@ -235,13 +246,13 @@ goog.scope(function() {
 		gl.viewport(0, 0, reference.getWidth(), reference.getHeight());
 
 		// Clear color
-		if (this.m_format === gl.RGBA || this.m_format === gl.BGRA || this.m_format === gl.RGB) {
-			/** @type {number} */ var red = rnd.getFloat();
-			/** @type {number} */ var green = rnd.getFloat();
-			/** @type {number} */ var blue = rnd.getFloat();
-			/** @type {number} */ var alpha = rnd.getFloat();
+		if (this.m_format === gl.RGBA || /*this.m_format === gl.BGRA ||*/ this.m_format === gl.RGB) {
+			red = rnd.getFloat();
+			green = rnd.getFloat();
+			blue = rnd.getFloat();
+			alpha = rnd.getFloat();
 
-			/** @type {Array<number>} */ var color = [red, green, blue, alpha];
+			color = [red, green, blue, alpha];
 			// Clear target
 			gl.clearColor(red, green, blue, alpha);
 			bufferedLogToConsole("ClearColor: (" + red + ", " + green + ", " + blue + ")" );
@@ -253,62 +264,143 @@ goog.scope(function() {
 				for (var y = 0; y < reference.getHeight(); y++)
 						reference.getLevel(0).setPixel([255.0 * red, 255.0 * green, 255.0 * blue, 255 * alpha], x, y);
 		}
-		else if (this.m_format === GL_RGBA_INTEGER) {
-			if (this.m_type === GL_INT) {
-				const GLint red		= rnd.getUint32();
-				const GLint green	= rnd.getUint32();
-				const GLint blue	= rnd.getUint32();
-				const GLint alpha	= rnd.getUint32();
+		else if (this.m_format === gl.RGBA_INTEGER) {
+			if (this.m_type === gl.INT) {
+				red = Math.abs(rnd.getInt());
+				green = Math.abs(rnd.getInt());
+				blue = Math.abs(rnd.getInt());
+				alpha = Math.abs(rnd.getInt());
 
-				const GLint color[] = { red, green, blue, alpha };
-				m_testCtx.getLog() << tcu::TestLog::Message << "ClearColor: (" << red << ", " << green << ", " << blue << ")" << tcu::TestLog::EndMessage;
+				color = [red, green, blue, alpha];
+				bufferedLogToConsole("ClearColor: (" + red + ", " + green + ", " + blue + ")");
 
-				GLU_CHECK_CALL(glClearBufferiv(GL_COLOR, 0, color));
+				gl.clearBufferiv(gl.COLOR, 0, color);
 
 				// Clear reference
-				for (int x = 0; x < reference.getWidth(); x++)
-					for (int y = 0; y < reference.getHeight(); y++)
-							reference.getLevel(0).setPixel(tcu::IVec4(red, green, blue, alpha), x, y);
+				for (var x = 0; x < reference.getWidth(); x++)
+					for (var y = 0; y < reference.getHeight(); y++)
+							reference.getLevel(0).setPixel([red, green, blue, alpha], x, y);
 			}
-			else if (m_type == GL_UNSIGNED_INT) {
-				const GLuint red	= rnd.getUint32();
-				const GLuint green	= rnd.getUint32();
-				const GLuint blue	= rnd.getUint32();
-				const GLuint alpha	= rnd.getUint32();
+			else if (this.m_type === gl.UNSIGNED_INT) {
+				red = Math.abs(rnd.getInt());
+				green = Math.abs(rnd.getInt());
+				blue = Math.abs(rnd.getInt());
+				alpha = Math.abs(rnd.getInt());
 
-				const GLuint color[] = { red, green, blue, alpha };
-				m_testCtx.getLog() << tcu::TestLog::Message << "ClearColor: (" << red << ", " << green << ", " << blue << ")" << tcu::TestLog::EndMessage;
 
-				GLU_CHECK_CALL(glClearBufferuiv(GL_COLOR, 0, color));
+				color = [red, green, blue, alpha];
+				bufferedLogToConsole("ClearColor: (" + red + ", " + green + ", " + blue + ")");
+
+				gl.clearBufferuiv(gl.COLOR, 0, color);
 
 				// Clear reference
-				for (int x = 0; x < reference.getWidth(); x++)
-					for (int y = 0; y < reference.getHeight(); y++)
-							reference.getLevel(0).setPixel(tcu::UVec4(red, green, blue, alpha), x, y);
+				for (var x = 0; x < reference.getWidth(); x++)
+					for (var y = 0; y < reference.getHeight(); y++)
+							reference.getLevel(0).setPixel([red, green, blue, alpha], x, y);
 			}
 			else
-				DE_ASSERT(false);
+				throw new Error ('Type not supported.');
 		}
 		else
-			DE_ASSERT(false);
+			throw new Error ('Format not supported.');
 
-		render(reference);
+		this.render(reference);
 
-		const int rowWidth	= (m_rowLength == 0 ? m_width : m_rowLength) + m_skipPixels;
-		const int rowPitch	= (align ? m_alignment * deCeilFloatToInt32(pixelSize * rowWidth / (float)m_alignment) : rowWidth * pixelSize);
+		/** @type {number} */ var rowWidth = (this.m_rowLength === 0 ? this.m_width : this.m_rowLength) + this.m_skipPixels;
+		/** @type {number} */ var rowPitch = (align ? this.m_alignment * Math.ceil(pixelSize * rowWidth / this.m_alignment) : rowWidth * pixelSize);
 
-		pixelData.resize(rowPitch * (m_height + m_skipRows), 0);
-
-		GLU_CHECK_CALL(glReadPixels(0, 0, m_width, m_height, m_format, m_type, &(pixelData[0])));
+		/** @type {goog.TypedArray} */ var pixelData = new Uint8Array(rowPitch * (this.m_height + this.m_skipRows));
+		gl.readPixels(0, 0, this.m_width, this.m_height, this.m_format, this.m_type, pixelData);
 
 		if (framebuffer)
-			GLU_CHECK_CALL(glDeleteFramebuffers(1, &framebuffer));
+			gl.deleteFramebuffer(framebuffer);
 
 		if (renderbuffer)
-			GLU_CHECK_CALL(glDeleteRenderbuffers(1, &renderbuffer));
+			gl.deleteRenderbuffer(renderbuffer);
+
+		return pixelData;
 	};
 
-	es3fReadPixelTests.ReadPixelsTest.prototype.iterate = function() {};
+	/**
+	 * @return {tcuTestCase.IterateResult}
+	 */
+	es3fReadPixelTests.ReadPixelsTest.prototype.iterate = function() {
+		/** @type {tcuTexture.TextureFormat} */ var format = new tcuTexture.TextureFormat(tcuTexture.ChannelOrder.RGBA, tcuTexture.ChannelType.UNORM_INT8);
+		/** @type {number} */ var pixelSize;
+		/** @type {boolean} */ var align;
+
+		/** @type {{format: tcuTexture.TextureFormat, pixelSize: number, align: boolean}} */ var formatInfo = this.getFormatInfo();
+		format = formatInfo.format;
+		align = formatInfo.align;
+		pixelSize = formatInfo.pixelSize;
+
+		bufferedLogToConsole("Format: " + this.m_format + ", Type: " + this.m_type);
+
+		/** @type {tcuTexture.Texture2D} */ var reference = new tcuTexture.Texture2D(format, this.m_width, this.m_height);
+		reference.allocLevel(0);
+
+		this.m_alignment = /** @type {number} */ (gl.getParameter(gl.PACK_ALIGNMENT));
+		bufferedLogToConsole("gl.PACK_ALIGNMENT: " + this.m_alignment);
+
+		this.m_rowLength = /** @type {number} */ (gl.getParameter(gl.PACK_ROW_LENGTH));
+		bufferedLogToConsole("gl.PACK_ROW_LENGTH: " + this.m_rowLength);
+
+		this.m_skipRows = /** @type {number} */ (gl.getParameter(gl.PACK_SKIP_ROWS));
+		bufferedLogToConsole("gl.PACK_SKIP_ROWS: " + this.m_skipRows);
+
+		this.m_skipPixels = /** @type {number} */ (gl.getParameter(gl.PACK_SKIP_PIXELS));
+		bufferedLogToConsole("gl.PACK_SKIP_PIXELS: " + this.m_skipPixels);
+
+		gl.viewport(0, 0, this.m_width, this.m_height);
+
+		/** @type {goog.TypedArray} */ var pixelData = this.clearColor(reference, align, pixelSize);
+
+		/** @type {number} */ var rowWidth = (this.m_rowLength === 0 ? this.m_width : this.m_rowLength);
+		/** @type {number} */ var rowPitch = (align ? this.m_alignment * Math.ceil(pixelSize * rowWidth / this.m_alignment) : rowWidth * pixelSize);
+		/** @type {Array<number>} */ var formatBitDepths = [];
+		/** @type {number} */ var redThreshold;
+		/** @type {number} */ var greenThreshold;
+		/** @type {number} */ var blueThreshold;
+		/** @type {number} */ var alphaThreshold;
+		/** @type {number} */ var redBits = /** @type {number} */ (gl.getParameter(gl.RED_BITS));
+		/** @type {number} */ var blueBits = /** @type {number} */ (gl.getParameter(gl.BLUE_BITS));
+		/** @type {number} */ var greenBits = /** @type {number} */ (gl.getParameter(gl.GREEN_BITS));
+		/** @type {number} */ var alphaBits = /** @type {number} */ (gl.getParameter(gl.ALPHA_BITS));
+		/** @type {(tcuRGBA.RGBA|Array<number>)} */ var threshold;
+		/** @type {tcuTexture.PixelBufferAccess} */ var result;
+		// \note GL_RGBA_INTEGER uses always renderbuffers that are never multisampled. Otherwise default framebuffer is used.
+		if (this.m_format !== gl.RGBA_INTEGER && /** @type {number} */ (gl.getParameter(gl.SAMPLES)) > 1) {
+			formatBitDepths = tcuTextureUtil.getTextureFormatBitDepth(format);
+			redThreshold = Math.ceil(256.0 * (2.0 / (1 << Math.min(redBits, formatBitDepths[0]))));
+			greenThreshold = Math.ceil(256.0 * (2.0 / (1 << Math.min(greenBits, formatBitDepths[1]))));
+			blueThreshold = Math.ceil(256.0 * (2.0 / (1 << Math.min(blueBits, formatBitDepths[2]))));
+			alphaThreshold = Math.ceil(256.0 * (2.0 / (1 << Math.min(alphaBits, formatBitDepths[3]))));
+
+			result = tcuTexture.PixelBufferAccess.newFromTextureFormat(format, this.m_width, this.m_height, 1, rowPitch, 0, pixelData.buffer);
+			threshold = new tcuRGBA.RGBA([redThreshold, greenThreshold, blueThreshold, alphaThreshold]);
+			if (tcuImageCompare.bilinearCompare("Result", "Result", reference.getLevel(0), result, threshold))
+				testPassedOptions('Pass', true);
+			else
+				testFailedOptions('Fail', false);
+		}
+		else {
+			formatBitDepths = tcuTextureUtil.getTextureFormatBitDepth(format);
+			redThreshold = 2.0 / (1 << Math.min(redBits, formatBitDepths[0]));
+			greenThreshold = 2.0 / (1 << Math.min(greenBits, formatBitDepths[1]));
+			blueThreshold = 2.0 / (1 << Math.min(blueBits, formatBitDepths[2]));
+			alphaThreshold = 2.0 / (1 << Math.min(alphaBits, formatBitDepths[3]));
+
+			// Compare
+			result = tcuTexture.PixelBufferAccess.newFromTextureFormat(format, this.m_width, this.m_height, 1, rowPitch, 0, pixelData[pixelSize * this.m_skipPixels + this.m_skipRows * rowPitch]);
+			threshold = [redThreshold, greenThreshold, blueThreshold, alphaThreshold];
+			if (tcuImageCompare.floatThresholdCompare("Result", "Result", reference.getLevel(0), result, threshold))
+				testPassedOptions('Pass', true);
+			else
+				testFailedOptions('Fail', false);
+		}
+
+		return tcuTestCase.IterateResult.STOP;
+	};
 
     /**
     * @constructor
