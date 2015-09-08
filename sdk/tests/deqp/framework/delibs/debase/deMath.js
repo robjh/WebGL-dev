@@ -633,6 +633,22 @@ deMath.binaryAnd = function(a, b) {
 };
 
 /**
+ * @param {goog.NumberArray} a
+ * @param {number} b
+ * @return {Array<number>}
+ */
+deMath.binaryAndVecScalar = function(a, b) {
+    if (!Array.isArray(a))
+        throw new Error('First argument must be an array.');
+    if (typeof b !== 'number')
+        throw new Error('Second argument must be a number.');
+    var dst = [];
+    for (var i = 0; i < a.length; i++)
+        dst.push(deMath.binaryOp(a[i], b, deMath.BinaryOp.AND));
+    return dst;
+};
+
+/**
  * @param {number} a
  * @param {number} b
  * @return {number}
