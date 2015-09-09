@@ -272,4 +272,19 @@ glsStateQuery.verifyColorAttachment = function(fbo, param, reference) {
     return glsStateQuery.verifyAttachment(fbo, gl.COLOR_ATTACHMENT0, param, reference);
 };
 
+/**
+ * Verify that WebGL rbo attribute 'param' has the expected value
+ * @param {number} param
+ * @param {*} reference
+ * @return {boolean}
+ */
+glsStateQuery.verifyRenderbuffer = function(param, reference) {
+    var value = gl.getRenderbufferParameter(gl.RENDERBUFFER, param);
+    var result = glsStateQuery.compare(value, reference);
+    if (!result) {
+        bufferedLogToConsole('Result: ' + value + ' Expected: ' + reference);
+    }
+    return result;
+};
+
 });
