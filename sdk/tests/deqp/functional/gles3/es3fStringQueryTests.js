@@ -91,7 +91,7 @@ goog.scope(function() {
             // [dag] check that all extensions from gl.getSupportedExtensions() are found using gl.getExtension()
             for (var i in extensions) {
                 /** @type {Object} */ var extension = gl.getExtension(extensions[i]);
-                this.check(extension !== null, 'Extension query methods are not consistent.')
+                this.check(extension !== null, 'Extension query methods are not consistent.');
             }
 
             // [dag] check that gl.getExtension() returns null for items not in gl.getSupportedExtensions()
