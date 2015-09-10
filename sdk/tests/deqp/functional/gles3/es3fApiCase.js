@@ -55,7 +55,7 @@ goog.scope(function() {
 
         this.m_gl = gl;
         this.m_pass = true;
-        this.m_comment = this.name + ' ' + this.description;
+        this.m_comment = '';
 
     };
 
