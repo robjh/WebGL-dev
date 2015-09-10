@@ -20,24 +20,22 @@
 
 'use strict';
 goog.provide('functional.gles3.es3fIndexedStateQueryTests');
-goog.require('functional.gles3.es3fApiCase');
 goog.require('framework.common.tcuTestCase');
+goog.require('functional.gles3.es3fApiCase');
 
 goog.scope(function() {
 	var es3fIndexedStateQueryTests = functional.gles3.es3fIndexedStateQueryTests;
     var tcuTestCase = framework.common.tcuTestCase;
     var es3fApiCase = functional.gles3.es3fApiCase;
 
-	/**
-	 * @param {number} got
-	 * @param {number} expected
-	 */
-	es3fIndexedStateQueryTests.checkIntEquals = function(got, expected) {
-		if (got !== expected) {
-			bufferedLogToConsole("ERROR: Expected " + expected + "; got " + got);
-			testFailedOptions('got invalid value', false);
-		}
-	};
+	// /**
+	// * @param {WebGLBuffer} got
+	// * @param {WebGLBuffer} expected
+	// */
+	// es3fIndexedStateQueryTests.checkIntEquals = function(got, expected) {
+	//	// TODO: get rid of this and call check() directly
+	//	this.check(got === expected, 'got invalid value', false);
+	// };
 
 	/**
 	 * @constructor
@@ -46,14 +44,14 @@ goog.scope(function() {
 	 * @param {string} description
 	 */
 	es3fIndexedStateQueryTests.TransformFeedbackCase = function(name, description) {
-		es3fApiCase.ApiCase.call(name, description, gl);
+		es3fApiCase.ApiCase.call(this, name, description, gl);
 	};
 
 	es3fIndexedStateQueryTests.TransformFeedbackCase.prototype = Object.create(es3fApiCase.ApiCase.prototype);
 	es3fIndexedStateQueryTests.TransformFeedbackCase.prototype.constructor = es3fIndexedStateQueryTests.TransformFeedbackCase;
 
 	es3fIndexedStateQueryTests.TransformFeedbackCase.prototype.testTransformFeedback = function() {
-		throw new Error('This method should be overriden.')
+		throw new Error('This method should be overriden.');
 	};
 
 	es3fIndexedStateQueryTests.TransformFeedbackCase.prototype.test = function() {
@@ -76,8 +74,8 @@ goog.scope(function() {
 		/** @type {WebGLShader} */ var shaderVert = gl.createShader(gl.VERTEX_SHADER);
 		/** @type {WebGLShader} */ var shaderFrag = gl.createShader(gl.FRAGMENT_SHADER);
 
-		gl.shaderSource(shaderVert, transformFeedbackTestVertSource, null);
-		gl.shaderSource(shaderFrag, transformFeedbackTestFragSource, null);
+		gl.shaderSource(shaderVert, transformFeedbackTestVertSource);
+		gl.shaderSource(shaderFrag, transformFeedbackTestFragSource);
 
 		gl.compileShader(shaderVert);
 		gl.compileShader(shaderFrag);
@@ -101,9 +99,9 @@ goog.scope(function() {
 
 		// cleanup
 
-		gl.bindTransformFeedback(GL_TRANSFORM_FEEDBACK, null);
+		gl.bindTransformFeedback(gl.TRANSFORM_FEEDBACK, null);
 
-		gl.deleteTransformFeedbacks(transformFeedbackId);
+		gl.deleteTransformFeedback(transformFeedbackId);
 		gl.deleteShader(shaderVert);
 		gl.deleteShader(shaderFrag);
 		gl.deleteProgram(shaderProg);
@@ -129,27 +127,25 @@ goog.scope(function() {
 
 		// bind bffers
 
-		/** @type {Array<WebGLBuffer>} */ var feedbackBuffers;
+		/** @type {Array<WebGLBuffer>} */ var feedbackBuffers = [];
 		feedbackBuffers[0] = gl.createBuffer();
 		feedbackBuffers[1] = gl.createBuffer();
 
-		/** @type {Array<number>} */ var data = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0];
-
 		for (var ndx = 0; ndx < 2; ++ndx) {
 			gl.bindBuffer(gl.TRANSFORM_FEEDBACK_BUFFER, feedbackBuffers[ndx]);
-			gl.bufferData(gl.TRANSFORM_FEEDBACK_BUFFER, new Float32Array(data), gl.DYNAMIC_READ);
-			glBindBufferBase(gl.TRANSFORM_FEEDBACK_BUFFER, feedbackIndex[ndx], feedbackBuffers[ndx]);
-			expectError(gl.NO_ERROR);
+			gl.bufferData(gl.TRANSFORM_FEEDBACK_BUFFER, new Float32Array(16), gl.DYNAMIC_READ);
+			gl.bindBufferBase(gl.TRANSFORM_FEEDBACK_BUFFER, feedbackIndex[ndx], feedbackBuffers[ndx]);
+			// expectError(gl.NO_ERROR);
 		}
 
 		// test TRANSFORM_FEEDBACK_BUFFER_BINDING
 
 		for (var ndx = 0; ndx < 2; ++ndx) {
 			// TODO: implement StateQueryMemoryWriteGuard or find workaround
-			/** @type {StateQueryMemoryWriteGuard} */ var boundBuffer;
-			boundBuffer = gl.getParameter(gl.TRANSFORM_FEEDBACK_BUFFER_BINDING);
+			/** @type {WebGLBuffer} */ var boundBuffer;
+			boundBuffer = /** @type {WebGLBuffer} */ (gl.getIndexedParameter(gl.TRANSFORM_FEEDBACK_BUFFER_BINDING, ndx));
 			// boundBuffer.verifyValidity(m_testCtx);
-			this.checkIntEquals(boundBuffer, feedbackBuffers[ndx]);
+			this.check(boundBuffer === feedbackBuffers[ndx], 'got invalid value');
 		}
 
 
@@ -157,6 +153,278 @@ goog.scope(function() {
 
 		gl.deleteBuffer(feedbackBuffers[0]);
 		gl.deleteBuffer(feedbackBuffers[1]);
+	};
+
+	/**
+	 * @constructor
+	 * @extends {es3fIndexedStateQueryTests.TransformFeedbackCase}
+	 * @param {string} name
+	 * @param {string} description
+	 */
+	es3fIndexedStateQueryTests.TransformFeedbackBufferBufferCase = function(name, description) {
+		es3fIndexedStateQueryTests.TransformFeedbackCase.call(this, name, description);
+	};
+
+	es3fIndexedStateQueryTests.TransformFeedbackBufferBufferCase.prototype = Object.create(es3fIndexedStateQueryTests.TransformFeedbackCase.prototype);
+	es3fIndexedStateQueryTests.TransformFeedbackBufferBufferCase.prototype.constructor = es3fIndexedStateQueryTests.TransformFeedbackBufferBufferCase;
+
+	es3fIndexedStateQueryTests.TransformFeedbackBufferBufferCase.prototype.testTransformFeedback = function() {
+		/** @type {number} */ var feedbackPositionIndex = 0;
+		/** @type {number} */ var feedbackOutputIndex = 1;
+
+		/** @type {number} */ var rangeBufferOffset = 4;
+		/** @type {number} */ var rangeBufferSize = 8;
+
+		// bind buffers
+
+		/** @type {Array<WebGLBuffer>} */ var feedbackBuffers = [];
+
+		feedbackBuffers[0] = gl.createBuffer();
+		feedbackBuffers[1] = gl.createBuffer();
+
+		gl.bindBuffer(gl.TRANSFORM_FEEDBACK_BUFFER, feedbackBuffers[0]);
+		gl.bufferData(gl.TRANSFORM_FEEDBACK_BUFFER, new Float32Array(16), gl.DYNAMIC_READ);
+		gl.bindBufferBase(gl.TRANSFORM_FEEDBACK_BUFFER, feedbackPositionIndex, feedbackBuffers[0]);
+
+		gl.bindBuffer(gl.TRANSFORM_FEEDBACK_BUFFER, feedbackBuffers[1]);
+		gl.bufferData(gl.TRANSFORM_FEEDBACK_BUFFER, new Float32Array(16), gl.DYNAMIC_READ);
+		gl.bindBufferRange(gl.TRANSFORM_FEEDBACK_BUFFER, feedbackOutputIndex, feedbackBuffers[1], rangeBufferOffset, rangeBufferSize);
+
+		// test TRANSFORM_FEEDBACK_BUFFER_START and TRANSFORM_FEEDBACK_BUFFER_SIZE
+		/**
+		 * @struct
+		 * @constructor
+		 * @param {number} index
+		 * @param {number} pname
+		 * @param {number} value
+		 */
+		var BufferRequirements = function(index, pname, value) {
+		    /** @type {number} */ this.index = index;
+			/** @type {number} */ this.pname = pname;
+			/** @type {number} */ this.value = value;
+		};
+
+		/** @type {Array<BufferRequirements>} */ var requirements = [
+			new BufferRequirements(feedbackPositionIndex, gl.TRANSFORM_FEEDBACK_BUFFER_START, 0),
+			new BufferRequirements(feedbackPositionIndex, gl.TRANSFORM_FEEDBACK_BUFFER_SIZE, 0),
+			new BufferRequirements(feedbackOutputIndex, gl.TRANSFORM_FEEDBACK_BUFFER_START, rangeBufferOffset),
+			new BufferRequirements(feedbackOutputIndex, gl.TRANSFORM_FEEDBACK_BUFFER_SIZE, rangeBufferSize)
+		];
+
+		for (var ndx = 0; ndx < requirements.length; ++ndx) {
+			// TODO: implement StateQueryMemoryWriteGuard
+			/** @type {number} */ var state;
+			state = /** @type {number} */ (gl.getIndexedParameter(requirements[ndx].pname, requirements[ndx].index));
+
+			//if (state.verifyValidity())
+			this.check(state === requirements[ndx].value, 'got invalid value');
+		}
+
+		// cleanup
+
+		gl.deleteBuffer(feedbackBuffers[0]);
+		gl.deleteBuffer(feedbackBuffers[1]);
+	};
+
+	/**
+	 * @constructor
+	 * @extends {es3fApiCase.ApiCase}
+	 * @param {string} name
+	 * @param {string} description
+	 */
+	es3fIndexedStateQueryTests.UniformBufferCase = function(name, description) {
+		es3fApiCase.ApiCase.call(this, name, description, gl);
+		/** @type {?WebGLProgram} */ this.m_program = null;
+	};
+
+	es3fIndexedStateQueryTests.UniformBufferCase.prototype = Object.create(es3fApiCase.ApiCase.prototype);
+	es3fIndexedStateQueryTests.UniformBufferCase.prototype.constructor = es3fIndexedStateQueryTests.UniformBufferCase;
+
+	es3fIndexedStateQueryTests.UniformBufferCase.prototype.testUniformBuffers = function() {
+		throw new Error('This method should be overriden.');
+	};
+
+	es3fIndexedStateQueryTests.UniformBufferCase.prototype.test = function() {
+
+		/** @type {string} */ var testVertSource = '' +
+			'#version 300 es\n' +
+			'uniform highp vec4 input1;\n' +
+			'uniform highp vec4 input2;\n' +
+			'void main (void)\n' +
+			'{\n' +
+			'	gl_Position = input1 + input2;\n' +
+			'}\n';
+		/** @type {string} */ var testFragSource = '' +
+			'#version 300 es\n' +
+			'layout(location = 0) out mediump vec4 fragColor;' +
+			'void main (void)\n' +
+			'{\n' +
+			'	fragColor = vec4(0.0);\n' +
+			'}\n';
+
+		/** @type {WebGLShader} */ var shaderVert = gl.createShader(gl.VERTEX_SHADER);
+		/** @type {WebGLShader} */ var shaderFrag = gl.createShader(gl.FRAGMENT_SHADER);
+
+		gl.shaderSource(shaderVert, testVertSource);
+		gl.shaderSource(shaderFrag, testFragSource);
+
+		gl.compileShader(shaderVert);
+		gl.compileShader(shaderFrag);
+
+		this.m_program = gl.createProgram();
+		gl.attachShader(this.m_program, shaderVert);
+		gl.attachShader(this.m_program, shaderFrag);
+		gl.linkProgram(this.m_program);
+		gl.useProgram(this.m_program);
+
+		this.testUniformBuffers();
+
+		gl.useProgram(null);
+		gl.deleteShader(shaderVert);
+		gl.deleteShader(shaderFrag);
+		gl.deleteProgram(this.m_program);
+	};
+
+	/**
+	* @constructor
+	* @extends {es3fIndexedStateQueryTests.UniformBufferCase}
+	* @param {string} name
+	* @param {string} description
+	*/
+	es3fIndexedStateQueryTests.UniformBufferBindingCase = function(name, description) {
+		es3fIndexedStateQueryTests.UniformBufferCase.call(this, name, description);
+		/** @type {?WebGLProgram} */ this.m_program = null;
+	};
+
+	es3fIndexedStateQueryTests.UniformBufferBindingCase.prototype = Object.create(es3fIndexedStateQueryTests.UniformBufferCase.prototype);
+	es3fIndexedStateQueryTests.UniformBufferBindingCase.prototype.constructor = es3fIndexedStateQueryTests.UniformBufferBindingCase;
+
+	es3fIndexedStateQueryTests.UniformBufferBindingCase.prototype.testUniformBuffers = function() {
+		/** @type {Array<string>} */ var uniformNames = [
+			'input1',
+			'input2'
+		];
+
+		/** @type {Array<number>} */ var uniformIndices = [];
+		uniformIndices = gl.getUniformIndices(this.m_program, uniformNames);
+
+		/** @type {Array<WebGLBuffer>} */ var buffers = [];
+		buffers[0] = gl.createBuffer();
+		buffers[1] = gl.createBuffer();
+
+		for (var ndx = 0; ndx < 2; ++ndx) {
+			gl.bindBuffer(gl.UNIFORM_BUFFER, buffers[ndx]);
+			gl.bufferData(gl.UNIFORM_BUFFER, new Float32Array(32), gl.DYNAMIC_DRAW);
+			gl.bindBufferBase(gl.UNIFORM_BUFFER, uniformIndices[ndx], buffers[ndx]);
+		}
+
+		for (var ndx = 0; ndx < 2; ++ndx) {
+			/** @type {Array<WebGLBuffer>} */ var boundBuffer = [];
+			boundBuffer[ndx] = /** @type {WebGLBuffer} */ (gl.getIndexedParameter(gl.UNIFORM_BUFFER_BINDING, uniformIndices[ndx]));
+
+			//if (boundBuffer.verifyValidity(m_testCtx))
+			this.check(boundBuffer[ndx] === buffers[ndx], 'got invalid value');
+		}
+
+		gl.deleteBuffer(buffers[0]);
+		gl.deleteBuffer(buffers[1]);
+	};
+
+	/**
+	* @constructor
+	* @extends {es3fIndexedStateQueryTests.UniformBufferCase}
+	* @param {string} name
+	* @param {string} description
+	*/
+	es3fIndexedStateQueryTests.UniformBufferBufferCase = function(name, description) {
+		es3fIndexedStateQueryTests.UniformBufferCase.call(this, name, description);
+		/** @type {?WebGLProgram} */ this.m_program = null;
+	};
+
+	es3fIndexedStateQueryTests.UniformBufferBufferCase.prototype = Object.create(es3fIndexedStateQueryTests.UniformBufferCase.prototype);
+	es3fIndexedStateQueryTests.UniformBufferBufferCase.prototype.constructor = es3fIndexedStateQueryTests.UniformBufferBufferCase;
+
+	es3fIndexedStateQueryTests.UniformBufferBufferCase.prototype.testUniformBuffers = function() {
+		/** @type {Array<string>} */ var uniformNames = [
+			'input1',
+			'input2'
+		];
+
+		/** @type {Array<number>} */ var uniformIndices = [0, 0];
+		gl.getUniformIndices(this.m_program, uniformNames);
+
+		/** @type {number} */ var alignment = this.getAlignment();
+		if (alignment === -1) // cannot continue without this - [dag] we'll see
+			return;
+
+		bufferedLogToConsole('Alignment is ' + alignment);
+
+		/** @type {number} */ var rangeBufferOffset = alignment;
+		/** @type {number} */ var rangeBufferSize = alignment * 2;
+		/** @type {number} */ var rangeBufferTotalSize = rangeBufferOffset + rangeBufferSize + 8; // + 8 has no special meaning, just to make it != with the size of the range
+
+		/** @type {Array<WebGLBuffer>} */ var buffers = [];
+		buffers[0] = gl.createBuffer();
+		buffers[1] = gl.createBuffer();
+
+		gl.bindBuffer(gl.UNIFORM_BUFFER, buffers[0]);
+		gl.bufferData(gl.UNIFORM_BUFFER, new Float32Array(32), gl.DYNAMIC_DRAW);
+		gl.bindBufferBase(gl.UNIFORM_BUFFER, uniformIndices[0], buffers[0]);
+
+		gl.bindBuffer(gl.UNIFORM_BUFFER, buffers[1]);
+		gl.bufferData(gl.UNIFORM_BUFFER, null, gl.DYNAMIC_DRAW);
+		gl.bindBufferRange(gl.UNIFORM_BUFFER, uniformIndices[1], buffers[1], rangeBufferOffset, rangeBufferSize);
+
+		// test UNIFORM_BUFFER_START and UNIFORM_BUFFER_SIZE
+
+		/**
+		* @struct
+		* @constructor
+		* @param {number} index
+		* @param {number} pname
+		* @param {number} value
+		*/
+		var BufferRequirements = function(index, pname, value) {
+			/** @type {number} */ this.index = index;
+			/** @type {number} */ this.pname = pname;
+			/** @type {number} */ this.value = value;
+		};
+
+		/** @type {Array<BufferRequirements>} */ var requirements = [
+			new BufferRequirements(uniformIndices[0], gl.UNIFORM_BUFFER_START, 0),
+			new BufferRequirements(uniformIndices[0], gl.UNIFORM_BUFFER_SIZE, 0),
+			new BufferRequirements(uniformIndices[1], gl.UNIFORM_BUFFER_START, rangeBufferOffset),
+			new BufferRequirements(uniformIndices[1], gl.UNIFORM_BUFFER_SIZE, rangeBufferSize)
+		];
+
+		for (var ndx = 0; ndx < requirements.length; ++ndx) {
+			/** @type {number} */ var state;
+			state = /** @type {number} */ (gl.getIndexedParameter(requirements[ndx].pname, requirements[ndx].index));
+
+			//if (state.verifyValidity(m_testCtx))
+			this.check(state === requirements[ndx].value, 'got invalid value');
+		}
+
+		gl.deleteBuffer(buffers[0]);
+		gl.deleteBuffer(buffers[1]);
+	};
+
+	/**
+	 * @return {number}
+	 */
+	es3fIndexedStateQueryTests.UniformBufferBufferCase.prototype.getAlignment = function() {
+		/** @type {number} */ var state = /** @type {number} */ (gl.getParameter(gl.UNIFORM_BUFFER_OFFSET_ALIGNMENT));
+
+		// if (!state.verifyValidity(m_testCtx))
+		//	return -1;
+
+		if (state <= 256)
+			return state;
+
+		bufferedLogToConsole('ERROR: UNIFORM_BUFFER_OFFSET_ALIGNMENT has a maximum value of 256.');
+		testFailedOptions('invalid UNIFORM_BUFFER_OFFSET_ALIGNMENT value', false);
+
+		return -1;
 	};
 
     /**
