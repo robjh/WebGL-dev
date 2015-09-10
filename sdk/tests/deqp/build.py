@@ -110,7 +110,8 @@ targets = {
     'shadertexturefunction' : 'functional.gles3.es3fShaderTextureFunctionTests',
     'sync' : 'functional.gles3.es3fSyncTests',
     'readpixel' : 'functional.gles3.es3fReadPixelTests',
-    'stringquery' : 'functional.gles3.es3fStringQueryTests'
+    'stringquery' : 'functional.gles3.es3fStringQueryTests',
+    'indexedstate' : 'functional.gles3.es3fIndexedStateQueryTests'
 }
 
 total_errors = 0
