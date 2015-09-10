@@ -667,9 +667,9 @@ es3fShaderStateQueryTests.ProgramUniformCase.prototype.test = function() {
         // test
         if (this.check(glsStateQuery.verifyProgram(program, gl.LINK_STATUS, true), 'Program link fail' + gl.getProgramInfoLog(program))) {
             var indices = gl.getUniformIndices(program, ['uniformValue']);
-            var info_type = gl.getActiveUniforms(program, indices[0], gl.UNIFORM_TYPE)[0];
-            var info_size = gl.getActiveUniforms(program, indices[0], gl.UNIFORM_SIZE)[0];
-            var info_is_row_major = gl.getActiveUniforms(program, indices[0], gl.UNIFORM_IS_ROW_MAJOR)[0];
+            var info_type = gl.getActiveUniforms(program, indices, gl.UNIFORM_TYPE)[0];
+            var info_size = gl.getActiveUniforms(program, indices, gl.UNIFORM_SIZE)[0];
+            var info_is_row_major = gl.getActiveUniforms(program, indices, gl.UNIFORM_IS_ROW_MAJOR)[0];
             this.check(glsStateQuery.compare(info_size, size));
             this.check(glsStateQuery.compare(info_type, type));
             this.check(glsStateQuery.compare(info_is_row_major, isRowMajor));
