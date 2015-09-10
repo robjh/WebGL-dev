@@ -73,6 +73,7 @@ goog.scope(function() {
                 this.m_comment += ' ' + message;
             this.m_pass = condition;
         }
+        return condition;
     };
 
     es3fApiCase.ApiCase.prototype.iterate = function() {
