@@ -117,6 +117,8 @@ goog.scope(function() {
 
 		assertMsgOptions(program.isOk(), 'Program failed', false, true);
 
+		gl.useProgram(program.getProgram());
+
 		// Render
 		/** @type {Array<number>} */ var coords = [
 			-0.5, -0.5,
@@ -155,9 +157,9 @@ goog.scope(function() {
 			for (var y = 0; y < height; y++) {
 				if (y >= coordY1 && y <= coordY2) {
 					if (refType === tcuTexture.ChannelType.SIGNED_INT32)
-						level0.setPixel([0, 0, 0, 1000], x, y);
+						level0.setPixelInt([0, 0, 0, 1000], x, y);
 					else if (refType === tcuTexture.ChannelType.UNSIGNED_INT32)
-						level0.setPixel([0, 0, 0, 1000], x, y);
+						level0.setPixelInt([0, 0, 0, 1000], x, y);
 					else
 						level0.setPixel([0.0, 0.0, 0.0, 1.0], x, y);
 				}
@@ -270,7 +272,7 @@ goog.scope(function() {
 			gl.clearBufferfv(gl.COLOR, 0, color);
 
 			// Clear reference
-			level0.clear([255.0 * red, 255.0 * green, 255.0 * blue, 255 * alpha]);
+			level0.clear(color);
 		}
 		else if (this.m_format === gl.RGBA_INTEGER) {
 			if (this.m_type === gl.INT) {
@@ -313,7 +315,8 @@ goog.scope(function() {
 		/** @type {number} */ var rowWidth = (this.m_rowLength === 0 ? this.m_width : this.m_rowLength) + this.m_skipPixels;
 		/** @type {number} */ var rowPitch = (align ? this.m_alignment * Math.ceil(pixelSize * rowWidth / this.m_alignment) : rowWidth * pixelSize);
 
-		/** @type {goog.TypedArray} */ var pixelData = new Uint8Array(rowPitch * (this.m_height + this.m_skipRows));
+		var arrayType = tcuTexture.getTypedArray(reference.getFormat().type);
+		/** @type {goog.TypedArray} */ var pixelData = new arrayType(rowPitch * (this.m_height + this.m_skipRows));
 		gl.readPixels(0, 0, this.m_width, this.m_height, this.m_format, this.m_type, pixelData);
 
 		if (framebuffer)
@@ -350,7 +353,7 @@ goog.scope(function() {
 		this.m_rowLength = /** @type {number} */ (gl.getParameter(gl.PACK_ROW_LENGTH));
 		bufferedLogToConsole('gl.PACK_ROW_LENGTH: ' + this.m_rowLength);
 
-		this.m_skipRows = /** @type {number} */ (gl.getParameter(gl.PACK_SKIP_ROWS));
+		this.m_skipRows =  /** @type {number} */ (gl.getParameter(gl.PACK_SKIP_ROWS));
 		bufferedLogToConsole('gl.PACK_SKIP_ROWS: ' + this.m_skipRows);
 
 		this.m_skipPixels = /** @type {number} */ (gl.getParameter(gl.PACK_SKIP_PIXELS));
@@ -396,7 +399,15 @@ goog.scope(function() {
 			alphaThreshold = 2.0 / (1 << Math.min(alphaBits, formatBitDepths[3]));
 
 			// Compare
-			result = tcuTexture.PixelBufferAccess.newFromTextureFormat(format, this.m_width, this.m_height, 1, rowPitch, 0, pixelData[pixelSize * this.m_skipPixels + this.m_skipRows * rowPitch]);
+			result = new tcuTexture.PixelBufferAccess({
+				format: format,
+				width: this.m_width,
+				height: this.m_height,
+				rowPitch: rowPitch,
+				data: pixelData.buffer,
+				offset: pixelSize * this.m_skipPixels + this.m_skipRows * rowPitch
+			});
+
 			threshold = [redThreshold, greenThreshold, blueThreshold, alphaThreshold];
 			if (tcuImageCompare.floatThresholdCompare('Result', 'Result', level0, result, threshold))
 				testPassedOptions('Pass', true);
