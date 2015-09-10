@@ -159,6 +159,152 @@ goog.scope(function() {
 		gl.deleteBuffer(feedbackBuffers[1]);
 	};
 
+	/**
+	 * @constructor
+	 * @extends {es3fIndexedStateQueryTests.TransformFeedbackCase}
+	 * @param {string} name
+	 * @param {string} description
+	 */
+	es3fIndexedStateQueryTests.TransformFeedbackBufferBufferCase = function(name, description) {
+		es3fIndexedStateQueryTests.TransformFeedbackCase.call(this, name, description);
+	};
+
+	es3fIndexedStateQueryTests.TransformFeedbackBufferBufferCase.prototype = Object.create(es3fIndexedStateQueryTests.TransformFeedbackCase.prototype);
+	es3fIndexedStateQueryTests.TransformFeedbackBufferBufferCase.prototype.constructor = es3fIndexedStateQueryTests.TransformFeedbackBufferBufferCase;
+
+	es3fIndexedStateQueryTests.TransformFeedbackBufferBufferCase.prototype.testTransformFeedback = function() {
+		/** @type {number} */ var feedbackPositionIndex = 0;
+		/** @type {number} */ var feedbackOutputIndex = 1;
+
+		/** @type {number} */ var rangeBufferOffset = 4;
+		/** @type {number} */ var rangeBufferSize = 8;
+
+		// bind buffers
+
+		/** @type {Array<WebGLBuffer>} */ var feedbackBuffers;
+
+		feedbackBuffers[0] = gl.createBuffer();
+		feedbackBuffers[1] = gl.createBuffer();
+
+		gl.bindBuffer(gl.TRANSFORM_FEEDBACK_BUFFER, feedbackBuffers[0]);
+		gl.bufferData(gl.TRANSFORM_FEEDBACK_BUFFER, 16, NULL, gl.DYNAMIC_READ);
+		gl.bindBufferBase(gl.TRANSFORM_FEEDBACK_BUFFER, feedbackPositionIndex, feedbackBuffers[0]);
+
+		gl.bindBuffer(gl.TRANSFORM_FEEDBACK_BUFFER, feedbackBuffers[1]);
+		gl.bufferData(gl.TRANSFORM_FEEDBACK_BUFFER, 16, NULL, gl.DYNAMIC_READ);
+		gl.bindBufferRange(gl.TRANSFORM_FEEDBACK_BUFFER, feedbackOutputIndex, feedbackBuffers[1], rangeBufferOffset, rangeBufferSize);
+
+		// test TRANSFORM_FEEDBACK_BUFFER_START and TRANSFORM_FEEDBACK_BUFFER_SIZE
+		/**
+		 * @struct
+		 * @constructor
+		 * @param {number} index
+		 * @param {number} pname
+		 * @param {number} value
+		 */
+		var BufferRequirements = function(index, pname, value) {
+		    /** @type {number} */ this.index = index;
+			/** @type {number} */ this.pname = pname;
+			/** @type {number} */ this.value = value;
+		};
+
+		/** @type {Array<BufferRequirements>} */ var requirements = [
+			new BufferRequirements(feedbackPositionIndex, GL_TRANSFORM_FEEDBACK_BUFFER_START, 0),
+			new BufferRequirements(feedbackPositionIndex, GL_TRANSFORM_FEEDBACK_BUFFER_SIZE, 0),
+			new BufferRequirements(feedbackOutputIndex, GL_TRANSFORM_FEEDBACK_BUFFER_START, rangeBufferOffset),
+			new BufferRequirements(feedbackOutputIndex, GL_TRANSFORM_FEEDBACK_BUFFER_SIZE, rangeBufferSize)
+		];
+
+		for (var ndx = 0; ndx < requirements.length; ++ndx) {
+			// TODO: implement StateQueryMemoryWriteGuard
+			/** @type {StateQueryMemoryWriteGuard} */ var state;
+			state = gl.getIndexedParameter(requirements[ndx].pname, requirements[ndx].index);
+
+			if (state.verifyValidity())
+				es3fIndexedStateQueryTests.checkIntEquals(state, requirements[ndx].value);
+		}
+
+		// cleanup
+
+		gl.deleteBuffer(feedbackBuffers[0]);
+		gl.deleteBuffer(feedbackBuffers[1]);
+	};
+
+	/**
+	 * @constructor
+	 * @extends {es3fApiCase.ApiCase}
+	 * @param {string} name
+	 * @param {string} description
+	 */
+	es3fIndexedQueryTests.UniformBufferCase= function(name, description) {
+		es3fApiCase.ApiCase.call(name, description);
+		/** @type {?WebGLProgram} */ this.m_program = null;
+	};
+
+	es3fIndexedQueryTests.UniformBufferCase.prototype = Object.create(es3fApiCase.ApiCase.prototype);
+	es3fIndexedQueryTests.UniformBufferCase.prototype.constructor = es3fIndexedQueryTests.UniformBufferCase;
+
+	es3fIndexedQueryTests.UniformBufferCase.prototype.testUniformBuffers = function() {
+		throw new Error('This method should be overriden.')
+	}
+
+	class UniformBufferCase : public ApiCase
+	{
+	public:
+		UniformBufferCase (Context& context, const char* name, const char* description)
+			: ApiCase	(context, name, description)
+			, m_program	(0)
+		{
+		}
+
+		virtual void testUniformBuffers (void) = DE_NULL;
+
+		void test (void)
+		{
+			static const char* testVertSource	=	"#version 300 es\n"
+													"uniform highp vec4 input1;\n"
+													"uniform highp vec4 input2;\n"
+													"void main (void)\n"
+													"{\n"
+													"	gl_Position = input1 + input2;\n"
+													"}\n\0";
+			static const char* testFragSource	=	"#version 300 es\n"
+													"layout(location = 0) out mediump vec4 fragColor;"
+													"void main (void)\n"
+													"{\n"
+													"	fragColor = vec4(0.0);\n"
+													"}\n\0";
+
+			GLuint shaderVert = glCreateShader(GL_VERTEX_SHADER);
+			GLuint shaderFrag = glCreateShader(GL_FRAGMENT_SHADER);
+
+			glShaderSource(shaderVert, 1, &testVertSource, DE_NULL);
+			glShaderSource(shaderFrag, 1, &testFragSource, DE_NULL);
+
+			glCompileShader(shaderVert);
+			glCompileShader(shaderFrag);
+			expectError(GL_NO_ERROR);
+
+			m_program = glCreateProgram();
+			glAttachShader(m_program, shaderVert);
+			glAttachShader(m_program, shaderFrag);
+			glLinkProgram(m_program);
+			glUseProgram(m_program);
+			expectError(GL_NO_ERROR);
+
+			testUniformBuffers();
+
+			glUseProgram(0);
+			glDeleteShader(shaderVert);
+			glDeleteShader(shaderFrag);
+			glDeleteProgram(m_program);
+			expectError(GL_NO_ERROR);
+		}
+
+	protected:
+		GLuint	m_program;
+	};
+
     /**
     * @constructor
     * @extends {tcuTestCase.DeqpTest}
