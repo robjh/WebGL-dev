@@ -287,4 +287,21 @@ glsStateQuery.verifyRenderbuffer = function(param, reference) {
     return result;
 };
 
+/**
+ * Verify that WebGL active uniform block's attribute 'param' has the expected value
+ * @param {WebGLProgram} program
+ * @param {number} index
+ * @param {number} param
+ * @param {*} reference
+ * @return {boolean}
+ */
+glsStateQuery.verifyActiveUniformBlock = function(program, index, param, reference) {
+    var value = gl.getActiveUniformBlockParameter(program, index, param);
+    var result = glsStateQuery.compare(value, reference);
+    if (!result) {
+        bufferedLogToConsole('Result: ' + value + ' Expected: ' + reference);
+    }
+    return result;
+};
+
 });

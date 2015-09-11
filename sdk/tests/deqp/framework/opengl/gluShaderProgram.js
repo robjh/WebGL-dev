@@ -189,11 +189,6 @@ gluShaderProgram.Program.prototype.getProgram = function() { return this.program
 gluShaderProgram.Program.prototype.getInfo = function() { return this.info; };
 
 /**
- * @return {boolean}
- */
-gluShaderProgram.Program.prototype.getLinkStatus = function() { return this.info.linkOk; };
-
-/**
  * @param {WebGLShader} shader
  */
 gluShaderProgram.Program.prototype.attachShader = function(shader) {
@@ -234,6 +229,13 @@ gluShaderProgram.Program.prototype.link = function() {
     assertMsgOptions(this.gl.getError() == this.gl.NO_ERROR, 'gl.getProgramParameter()', false, true);
     this.info.linkOk = linkStatus;
     this.info.infoLog = this.gl.getProgramInfoLog(this.program);
+};
+
+/**
+ * return {boolean}
+ */
+gluShaderProgram.Program.prototype.getLinkStatus = function() {
+    return this.info.linkOk;
 };
 
 /**
@@ -307,7 +309,7 @@ gluShaderProgram.ShaderProgram.prototype.getProgramInfo = function() {
 };
 
 gluShaderProgram.ShaderProgram.prototype.isOk = function() {
-    return this.shadersOK;
+    return this.shadersOK && this.program.getLinkStatus();
 };
 
 gluShaderProgram.containerTypes = {
