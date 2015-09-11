@@ -62,7 +62,7 @@ goog.scope(function() {
 		/** @type {boolean} */ var expectedGLState = reference ? true : false;
 
 		if (state != expectedGLState) {
-			bufferedLogToConsole("ERROR: expected " + (expectedGLState === true ? "true" : "false") + "; got " + (state == true ? "true" : (state == false ? "false" : "non-boolean")));
+			bufferedLogToConsole("ERROR: expected " + (expectedGLState === true ? "true" : "false") + "; got " + (state === true ? "true" : (state === false ? "false" : "non-boolean")));
 			testFailedOptions("Got invalid boolean value", false);
 		}
 	};
@@ -128,7 +128,7 @@ goog.scope(function() {
 			// state is zero
 			if (reference > 0)  {
 				// and reference is greater than zero?
-				bufferedLogToConsole("ERROR: expected GL_TRUE");
+				bufferedLogToConsole("ERROR: expected true");
 				testFailedOptions("Got invalid boolean value. Expected true", false);
 			}
 		} else {
@@ -166,10 +166,10 @@ goog.scope(function() {
 	es3fIntegerStateQueryTests.GetBooleanVerifier.prototype.verifyIntegerLessOrEqual = function(name, reference) {
 		/** @type {Array<boolean>} */ var state = /** @type {Array<boolean>} */ (gl.getParameter(name));
 
-		if (state == true) // state is non-zero, could be less than reference (correct)
+		if (state === true) // state is non-zero, could be less than reference (correct)
 			return;
 
-		if (state == false)  {
+		if (state === false)  {
 			// state is zero
 			if (reference < 0)  {
 				// and reference is less than zero?
@@ -182,7 +182,211 @@ goog.scope(function() {
 		}
 	};
 
-	// continue at line 266
+	/**
+	 * @param  {number} name
+	 * @param  {number} reference0
+	 * @param  {number} reference1
+	 */
+	es3fIntegerStateQueryTests.GetBooleanVerifier.prototype.verifyIntegerGreaterOrEqual2 = function(name, reference0, reference1) {
+		/** @type {Array<boolean>} */ var boolVector = /** @type {Array<boolean>} */ (gl.getParameter(name));
+
+		/** @type {Array<boolean>} */ var referenceAsGLBoolean = [
+			reference0 ? true : false,
+			reference1 ? true : false
+		];
+
+		for (int ndx = 0; ndx < referenceAsGLBoolean.length; ++ndx) {
+			if (boolVector[ndx] === true)  {
+				// state is non-zero, could be greater than any integer
+				continue;
+			} else if (boolVector[ndx] === false)  {
+				// state is zero
+				if (referenceAsGLBoolean[ndx] > 0)  {
+					// and reference is greater than zero?
+					bufferedLogToConsole('ERROR: expected true');
+					testFailedOptions("Got invalid boolean value. Expected true", false);
+				}
+			} else {
+				bufferedLogToConsole('ERROR: expected true or false');
+				testFailedOptions("Got invalid boolean value. Expected true or false", false);
+			}
+		}
+	};
+
+	/**
+	 * @param  {number} name
+	 * @param  {Array<number>} references
+	 */
+	es3fIntegerStateQueryTests.GetBooleanVerifier.prototype.verifyIntegerAnyOf = function(name, references) {
+		/** @type {Array<boolean>} */ var state = /** @type {Array<boolean>} */ (gl.getParameter(name));
+
+		for (var ndx = 0; ndx < references.length; ++ndx) {
+			/** @type {boolean} */ var expectedGLState = references[ndx] ? true : false;
+
+			if (state === expectedGLState)
+				return;
+		}
+
+		bufferedLogToConsole("ERROR: got " + (state === true ? "true" : "false"));
+		testFailedOptions("Got invalid boolean value", false);
+	};
+
+	/**
+	 * @param  {number} name
+	 * @param  {number} stencilBits
+	 */
+	es3fIntegerStateQueryTests.GetBooleanVerifier.prototype.verifyStencilMaskInitial = function(name, stencilBits) {
+		// if stencilBits == 0, the mask is allowed to be either true or false
+		// otherwise it must be true
+
+		/** @type {Array<boolean>} */ var state = /** @type {Array<boolean>} */ (gl.getParameter(name));
+
+		if (stencilBits > 0 && state !== true) {
+			bufferedLogToConsole('ERROR: expected true');
+			testFailedOptions("Got invalid boolean value. Expected true", false);
+		}
+	};
+
+	// continue at line 349
+	/**
+	 * @constructor
+	 * @extends {es3fIntegerStateQueryTests.StateVerifier}
+	 * @param  {string} testNamePostfix
+	 */
+	es3fIntegerStateQueryTests.GetIntegerVerifier = function(testNamePostfix) {
+		es3fIntegerStateQueryTests.StateVerifier.call(this, '_getinteger');
+	};
+
+	es3fIntegerStateQueryTests.GetIntegerVerifier.prototype = Object.create(es3fIntegerStateQueryTests.StateVerifier.prototype);
+	es3fIntegerStateQueryTests.GetIntegerVerifier.prototype.constructor = es3fIntegerStateQueryTests.GetIntegerVerifier;
+
+	// continue at line 538
+	/**
+	 * @constructor
+	 * @extends {es3fIntegerStateQueryTests.StateVerifier}
+	 * @param  {string} testNamePostfix
+	 */
+	es3fIntegerStateQueryTests.GetInteger64Verifier = function(testNamePostfix) {
+		es3fIntegerStateQueryTests.StateVerifier.call(this, '_getinteger64');
+	};
+
+	es3fIntegerStateQueryTests.GetInteger64Verifier.prototype = Object.create(es3fIntegerStateQueryTests.StateVerifier.prototype);
+	es3fIntegerStateQueryTests.GetInteger64Verifier.prototype.constructor = es3fIntegerStateQueryTests.GetInteger64Verifier;
+
+	// continue at line 724
+	/**
+	 * @constructor
+	 * @extends {es3fIntegerStateQueryTests.StateVerifier}
+	 * @param  {string} testNamePostfix
+	 */
+	es3fIntegerStateQueryTests.GetFloatVerifier = function(testNamePostfix) {
+		es3fIntegerStateQueryTests.StateVerifier.call(this, '_getfloat');
+	};
+
+	es3fIntegerStateQueryTests.GetFloatVerifier.prototype = Object.create(es3fIntegerStateQueryTests.StateVerifier.prototype);
+	es3fIntegerStateQueryTests.GetFloatVerifier.prototype.constructor = es3fIntegerStateQueryTests.GetFloatVerifier;
+
+	// shaders (line 907)
+	/** @type {string} */ var transformFeedbackTestVertSource = '' +
+		"#version 300 es\n" +
+		"void main (void)\n" +
+		"{\n" +
+		"	gl_Position = vec4(0.0);\n" +
+		"}\n";
+
+	/** @type {string} */ var transformFeedbackTestFragSource = '' +
+		"#version 300 es\n" +
+		"layout(location = 0) out mediump vec4 fragColor;" +
+		"void main (void)\n" +
+		"{\n" +
+		"	fragColor = vec4(0.0);\n" +
+		"}\n";
+
+	/** @type {string} */ var testVertSource = '' +
+		"#version 300 es\n" +
+		"void main (void)\n" +
+		"{\n" +
+		"	gl_Position = vec4(0.0);\n" +
+		"}\n";
+
+	/** @type {string} */ var testFragSource = '' +
+		"#version 300 es\n" +
+		"layout(location = 0) out mediump vec4 fragColor;" +
+		"void main (void)\n" +
+		"{\n" +
+		"	fragColor = vec4(0.0);\n" +
+		"}\n";
+
+	// Test Cases (line 931)
+	/**
+	 * @constructor
+	 * @extends {es3fApiCase.ApiCase}
+	 * @param {es3fIntegerStateQueryTests.StateVerifier} verifier
+	 * @param {string} name
+	 * @param {string} description
+	 */
+	es3fIntegerStateQueryTests.TransformFeedbackTestCase = function(verifier, name, description) {
+		es3fApiCase.ApiCase.call(namee, description, gl);
+		/** @type {es3fIntegerStateQueryTests.StateVerifier} */ this.m_verifier = verifier;
+		/** @type {number} */ this.m_transformfeedback = 0;
+	};
+
+	es3fIntegerStateQueryTests.TransformFeedbackTestCase.prototype = Object.create(es3fApiCase.ApiCase.prototype);
+	es3fIntegerStateQueryTests.TransformFeedbackTestCase.prototype.constructor = es3fIntegerStateQueryTests.TransformFeedbackTestCase;
+
+	es3fIntegerStateQueryTests.TransformFeedbackTestCase.prototype.testTransformFeedback = function() {
+		throw new Error('This method should be implemented by child classes.');
+	}
+
+	es3fIntegerStateQueryTests.TransformFeedbackTestCase.prototype.test = function() {
+		this.m_transformfeedback = gl.createTransformFeedback();
+
+		/** @type {WebGLShader} */ var shaderVert = gl.createShader(gl.VERTEX_SHADER);
+		gl.shaderSource(shaderVert, transformFeedbackTestVertSource);
+		gl.compileShader(shaderVert);
+
+		/** @type {boolean} */ var compileStatus = /** @type {boolean} */ (gl.getShaderParameter(shaderVert, gl.COMPILE_STATUS));
+		checkBooleans(compileStatus, true);
+
+		/** @type {WebGLShader} */ var shaderFrag = gl.createShader(gl.FRAGMENT_SHADER);
+		gl.shaderSource(shaderFrag, transformFeedbackTestFragSource);
+		gl.compileShader(shaderFrag);
+
+		compileStatus = /** @type {boolean} */ (gl.getShaderParameter(shaderFrag, gl.COMPILE_STATUS));
+		checkBooleans(compileStatus, true);
+
+		/** @type {WebGLProgram} */ var shaderProg = gl.createProgram();
+		gl.attachShader(shaderProg, shaderVert);
+		gl.attachShader(shaderProg, shaderFrag);
+		/** @type {string} */ var transform_feedback_outputs = "gl_Position";
+		gl.transformFeedbackVaryings(shaderProg, transform_feedback_outputs, gl.INTERLEAVED_ATTRIBS);
+		gl.linkProgram(shaderProg);
+
+		/** @type {boolean} */ var linkStatus = gl.getProgramParameter(shaderProg, gl.LINK_STATUS);
+		checkBooleans(linkStatus, true);
+
+		gl.bindTransformFeedback(gl.TRANSFORM_FEEDBACK, this.m_transformfeedback);
+
+
+		/** @type {WebGLBuffer} */ var feedbackBufferId = gl.createBuffer();
+		gl.bindBuffer(gl.TRANSFORM_FEEDBACK_BUFFER, feedbackBufferId);
+		gl.bufferData(gl.TRANSFORM_FEEDBACK_BUFFER, new Float32Array(16), gl.DYNAMIC_READ);
+		gl.bindBufferBase(gl.TRANSFORM_FEEDBACK_BUFFER, 0, feedbackBufferId);
+
+		gl.useProgram(shaderProg);
+
+		this.testTransformFeedback();
+
+		gl.useProgram(null);
+		gl.bindTransformFeedback(gl.TRANSFORM_FEEDBACK, null);
+		gl.deleteTransformFeedbacks(this.m_transformfeedback);
+		gl.deleteBuffers(feedbackBufferId);
+		gl.deleteShader(shaderVert);
+		gl.deleteShader(shaderFrag);
+		gl.deleteProgram(shaderProg);
+	};
+
+	// continue at line 1003, TransformFeedbackBindingTestCase
 
     /**
     * @constructor
