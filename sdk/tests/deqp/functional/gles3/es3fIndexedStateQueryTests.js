@@ -129,7 +129,7 @@ goog.scope(function() {
 		for (var ndx = 0; ndx < feedbackBuffers.length; ndx++) {
 			/** @type {WebGLBuffer} */
 			var boundBuffer = /** @type {WebGLBuffer} */ (gl.getIndexedParameter(gl.TRANSFORM_FEEDBACK_BUFFER_BINDING, ndx));
-			this.check(boundBuffer === feedbackBuffers[ndx], 'got invalid value');
+			this.check(boundBuffer === feedbackBuffers[ndx], 'buffers do not match');
 		}
 
 		// cleanup
@@ -181,7 +181,7 @@ goog.scope(function() {
 		for (var ndx = 0; ndx < requirements.length; ndx++) {
 			/** @type {number} */
 			var state = /** @type {number} */ (gl.getIndexedParameter(requirements[ndx].pname, requirements[ndx].index));
-			this.check(state === requirements[ndx].value, 'got invalid value');
+			this.check(state === requirements[ndx].value, 'got ' + state + '; expected ' + requirements[ndx].value);
 		}
 
 		// cleanup
@@ -265,8 +265,7 @@ goog.scope(function() {
 	es3fIndexedStateQueryTests.UniformBufferBindingCase.prototype.testUniformBuffers = function() {
 		/** @type {Array<string>} */ var uniformNames = ['input1', 'input2'];
 
-		/** @type {Array<number>} */ var uniformIndices = [];
-		uniformIndices = gl.getUniformIndices(this.m_program, uniformNames);
+		/** @type {Array<number>} */ var uniformIndices = gl.getUniformIndices(this.m_program, uniformNames);
 
 		/** @type {Array<WebGLBuffer>} */ var buffers = [];
 		for (var ndx = 0; ndx < 2; ndx++)
@@ -281,7 +280,7 @@ goog.scope(function() {
 		/** @type {Array<WebGLBuffer>} */ var boundBuffer = [];
 		for (var ndx = 0; ndx < buffers.length; ndx++) {
 			boundBuffer[ndx] = /** @type {WebGLBuffer} */ (gl.getIndexedParameter(gl.UNIFORM_BUFFER_BINDING, uniformIndices[ndx]));
-			this.check(boundBuffer[ndx] === buffers[ndx], 'got invalid value');
+			this.check(boundBuffer[ndx] === buffers[ndx], 'buffers do not match');
 		}
 
 		for (var ndx = 0; ndx < buffers.length; ndx++)
@@ -305,8 +304,7 @@ goog.scope(function() {
 	es3fIndexedStateQueryTests.UniformBufferBufferCase.prototype.testUniformBuffers = function() {
 		/** @type {Array<string>} */ var uniformNames = ['input1', 'input2'];
 
-		/** @type {Array<number>} */ var uniformIndices = [0, 0];
-		gl.getUniformIndices(this.m_program, uniformNames);
+		/** @type {Array<number>} */ var uniformIndices = gl.getUniformIndices(this.m_program, uniformNames);
 
 		/** @type {number} */ var alignment = this.getAlignment();
 		if (alignment === -1) // cannot continue without this
@@ -340,10 +338,9 @@ goog.scope(function() {
 		];
 
 		for (var ndx = 0; ndx < requirements.length; ndx++) {
-			/** @type {number} */ var state;
-			state = /** @type {number} */ (gl.getIndexedParameter(requirements[ndx].pname, requirements[ndx].index));
+			/** @type {number} */ var state = /** @type {number} */ (gl.getIndexedParameter(requirements[ndx].pname, requirements[ndx].index));
 
-			this.check(state === requirements[ndx].value, 'got invalid value');
+			this.check(state === requirements[ndx].value, 'got ' + state + '; expected ' + requirements[ndx].value);
 		}
 
 		for (var ndx = 0; ndx < buffers.length; ndx++)
