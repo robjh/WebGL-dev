@@ -111,7 +111,8 @@ targets = {
     'sync' : 'functional.gles3.es3fSyncTests',
     'readpixel' : 'functional.gles3.es3fReadPixelTests',
     'stringquery' : 'functional.gles3.es3fStringQueryTests',
-    'indexedstate' : 'functional.gles3.es3fIndexedStateQueryTests'
+    'indexedstate' : 'functional.gles3.es3fIndexedStateQueryTests',
+    'integerstate' : 'functional.gles3.es3fIntegerStateQueryTests'
 }
 
 total_errors = 0
