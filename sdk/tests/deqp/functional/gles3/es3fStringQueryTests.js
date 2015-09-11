@@ -66,22 +66,6 @@ goog.scope(function() {
 
             this.check(string !== null, 'Got invalid string');
             this.check(string.indexOf(referenceString) === 0, 'Got invalid string prefix');
-
-            /** @type {string} */ var tmpString;
-            /** @type {number} */ var glslMajor = 0;
-            /** @type {number} */ var glslMinorDigit1 = 0;
-            /** @type {number} */ var glslMinorDigit2 = 0;
-            /** @type {boolean} */ var digitsAreValid;
-            /** @type {RegExp} */ var versionRegExp = /(WebGL GLSL ES )(\d)\.(\d)(\d)(.*)/;
-            /** @type {Array<string>} */ var stringGroups = string.split(versionRegExp);
-            tmpString = stringGroups[1]; // WebGL GLSL ES
-            glslMajor = parseInt(stringGroups[2], 10); // x
-            glslMinorDigit1 = parseInt(stringGroups[3], 10); // x
-            glslMinorDigit2 = parseInt(stringGroups[4], 10); // x
-
-            digitsAreValid = glslMinorDigit1 >= 0 && glslMinorDigit1 <= 9 && glslMinorDigit2 >= 0 && glslMinorDigit2 <= 9;
-
-            this.check(digitsAreValid, 'Got invalid string format: ' + stringGroups);
         }));
 
         this.addChild(new es3fApiCase.ApiCaseCallback('extensions', 'EXTENSIONS', gl, function() {
@@ -91,7 +75,7 @@ goog.scope(function() {
             // [dag] check that all extensions from gl.getSupportedExtensions() are found using gl.getExtension()
             for (var i in extensions) {
                 /** @type {Object} */ var extension = gl.getExtension(extensions[i]);
-                this.check(extension !== null, 'Extension query methods are not consistent.');
+                this.check(extension !== null,  'Advertised extension ' + extensions[i] + ' not found');
             }
 
             // [dag] check that gl.getExtension() returns null for items not in gl.getSupportedExtensions()
