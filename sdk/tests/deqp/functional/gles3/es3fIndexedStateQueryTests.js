@@ -28,15 +28,6 @@ goog.scope(function() {
     var tcuTestCase = framework.common.tcuTestCase;
     var es3fApiCase = functional.gles3.es3fApiCase;
 
-	// /**
-	// * @param {WebGLBuffer} got
-	// * @param {WebGLBuffer} expected
-	// */
-	// es3fIndexedStateQueryTests.checkIntEquals = function(got, expected) {
-	//	// TODO: get rid of this and call check() directly
-	//	this.check(got === expected, 'got invalid value', false);
-	// };
-
 	/**
 	 * @constructor
 	 * @extends {es3fApiCase.ApiCase}
@@ -62,14 +53,14 @@ goog.scope(function() {
 			'{\n' +
 			'	gl_Position = vec4(0.0);\n' +
 			'	anotherOutput = vec4(0.0);\n' +
-			'}\n\0';
+			'}\n';
 		/** @type {string} */ var transformFeedbackTestFragSource = '' +
 			'#version 300 es\n' +
 			'layout(location = 0) out mediump vec4 fragColor;' +
 			'void main (void)\n' +
 			'{\n' +
 			'	fragColor = vec4(0.0);\n' +
-			'}\n\0';
+			'}\n';
 
 		/** @type {WebGLShader} */ var shaderVert = gl.createShader(gl.VERTEX_SHADER);
 		/** @type {WebGLShader} */ var shaderFrag = gl.createShader(gl.FRAGMENT_SHADER);
@@ -84,10 +75,7 @@ goog.scope(function() {
 		gl.attachShader(shaderProg, shaderVert);
 		gl.attachShader(shaderProg, shaderFrag);
 
-		/** @type {Array<string>} */ var transformFeedbackOutputs = [
-			'gl_Position',
-			'anotherOutput'
-		];
+		/** @type {Array<string>} */ var transformFeedbackOutputs = ['gl_Position', 'anotherOutput'];
 
 		gl.transformFeedbackVaryings(shaderProg, transformFeedbackOutputs, gl.INTERLEAVED_ATTRIBS);
 		gl.linkProgram(shaderProg);
@@ -125,34 +113,28 @@ goog.scope(function() {
 		/** @type {number} */ var feedbackOutputIndex = 1;
 		/** @type {Array<number>} */ var feedbackIndex = [feedbackPositionIndex, feedbackOutputIndex];
 
-		// bind bffers
+		// bind buffers
 
 		/** @type {Array<WebGLBuffer>} */ var feedbackBuffers = [];
-		feedbackBuffers[0] = gl.createBuffer();
-		feedbackBuffers[1] = gl.createBuffer();
+		for (var ndx = 0; ndx < 2; ndx++)
+			feedbackBuffers[ndx] = gl.createBuffer();
 
-		for (var ndx = 0; ndx < 2; ++ndx) {
+		for (var ndx = 0; ndx < feedbackBuffers.length; ndx++) {
 			gl.bindBuffer(gl.TRANSFORM_FEEDBACK_BUFFER, feedbackBuffers[ndx]);
 			gl.bufferData(gl.TRANSFORM_FEEDBACK_BUFFER, new Float32Array(16), gl.DYNAMIC_READ);
 			gl.bindBufferBase(gl.TRANSFORM_FEEDBACK_BUFFER, feedbackIndex[ndx], feedbackBuffers[ndx]);
-			// expectError(gl.NO_ERROR);
 		}
 
 		// test TRANSFORM_FEEDBACK_BUFFER_BINDING
-
-		for (var ndx = 0; ndx < 2; ++ndx) {
-			// TODO: implement StateQueryMemoryWriteGuard or find workaround
-			/** @type {WebGLBuffer} */ var boundBuffer;
-			boundBuffer = /** @type {WebGLBuffer} */ (gl.getIndexedParameter(gl.TRANSFORM_FEEDBACK_BUFFER_BINDING, ndx));
-			// boundBuffer.verifyValidity(m_testCtx);
+		for (var ndx = 0; ndx < feedbackBuffers.length; ndx++) {
+			/** @type {WebGLBuffer} */
+			var boundBuffer = /** @type {WebGLBuffer} */ (gl.getIndexedParameter(gl.TRANSFORM_FEEDBACK_BUFFER_BINDING, ndx));
 			this.check(boundBuffer === feedbackBuffers[ndx], 'got invalid value');
 		}
 
-
 		// cleanup
-
-		gl.deleteBuffer(feedbackBuffers[0]);
-		gl.deleteBuffer(feedbackBuffers[1]);
+		for (var ndx = 0; ndx < feedbackBuffers.length; ndx++)
+			gl.deleteBuffer(feedbackBuffers[ndx]);
 	};
 
 	/**
@@ -178,9 +160,8 @@ goog.scope(function() {
 		// bind buffers
 
 		/** @type {Array<WebGLBuffer>} */ var feedbackBuffers = [];
-
-		feedbackBuffers[0] = gl.createBuffer();
-		feedbackBuffers[1] = gl.createBuffer();
+		for (var ndx = 0; ndx < 2; ndx++)
+			feedbackBuffers[ndx] = gl.createBuffer();
 
 		gl.bindBuffer(gl.TRANSFORM_FEEDBACK_BUFFER, feedbackBuffers[0]);
 		gl.bufferData(gl.TRANSFORM_FEEDBACK_BUFFER, new Float32Array(16), gl.DYNAMIC_READ);
@@ -190,40 +171,22 @@ goog.scope(function() {
 		gl.bufferData(gl.TRANSFORM_FEEDBACK_BUFFER, new Float32Array(16), gl.DYNAMIC_READ);
 		gl.bindBufferRange(gl.TRANSFORM_FEEDBACK_BUFFER, feedbackOutputIndex, feedbackBuffers[1], rangeBufferOffset, rangeBufferSize);
 
-		// test TRANSFORM_FEEDBACK_BUFFER_START and TRANSFORM_FEEDBACK_BUFFER_SIZE
-		/**
-		 * @struct
-		 * @constructor
-		 * @param {number} index
-		 * @param {number} pname
-		 * @param {number} value
-		 */
-		var BufferRequirements = function(index, pname, value) {
-		    /** @type {number} */ this.index = index;
-			/** @type {number} */ this.pname = pname;
-			/** @type {number} */ this.value = value;
-		};
-
-		/** @type {Array<BufferRequirements>} */ var requirements = [
-			new BufferRequirements(feedbackPositionIndex, gl.TRANSFORM_FEEDBACK_BUFFER_START, 0),
-			new BufferRequirements(feedbackPositionIndex, gl.TRANSFORM_FEEDBACK_BUFFER_SIZE, 0),
-			new BufferRequirements(feedbackOutputIndex, gl.TRANSFORM_FEEDBACK_BUFFER_START, rangeBufferOffset),
-			new BufferRequirements(feedbackOutputIndex, gl.TRANSFORM_FEEDBACK_BUFFER_SIZE, rangeBufferSize)
+		/** @type {Array<{index: number, pname: number, value: number}>} */ var requirements = [
+			{index: feedbackPositionIndex, pname: gl.TRANSFORM_FEEDBACK_BUFFER_START, value: 0},
+			{index: feedbackPositionIndex, pname: gl.TRANSFORM_FEEDBACK_BUFFER_SIZE, value: 0},
+			{index: feedbackOutputIndex, pname: gl.TRANSFORM_FEEDBACK_BUFFER_START, value: rangeBufferOffset},
+			{index: feedbackOutputIndex, pname: gl.TRANSFORM_FEEDBACK_BUFFER_SIZE, value: rangeBufferSize}
 		];
 
-		for (var ndx = 0; ndx < requirements.length; ++ndx) {
-			// TODO: implement StateQueryMemoryWriteGuard
-			/** @type {number} */ var state;
-			state = /** @type {number} */ (gl.getIndexedParameter(requirements[ndx].pname, requirements[ndx].index));
-
-			//if (state.verifyValidity())
+		for (var ndx = 0; ndx < requirements.length; ndx++) {
+			/** @type {number} */
+			var state = /** @type {number} */ (gl.getIndexedParameter(requirements[ndx].pname, requirements[ndx].index));
 			this.check(state === requirements[ndx].value, 'got invalid value');
 		}
 
 		// cleanup
-
-		gl.deleteBuffer(feedbackBuffers[0]);
-		gl.deleteBuffer(feedbackBuffers[1]);
+		for (var ndx = 0; ndx < feedbackBuffers.length; ndx++)
+			gl.deleteBuffer(feedbackBuffers[ndx]);
 	};
 
 	/**
@@ -300,34 +263,29 @@ goog.scope(function() {
 	es3fIndexedStateQueryTests.UniformBufferBindingCase.prototype.constructor = es3fIndexedStateQueryTests.UniformBufferBindingCase;
 
 	es3fIndexedStateQueryTests.UniformBufferBindingCase.prototype.testUniformBuffers = function() {
-		/** @type {Array<string>} */ var uniformNames = [
-			'input1',
-			'input2'
-		];
+		/** @type {Array<string>} */ var uniformNames = ['input1', 'input2'];
 
 		/** @type {Array<number>} */ var uniformIndices = [];
 		uniformIndices = gl.getUniformIndices(this.m_program, uniformNames);
 
 		/** @type {Array<WebGLBuffer>} */ var buffers = [];
-		buffers[0] = gl.createBuffer();
-		buffers[1] = gl.createBuffer();
+		for (var ndx = 0; ndx < 2; ndx++)
+			buffers[ndx] = gl.createBuffer();
 
-		for (var ndx = 0; ndx < 2; ++ndx) {
+		for (var ndx = 0; ndx < buffers.length; ++ndx) {
 			gl.bindBuffer(gl.UNIFORM_BUFFER, buffers[ndx]);
 			gl.bufferData(gl.UNIFORM_BUFFER, new Float32Array(32), gl.DYNAMIC_DRAW);
 			gl.bindBufferBase(gl.UNIFORM_BUFFER, uniformIndices[ndx], buffers[ndx]);
 		}
 
-		for (var ndx = 0; ndx < 2; ++ndx) {
-			/** @type {Array<WebGLBuffer>} */ var boundBuffer = [];
+		/** @type {Array<WebGLBuffer>} */ var boundBuffer = [];
+		for (var ndx = 0; ndx < buffers.length; ndx++) {
 			boundBuffer[ndx] = /** @type {WebGLBuffer} */ (gl.getIndexedParameter(gl.UNIFORM_BUFFER_BINDING, uniformIndices[ndx]));
-
-			//if (boundBuffer.verifyValidity(m_testCtx))
 			this.check(boundBuffer[ndx] === buffers[ndx], 'got invalid value');
 		}
 
-		gl.deleteBuffer(buffers[0]);
-		gl.deleteBuffer(buffers[1]);
+		for (var ndx = 0; ndx < buffers.length; ndx++)
+			gl.deleteBuffer(buffers[ndx]);
 	};
 
 	/**
@@ -345,16 +303,13 @@ goog.scope(function() {
 	es3fIndexedStateQueryTests.UniformBufferBufferCase.prototype.constructor = es3fIndexedStateQueryTests.UniformBufferBufferCase;
 
 	es3fIndexedStateQueryTests.UniformBufferBufferCase.prototype.testUniformBuffers = function() {
-		/** @type {Array<string>} */ var uniformNames = [
-			'input1',
-			'input2'
-		];
+		/** @type {Array<string>} */ var uniformNames = ['input1', 'input2'];
 
 		/** @type {Array<number>} */ var uniformIndices = [0, 0];
 		gl.getUniformIndices(this.m_program, uniformNames);
 
 		/** @type {number} */ var alignment = this.getAlignment();
-		if (alignment === -1) // cannot continue without this - [dag] we'll see
+		if (alignment === -1) // cannot continue without this
 			return;
 
 		bufferedLogToConsole('Alignment is ' + alignment);
@@ -364,49 +319,36 @@ goog.scope(function() {
 		/** @type {number} */ var rangeBufferTotalSize = rangeBufferOffset + rangeBufferSize + 8; // + 8 has no special meaning, just to make it != with the size of the range
 
 		/** @type {Array<WebGLBuffer>} */ var buffers = [];
-		buffers[0] = gl.createBuffer();
-		buffers[1] = gl.createBuffer();
+		for (var ndx = 0; ndx < 2; ndx++)
+			buffers[ndx] = gl.createBuffer();
 
 		gl.bindBuffer(gl.UNIFORM_BUFFER, buffers[0]);
 		gl.bufferData(gl.UNIFORM_BUFFER, new Float32Array(32), gl.DYNAMIC_DRAW);
 		gl.bindBufferBase(gl.UNIFORM_BUFFER, uniformIndices[0], buffers[0]);
 
 		gl.bindBuffer(gl.UNIFORM_BUFFER, buffers[1]);
-		gl.bufferData(gl.UNIFORM_BUFFER, null, gl.DYNAMIC_DRAW);
+		gl.bufferData(gl.UNIFORM_BUFFER, new Float32Array(32), gl.DYNAMIC_DRAW);
 		gl.bindBufferRange(gl.UNIFORM_BUFFER, uniformIndices[1], buffers[1], rangeBufferOffset, rangeBufferSize);
 
 		// test UNIFORM_BUFFER_START and UNIFORM_BUFFER_SIZE
 
-		/**
-		* @struct
-		* @constructor
-		* @param {number} index
-		* @param {number} pname
-		* @param {number} value
-		*/
-		var BufferRequirements = function(index, pname, value) {
-			/** @type {number} */ this.index = index;
-			/** @type {number} */ this.pname = pname;
-			/** @type {number} */ this.value = value;
-		};
-
-		/** @type {Array<BufferRequirements>} */ var requirements = [
-			new BufferRequirements(uniformIndices[0], gl.UNIFORM_BUFFER_START, 0),
-			new BufferRequirements(uniformIndices[0], gl.UNIFORM_BUFFER_SIZE, 0),
-			new BufferRequirements(uniformIndices[1], gl.UNIFORM_BUFFER_START, rangeBufferOffset),
-			new BufferRequirements(uniformIndices[1], gl.UNIFORM_BUFFER_SIZE, rangeBufferSize)
+		/** @type {Array<{index: number, pname: number, value: number}>} */ var requirements = [
+			{index: uniformIndices[0], pname: gl.UNIFORM_BUFFER_START, value: 0},
+			{index: uniformIndices[0], pname: gl.UNIFORM_BUFFER_SIZE, value: 0},
+			{index: uniformIndices[1], pname: gl.UNIFORM_BUFFER_START, value: rangeBufferOffset},
+			{index: uniformIndices[1], pname: gl.UNIFORM_BUFFER_SIZE, value: rangeBufferSize}
 		];
 
-		for (var ndx = 0; ndx < requirements.length; ++ndx) {
+		for (var ndx = 0; ndx < requirements.length; ndx++) {
 			/** @type {number} */ var state;
 			state = /** @type {number} */ (gl.getIndexedParameter(requirements[ndx].pname, requirements[ndx].index));
 
-			//if (state.verifyValidity(m_testCtx))
 			this.check(state === requirements[ndx].value, 'got invalid value');
 		}
 
-		gl.deleteBuffer(buffers[0]);
-		gl.deleteBuffer(buffers[1]);
+		for (var ndx = 0; ndx < buffers.length; ndx++)
+			gl.deleteBuffer(buffers[ndx]);
+
 	};
 
 	/**
@@ -414,9 +356,6 @@ goog.scope(function() {
 	 */
 	es3fIndexedStateQueryTests.UniformBufferBufferCase.prototype.getAlignment = function() {
 		/** @type {number} */ var state = /** @type {number} */ (gl.getParameter(gl.UNIFORM_BUFFER_OFFSET_ALIGNMENT));
-
-		// if (!state.verifyValidity(m_testCtx))
-		//	return -1;
 
 		if (state <= 256)
 			return state;
@@ -446,7 +385,6 @@ goog.scope(function() {
 		// uniform buffers
 		this.addChild(new es3fIndexedStateQueryTests.UniformBufferBindingCase('uniform_buffer_binding', 'UNIFORM_BUFFER_BINDING'));
 		this.addChild(new es3fIndexedStateQueryTests.UniformBufferBufferCase('uniform_buffer_start_size', 'UNIFORM_BUFFER_START and UNIFORM_BUFFER_SIZE'));
-
     };
 
     /**
