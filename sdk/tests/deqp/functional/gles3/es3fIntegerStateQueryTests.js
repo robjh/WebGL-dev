@@ -33,7 +33,7 @@ goog.scope(function() {
 	 * @param  {string} testNamePostfix
 	 */
 	es3fIntegerStateQueryTests.StateVerifier = function(testNamePostfix) {
-		/** @type {string} */ var this.m_testNamePostfix = testNamePostfix;
+		/** @type {string} */ this.m_testNamePostfix = testNamePostfix;
 	};
 
 	es3fIntegerStateQueryTests.StateVerifier.prototype.getTestNamePostfix = function() {
@@ -43,9 +43,8 @@ goog.scope(function() {
 	/**
 	 * @constructor
 	 * @extends {es3fIntegerStateQueryTests.StateVerifier}
-	 * @param  {string} testNamePostfix
 	 */
-	es3fIntegerStateQueryTests.GetBooleanVerifier = function(testNamePostfix) {
+	es3fIntegerStateQueryTests.GetBooleanVerifier = function() {
 		es3fIntegerStateQueryTests.StateVerifier.call(this, '_getboolean');
 	};
 
@@ -75,7 +74,7 @@ goog.scope(function() {
 	 * @param  {number} reference3
 	 */
 	es3fIntegerStateQueryTests.GetBooleanVerifier.prototype.verifyInteger4 = function(name, reference0, reference1, reference2, reference3) {
-		es3fIntegerStateQueryTests.verifyInteger4Mask(name, reference0, true, reference1, true, reference2, true, reference3, true);
+		this.verifyInteger4Mask(name, reference0, true, reference1, true, reference2, true, reference3, true);
 	};
 
 	/**
@@ -96,7 +95,7 @@ goog.scope(function() {
 			reference0 ? true : false,
 			reference1 ? true : false,
 			reference2 ? true : false,
-			reference3 ? true : false,
+			reference3 ? true : false
 		];
 
 		if ((enableRef0 && (boolVector4[0] != referenceAsGLBoolean[0])) ||
@@ -119,7 +118,7 @@ goog.scope(function() {
 	 * @param  {number} reference
 	 */
 	es3fIntegerStateQueryTests.GetBooleanVerifier.prototype.verifyIntegerGreaterOrEqual = function(name, reference) {
-		/** @type {Array<boolean>} */ var state = /** @type {Array<boolean>} */ (gl.getParameter(name));
+		/** @type {boolean} */ var state = /** @type {boolean} */ (gl.getParameter(name));
 
 		if (state === true) // state is non-zero, could be greater than reference (correct)
 			return;
@@ -142,7 +141,7 @@ goog.scope(function() {
 	 * @param  {number} reference
 	 */
 	es3fIntegerStateQueryTests.GetBooleanVerifier.prototype.verifyUnsignedIntegerGreaterOrEqual = function(name, reference) {
-		/** @type {Array<boolean>} */ var state = /** @type {Array<boolean>} */ (gl.getParameter(name));
+		/** @type {boolean} */ var state = /** @type {boolean} */ (gl.getParameter(name));
 		if (state === true) // state is non-zero, could be greater than reference (correct)
 			return;
 
@@ -164,7 +163,7 @@ goog.scope(function() {
 	 * @param  {number} reference
 	 */
 	es3fIntegerStateQueryTests.GetBooleanVerifier.prototype.verifyIntegerLessOrEqual = function(name, reference) {
-		/** @type {Array<boolean>} */ var state = /** @type {Array<boolean>} */ (gl.getParameter(name));
+		/** @type {boolean} */ var state = /** @type {boolean} */ (gl.getParameter(name));
 
 		if (state === true) // state is non-zero, could be less than reference (correct)
 			return;
@@ -195,7 +194,7 @@ goog.scope(function() {
 			reference1 ? true : false
 		];
 
-		for (int ndx = 0; ndx < referenceAsGLBoolean.length; ++ndx) {
+		for (var ndx = 0; ndx < referenceAsGLBoolean.length; ++ndx) {
 			if (boolVector[ndx] === true)  {
 				// state is non-zero, could be greater than any integer
 				continue;
@@ -218,7 +217,7 @@ goog.scope(function() {
 	 * @param  {Array<number>} references
 	 */
 	es3fIntegerStateQueryTests.GetBooleanVerifier.prototype.verifyIntegerAnyOf = function(name, references) {
-		/** @type {Array<boolean>} */ var state = /** @type {Array<boolean>} */ (gl.getParameter(name));
+		/** @type {boolean} */ var state = /** @type {boolean} */ (gl.getParameter(name));
 
 		for (var ndx = 0; ndx < references.length; ++ndx) {
 			/** @type {boolean} */ var expectedGLState = references[ndx] ? true : false;
@@ -239,7 +238,7 @@ goog.scope(function() {
 		// if stencilBits == 0, the mask is allowed to be either true or false
 		// otherwise it must be true
 
-		/** @type {Array<boolean>} */ var state = /** @type {Array<boolean>} */ (gl.getParameter(name));
+		/** @type {boolean} */ var state = /** @type {boolean} */ (gl.getParameter(name));
 
 		if (stencilBits > 0 && state !== true) {
 			bufferedLogToConsole('ERROR: expected true');
@@ -247,39 +246,314 @@ goog.scope(function() {
 		}
 	};
 
-	// continue at line 349
 	/**
 	 * @constructor
 	 * @extends {es3fIntegerStateQueryTests.StateVerifier}
-	 * @param  {string} testNamePostfix
 	 */
-	es3fIntegerStateQueryTests.GetIntegerVerifier = function(testNamePostfix) {
+	es3fIntegerStateQueryTests.GetIntegerVerifier = function() {
 		es3fIntegerStateQueryTests.StateVerifier.call(this, '_getinteger');
 	};
 
 	es3fIntegerStateQueryTests.GetIntegerVerifier.prototype = Object.create(es3fIntegerStateQueryTests.StateVerifier.prototype);
 	es3fIntegerStateQueryTests.GetIntegerVerifier.prototype.constructor = es3fIntegerStateQueryTests.GetIntegerVerifier;
 
-	// continue at line 538
+	/**
+	 * @param  {number} name
+	 * @param  {number} reference
+	 */
+	es3fIntegerStateQueryTests.GetIntegerVerifier.prototype.verifyInteger = function(name, reference) {
+		/** @type {number} */ var state = /** @type {number} */ (gl.getParameter(name));
+
+		if (state !== reference) {
+			bufferedLogToConsole("ERROR: expected " + reference + "; got " + state);
+			testFailedOptions("Got invalid integer value. Expected " + reference + "; got " + state, false);
+		}
+	};
+
+	/**
+	 * @param  {number} name
+	 * @param  {number} reference0
+	 * @param  {number} reference1
+	 * @param  {number} reference2
+	 * @param  {number} reference3
+	 */
+	es3fIntegerStateQueryTests.GetIntegerVerifier.prototype.verifyInteger4 = function(name, reference0, reference1, reference2, reference3) {
+		this.verifyInteger4Mask(name, reference0, true, reference1, true, reference2, true, reference3, true);
+	};
+
+	/**
+	 * @param {number} name
+	 * @param {number} reference0
+	 * @param {boolean} enableRef0
+	 * @param {number} reference1
+	 * @param {boolean} enableRef1
+	 * @param {number} reference2
+	 * @param {boolean} enableRef2
+	 * @param {number} reference3
+	 * @param {boolean} enableRef3
+	 */
+	es3fIntegerStateQueryTests.GetIntegerVerifier.prototype.verifyInteger4Mask = function(name, reference0, enableRef0, reference1, enableRef1, reference2, enableRef2, reference3, enableRef3) {
+		/** @type {Array<number>} */ var  intVector4 = /** @type {Array<number>} */ (gl.getParameter(name));
+
+		if ((enableRef0 && (intVector4[0] != reference0)) ||
+			(enableRef1 && (intVector4[1] != reference1)) ||
+			(enableRef2 && (intVector4[2] != reference2)) ||
+			(enableRef3 && (intVector4[3] != reference3)))
+		{
+			bufferedLogToConsole("// ERROR: expected " +
+				(enableRef0 ? "" : "(") + reference0 + (enableRef0 ? "" : ")") + ", " +
+				(enableRef1 ? "" : "(") + reference1 + (enableRef1 ? "" : ")") + ", " +
+				(enableRef2 ? "" : "(") + reference2 + (enableRef2 ? "" : ")") + ", " +
+				(enableRef3 ? "" : "(") + reference3 + (enableRef3 ? "" : ")"));
+
+			testFailedOptions("Got invalid integer value", false);
+		}
+	};
+
+	/**
+	 * @param {number} name
+	 * @param {number} reference
+	 */
+	es3fIntegerStateQueryTests.GetIntegerVerifier.prototype.verifyIntegerGreaterOrEqual = function(name, reference) {
+		/** @type {number} */ var state = /** @type {number} */ (gl.getParameter(name));
+
+		if (state < reference) {
+			bufferedLogToConsole("ERROR: expected greater or equal to " + reference + "; got " + state);
+			testFailedOptions("Got invalid integer value", false);
+		}
+	};
+
+	/**
+	 * @param {number} name
+	 * @param {number} reference
+	 */
+	es3fIntegerStateQueryTests.GetIntegerVerifier.prototype.verifyUnsignedIntegerGreaterOrEqual = function(name, reference) {
+		/** @type {number} */ var state = /** @type {number} */ (gl.getParameter(name));
+
+		if (Math.abs(state) < reference) {
+			bufferedLogToConsole("ERROR: expected greater or equal to " + reference + "; got " + Math.abs(state));
+			testFailedOptions("Got invalid integer value", false);
+		}
+	};
+
+	/**
+	 * @param {number} name
+	 * @param {number} reference
+	 */
+	es3fIntegerStateQueryTests.GetIntegerVerifier.prototype.verifyIntegerLessOrEqual = function(name, reference) {
+		/** @type {number} */ var state = /** @type {number} */ (gl.getParameter(name));
+
+		if (state > reference) {
+			bufferedLogToConsole("ERROR: expected less or equal to " + reference + "; got " + state);
+			testFailedOptions("Got invalid integer value", false);
+		}
+	};
+
+	/**
+	 * @param {number} name
+	 * @param {number} reference0
+	 * @param {number} reference1
+	 */
+	es3fIntegerStateQueryTests.GetIntegerVerifier.prototype.verifyIntegerGreaterOrEqual2 = function(name, reference0, reference1) {
+		/** @type {Array<number>} */ var intVector2 = /** @type {Array<number>} */ (gl.getParameter(name));
+
+		if (intVector2[0] < reference0 || intVector2[1] < reference1) {
+			bufferedLogToConsole("ERROR: expected greater or equal to " + reference0 + ", " + reference1 + "; got " + intVector2[0] + ", " + intVector2[0]);
+			testFailedOptions("Got invalid integer value", false);
+		}
+	};
+
+	/**
+	 * @param {number} name
+	 * @param {Array<number>} references
+	 */
+	es3fIntegerStateQueryTests.GetIntegerVerifier.prototype.verifyIntegerAnyOf = function(name, references) {
+		/** @type {number} */ var state = /** @type {number} */ (gl.getParameter(name));
+
+		for (var ndx = 0; ndx < references.length; ++ndx) {
+			/** @type {number} */ var expectedGLState = references[ndx];
+
+			if (state === expectedGLState)
+				return;
+		}
+
+		bufferedLogToConsole("ERROR: got " + state);
+		testFailedOptions("Got invalid integer value", false);
+	};
+
+	/**
+	 * @param {number} name
+	 * @param {number} stencilBits
+	 */
+	es3fIntegerStateQueryTests.GetIntegerVerifier.prototype.verifyStencilMaskInitial = function(name, stencilBits) {
+		/** @type {number} */ var state = /** @type {number} */ (gl.getParameter(name));
+
+		/** @type {number} */ var reference = (1 << stencilBits) - 1;
+
+		if ((state & reference) != reference) {
+			// the least significant stencilBits bits should be on
+			bufferedLogToConsole("ERROR: expected minimum mask of " + reference + "; got " + state);
+			testFailedOptions("Got invalid mask value", false);
+		}
+	};
+
 	/**
 	 * @constructor
 	 * @extends {es3fIntegerStateQueryTests.StateVerifier}
-	 * @param  {string} testNamePostfix
 	 */
-	es3fIntegerStateQueryTests.GetInteger64Verifier = function(testNamePostfix) {
+	es3fIntegerStateQueryTests.GetInteger64Verifier = function() {
 		es3fIntegerStateQueryTests.StateVerifier.call(this, '_getinteger64');
 	};
 
 	es3fIntegerStateQueryTests.GetInteger64Verifier.prototype = Object.create(es3fIntegerStateQueryTests.StateVerifier.prototype);
 	es3fIntegerStateQueryTests.GetInteger64Verifier.prototype.constructor = es3fIntegerStateQueryTests.GetInteger64Verifier;
 
+	/**
+	 * @param  {number} name
+	 * @param  {number} reference
+	 */
+	es3fIntegerStateQueryTests.GetInteger64Verifier.prototype.verifyInteger = function(name, reference) {
+		/** @type {number} */ var state = /** @type {number} */ (gl.getParameter(name));
+
+		if (state != reference) {
+			bufferedLogToConsole("ERROR: expected " + reference + "; got " + state);
+			testFailedOptions("Got invalid integer value", false);
+		}
+	};
+
+	/**
+	 * @param  {number} name
+	 * @param  {number} reference0
+	 * @param  {number} reference1
+	 * @param  {number} reference2
+	 * @param  {number} reference3
+	 */
+	es3fIntegerStateQueryTests.GetInteger64Verifier.prototype.verifyInteger4 = function(name, reference0, reference1, reference2, reference3) {
+		this.verifyInteger4Mask(name, reference0, true, reference1, true, reference2, true, reference3, true);
+	};
+
+	/**
+	 * @param  {number} name
+	 * @param  {number} reference0
+	 * @param  {boolean} enableRef0
+	 * @param  {number} reference1
+	 * @param  {boolean} enableRef1
+	 * @param  {number} reference2
+	 * @param  {boolean} enableRef2
+	 * @param  {number} reference3
+	 * @param  {boolean} enableRef3
+	 */
+	es3fIntegerStateQueryTests.GetInteger64Verifier.prototype.verifyInteger4Mask = function(name, reference0, enableRef0, reference1, enableRef1, reference2, enableRef2, reference3, enableRef3) {
+		/** @type {Array<number>} */ var intVector4 = /** @type {Array<number>} */ (gl.getParameter(name));
+
+		if ((enableRef0 && (intVector4[0] != reference0)) ||
+			(enableRef1 && (intVector4[1] != reference1)) ||
+			(enableRef2 && (intVector4[2] != reference2)) ||
+			(enableRef3 && (intVector4[3] != reference3)))
+		{
+			bufferedLogToConsole(
+				(enableRef0 ? "" : "(") + reference0 + (enableRef0 ? "" : ")") + ", " +
+				(enableRef1 ? "" : "(") + reference1 + (enableRef1 ? "" : ")") + ", " +
+				(enableRef2 ? "" : "(") + reference2 + (enableRef2 ? "" : ")") + ", " +
+				(enableRef3 ? "" : "(") + reference3 + (enableRef3 ? "" : ")"));
+
+			testFailedOptions("Got invalid integer value", false);
+		}
+	};
+
+	/**
+	 * @param  {number} name
+	 * @param  {number} reference
+	 */
+	es3fIntegerStateQueryTests.GetInteger64Verifier.prototype.verifyIntegerGreaterOrEqual = function(name, reference) {
+		/** @type {number} */ var state = /** @type {number} */ (gl.getParameter(name));
+
+		if (state < reference) {
+			bufferedLogToConsole("ERROR: expected greater or equal to " + reference + "; got " + state);
+			testFailedOptions("Got invalid integer value", false);
+		}
+	};
+
+	/**
+	 * @param  {number} name
+	 * @param  {number} reference
+	 */
+	es3fIntegerStateQueryTests.GetInteger64Verifier.prototype.verifyUnsignedIntegerGreaterOrEqual = function(name, reference) {
+		/** @type {number} */ var state = /** @type {number} */ (gl.getParameter(name));
+
+		if (state < reference) {
+			bufferedLogToConsole("ERROR: expected greater or equal to " + reference + "; got " + state);
+			testFailedOptions("Got invalid integer value", false);
+		}
+	};
+
+	/**
+	 * @param  {number} name
+	 * @param  {number} reference
+	 */
+	es3fIntegerStateQueryTests.GetInteger64Verifier.prototype.verifyIntegerLessOrEqual = function(name, reference) {
+		/** @type {number} */ var state = /** @type {number} */ (gl.getParameter(name));
+
+		if (state > reference) {
+			bufferedLogToConsole("ERROR: expected less or equal to " + reference + "; got " + state);
+			testFailedOptions("Got invalid integer value", false);
+		}
+	};
+
+	/**
+	 * @param  {number} name
+	 * @param  {number} reference0
+	 * @param  {number} reference1
+	 */
+	es3fIntegerStateQueryTests.GetInteger64Verifier.prototype.verifyIntegerGreaterOrEqual2 = function(name, reference0, reference1) {
+		/** @type {Array<number>} */ var intVector2 = /** @type {Array<number>} */ (gl.getParameter(name));
+
+		if (intVector2[0] < reference0 || intVector2[1] < reference1) {
+			bufferedLogToConsole("ERROR: expected greater or equal to " + reference0 + ", " + reference1 + "; got " + intVector2[0] + ", " + intVector2[1]);
+			testFailedOptions("Got invalid integer value", false);
+		}
+	};
+
+	/**
+	 * @param  {number} name
+	 * @param  {Array<number>} references
+	 */
+	es3fIntegerStateQueryTests.GetInteger64Verifier.prototype.verifyIntegerAnyOf = function(name, references) {
+		/** @type {number} */ var state = /** @type {number} */ (gl.getParameter(name));
+
+		for (var ndx = 0; ndx < references.length; ++ndx) {
+			/** @type {number} */ var expectedGLState = references[ndx];
+
+			if (state == expectedGLState)
+				return;
+		}
+
+		bufferedLogToConsole("ERROR: got " + state);
+		testFailedOptions("Got invalid integer value", false);
+	};
+
+	/**
+	 * @param {number} name
+	 * @param {number} stencilBits
+	 */
+	es3fIntegerStateQueryTests.GetInteger64Verifier.prototype.verifyStencilMaskInitial = function(name, stencilBits) {
+		/** @type {number} */ var state = /** @type {number} */ (gl.getParameter(name));
+
+		/** @type {number} */ var reference = (1 << stencilBits) - 1;
+
+		if ((state & reference) != reference) {
+			// the least significant stencilBits bits should be on
+			bufferedLogToConsole("ERROR: expected mimimum mask of " + reference + "; got " + state);
+			testFailedOptions("Got invalid mask value", false);
+		}
+	};
+
 	// continue at line 724
 	/**
 	 * @constructor
 	 * @extends {es3fIntegerStateQueryTests.StateVerifier}
-	 * @param  {string} testNamePostfix
 	 */
-	es3fIntegerStateQueryTests.GetFloatVerifier = function(testNamePostfix) {
+	es3fIntegerStateQueryTests.GetFloatVerifier = function() {
 		es3fIntegerStateQueryTests.StateVerifier.call(this, '_getfloat');
 	};
 
@@ -326,9 +600,9 @@ goog.scope(function() {
 	 * @param {string} description
 	 */
 	es3fIntegerStateQueryTests.TransformFeedbackTestCase = function(verifier, name, description) {
-		es3fApiCase.ApiCase.call(namee, description, gl);
+		es3fApiCase.ApiCase.call(this, name, description, gl);
 		/** @type {es3fIntegerStateQueryTests.StateVerifier} */ this.m_verifier = verifier;
-		/** @type {number} */ this.m_transformfeedback = 0;
+		/** @type {WebGLTransformFeedback} */ this.m_transformfeedback;
 	};
 
 	es3fIntegerStateQueryTests.TransformFeedbackTestCase.prototype = Object.create(es3fApiCase.ApiCase.prototype);
@@ -346,24 +620,24 @@ goog.scope(function() {
 		gl.compileShader(shaderVert);
 
 		/** @type {boolean} */ var compileStatus = /** @type {boolean} */ (gl.getShaderParameter(shaderVert, gl.COMPILE_STATUS));
-		checkBooleans(compileStatus, true);
+		this.checkBooleans(compileStatus, true);
 
 		/** @type {WebGLShader} */ var shaderFrag = gl.createShader(gl.FRAGMENT_SHADER);
 		gl.shaderSource(shaderFrag, transformFeedbackTestFragSource);
 		gl.compileShader(shaderFrag);
 
 		compileStatus = /** @type {boolean} */ (gl.getShaderParameter(shaderFrag, gl.COMPILE_STATUS));
-		checkBooleans(compileStatus, true);
+		this.checkBooleans(compileStatus, true);
 
 		/** @type {WebGLProgram} */ var shaderProg = gl.createProgram();
 		gl.attachShader(shaderProg, shaderVert);
 		gl.attachShader(shaderProg, shaderFrag);
-		/** @type {string} */ var transform_feedback_outputs = "gl_Position";
+		/** @type {Array<string>} */ var transform_feedback_outputs = ["gl_Position"];
 		gl.transformFeedbackVaryings(shaderProg, transform_feedback_outputs, gl.INTERLEAVED_ATTRIBS);
 		gl.linkProgram(shaderProg);
 
-		/** @type {boolean} */ var linkStatus = gl.getProgramParameter(shaderProg, gl.LINK_STATUS);
-		checkBooleans(linkStatus, true);
+		/** @type {boolean} */ var linkStatus = /** @type {boolean} */ (gl.getProgramParameter(shaderProg, gl.LINK_STATUS));
+		this.checkBooleans(linkStatus, true);
 
 		gl.bindTransformFeedback(gl.TRANSFORM_FEEDBACK, this.m_transformfeedback);
 
@@ -379,8 +653,8 @@ goog.scope(function() {
 
 		gl.useProgram(null);
 		gl.bindTransformFeedback(gl.TRANSFORM_FEEDBACK, null);
-		gl.deleteTransformFeedbacks(this.m_transformfeedback);
-		gl.deleteBuffers(feedbackBufferId);
+		gl.deleteTransformFeedback(this.m_transformfeedback);
+		gl.deleteBuffer(feedbackBufferId);
 		gl.deleteShader(shaderVert);
 		gl.deleteShader(shaderFrag);
 		gl.deleteProgram(shaderProg);
@@ -440,9 +714,10 @@ goog.scope(function() {
 			new LimitedStateInteger("max_color_attachments", "MAX_COLOR_ATTACHMENTS has minimum value of 4", gl.MAX_COLOR_ATTACHMENTS, 4),
 			new LimitedStateInteger("max_elements_indices", "MAX_ELEMENTS_INDICES has minimum value of 0", gl.MAX_ELEMENTS_INDICES, 0),
 			new LimitedStateInteger("max_elements_vertices", "MAX_ELEMENTS_VERTICES has minimum value of 0", gl.MAX_ELEMENTS_VERTICES, 0),
-			new LimitedStateInteger("num_extensions", "NUM_EXTENSIONS has minimum value of 0", gl.NUM_EXTENSIONS, 0),
-			new LimitedStateInteger("major_version", "MAJOR_VERSION has minimum value of 3", gl.MAJOR_VERSION, 3),
-			new LimitedStateInteger("minor_version", "MINOR_VERSION has minimum value of 0", gl.MINOR_VERSION, 0),
+			// TODO: update for WebGL
+			// new LimitedStateInteger("num_extensions", "NUM_EXTENSIONS has minimum value of 0", gl.NUM_EXTENSIONS, 0),
+			// new LimitedStateInteger("major_version", "MAJOR_VERSION has minimum value of 3", gl.MAJOR_VERSION, 3),
+			// new LimitedStateInteger("minor_version", "MINOR_VERSION has minimum value of 0", gl.MINOR_VERSION, 0),
 			new LimitedStateInteger("max_vertex_attribs", "MAX_VERTEX_ATTRIBS has minimum value of 16", gl.MAX_VERTEX_ATTRIBS, 16),
 			new LimitedStateInteger("max_vertex_uniform_components", "MAX_VERTEX_UNIFORM_COMPONENTS has minimum value of 1024", gl.MAX_VERTEX_UNIFORM_COMPONENTS, 1024),
 			new LimitedStateInteger("max_vertex_uniform_vectors", "MAX_VERTEX_UNIFORM_VECTORS has minimum value of 256", gl.MAX_VERTEX_UNIFORM_VECTORS, 256),
@@ -469,12 +744,12 @@ goog.scope(function() {
 			new LimitedStateInteger("blue_bits", "BLUE_BITS has minimum value of 0", gl.BLUE_BITS, 0),
 			new LimitedStateInteger("alpha_bits", "ALPHA_BITS has minimum value of 0", gl.ALPHA_BITS, 0),
 			new LimitedStateInteger("depth_bits", "DEPTH_BITS has minimum value of 0", gl.DEPTH_BITS, 0),
-			new LimitedStateInteger("stencil_bits", "STENCIL_BITS has minimum value of 0", gl.STENCIL_BITS, 0),
+			new LimitedStateInteger("stencil_bits", "STENCIL_BITS has minimum value of 0", gl.STENCIL_BITS, 0)
 		];
 
 		/** @type {Array<LimitedStateInteger>} */ var implementationMaxLimits = [
 			new LimitedStateInteger("min_program_texel_offset", "MIN_PROGRAM_TEXEL_OFFSET has maximum value of -8", gl.MIN_PROGRAM_TEXEL_OFFSET, -8),
-			new LimitedStateInteger("uniform_buffer_offset_alignment", "UNIFORM_BUFFER_OFFSET_ALIGNMENT has minimum value of 1", gl.UNIFORM_BUFFER_OFFSET_ALIGNMENT, 256),
+			new LimitedStateInteger("uniform_buffer_offset_alignment", "UNIFORM_BUFFER_OFFSET_ALIGNMENT has minimum value of 1", gl.UNIFORM_BUFFER_OFFSET_ALIGNMENT, 256)
 		];
 
 		// \note implementation defined limits have their own tests so just check the conversions to boolean, int64 and float
@@ -482,259 +757,260 @@ goog.scope(function() {
 
 		var testCtx = this;
 
-		for (var testNdx = 0; testNdx < implementationMinLimits.length; testNdx++)
-			implementationLimitVerifiers.forEach(function(verifier) { testCtx.addChild(new es3fIntegerStateQueryTests.ConstantMinimumValueTestCase(verifier, implementationMinLimits[testNdx].name + verifier.getTestNamePostfix(), implementationMinLimits[testNdx].description, implementationMinLimits[testNdx].targetName, implementationMinLimits[testNdx].value)); });
+		// TODO: commenting until this is implemented
+		// for (var testNdx = 0; testNdx < implementationMinLimits.length; testNdx++)
+		// 	implementationLimitVerifiers.forEach(function(verifier) { testCtx.addChild(new es3fIntegerStateQueryTests.ConstantMinimumValueTestCase(verifier, implementationMinLimits[testNdx].name + verifier.getTestNamePostfix(), implementationMinLimits[testNdx].description, implementationMinLimits[testNdx].targetName, implementationMinLimits[testNdx].value)); });
+		//
+		// for (var testNdx = 0; testNdx < implementationMaxLimits.length; testNdx++)
+		// 	implementationLimitVerifiers.forEach(function(verifier) { testCtx.addChild(new es3fIntegerStateQueryTests.ConstantMaximumValueTestCase(verifier, implementationMaxLimits[testNdx].name + verifier.getTestNamePostfix(), implementationMaxLimits[testNdx].description, implementationMaxLimits[testNdx].targetName, implementationMaxLimits[testNdx].value)); });
 
-		for (var testNdx = 0; testNdx < implementationMaxLimits.length; testNdx++)
-			implementationLimitVerifiers.forEach(function(verifier) { testCtx.addChild(new es3fIntegerStateQueryTests.ConstantMaximumValueTestCase(verifier, implementationMaxLimits[testNdx].name + verifier.getTestNamePostfix(), implementationMaxLimits[testNdx].description, implementationMaxLimits[testNdx].targetName, implementationMaxLimits[testNdx].value)); });
-
-		/** @type {Array<es3fIntegerStateQueryTests.StateVerifier>} */ var  normalVerifiers = [this.m_verifierBoolean, this.m_verifierInteger, this.m_verifierInteger64, this.m_verifierFloat];
-		implementationLimitVerifiers.forEach(function(verifier) { testCtx.addChild(new es3fIntegerStateQueryTests.SampleBuffersTestCase(verifier, "sample_buffers" + verifier.getTestNamePostfix(), "SAMPLE_BUFFERS")); });
-
-		normalVerifiers.forEach(function(verifier) { testCtx.addChild(new es3fIntegerStateQueryTests.SamplesTestCase(verifier, "samples" + verifier.getTestNamePostfix(), "SAMPLES")); });
-		normalVerifiers.forEach(function(verifier) { testCtx.addChild(new es3fIntegerStateQueryTests.HintTestCase(verifier, "generate_mipmap_hint" + verifier.getTestNamePostfix(), "GENERATE_MIPMAP_HINT", gl.GENERATE_MIPMAP_HINT)); });
-		normalVerifiers.forEach(function(verifier) { testCtx.addChild(new es3fIntegerStateQueryTests.HintTestCase(verifier, "fragment_shader_derivative_hint" + verifier.getTestNamePostfix(), "FRAGMENT_SHADER_DERIVATIVE_HINT", gl.FRAGMENT_SHADER_DERIVATIVE_HINT)); });
-		normalVerifiers.forEach(function(verifier) { testCtx.addChild(new es3fIntegerStateQueryTests.DepthFuncTestCase(verifier, "depth_func" + verifier.getTestNamePostfix(), "DEPTH_FUNC")); });
-		normalVerifiers.forEach(function(verifier) { testCtx.addChild(new es3fIntegerStateQueryTests.CullFaceTestCase(verifier, "cull_face_mode" + verifier.getTestNamePostfix(), "CULL_FACE_MODE")); });
-		normalVerifiers.forEach(function(verifier) { testCtx.addChild(new es3fIntegerStateQueryTests.FrontFaceTestCase(verifier, "front_face_mode" + verifier.getTestNamePostfix(), "FRONT_FACE")); });
-		normalVerifiers.forEach(function(verifier) { testCtx.addChild(new es3fIntegerStateQueryTests.ViewPortTestCase(verifier, "viewport" + verifier.getTestNamePostfix(), "VIEWPORT")); });
-		normalVerifiers.forEach(function(verifier) { testCtx.addChild(new es3fIntegerStateQueryTests.ScissorBoxTestCase(verifier, "scissor_box" + verifier.getTestNamePostfix(), "SCISSOR_BOX")); });
-		normalVerifiers.forEach(function(verifier) { testCtx.addChild(new es3fIntegerStateQueryTests.MaxViewportDimsTestCase(verifier, "max_viewport_dims" + verifier.getTestNamePostfix(), "MAX_VIEWPORT_DIMS")); });
-		normalVerifiers.forEach(function(verifier) { testCtx.addChild(new es3fIntegerStateQueryTests.StencilRefTestCase(verifier, "stencil_ref" + verifier.getTestNamePostfix(), "STENCIL_REF", gl.STENCIL_REF)); });
-		normalVerifiers.forEach(function(verifier) { testCtx.addChild(new es3fIntegerStateQueryTests.StencilRefTestCase(verifier, "stencil_back_ref" + verifier.getTestNamePostfix(), "STENCIL_BACK_REF", gl.STENCIL_BACK_REF)); });
-		normalVerifiers.forEach(function(verifier) { testCtx.addChild(new es3fIntegerStateQueryTests.StencilRefSeparateTestCase(verifier, "stencil_ref_separate" + verifier.getTestNamePostfix(), "STENCIL_REF (separate)", gl.STENCIL_REF, gl.FRONT)); });
-		normalVerifiers.forEach(function(verifier) { testCtx.addChild(new es3fIntegerStateQueryTests.StencilRefSeparateTestCase(verifier, "stencil_ref_separate_both" + verifier.getTestNamePostfix(), "STENCIL_REF (separate)", gl.STENCIL_REF, gl.FRONT_AND_BACK)); });
-		normalVerifiers.forEach(function(verifier) { testCtx.addChild(new es3fIntegerStateQueryTests.StencilRefSeparateTestCase(verifier, "stencil_back_ref_separate" + verifier.getTestNamePostfix(), "STENCIL_BACK_REF (separate)", gl.STENCIL_BACK_REF, gl.BACK)); });
-		normalVerifiers.forEach(function(verifier) { testCtx.addChild(new es3fIntegerStateQueryTests.StencilRefSeparateTestCase(verifier, "stencil_back_ref_separate_both" + verifier.getTestNamePostfix(), "STENCIL_BACK_REF (separate)", gl.STENCIL_BACK_REF, gl.FRONT_AND_BACK)); });
-
-		/**
-		 * @struct
-		 * @constructor
-		 * @param {string} name
-		 * @param {string} frontDescription
-		 * @param {number} frontTarget
-		 * @param {string} backDescription
-		 * @param {number} backTarget
-		 */
-		 NamedStencilOp = function(name, frontDescription, frontTarget, backDescription, backTarget) {
-			/** @type {string} */ this.name = name;
-    		/** @type {string} */ this.frontDescription = frontDescription;
-    		/** @type {number} */ this.frontTarget = frontTarget;
-    		/** @type {string} */ this.backDescription = backDescription;
-    		/** @type {number} */ this.backTarget = backTarget;
-		};
-
-		/** @type {Array<NamedStencilOp>} */ var stencilOps = [
-			new NamedStencilOp("fail", "STENCIL_FAIL", gl.STENCIL_FAIL, "STENCIL_BACK_FAIL", gl.STENCIL_BACK_FAIL),
-			new NamedStencilOp("depth_fail", "STENCIL_PASS_DEPTH_FAIL", gl.STENCIL_PASS_DEPTH_FAIL, "STENCIL_BACK_PASS_DEPTH_FAIL", gl.STENCIL_BACK_PASS_DEPTH_FAIL),
-			new NamedStencilOp("depth_pass", "STENCIL_PASS_DEPTH_PASS", gl.STENCIL_PASS_DEPTH_PASS, "STENCIL_BACK_PASS_DEPTH_PASS", gl.STENCIL_BACK_PASS_DEPTH_PASS)
-		];
-
-		for (var testNdx = 0; testNdx < stencilOps.length; testNdx++) {
-			normalVerifiers.forEach(function(verifier) { testCtx.addChild(new es3fIntegerStateQueryTests.StencilOpTestCase(verifier, "stencil_" + stencilOps[testNdx].name + verifier.getTestNamePostfix(), stencilOps[testNdx].frontDescription, stencilOps[testNdx].frontTarget)); });
-			normalVerifiers.forEach(function(verifier) { testCtx.addChild(new es3fIntegerStateQueryTests.StencilOpTestCase(verifier, "stencil_back_" + stencilOps[testNdx].name + verifier.getTestNamePostfix(), stencilOps[testNdx].backDescription, stencilOps[testNdx].backTarget)); });
-
-			normalVerifiers.forEach(function(verifier) { testCtx.addChild(new es3fIntegerStateQueryTests.StencilOpSeparateTestCase(verifier, "stencil_" + stencilOps[testNdx].name + "_separate_both" + verifier.getTestNamePostfix(), stencilOps[testNdx].frontDescription, stencilOps[testNdx].frontTarget, gl.FRONT_AND_BACK)); });
-			normalVerifiers.forEach(function(verifier) { testCtx.addChild(new es3fIntegerStateQueryTests.StencilOpSeparateTestCase(verifier, "stencil_back_" + stencilOps[testNdx].name + "_separate_both" + verifier.getTestNamePostfix(), stencilOps[testNdx].backDescription, stencilOps[testNdx].backTarget, gl.FRONT_AND_BACK)); });
-
-			normalVerifiers.forEach(function(verifier) { testCtx.addChild(new es3fIntegerStateQueryTests.StencilOpSeparateTestCase(verifier, "stencil_" + stencilOps[testNdx].name + "_separate" + verifier.getTestNamePostfix(), stencilOps[testNdx].frontDescription, stencilOps[testNdx].frontTarget, gl.FRONT)); });
-			normalVerifiers.forEach(function(verifier) { testCtx.addChild(new es3fIntegerStateQueryTests.StencilOpSeparateTestCase(verifier, "stencil_back_" + stencilOps[testNdx].name + "_separate" + verifier.getTestNamePostfix(), stencilOps[testNdx].backDescription, stencilOps[testNdx].backTarget, gl.BACK)); });
-		}
-
-		normalVerifiers.forEach(function(verifier) { testCtx.addChild(new es3fIntegetStateQueryTests.StencilFuncTestCase(verifier, "stencil_func" + verifier.getTestNamePostfix(), "STENCIL_FUNC")); });
-		normalVerifiers.forEach(function(verifier) { testCtx.addChild(new es3fIntegetStateQueryTests.StencilFuncSeparateTestCase(verifier, "stencil_func_separate" + verifier.getTestNamePostfix(), "STENCIL_FUNC (separate)", gl.STENCIL_FUNC, gl.FRONT)); });
-		normalVerifiers.forEach(function(verifier) { testCtx.addChild(new es3fIntegetStateQueryTests.StencilFuncSeparateTestCase(verifier, "stencil_func_separate_both" + verifier.getTestNamePostfix(), "STENCIL_FUNC (separate)", gl.STENCIL_FUNC, gl.FRONT_AND_BACK)); });
-		normalVerifiers.forEach(function(verifier) { testCtx.addChild(new es3fIntegetStateQueryTests.StencilFuncSeparateTestCase(verifier, "stencil_back_func_separate" + verifier.getTestNamePostfix(), "STENCIL_FUNC (separate)", gl.STENCIL_BACK_FUNC, gl.BACK)); });
-		normalVerifiers.forEach(function(verifier) { testCtx.addChild(new es3fIntegetStateQueryTests.StencilFuncSeparateTestCase(verifier, "stencil_back_func_separate_both" + verifier.getTestNamePostfix(), "STENCIL_FUNC (separate)", gl.STENCIL_BACK_FUNC, gl.FRONT_AND_BACK)); });
-		normalVerifiers.forEach(function(verifier) { testCtx.addChild(new es3fIntegetStateQueryTests.StencilMaskTestCase(verifier, "stencil_value_mask" + verifier.getTestNamePostfix(), "STENCIL_VALUE_MASK", gl.STENCIL_VALUE_MASK)); });
-		normalVerifiers.forEach(function(verifier) { testCtx.addChild(new es3fIntegetStateQueryTests.StencilMaskTestCase(verifier, "stencil_back_value_mask" + verifier.getTestNamePostfix(), "STENCIL_BACK_VALUE_MASK", gl.STENCIL_BACK_VALUE_MASK)); });
-		normalVerifiers.forEach(function(verifier) { testCtx.addChild(new es3fIntegetStateQueryTests.StencilMaskSeparateTestCase(verifier, "stencil_value_mask_separate" + verifier.getTestNamePostfix(), "STENCIL_VALUE_MASK (separate)", gl.STENCIL_VALUE_MASK, gl.FRONT)); });
-		normalVerifiers.forEach(function(verifier) { testCtx.addChild(new es3fIntegetStateQueryTests.StencilMaskSeparateTestCase(verifier, "stencil_value_mask_separate_both" + verifier.getTestNamePostfix(), "STENCIL_VALUE_MASK (separate)", gl.STENCIL_VALUE_MASK, gl.FRONT_AND_BACK)); });
-		normalVerifiers.forEach(function(verifier) { testCtx.addChild(new es3fIntegetStateQueryTests.StencilMaskSeparateTestCase(verifier, "stencil_back_value_mask_separate" + verifier.getTestNamePostfix(), "STENCIL_BACK_VALUE_MASK (separate)", gl.STENCIL_BACK_VALUE_MASK, gl.BACK)); });
-		normalVerifiers.forEach(function(verifier) { testCtx.addChild(new es3fIntegetStateQueryTests.StencilMaskSeparateTestCase(verifier, "stencil_back_value_mask_separate_both" + verifier.getTestNamePostfix(), "STENCIL_BACK_VALUE_MASK (separate)", gl.STENCIL_BACK_VALUE_MASK, gl.FRONT_AND_BACK)); });
-		normalVerifiers.forEach(function(verifier) { testCtx.addChild(new es3fIntegetStateQueryTests.StencilWriteMaskTestCase(verifier, "stencil_writemask" + verifier.getTestNamePostfix(), "STENCIL_WRITEMASK", gl.STENCIL_WRITEMASK)); });
-		normalVerifiers.forEach(function(verifier) { testCtx.addChild(new es3fIntegetStateQueryTests.StencilWriteMaskTestCase(verifier, "stencil_back_writemask" + verifier.getTestNamePostfix(), "STENCIL_BACK_WRITEMASK", gl.STENCIL_BACK_WRITEMASK)); });
-		normalVerifiers.forEach(function(verifier) { testCtx.addChild(new es3fIntegetStateQueryTests.StencilWriteMaskSeparateTestCase(verifier, "stencil_writemask_separate" + verifier.getTestNamePostfix(), "STENCIL_WRITEMASK (separate)", gl.STENCIL_WRITEMASK, gl.FRONT)); });
-		normalVerifiers.forEach(function(verifier) { testCtx.addChild(new es3fIntegetStateQueryTests.StencilWriteMaskSeparateTestCase(verifier, "stencil_writemask_separate_both" + verifier.getTestNamePostfix(), "STENCIL_WRITEMASK (separate)", gl.STENCIL_WRITEMASK, gl.FRONT_AND_BACK)); });
-		normalVerifiers.forEach(function(verifier) { testCtx.addChild(new es3fIntegetStateQueryTests.StencilWriteMaskSeparateTestCase(verifier, "stencil_back_writemask_separate" + verifier.getTestNamePostfix(), "STENCIL_BACK_WRITEMASK (separate)", gl.STENCIL_BACK_WRITEMASK, gl.BACK)); });
-		normalVerifiers.forEach(function(verifier) { testCtx.addChild(new es3fIntegetStateQueryTests.StencilWriteMaskSeparateTestCase(verifier, "stencil_back_writemask_separate_both" + verifier.getTestNamePostfix(), "STENCIL_BACK_WRITEMASK (separate)", gl.STENCIL_BACK_WRITEMASK, gl.FRONT_AND_BACK)); });
-
-		/**
-		 * @struct
-		 * @constructor
-		 * @param {string} name
-		 * @param {string} description
-		 * @param {number} target
-		 * @param {number} initialValue
-		 */
-		PixelStoreState = function(name, description, target, initialValue) {
-		    /** @type {string} */ this.name = name;
-		    /** @type {string} */ this.description = description;
-		    /** @type {number} */ this.target = target;
-		    /** @type {number} */ this.initialValue = initialValue;
-		};
-
-		/** @type {Array<PixelStoreState>} */ var pixelStoreStates = [
-			new PixelStoreState("unpack_image_height", "UNPACK_IMAGE_HEIGHT", gl.UNPACK_IMAGE_HEIGHT, 0),
-			new PixelStoreState("unpack_skip_images", "UNPACK_SKIP_IMAGES", gl.UNPACK_SKIP_IMAGES, 0),
-			new PixelStoreState("unpack_row_length", "UNPACK_ROW_LENGTH", gl.UNPACK_ROW_LENGTH, 0),
-			new PixelStoreState("unpack_skip_rows", "UNPACK_SKIP_ROWS", gl.UNPACK_SKIP_ROWS, 0),
-			new PixelStoreState("unpack_skip_pixels", "UNPACK_SKIP_PIXELS", gl.UNPACK_SKIP_PIXELS, 0),
-			new PixelStoreState("pack_row_length", "PACK_ROW_LENGTH", gl.PACK_ROW_LENGTH, 0),
-			new PixelStoreState("pack_skip_rows", "PACK_SKIP_ROWS", gl.PACK_SKIP_ROWS, 0),
-			new PixelStoreState("pack_skip_pixels", "PACK_SKIP_PIXELS", gl.PACK_SKIP_PIXELS, 0)
-		];
-
-		for (var testNdx = 0; testNdx < pixelStoreStates.length; testNdx++)
-			normalVerifiers.forEach(function(verifier) { testCtx.addChild(new es3fIntegerStateQueryTests.PixelStoreTestCase(verifier, pixelStoreStates[testNdx].name + verifier.getTestNamePostfix(), pixelStoreStates[testNdx].description, pixelStoreStates[testNdx].target, pixelStoreStates[testNdx].initialValue)); });
-
-		normalVerifiers.forEach(function(verifier) { testCtx.addChild(new es3fIntegetStateQueryTests.PixelStoreAlignTestCase(verifier, "unpack_alignment" + verifier.getTestNamePostfix(), "UNPACK_ALIGNMENT", gl.UNPACK_ALIGNMENT)); });
-		normalVerifiers.forEach(function(verifier) { testCtx.addChild(new es3fIntegetStateQueryTests.PixelStoreAlignTestCase(verifier, "pack_alignment" + verifier.getTestNamePostfix(), "PACK_ALIGNMENT", gl.PACK_ALIGNMENT)); });
-
-		/**
-		 * @struct
-		 * @constructor
-		 * @param {string} name
-		 * @param {string} description
-		 * @param {number} target
-		 * @param {number} initialValue
-		 */
-		BlendColorState = function(name, description, target, initialValue) {
-		    /** @type {string} */ this.name = name;
-		    /** @type {string} */ this.description = description;
-		    /** @type {number} */ this.target = target;
-		    /** @type {number} */ this.initialValue = initialValue;
-		};
-
-		/** @type {Array<PixelStoreState>} */ var blendColorStates = [
-			new BlendColorState("blend_src_rgb", "BLEND_SRC_RGB", gl.BLEND_SRC_RGB, gl.ONE),
-			new BlendColorState("blend_src_alpha", "BLEND_SRC_ALPHA", gl.BLEND_SRC_ALPHA, gl.ONE),
-			new BlendColorState("blend_dst_rgb", "BLEND_DST_RGB", gl.BLEND_DST_RGB, gl.ZERO),
-			new BlendColorState("blend_dst_alpha", "BLEND_DST_ALPHA", gl.BLEND_DST_ALPHA, gl.ZERO)
-		];
-
-		for (var testNdx = 0; testNdx < blendColorStates.length; testNdx++) {
-			normalVerifiers.forEach(function(verifier) { testCtx.addChild(new es3fIntegerStateQueryTests.BlendFuncTestCase(verifier, blendColorStates[testNdx].name + verifier.getTestNamePostfix(), blendColorStates[testNdx].description,	blendColorStates[testNdx].target, blendColorStates[testNdx].initialValue)); });
-			normalVerifiers.forEach(function(verifier) { testCtx.addChild(new es3fIntegerStateQueryTests.BlendFuncSeparateTestCase(verifier, blendColorStates[testNdx].name + "_separate" + verifier.getTestNamePostfix(), blendColorStates[testNdx].description, blendColorStates[testNdx].target, blendColorStates[testNdx].initialValue)); });
-		}
-
-		/**
-		 * @struct
-		 * @constructor
-		 * @param {string} name
-		 * @param {string} description
-		 * @param {number} target
-		 * @param {number} initialValue
-		 */
-		BlendEquationState = function(name, description, target, initialValue) {
-		    /** @type {string} */ this.name = name;
-		    /** @type {string} */ this.description = description;
-		    /** @type {number} */ this.target = target;
-		    /** @type {number} */ this.initialValue = initialValue;
-		};
-
-		/** @type {Array<PixelStoreState>} */ var blendColorStates = [
-			new BlendEquationState("blend_equation_rgb", "BLEND_EQUATION_RGB", gl.BLEND_EQUATION_RGB, gl.FUNC_ADD),
-			new BlendEquationState("blend_equation_alpha", "BLEND_EQUATION_ALPHA", gl.BLEND_EQUATION_ALPHA, gl.FUNC_ADD),
-		];
-
-		for (var testNdx = 0; testNdx < blendEquationStates.length; testNdx++) {
-			normalVerifiers.forEach(function(verifier) { testCtx.addChild(new es3fIntegetStateQueryTests.BlendEquationTestCase(verifier, blendEquationStates[testNdx].name + verifier.getTestNamePostfix(), blendEquationStates[testNdx].description, blendEquationStates[testNdx].target, blendEquationStates[testNdx].initialValue)); });
-			normalVerifiers.forEach(function(verifier) { testCtx.addChild(new es3fIntegetStateQueryTests.BlendEquationSeparateTestCase(verifier, blendEquationStates[testNdx].name + "_separate" + verifier.getTestNamePostfix(), blendEquationStates[testNdx].description, blendEquationStates[testNdx].target, blendEquationStates[testNdx].initialValue)); });
-		}
-
-		/**
-		 * @struct
-		 * @constructor
-		 * @param {string} name
-		 * @param {string} description
-		 * @param {number} target
-		 * @param {number} targetLengthTarget
-		 * @param {number} minLength
-		 */
-		ImplementationArrayReturningState = function(name, description, target, targetLengthTarget, minLength) {
-		    /** @type {string} */ this.name = name;
-		    /** @type {string} */ this.description = description;
-		    /** @type {number} */ this.target = target;
-		    /** @type {number} */ this.targetLengthTarget = targetLengthTarget;
-		    /** @type {number} */ this.minLength = minLength;
-		};
-
-		/** @type {Array<ImplementationArrayReturningState>} */ var implementationArrayReturningStates = [
-			new ImplementationArrayReturningState("compressed_texture_formats", "COMPRESSED_TEXTURE_FORMATS", gl.COMPRESSED_TEXTURE_FORMATS, gl.NUM_COMPRESSED_TEXTURE_FORMATS, 10),
-			new ImplementationArrayReturningState("program_binary_formats", "PROGRAM_BINARY_FORMATS", gl.PROGRAM_BINARY_FORMATS, gl.NUM_PROGRAM_BINARY_FORMATS, 0),
-			new ImplementationArrayReturningState("shader_binary_formats", "SHADER_BINARY_FORMATS", gl.SHADER_BINARY_FORMATS, gl.NUM_SHADER_BINARY_FORMATS, 0)
-		];
-
-		for (var testNdx = 0; testNdx < implementationArrayReturningStates.length; testNdx++)
-			normalVerifiers.forEach(function(verifier) { testCtx.addChild(new es3fIntegetStateQueryTests.ImplementationArrayTestCase(verifier, implementationArrayReturningStates[testNdx].name + verifier.getTestNamePostfix(), implementationArrayReturningStates[testNdx].description,	implementationArrayReturningStates[testNdx].target,	implementationArrayReturningStates[testNdx].targetLengthTarget,	implementationArrayReturningStates[testNdx].minLength)); });
-
-		/**
-		 * @struct
-		 * @constructor
-		 * @param {string} name
-		 * @param {string} description
-		 * @param {number} target
-		 * @param {number} type
-		 */
-		BufferBindingState = function(name, description, target, type) {
-			/** @type {string} */ this.name = name;
-			/** @type {string} */ this.description = description;
-			/** @type {number} */ this.target = target;
-			/** @type {number} */ this.type = type;
-		};
-
-		/** @type {Array<BufferBindingState>} */ var bufferBindingStates = [
-			new BufferBindingState("array_buffer_binding", "ARRAY_BUFFER_BINDING", gl.ARRAY_BUFFER_BINDING, gl.ARRAY_BUFFER),
-			new BufferBindingState("uniform_buffer_binding", "UNIFORM_BUFFER_BINDING", gl.UNIFORM_BUFFER_BINDING, gl.UNIFORM_BUFFER),
-			new BufferBindingState("pixel_pack_buffer_binding", "PIXEL_PACK_BUFFER_BINDING", gl.PIXEL_PACK_BUFFER_BINDING, gl.PIXEL_PACK_BUFFER),
-			new BufferBindingState("pixel_unpack_buffer_binding", "PIXEL_UNPACK_BUFFER_BINDING", gl.PIXEL_UNPACK_BUFFER_BINDING, gl.PIXEL_UNPACK_BUFFER),
-			new BufferBindingState("transform_feedback_buffer_binding", "TRANSFORM_FEEDBACK_BUFFER_BINDING", gl.TRANSFORM_FEEDBACK_BUFFER_BINDING, gl.TRANSFORM_FEEDBACK_BUFFER),
-			new BufferBindingState("copy_read_buffer_binding", "COPY_READ_BUFFER_BINDING", gl.COPY_READ_BUFFER_BINDING, gl.COPY_READ_BUFFER),
-			new BufferBindingState("copy_write_buffer_binding", "COPY_WRITE_BUFFER_BINDING", gl.COPY_WRITE_BUFFER_BINDING, gl.COPY_WRITE_BUFFER)
-		];
-
-		for (vartestNdx = 0; testNdx < bufferBindingStates.length; testNdx++)
-			normalVerifiers.forEach(function(verifier) { testCtx.addChild(new es3fIntegetStateQueryTests.BufferBindingTestCase(verifier, bufferBindingStates[testNdx].name + verifier.getTestNamePostfix(), bufferBindingStates[testNdx].description, bufferBindingStates[testNdx].target, bufferBindingStates[testNdx].type)); });
-
-		normalVerifiers.forEach(function(verifier) { testCtx.addChild(new es3fIntegetStateQueryTests.ElementArrayBufferBindingTestCase(verifier, "element_array_buffer_binding" + verifier.getTestNamePostfix())); });
-		normalVerifiers.forEach(function(verifier) { testCtx.addChild(new es3fIntegetStateQueryTests.TransformFeedbackBindingTestCase(verifier, "transform_feedback_binding" + verifier.getTestNamePostfix())); });
-		normalVerifiers.forEach(function(verifier) { testCtx.addChild(new es3fIntegetStateQueryTests.CurrentProgramBindingTestCase(verifier, "current_program_binding" + verifier.getTestNamePostfix(),	"CURRENT_PROGRAM")); });
-		normalVerifiers.forEach(function(verifier) { testCtx.addChild(new es3fIntegetStateQueryTests.VertexArrayBindingTestCase(verifier, "vertex_array_binding" + verifier.getTestNamePostfix(),	"VERTEX_ARRAY_BINDING")); });
-		normalVerifiers.forEach(function(verifier) { testCtx.addChild(new es3fIntegetStateQueryTests.StencilClearValueTestCase(verifier, "stencil_clear_value" + verifier.getTestNamePostfix(),	"STENCIL_CLEAR_VALUE")); });
-		normalVerifiers.forEach(function(verifier) { testCtx.addChild(new es3fIntegetStateQueryTests.ActiveTextureTestCase(verifier, "active_texture" + verifier.getTestNamePostfix(),	"ACTIVE_TEXTURE")); });
-		normalVerifiers.forEach(function(verifier) { testCtx.addChild(new es3fIntegetStateQueryTests.RenderbufferBindingTestCase(verifier, "renderbuffer_binding" + verifier.getTestNamePostfix(),	"RENDERBUFFER_BINDING")); });
-		normalVerifiers.forEach(function(verifier) { testCtx.addChild(new es3fIntegetStateQueryTests.SamplerObjectBindingTestCase(verifier, "sampler_binding" + verifier.getTestNamePostfix(),	"SAMPLER_BINDING")); });
-
-		/**
-		 * @struct
-		 * @constructor
-		 * @param {string} name
-		 * @param {string} description
-		 * @param {number} target
-		 * @param {number} type
-		 */
-		TextureBinding = function(name, description, target, type) {
-			/** @type {string} */ this.name = name;
-			/** @type {string} */ this.description = description;
-			/** @type {number} */ this.target = target;
-			/** @type {number} */ this.type = type;
-		};
-
-		/** @type {Array<TextureBinding>} */ var textureBindings = [
-			new TextureBinding("texture_binding_2d", "TEXTURE_BINDING_2D", gl.TEXTURE_BINDING_2D, gl.TEXTURE_2D),
-			new TextureBinding("texture_binding_3d", "TEXTURE_BINDING_3D", gl.TEXTURE_BINDING_3D, gl.TEXTURE_3D),
-			new TextureBinding("texture_binding_2d_array", "TEXTURE_BINDING_2D_ARRAY", gl.TEXTURE_BINDING_2D_ARRAY, gl.TEXTURE_2D_ARRAY),
-			new TextureBinding("texture_binding_cube_map", "TEXTURE_BINDING_CUBE_MAP", gl.TEXTURE_BINDING_CUBE_MAP, gl.TEXTURE_CUBE_MAP)
-		];
-
-		for (var testNdx = 0; testNdx < textureBindings.length; testNdx++)
-			normalVerifiers.forEach(function(verifier) { testCtx.addChild(new es3fIntegetStateQueryTests.TextureBindingTestCase(verifier, textureBindings[testNdx].name + verifier.getTestNamePostfix(), textureBindings[testNdx].description, textureBindings[testNdx].target, textureBindings[testNdx].type)); });
-
-		normalVerifiers.forEach(function(verifier) { testCtx.addChild(new es3fIntegetStateQueryTests.FrameBufferBindingTestCase(verifier, "framebuffer_binding" + verifier.getTestNamePostfix(), "DRAW_FRAMEBUFFER_BINDING and READ_FRAMEBUFFER_BINDING")); });
-		normalVerifiers.forEach(function(verifier) { testCtx.addChild(new es3fIntegetStateQueryTests.ImplementationColorReadTestCase(verifier, "implementation_color_read" + verifier.getTestNamePostfix(), "IMPLEMENTATION_COLOR_READ_TYPE and IMPLEMENTATION_COLOR_READ_FORMAT")); });
-		normalVerifiers.forEach(function(verifier) { testCtx.addChild(new es3fIntegetStateQueryTests.ReadBufferCase(verifier, "read_buffer" + verifier.getTestNamePostfix(), "READ_BUFFER")); });
-		normalVerifiers.forEach(function(verifier) { testCtx.addChild(new es3fIntegetStateQueryTests.DrawBufferCase(verifier, "draw_buffer" + verifier.getTestNamePostfix(), "DRAW_BUFFER")); });
+		// /** @type {Array<es3fIntegerStateQueryTests.StateVerifier>} */ var  normalVerifiers = [this.m_verifierBoolean, this.m_verifierInteger, this.m_verifierInteger64, this.m_verifierFloat];
+		// implementationLimitVerifiers.forEach(function(verifier) { testCtx.addChild(new es3fIntegerStateQueryTests.SampleBuffersTestCase(verifier, "sample_buffers" + verifier.getTestNamePostfix(), "SAMPLE_BUFFERS")); });
+		//
+		// normalVerifiers.forEach(function(verifier) { testCtx.addChild(new es3fIntegerStateQueryTests.SamplesTestCase(verifier, "samples" + verifier.getTestNamePostfix(), "SAMPLES")); });
+		// normalVerifiers.forEach(function(verifier) { testCtx.addChild(new es3fIntegerStateQueryTests.HintTestCase(verifier, "generate_mipmap_hint" + verifier.getTestNamePostfix(), "GENERATE_MIPMAP_HINT", gl.GENERATE_MIPMAP_HINT)); });
+		// normalVerifiers.forEach(function(verifier) { testCtx.addChild(new es3fIntegerStateQueryTests.HintTestCase(verifier, "fragment_shader_derivative_hint" + verifier.getTestNamePostfix(), "FRAGMENT_SHADER_DERIVATIVE_HINT", gl.FRAGMENT_SHADER_DERIVATIVE_HINT)); });
+		// normalVerifiers.forEach(function(verifier) { testCtx.addChild(new es3fIntegerStateQueryTests.DepthFuncTestCase(verifier, "depth_func" + verifier.getTestNamePostfix(), "DEPTH_FUNC")); });
+		// normalVerifiers.forEach(function(verifier) { testCtx.addChild(new es3fIntegerStateQueryTests.CullFaceTestCase(verifier, "cull_face_mode" + verifier.getTestNamePostfix(), "CULL_FACE_MODE")); });
+		// normalVerifiers.forEach(function(verifier) { testCtx.addChild(new es3fIntegerStateQueryTests.FrontFaceTestCase(verifier, "front_face_mode" + verifier.getTestNamePostfix(), "FRONT_FACE")); });
+		// normalVerifiers.forEach(function(verifier) { testCtx.addChild(new es3fIntegerStateQueryTests.ViewPortTestCase(verifier, "viewport" + verifier.getTestNamePostfix(), "VIEWPORT")); });
+		// normalVerifiers.forEach(function(verifier) { testCtx.addChild(new es3fIntegerStateQueryTests.ScissorBoxTestCase(verifier, "scissor_box" + verifier.getTestNamePostfix(), "SCISSOR_BOX")); });
+		// normalVerifiers.forEach(function(verifier) { testCtx.addChild(new es3fIntegerStateQueryTests.MaxViewportDimsTestCase(verifier, "max_viewport_dims" + verifier.getTestNamePostfix(), "MAX_VIEWPORT_DIMS")); });
+		// normalVerifiers.forEach(function(verifier) { testCtx.addChild(new es3fIntegerStateQueryTests.StencilRefTestCase(verifier, "stencil_ref" + verifier.getTestNamePostfix(), "STENCIL_REF", gl.STENCIL_REF)); });
+		// normalVerifiers.forEach(function(verifier) { testCtx.addChild(new es3fIntegerStateQueryTests.StencilRefTestCase(verifier, "stencil_back_ref" + verifier.getTestNamePostfix(), "STENCIL_BACK_REF", gl.STENCIL_BACK_REF)); });
+		// normalVerifiers.forEach(function(verifier) { testCtx.addChild(new es3fIntegerStateQueryTests.StencilRefSeparateTestCase(verifier, "stencil_ref_separate" + verifier.getTestNamePostfix(), "STENCIL_REF (separate)", gl.STENCIL_REF, gl.FRONT)); });
+		// normalVerifiers.forEach(function(verifier) { testCtx.addChild(new es3fIntegerStateQueryTests.StencilRefSeparateTestCase(verifier, "stencil_ref_separate_both" + verifier.getTestNamePostfix(), "STENCIL_REF (separate)", gl.STENCIL_REF, gl.FRONT_AND_BACK)); });
+		// normalVerifiers.forEach(function(verifier) { testCtx.addChild(new es3fIntegerStateQueryTests.StencilRefSeparateTestCase(verifier, "stencil_back_ref_separate" + verifier.getTestNamePostfix(), "STENCIL_BACK_REF (separate)", gl.STENCIL_BACK_REF, gl.BACK)); });
+		// normalVerifiers.forEach(function(verifier) { testCtx.addChild(new es3fIntegerStateQueryTests.StencilRefSeparateTestCase(verifier, "stencil_back_ref_separate_both" + verifier.getTestNamePostfix(), "STENCIL_BACK_REF (separate)", gl.STENCIL_BACK_REF, gl.FRONT_AND_BACK)); });
+		//
+		// /**
+		//  * @struct
+		//  * @constructor
+		//  * @param {string} name
+		//  * @param {string} frontDescription
+		//  * @param {number} frontTarget
+		//  * @param {string} backDescription
+		//  * @param {number} backTarget
+		//  */
+		//  NamedStencilOp = function(name, frontDescription, frontTarget, backDescription, backTarget) {
+		// 	/** @type {string} */ this.name = name;
+    	// 	/** @type {string} */ this.frontDescription = frontDescription;
+    	// 	/** @type {number} */ this.frontTarget = frontTarget;
+    	// 	/** @type {string} */ this.backDescription = backDescription;
+    	// 	/** @type {number} */ this.backTarget = backTarget;
+		// };
+		//
+		// /** @type {Array<NamedStencilOp>} */ var stencilOps = [
+		// 	new NamedStencilOp("fail", "STENCIL_FAIL", gl.STENCIL_FAIL, "STENCIL_BACK_FAIL", gl.STENCIL_BACK_FAIL),
+		// 	new NamedStencilOp("depth_fail", "STENCIL_PASS_DEPTH_FAIL", gl.STENCIL_PASS_DEPTH_FAIL, "STENCIL_BACK_PASS_DEPTH_FAIL", gl.STENCIL_BACK_PASS_DEPTH_FAIL),
+		// 	new NamedStencilOp("depth_pass", "STENCIL_PASS_DEPTH_PASS", gl.STENCIL_PASS_DEPTH_PASS, "STENCIL_BACK_PASS_DEPTH_PASS", gl.STENCIL_BACK_PASS_DEPTH_PASS)
+		// ];
+		//
+		// for (var testNdx = 0; testNdx < stencilOps.length; testNdx++) {
+		// 	normalVerifiers.forEach(function(verifier) { testCtx.addChild(new es3fIntegerStateQueryTests.StencilOpTestCase(verifier, "stencil_" + stencilOps[testNdx].name + verifier.getTestNamePostfix(), stencilOps[testNdx].frontDescription, stencilOps[testNdx].frontTarget)); });
+		// 	normalVerifiers.forEach(function(verifier) { testCtx.addChild(new es3fIntegerStateQueryTests.StencilOpTestCase(verifier, "stencil_back_" + stencilOps[testNdx].name + verifier.getTestNamePostfix(), stencilOps[testNdx].backDescription, stencilOps[testNdx].backTarget)); });
+		//
+		// 	normalVerifiers.forEach(function(verifier) { testCtx.addChild(new es3fIntegerStateQueryTests.StencilOpSeparateTestCase(verifier, "stencil_" + stencilOps[testNdx].name + "_separate_both" + verifier.getTestNamePostfix(), stencilOps[testNdx].frontDescription, stencilOps[testNdx].frontTarget, gl.FRONT_AND_BACK)); });
+		// 	normalVerifiers.forEach(function(verifier) { testCtx.addChild(new es3fIntegerStateQueryTests.StencilOpSeparateTestCase(verifier, "stencil_back_" + stencilOps[testNdx].name + "_separate_both" + verifier.getTestNamePostfix(), stencilOps[testNdx].backDescription, stencilOps[testNdx].backTarget, gl.FRONT_AND_BACK)); });
+		//
+		// 	normalVerifiers.forEach(function(verifier) { testCtx.addChild(new es3fIntegerStateQueryTests.StencilOpSeparateTestCase(verifier, "stencil_" + stencilOps[testNdx].name + "_separate" + verifier.getTestNamePostfix(), stencilOps[testNdx].frontDescription, stencilOps[testNdx].frontTarget, gl.FRONT)); });
+		// 	normalVerifiers.forEach(function(verifier) { testCtx.addChild(new es3fIntegerStateQueryTests.StencilOpSeparateTestCase(verifier, "stencil_back_" + stencilOps[testNdx].name + "_separate" + verifier.getTestNamePostfix(), stencilOps[testNdx].backDescription, stencilOps[testNdx].backTarget, gl.BACK)); });
+		// }
+		//
+		// normalVerifiers.forEach(function(verifier) { testCtx.addChild(new es3fIntegetStateQueryTests.StencilFuncTestCase(verifier, "stencil_func" + verifier.getTestNamePostfix(), "STENCIL_FUNC")); });
+		// normalVerifiers.forEach(function(verifier) { testCtx.addChild(new es3fIntegetStateQueryTests.StencilFuncSeparateTestCase(verifier, "stencil_func_separate" + verifier.getTestNamePostfix(), "STENCIL_FUNC (separate)", gl.STENCIL_FUNC, gl.FRONT)); });
+		// normalVerifiers.forEach(function(verifier) { testCtx.addChild(new es3fIntegetStateQueryTests.StencilFuncSeparateTestCase(verifier, "stencil_func_separate_both" + verifier.getTestNamePostfix(), "STENCIL_FUNC (separate)", gl.STENCIL_FUNC, gl.FRONT_AND_BACK)); });
+		// normalVerifiers.forEach(function(verifier) { testCtx.addChild(new es3fIntegetStateQueryTests.StencilFuncSeparateTestCase(verifier, "stencil_back_func_separate" + verifier.getTestNamePostfix(), "STENCIL_FUNC (separate)", gl.STENCIL_BACK_FUNC, gl.BACK)); });
+		// normalVerifiers.forEach(function(verifier) { testCtx.addChild(new es3fIntegetStateQueryTests.StencilFuncSeparateTestCase(verifier, "stencil_back_func_separate_both" + verifier.getTestNamePostfix(), "STENCIL_FUNC (separate)", gl.STENCIL_BACK_FUNC, gl.FRONT_AND_BACK)); });
+		// normalVerifiers.forEach(function(verifier) { testCtx.addChild(new es3fIntegetStateQueryTests.StencilMaskTestCase(verifier, "stencil_value_mask" + verifier.getTestNamePostfix(), "STENCIL_VALUE_MASK", gl.STENCIL_VALUE_MASK)); });
+		// normalVerifiers.forEach(function(verifier) { testCtx.addChild(new es3fIntegetStateQueryTests.StencilMaskTestCase(verifier, "stencil_back_value_mask" + verifier.getTestNamePostfix(), "STENCIL_BACK_VALUE_MASK", gl.STENCIL_BACK_VALUE_MASK)); });
+		// normalVerifiers.forEach(function(verifier) { testCtx.addChild(new es3fIntegetStateQueryTests.StencilMaskSeparateTestCase(verifier, "stencil_value_mask_separate" + verifier.getTestNamePostfix(), "STENCIL_VALUE_MASK (separate)", gl.STENCIL_VALUE_MASK, gl.FRONT)); });
+		// normalVerifiers.forEach(function(verifier) { testCtx.addChild(new es3fIntegetStateQueryTests.StencilMaskSeparateTestCase(verifier, "stencil_value_mask_separate_both" + verifier.getTestNamePostfix(), "STENCIL_VALUE_MASK (separate)", gl.STENCIL_VALUE_MASK, gl.FRONT_AND_BACK)); });
+		// normalVerifiers.forEach(function(verifier) { testCtx.addChild(new es3fIntegetStateQueryTests.StencilMaskSeparateTestCase(verifier, "stencil_back_value_mask_separate" + verifier.getTestNamePostfix(), "STENCIL_BACK_VALUE_MASK (separate)", gl.STENCIL_BACK_VALUE_MASK, gl.BACK)); });
+		// normalVerifiers.forEach(function(verifier) { testCtx.addChild(new es3fIntegetStateQueryTests.StencilMaskSeparateTestCase(verifier, "stencil_back_value_mask_separate_both" + verifier.getTestNamePostfix(), "STENCIL_BACK_VALUE_MASK (separate)", gl.STENCIL_BACK_VALUE_MASK, gl.FRONT_AND_BACK)); });
+		// normalVerifiers.forEach(function(verifier) { testCtx.addChild(new es3fIntegetStateQueryTests.StencilWriteMaskTestCase(verifier, "stencil_writemask" + verifier.getTestNamePostfix(), "STENCIL_WRITEMASK", gl.STENCIL_WRITEMASK)); });
+		// normalVerifiers.forEach(function(verifier) { testCtx.addChild(new es3fIntegetStateQueryTests.StencilWriteMaskTestCase(verifier, "stencil_back_writemask" + verifier.getTestNamePostfix(), "STENCIL_BACK_WRITEMASK", gl.STENCIL_BACK_WRITEMASK)); });
+		// normalVerifiers.forEach(function(verifier) { testCtx.addChild(new es3fIntegetStateQueryTests.StencilWriteMaskSeparateTestCase(verifier, "stencil_writemask_separate" + verifier.getTestNamePostfix(), "STENCIL_WRITEMASK (separate)", gl.STENCIL_WRITEMASK, gl.FRONT)); });
+		// normalVerifiers.forEach(function(verifier) { testCtx.addChild(new es3fIntegetStateQueryTests.StencilWriteMaskSeparateTestCase(verifier, "stencil_writemask_separate_both" + verifier.getTestNamePostfix(), "STENCIL_WRITEMASK (separate)", gl.STENCIL_WRITEMASK, gl.FRONT_AND_BACK)); });
+		// normalVerifiers.forEach(function(verifier) { testCtx.addChild(new es3fIntegetStateQueryTests.StencilWriteMaskSeparateTestCase(verifier, "stencil_back_writemask_separate" + verifier.getTestNamePostfix(), "STENCIL_BACK_WRITEMASK (separate)", gl.STENCIL_BACK_WRITEMASK, gl.BACK)); });
+		// normalVerifiers.forEach(function(verifier) { testCtx.addChild(new es3fIntegetStateQueryTests.StencilWriteMaskSeparateTestCase(verifier, "stencil_back_writemask_separate_both" + verifier.getTestNamePostfix(), "STENCIL_BACK_WRITEMASK (separate)", gl.STENCIL_BACK_WRITEMASK, gl.FRONT_AND_BACK)); });
+		//
+		// /**
+		//  * @struct
+		//  * @constructor
+		//  * @param {string} name
+		//  * @param {string} description
+		//  * @param {number} target
+		//  * @param {number} initialValue
+		//  */
+		// PixelStoreState = function(name, description, target, initialValue) {
+		//     /** @type {string} */ this.name = name;
+		//     /** @type {string} */ this.description = description;
+		//     /** @type {number} */ this.target = target;
+		//     /** @type {number} */ this.initialValue = initialValue;
+		// };
+		//
+		// /** @type {Array<PixelStoreState>} */ var pixelStoreStates = [
+		// 	new PixelStoreState("unpack_image_height", "UNPACK_IMAGE_HEIGHT", gl.UNPACK_IMAGE_HEIGHT, 0),
+		// 	new PixelStoreState("unpack_skip_images", "UNPACK_SKIP_IMAGES", gl.UNPACK_SKIP_IMAGES, 0),
+		// 	new PixelStoreState("unpack_row_length", "UNPACK_ROW_LENGTH", gl.UNPACK_ROW_LENGTH, 0),
+		// 	new PixelStoreState("unpack_skip_rows", "UNPACK_SKIP_ROWS", gl.UNPACK_SKIP_ROWS, 0),
+		// 	new PixelStoreState("unpack_skip_pixels", "UNPACK_SKIP_PIXELS", gl.UNPACK_SKIP_PIXELS, 0),
+		// 	new PixelStoreState("pack_row_length", "PACK_ROW_LENGTH", gl.PACK_ROW_LENGTH, 0),
+		// 	new PixelStoreState("pack_skip_rows", "PACK_SKIP_ROWS", gl.PACK_SKIP_ROWS, 0),
+		// 	new PixelStoreState("pack_skip_pixels", "PACK_SKIP_PIXELS", gl.PACK_SKIP_PIXELS, 0)
+		// ];
+		//
+		// for (var testNdx = 0; testNdx < pixelStoreStates.length; testNdx++)
+		// 	normalVerifiers.forEach(function(verifier) { testCtx.addChild(new es3fIntegerStateQueryTests.PixelStoreTestCase(verifier, pixelStoreStates[testNdx].name + verifier.getTestNamePostfix(), pixelStoreStates[testNdx].description, pixelStoreStates[testNdx].target, pixelStoreStates[testNdx].initialValue)); });
+		//
+		// normalVerifiers.forEach(function(verifier) { testCtx.addChild(new es3fIntegetStateQueryTests.PixelStoreAlignTestCase(verifier, "unpack_alignment" + verifier.getTestNamePostfix(), "UNPACK_ALIGNMENT", gl.UNPACK_ALIGNMENT)); });
+		// normalVerifiers.forEach(function(verifier) { testCtx.addChild(new es3fIntegetStateQueryTests.PixelStoreAlignTestCase(verifier, "pack_alignment" + verifier.getTestNamePostfix(), "PACK_ALIGNMENT", gl.PACK_ALIGNMENT)); });
+		//
+		// /**
+		//  * @struct
+		//  * @constructor
+		//  * @param {string} name
+		//  * @param {string} description
+		//  * @param {number} target
+		//  * @param {number} initialValue
+		//  */
+		// BlendColorState = function(name, description, target, initialValue) {
+		//     /** @type {string} */ this.name = name;
+		//     /** @type {string} */ this.description = description;
+		//     /** @type {number} */ this.target = target;
+		//     /** @type {number} */ this.initialValue = initialValue;
+		// };
+		//
+		// /** @type {Array<PixelStoreState>} */ var blendColorStates = [
+		// 	new BlendColorState("blend_src_rgb", "BLEND_SRC_RGB", gl.BLEND_SRC_RGB, gl.ONE),
+		// 	new BlendColorState("blend_src_alpha", "BLEND_SRC_ALPHA", gl.BLEND_SRC_ALPHA, gl.ONE),
+		// 	new BlendColorState("blend_dst_rgb", "BLEND_DST_RGB", gl.BLEND_DST_RGB, gl.ZERO),
+		// 	new BlendColorState("blend_dst_alpha", "BLEND_DST_ALPHA", gl.BLEND_DST_ALPHA, gl.ZERO)
+		// ];
+		//
+		// for (var testNdx = 0; testNdx < blendColorStates.length; testNdx++) {
+		// 	normalVerifiers.forEach(function(verifier) { testCtx.addChild(new es3fIntegerStateQueryTests.BlendFuncTestCase(verifier, blendColorStates[testNdx].name + verifier.getTestNamePostfix(), blendColorStates[testNdx].description,	blendColorStates[testNdx].target, blendColorStates[testNdx].initialValue)); });
+		// 	normalVerifiers.forEach(function(verifier) { testCtx.addChild(new es3fIntegerStateQueryTests.BlendFuncSeparateTestCase(verifier, blendColorStates[testNdx].name + "_separate" + verifier.getTestNamePostfix(), blendColorStates[testNdx].description, blendColorStates[testNdx].target, blendColorStates[testNdx].initialValue)); });
+		// }
+		//
+		// /**
+		//  * @struct
+		//  * @constructor
+		//  * @param {string} name
+		//  * @param {string} description
+		//  * @param {number} target
+		//  * @param {number} initialValue
+		//  */
+		// BlendEquationState = function(name, description, target, initialValue) {
+		//     /** @type {string} */ this.name = name;
+		//     /** @type {string} */ this.description = description;
+		//     /** @type {number} */ this.target = target;
+		//     /** @type {number} */ this.initialValue = initialValue;
+		// };
+		//
+		// /** @type {Array<PixelStoreState>} */ var blendColorStates = [
+		// 	new BlendEquationState("blend_equation_rgb", "BLEND_EQUATION_RGB", gl.BLEND_EQUATION_RGB, gl.FUNC_ADD),
+		// 	new BlendEquationState("blend_equation_alpha", "BLEND_EQUATION_ALPHA", gl.BLEND_EQUATION_ALPHA, gl.FUNC_ADD)
+		// ];
+		//
+		// for (var testNdx = 0; testNdx < blendEquationStates.length; testNdx++) {
+		// 	normalVerifiers.forEach(function(verifier) { testCtx.addChild(new es3fIntegetStateQueryTests.BlendEquationTestCase(verifier, blendEquationStates[testNdx].name + verifier.getTestNamePostfix(), blendEquationStates[testNdx].description, blendEquationStates[testNdx].target, blendEquationStates[testNdx].initialValue)); });
+		// 	normalVerifiers.forEach(function(verifier) { testCtx.addChild(new es3fIntegetStateQueryTests.BlendEquationSeparateTestCase(verifier, blendEquationStates[testNdx].name + "_separate" + verifier.getTestNamePostfix(), blendEquationStates[testNdx].description, blendEquationStates[testNdx].target, blendEquationStates[testNdx].initialValue)); });
+		// }
+		//
+		// /**
+		//  * @struct
+		//  * @constructor
+		//  * @param {string} name
+		//  * @param {string} description
+		//  * @param {number} target
+		//  * @param {number} targetLengthTarget
+		//  * @param {number} minLength
+		//  */
+		// ImplementationArrayReturningState = function(name, description, target, targetLengthTarget, minLength) {
+		//     /** @type {string} */ this.name = name;
+		//     /** @type {string} */ this.description = description;
+		//     /** @type {number} */ this.target = target;
+		//     /** @type {number} */ this.targetLengthTarget = targetLengthTarget;
+		//     /** @type {number} */ this.minLength = minLength;
+		// };
+		//
+		// /** @type {Array<ImplementationArrayReturningState>} */ var implementationArrayReturningStates = [
+		// 	new ImplementationArrayReturningState("compressed_texture_formats", "COMPRESSED_TEXTURE_FORMATS", gl.COMPRESSED_TEXTURE_FORMATS, gl.NUM_COMPRESSED_TEXTURE_FORMATS, 10),
+		// 	new ImplementationArrayReturningState("program_binary_formats", "PROGRAM_BINARY_FORMATS", gl.PROGRAM_BINARY_FORMATS, gl.NUM_PROGRAM_BINARY_FORMATS, 0),
+		// 	new ImplementationArrayReturningState("shader_binary_formats", "SHADER_BINARY_FORMATS", gl.SHADER_BINARY_FORMATS, gl.NUM_SHADER_BINARY_FORMATS, 0)
+		// ];
+		//
+		// for (var testNdx = 0; testNdx < implementationArrayReturningStates.length; testNdx++)
+		// 	normalVerifiers.forEach(function(verifier) { testCtx.addChild(new es3fIntegetStateQueryTests.ImplementationArrayTestCase(verifier, implementationArrayReturningStates[testNdx].name + verifier.getTestNamePostfix(), implementationArrayReturningStates[testNdx].description,	implementationArrayReturningStates[testNdx].target,	implementationArrayReturningStates[testNdx].targetLengthTarget,	implementationArrayReturningStates[testNdx].minLength)); });
+		//
+		// /**
+		//  * @struct
+		//  * @constructor
+		//  * @param {string} name
+		//  * @param {string} description
+		//  * @param {number} target
+		//  * @param {number} type
+		//  */
+		// BufferBindingState = function(name, description, target, type) {
+		// 	/** @type {string} */ this.name = name;
+		// 	/** @type {string} */ this.description = description;
+		// 	/** @type {number} */ this.target = target;
+		// 	/** @type {number} */ this.type = type;
+		// };
+		//
+		// /** @type {Array<BufferBindingState>} */ var bufferBindingStates = [
+		// 	new BufferBindingState("array_buffer_binding", "ARRAY_BUFFER_BINDING", gl.ARRAY_BUFFER_BINDING, gl.ARRAY_BUFFER),
+		// 	new BufferBindingState("uniform_buffer_binding", "UNIFORM_BUFFER_BINDING", gl.UNIFORM_BUFFER_BINDING, gl.UNIFORM_BUFFER),
+		// 	new BufferBindingState("pixel_pack_buffer_binding", "PIXEL_PACK_BUFFER_BINDING", gl.PIXEL_PACK_BUFFER_BINDING, gl.PIXEL_PACK_BUFFER),
+		// 	new BufferBindingState("pixel_unpack_buffer_binding", "PIXEL_UNPACK_BUFFER_BINDING", gl.PIXEL_UNPACK_BUFFER_BINDING, gl.PIXEL_UNPACK_BUFFER),
+		// 	new BufferBindingState("transform_feedback_buffer_binding", "TRANSFORM_FEEDBACK_BUFFER_BINDING", gl.TRANSFORM_FEEDBACK_BUFFER_BINDING, gl.TRANSFORM_FEEDBACK_BUFFER),
+		// 	new BufferBindingState("copy_read_buffer_binding", "COPY_READ_BUFFER_BINDING", gl.COPY_READ_BUFFER_BINDING, gl.COPY_READ_BUFFER),
+		// 	new BufferBindingState("copy_write_buffer_binding", "COPY_WRITE_BUFFER_BINDING", gl.COPY_WRITE_BUFFER_BINDING, gl.COPY_WRITE_BUFFER)
+		// ];
+		//
+		// for (vartestNdx = 0; testNdx < bufferBindingStates.length; testNdx++)
+		// 	normalVerifiers.forEach(function(verifier) { testCtx.addChild(new es3fIntegetStateQueryTests.BufferBindingTestCase(verifier, bufferBindingStates[testNdx].name + verifier.getTestNamePostfix(), bufferBindingStates[testNdx].description, bufferBindingStates[testNdx].target, bufferBindingStates[testNdx].type)); });
+		//
+		// normalVerifiers.forEach(function(verifier) { testCtx.addChild(new es3fIntegetStateQueryTests.ElementArrayBufferBindingTestCase(verifier, "element_array_buffer_binding" + verifier.getTestNamePostfix())); });
+		// normalVerifiers.forEach(function(verifier) { testCtx.addChild(new es3fIntegetStateQueryTests.TransformFeedbackBindingTestCase(verifier, "transform_feedback_binding" + verifier.getTestNamePostfix())); });
+		// normalVerifiers.forEach(function(verifier) { testCtx.addChild(new es3fIntegetStateQueryTests.CurrentProgramBindingTestCase(verifier, "current_program_binding" + verifier.getTestNamePostfix(),	"CURRENT_PROGRAM")); });
+		// normalVerifiers.forEach(function(verifier) { testCtx.addChild(new es3fIntegetStateQueryTests.VertexArrayBindingTestCase(verifier, "vertex_array_binding" + verifier.getTestNamePostfix(),	"VERTEX_ARRAY_BINDING")); });
+		// normalVerifiers.forEach(function(verifier) { testCtx.addChild(new es3fIntegetStateQueryTests.StencilClearValueTestCase(verifier, "stencil_clear_value" + verifier.getTestNamePostfix(),	"STENCIL_CLEAR_VALUE")); });
+		// normalVerifiers.forEach(function(verifier) { testCtx.addChild(new es3fIntegetStateQueryTests.ActiveTextureTestCase(verifier, "active_texture" + verifier.getTestNamePostfix(),	"ACTIVE_TEXTURE")); });
+		// normalVerifiers.forEach(function(verifier) { testCtx.addChild(new es3fIntegetStateQueryTests.RenderbufferBindingTestCase(verifier, "renderbuffer_binding" + verifier.getTestNamePostfix(),	"RENDERBUFFER_BINDING")); });
+		// normalVerifiers.forEach(function(verifier) { testCtx.addChild(new es3fIntegetStateQueryTests.SamplerObjectBindingTestCase(verifier, "sampler_binding" + verifier.getTestNamePostfix(),	"SAMPLER_BINDING")); });
+		//
+		// /**
+		//  * @struct
+		//  * @constructor
+		//  * @param {string} name
+		//  * @param {string} description
+		//  * @param {number} target
+		//  * @param {number} type
+		//  */
+		// TextureBinding = function(name, description, target, type) {
+		// 	/** @type {string} */ this.name = name;
+		// 	/** @type {string} */ this.description = description;
+		// 	/** @type {number} */ this.target = target;
+		// 	/** @type {number} */ this.type = type;
+		// };
+		//
+		// /** @type {Array<TextureBinding>} */ var textureBindings = [
+		// 	new TextureBinding("texture_binding_2d", "TEXTURE_BINDING_2D", gl.TEXTURE_BINDING_2D, gl.TEXTURE_2D),
+		// 	new TextureBinding("texture_binding_3d", "TEXTURE_BINDING_3D", gl.TEXTURE_BINDING_3D, gl.TEXTURE_3D),
+		// 	new TextureBinding("texture_binding_2d_array", "TEXTURE_BINDING_2D_ARRAY", gl.TEXTURE_BINDING_2D_ARRAY, gl.TEXTURE_2D_ARRAY),
+		// 	new TextureBinding("texture_binding_cube_map", "TEXTURE_BINDING_CUBE_MAP", gl.TEXTURE_BINDING_CUBE_MAP, gl.TEXTURE_CUBE_MAP)
+		// ];
+		//
+		// for (var testNdx = 0; testNdx < textureBindings.length; testNdx++)
+		// 	normalVerifiers.forEach(function(verifier) { testCtx.addChild(new es3fIntegetStateQueryTests.TextureBindingTestCase(verifier, textureBindings[testNdx].name + verifier.getTestNamePostfix(), textureBindings[testNdx].description, textureBindings[testNdx].target, textureBindings[testNdx].type)); });
+		//
+		// normalVerifiers.forEach(function(verifier) { testCtx.addChild(new es3fIntegetStateQueryTests.FrameBufferBindingTestCase(verifier, "framebuffer_binding" + verifier.getTestNamePostfix(), "DRAW_FRAMEBUFFER_BINDING and READ_FRAMEBUFFER_BINDING")); });
+		// normalVerifiers.forEach(function(verifier) { testCtx.addChild(new es3fIntegetStateQueryTests.ImplementationColorReadTestCase(verifier, "implementation_color_read" + verifier.getTestNamePostfix(), "IMPLEMENTATION_COLOR_READ_TYPE and IMPLEMENTATION_COLOR_READ_FORMAT")); });
+		// normalVerifiers.forEach(function(verifier) { testCtx.addChild(new es3fIntegetStateQueryTests.ReadBufferCase(verifier, "read_buffer" + verifier.getTestNamePostfix(), "READ_BUFFER")); });
+		// normalVerifiers.forEach(function(verifier) { testCtx.addChild(new es3fIntegetStateQueryTests.DrawBufferCase(verifier, "draw_buffer" + verifier.getTestNamePostfix(), "DRAW_BUFFER")); });
 
 	};
 
