@@ -596,53 +596,91 @@ goog.scope(function() {
 		}
 	};
 
-	// line 1519
+	/**
+	 * @constructor
+	 * @extends {es3fApiCase.ApiCase}
+	 * @param {string} name
+	 * @param {string} description
+	 */
+	es3fIntegerStateQueryTests.StencilFuncTestCase = function(name, description) {
+		es3fApiCase.ApiCase.call(this, name, description, gl);
+	};
 
-	// /**
-	//  * @constructor
-	//  * @extends {es3fApiCase.ApiCase}
-	//  * @param {string} name
-	//  * @param {string} description
-	//  */
-	// es3fIntegerStateQueryTests.ViewPortTestCase = function(name, description) {
-	// 	es3fApiCase.ApiCase.call(this, name, description, gl);
-	// };
-	//
-	// es3fIntegerStateQueryTests.ViewPortTestCase.prototype = Object.create(es3fApiCase.ApiCase.prototype);
-	// es3fIntegerStateQueryTests.ViewPortTestCase.prototype.constructor = es3fIntegerStateQueryTests.ViewPortTestCase;
-	//
-	// es3fIntegerStateQueryTests.ViewPortTestCase.prototype.test = function() {};
-	//
-	// /**
-	//  * @constructor
-	//  * @extends {es3fApiCase.ApiCase}
-	//  * @param {string} name
-	//  * @param {string} description
-	//  */
-	// es3fIntegerStateQueryTests.ViewPortTestCase = function(name, description) {
-	// 	es3fApiCase.ApiCase.call(this, name, description, gl);
-	// };
-	//
-	// es3fIntegerStateQueryTests.ViewPortTestCase.prototype = Object.create(es3fApiCase.ApiCase.prototype);
-	// es3fIntegerStateQueryTests.ViewPortTestCase.prototype.constructor = es3fIntegerStateQueryTests.ViewPortTestCase;
-	//
-	// es3fIntegerStateQueryTests.ViewPortTestCase.prototype.test = function() {};
-	//
-	// /**
-	//  * @constructor
-	//  * @extends {es3fApiCase.ApiCase}
-	//  * @param {string} name
-	//  * @param {string} description
-	//  */
-	// es3fIntegerStateQueryTests.ViewPortTestCase = function(name, description) {
-	// 	es3fApiCase.ApiCase.call(this, name, description, gl);
-	// };
-	//
-	// es3fIntegerStateQueryTests.ViewPortTestCase.prototype = Object.create(es3fApiCase.ApiCase.prototype);
-	// es3fIntegerStateQueryTests.ViewPortTestCase.prototype.constructor = es3fIntegerStateQueryTests.ViewPortTestCase;
-	//
-	// es3fIntegerStateQueryTests.ViewPortTestCase.prototype.test = function() {};
-	//
+	es3fIntegerStateQueryTests.StencilFuncTestCase.prototype = Object.create(es3fApiCase.ApiCase.prototype);
+	es3fIntegerStateQueryTests.StencilFuncTestCase.prototype.constructor = es3fIntegerStateQueryTests.StencilFuncTestCase;
+
+	es3fIntegerStateQueryTests.StencilFuncTestCase.prototype.test = function() {
+		this.check(glsStateQuery.verify(gl.STENCIL_FUNC, gl.ALWAYS));
+
+		/** @type {Array<number>} */ var stencilfuncValues = [gl.NEVER, gl.ALWAYS, gl.LESS, gl.LEQUAL, gl.EQUAL, gl.GEQUAL, gl.GREATER, gl.NOTEQUAL];
+
+		for (var ndx = 0; ndx < stencilfuncValues.length; ++ndx) {
+			gl.stencilFunc(stencilfuncValues[ndx], 0, 0);
+
+			this.check(glsStateQuery.verify(gl.STENCIL_FUNC, stencilfuncValues[ndx]));
+
+			this.check(glsStateQuery.verify(gl.STENCIL_BACK_FUNC, stencilfuncValues[ndx]));
+		}
+	};
+
+	/**
+	 * @constructor
+	 * @extends {es3fApiCase.ApiCase}
+	 * @param {string} name
+	 * @param {string} description
+	 * @param {number} stencilFuncName
+	 * @param {number} stencilFuncFace
+	 */
+	es3fIntegerStateQueryTests.StencilFuncSeparateTestCase = function(name, description, stencilFuncName, stencilFuncFace) {
+		es3fApiCase.ApiCase.call(this, name, description, gl);
+		/** @type {number} */ this.m_stencilFuncName = stencilFuncName;
+		/** @type {number} */ this.m_stencilFuncFace = stencilFuncFace;
+	};
+
+	es3fIntegerStateQueryTests.StencilFuncSeparateTestCase.prototype = Object.create(es3fApiCase.ApiCase.prototype);
+	es3fIntegerStateQueryTests.StencilFuncSeparateTestCase.prototype.constructor = es3fIntegerStateQueryTests.StencilFuncSeparateTestCase;
+
+	es3fIntegerStateQueryTests.StencilFuncSeparateTestCase.prototype.test = function() {
+		this.check(glsStateQuery.verify(this.m_stencilFuncName, gl.ALWAYS));
+
+		/** @type {Array<number>} */ var stencilfuncValues = [gl.NEVER, gl.ALWAYS, gl.LESS, gl.LEQUAL, gl.EQUAL, gl.GEQUAL, gl.GREATER, gl.NOTEQUAL];
+
+		for (var ndx = 0; ndx < stencilfuncValues.length; ++ndx) {
+			gl.stencilFuncSeparate(this.m_stencilFuncFace, stencilfuncValues[ndx], 0, 0);
+
+			this.check(glsStateQuery.verify(this.m_stencilFuncName, stencilfuncValues[ndx]));
+		}
+	};
+
+	/**
+	 * @constructor
+	 * @extends {es3fApiCase.ApiCase}
+	 * @param {string} name
+	 * @param {string} description
+	 * @param {number} testTargetName
+	 */
+	es3fIntegerStateQueryTests.StencilMaskTestCase = function(name, description, testTargetName) {
+		es3fApiCase.ApiCase.call(this, name, description, gl);
+		/** @type {number} */ this.m_testTargetName = testTargetName;
+	};
+
+	es3fIntegerStateQueryTests.StencilMaskTestCase.prototype = Object.create(es3fApiCase.ApiCase.prototype);
+	es3fIntegerStateQueryTests.StencilMaskTestCase.prototype.constructor = es3fIntegerStateQueryTests.StencilMaskTestCase;
+
+	es3fIntegerStateQueryTests.StencilMaskTestCase.prototype.test = function() {
+		/** @type {number} */ var stencilBits = /** @type {number} */ (gl.getParameter(gl.STENCIL_BITS));
+
+		this.check(glsStateQuery.verify(this.m_testTargetName, stencilBits));
+
+		for (var stencilBit = 0; stencilBit < stencilBits; ++stencilBit) {
+			/** @type {number} */ var mask = 1 << stencilBit;
+
+			gl.stencilFunc(gl.ALWAYS, 0, mask);
+
+			this.check(glsStateQuery.verify(this.m_testTargetName, mask));
+		}
+	};
+
 	// /**
 	//  * @constructor
 	//  * @extends {es3fApiCase.ApiCase}
@@ -801,13 +839,13 @@ goog.scope(function() {
 			testCtx.addChild(new es3fIntegerStateQueryTests.StencilOpSeparateTestCase("stencil_back_" + stencilOps[testNdx].name + "_separate", stencilOps[testNdx].backDescription, stencilOps[testNdx].backTarget, gl.BACK));
 		}
 		//
-		// normalVerifiers.forEach(function(verifier) { testCtx.addChild(new es3fIntegerStateQueryTests.StencilFuncTestCase(verifier, "stencil_func" + verifier.getTestNamePostfix(), "STENCIL_FUNC")); });
-		// normalVerifiers.forEach(function(verifier) { testCtx.addChild(new es3fIntegerStateQueryTests.StencilFuncSeparateTestCase(verifier, "stencil_func_separate" + verifier.getTestNamePostfix(), "STENCIL_FUNC (separate)", gl.STENCIL_FUNC, gl.FRONT)); });
-		// normalVerifiers.forEach(function(verifier) { testCtx.addChild(new es3fIntegerStateQueryTests.StencilFuncSeparateTestCase(verifier, "stencil_func_separate_both" + verifier.getTestNamePostfix(), "STENCIL_FUNC (separate)", gl.STENCIL_FUNC, gl.FRONT_AND_BACK)); });
-		// normalVerifiers.forEach(function(verifier) { testCtx.addChild(new es3fIntegerStateQueryTests.StencilFuncSeparateTestCase(verifier, "stencil_back_func_separate" + verifier.getTestNamePostfix(), "STENCIL_FUNC (separate)", gl.STENCIL_BACK_FUNC, gl.BACK)); });
-		// normalVerifiers.forEach(function(verifier) { testCtx.addChild(new es3fIntegerStateQueryTests.StencilFuncSeparateTestCase(verifier, "stencil_back_func_separate_both" + verifier.getTestNamePostfix(), "STENCIL_FUNC (separate)", gl.STENCIL_BACK_FUNC, gl.FRONT_AND_BACK)); });
-		// normalVerifiers.forEach(function(verifier) { testCtx.addChild(new es3fIntegerStateQueryTests.StencilMaskTestCase(verifier, "stencil_value_mask" + verifier.getTestNamePostfix(), "STENCIL_VALUE_MASK", gl.STENCIL_VALUE_MASK)); });
-		// normalVerifiers.forEach(function(verifier) { testCtx.addChild(new es3fIntegerStateQueryTests.StencilMaskTestCase(verifier, "stencil_back_value_mask" + verifier.getTestNamePostfix(), "STENCIL_BACK_VALUE_MASK", gl.STENCIL_BACK_VALUE_MASK)); });
+		testCtx.addChild(new es3fIntegerStateQueryTests.StencilFuncTestCase("stencil_func", "STENCIL_FUNC"));
+		testCtx.addChild(new es3fIntegerStateQueryTests.StencilFuncSeparateTestCase("stencil_func_separate", "STENCIL_FUNC (separate)", gl.STENCIL_FUNC, gl.FRONT));
+		testCtx.addChild(new es3fIntegerStateQueryTests.StencilFuncSeparateTestCase("stencil_func_separate_both", "STENCIL_FUNC (separate)", gl.STENCIL_FUNC, gl.FRONT_AND_BACK));
+		testCtx.addChild(new es3fIntegerStateQueryTests.StencilFuncSeparateTestCase("stencil_back_func_separate", "STENCIL_FUNC (separate)", gl.STENCIL_BACK_FUNC, gl.BACK));
+		testCtx.addChild(new es3fIntegerStateQueryTests.StencilFuncSeparateTestCase("stencil_back_func_separate_both", "STENCIL_FUNC (separate)", gl.STENCIL_BACK_FUNC, gl.FRONT_AND_BACK));
+		testCtx.addChild(new es3fIntegerStateQueryTests.StencilMaskTestCase("stencil_value_mask", "STENCIL_VALUE_MASK", gl.STENCIL_VALUE_MASK));
+		testCtx.addChild(new es3fIntegerStateQueryTests.StencilMaskTestCase("stencil_back_value_mask", "STENCIL_BACK_VALUE_MASK", gl.STENCIL_BACK_VALUE_MASK));
 		// normalVerifiers.forEach(function(verifier) { testCtx.addChild(new es3fIntegerStateQueryTests.StencilMaskSeparateTestCase(verifier, "stencil_value_mask_separate" + verifier.getTestNamePostfix(), "STENCIL_VALUE_MASK (separate)", gl.STENCIL_VALUE_MASK, gl.FRONT)); });
 		// normalVerifiers.forEach(function(verifier) { testCtx.addChild(new es3fIntegerStateQueryTests.StencilMaskSeparateTestCase(verifier, "stencil_value_mask_separate_both" + verifier.getTestNamePostfix(), "STENCIL_VALUE_MASK (separate)", gl.STENCIL_VALUE_MASK, gl.FRONT_AND_BACK)); });
 		// normalVerifiers.forEach(function(verifier) { testCtx.addChild(new es3fIntegerStateQueryTests.StencilMaskSeparateTestCase(verifier, "stencil_back_value_mask_separate" + verifier.getTestNamePostfix(), "STENCIL_BACK_VALUE_MASK (separate)", gl.STENCIL_BACK_VALUE_MASK, gl.BACK)); });
