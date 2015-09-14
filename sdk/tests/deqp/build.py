@@ -106,6 +106,7 @@ targets = {
     'fbostate' : 'functional.gles3.es3fFboStateQueryTests',
     'rbostate' : 'functional.gles3.es3fRboStateQueryTests',
     'bufferstate' : 'functional.gles3.es3fBufferObjectQueryTests',
+    'samplerstate' : 'functional.gles3.es3fSamplerStateQueryTests',
     'internalformatstate' : 'functional.gles3.es3fInternalFormatQueryTests',
     'texturespecification' : 'functional.gles3.es3fTextureSpecificationTests',
     'shadertexturefunction' : 'functional.gles3.es3fShaderTextureFunctionTests',

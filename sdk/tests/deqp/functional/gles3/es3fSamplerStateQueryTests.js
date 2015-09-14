@@ -21,9 +21,9 @@
 'use strict';
 goog.provide('functional.gles3.es3fSamplerStateQueryTests');
 goog.require('framework.common.tcuTestCase');
+goog.require('framework.delibs.debase.deRandom');
 goog.require('functional.gles3.es3fApiCase');
 goog.require('modules.shared.glsStateQuery');
-goog.require('framework.delibs.debase.deRandom');
 
 goog.scope(function() {
 var es3fSamplerStateQueryTests = functional.gles3.es3fSamplerStateQueryTests;
@@ -68,101 +68,33 @@ es3fSamplerStateQueryTests.SamplerCase.prototype.test = function() {
  * @param {string} name
  * @param {string} description
  * @param {number} valueName
+ * @param {number} initialValue
+ * @param {Array<number>} valueRange
  */
-es3fSamplerStateQueryTests.SamplerWrapCase = function(name, description, valueName) {
+es3fSamplerStateQueryTests.SamplerModeCase = function(name, description, valueName, initialValue, valueRange) {
     es3fSamplerStateQueryTests.SamplerCase.call(this, name, description);
     this.m_valueName = valueName;
+    this.m_initialValue = initialValue;
+    this.m_valueRange = valueRange;
 };
 
-setParentClass(es3fSamplerStateQueryTests.SamplerWrapCase, es3fSamplerStateQueryTests.SamplerCase);
+setParentClass(es3fSamplerStateQueryTests.SamplerModeCase, es3fSamplerStateQueryTests.SamplerCase);
 
-es3fSamplerStateQueryTests.SamplerWrapCase.prototype.testSampler = function() {
-    this.check(glsStateQuery.verifySampler(this.m_sampler, this.m_valueName, GL_REPEAT));
+es3fSamplerStateQueryTests.SamplerModeCase.prototype.testSampler = function() {
+    this.check(glsStateQuery.verifySampler(this.m_sampler, this.m_valueName, this.m_initialValue));
 
-    var wrapValues = [GL_CLAMP_TO_EDGE, GL_REPEAT, GL_MIRRORED_REPEAT];
+    for (var ndx = 0; ndx < this.m_valueRange.length; ++ndx) {
+        gl.samplerParameteri(this.m_sampler, this.m_valueName, this.m_valueRange[ndx]);
 
-    for (var ndx = 0; ndx < wrapValues.length; ++ndx)
-    {
-        gl.samplerParameteri(this.m_sampler, this.m_valueName, wrapValues[ndx]);
-
-        this.check(glsStateQuery.verifySampler(this.m_sampler, this.m_valueName, wrapValues[ndx]));
+        this.check(glsStateQuery.verifySampler(this.m_sampler, this.m_valueName, this.m_valueRange[ndx]));
     }
 
     //check unit conversions with float
 
-    for (var ndx = 0; ndx < wrapValues.length; ++ndx)
-    {
-        glSamplerParameterf(this.m_sampler, this.m_valueName, wrapValues[ndx]);
+    for (var ndx = 0; ndx < this.m_valueRange.length; ++ndx) {
+        gl.samplerParameterf(this.m_sampler, this.m_valueName, this.m_valueRange[ndx]);
 
-        this.check(glsStateQuery.verifySampler(this.m_sampler, this.m_valueName, wrapValues[ndx]));
-    }
-};
-
-/**
- * @constructor
- * @extends {es3fSamplerStateQueryTests.SamplerCase}
- * @param {string} name
- * @param {string} description
- */
-es3fSamplerStateQueryTests.SamplerMagFilterCase = function(name, description) {
-    es3fSamplerStateQueryTests.SamplerCase.call(this, name, description);
-};
-
-setParentClass(es3fSamplerStateQueryTests.SamplerMagFilterCase, es3fSamplerStateQueryTests.SamplerCase);
-
-es3fSamplerStateQueryTests.SamplerMagFilterCase.prototype.testSampler = function() {
-    this.check(glsStateQuery.verifySampler(this.m_sampler, GL_TEXTURE_MAG_FILTER, GL_LINEAR));
-
-    var magValues = [GL_NEAREST, GL_LINEAR];
-
-    for (var ndx = 0; ndx < magValues.length; ++ndx)
-    {
-        gl.samplerParameteri(this.m_sampler, GL_TEXTURE_MAG_FILTER, magValues[ndx]);
-
-        this.check(glsStateQuery.verifySampler(this.m_sampler, GL_TEXTURE_MAG_FILTER, magValues[ndx]));
-    }
-
-    //check unit conversions with float
-
-    for (var ndx = 0; ndx < magValues.length; ++ndx)
-    {
-        glSamplerParameterf(this.m_sampler, GL_TEXTURE_MAG_FILTER, magValues[ndx]);
-
-        this.check(glsStateQuery.verifySampler(this.m_sampler, GL_TEXTURE_MAG_FILTER, magValues[ndx]));
-    }
-};
-
-/**
- * @constructor
- * @extends {es3fSamplerStateQueryTests.SamplerCase}
- * @param {string} name
- * @param {string} description
- */
-es3fSamplerStateQueryTests.SamplerMinFilterCase = function(name, description) {
-    es3fSamplerStateQueryTests.SamplerCase.call(this, name, description);
-};
-
-setParentClass(es3fSamplerStateQueryTests.SamplerMinFilterCase, es3fSamplerStateQueryTests.SamplerCase);
-
-es3fSamplerStateQueryTests.SamplerMinFilterCase.prototype.testSampler = function() {
-    this.check(glsStateQuery.verifySampler(this.m_sampler, GL_TEXTURE_MIN_FILTER, GL_NEAREST_MIPMAP_LINEAR));
-
-    var minValues = [GL_NEAREST, GL_LINEAR, GL_NEAREST_MIPMAP_NEAREST, GL_NEAREST_MIPMAP_LINEAR, GL_LINEAR_MIPMAP_NEAREST, GL_LINEAR_MIPMAP_LINEAR];
-
-    for (var ndx = 0; ndx < minValues.length; ++ndx)
-    {
-        gl.samplerParameteri(this.m_sampler, GL_TEXTURE_MIN_FILTER, minValues[ndx]);
-
-        this.check(glsStateQuery.verifySampler(this.m_sampler, GL_TEXTURE_MIN_FILTER, minValues[ndx]));
-    }
-
-    //check unit conversions with float
-
-    for (var ndx = 0; ndx < minValues.length; ++ndx)
-    {
-        glSamplerParameterf(this.m_sampler, GL_TEXTURE_MIN_FILTER, minValues[ndx]);
-
-        this.check(glsStateQuery.verifySampler(this.m_sampler, GL_TEXTURE_MIN_FILTER, minValues[ndx]));
+        this.check(glsStateQuery.verifySampler(this.m_sampler, this.m_valueName, this.m_valueRange[ndx]));
     }
 };
 
@@ -187,8 +119,7 @@ es3fSamplerStateQueryTests.SamplerLODCase.prototype.testSampler = function() {
 
     this.check(glsStateQuery.verifySampler(this.m_sampler, this.m_lodTarget, this.m_initialValue));
     var numIterations = 60;
-    for (var ndx = 0; ndx < numIterations; ++ndx)
-    {
+    for (var ndx = 0; ndx < numIterations; ++ndx) {
         var ref = rnd.getFloat(-64000, 64000);
 
         gl.samplerParameterf(this.m_sampler, this.m_lodTarget, ref);
@@ -198,8 +129,7 @@ es3fSamplerStateQueryTests.SamplerLODCase.prototype.testSampler = function() {
 
     // check unit conversions with int
 
-    for (var ndx = 0; ndx < numIterations; ++ndx)
-    {
+    for (var ndx = 0; ndx < numIterations; ++ndx) {
         var ref = rnd.getInt(-64000, 64000);
 
         gl.samplerParameteri(this.m_sampler, this.m_lodTarget, ref);
@@ -220,15 +150,32 @@ es3fSamplerStateQueryTests.SamplerStateQueryTests.prototype = Object.create(tcuT
 es3fSamplerStateQueryTests.SamplerStateQueryTests.prototype.constructor = es3fSamplerStateQueryTests.SamplerStateQueryTests;
 
 es3fSamplerStateQueryTests.SamplerStateQueryTests.prototype.init = function() {
-    this.addChild(new es3fSamplerStateQueryTests.SamplerWrapCase       ("sampler_texture_wrap_s"          , "TEXTURE_WRAP_S",            GL_TEXTURE_WRAP_S)));
-    this.addChild(new es3fSamplerStateQueryTests.SamplerWrapCase       ("sampler_texture_wrap_t"          , "TEXTURE_WRAP_T",            GL_TEXTURE_WRAP_T)));
-    this.addChild(new es3fSamplerStateQueryTests.SamplerWrapCase       ("sampler_texture_wrap_r"          , "TEXTURE_WRAP_R",            GL_TEXTURE_WRAP_R)));
-    this.addChild(new es3fSamplerStateQueryTests.SamplerMagFilterCase  ("sampler_texture_mag_filter"      , "TEXTURE_MAG_FILTER")));
-    this.addChild(new es3fSamplerStateQueryTests.SamplerMinFilterCase  ("sampler_texture_min_filter"      , "TEXTURE_MIN_FILTER")));
-    this.addChild(new es3fSamplerStateQueryTests.SamplerLODCase        ("sampler_texture_min_lod"         , "TEXTURE_MIN_LOD",           GL_TEXTURE_MIN_LOD, -1000)));
-    this.addChild(new es3fSamplerStateQueryTests.SamplerLODCase        ("sampler_texture_max_lod"         , "TEXTURE_MAX_LOD",           GL_TEXTURE_MAX_LOD,  1000)));
-    this.addChild(new es3fSamplerStateQueryTests.SamplerCompareModeCase("sampler_texture_compare_mode"    , "TEXTURE_COMPARE_MODE")));
-    this.addChild(new es3fSamplerStateQueryTests.SamplerCompareFuncCase("sampler_texture_compare_func"    , "TEXTURE_COMPARE_FUNC")));
+    var wrapValues = [gl.CLAMP_TO_EDGE, gl.REPEAT, gl.MIRRORED_REPEAT];
+    this.addChild(new es3fSamplerStateQueryTests.SamplerModeCase('sampler_texture_wrap_s' , 'TEXTURE_WRAP_S',
+        gl.TEXTURE_WRAP_S, gl.REPEAT, wrapValues));
+    this.addChild(new es3fSamplerStateQueryTests.SamplerModeCase('sampler_texture_wrap_t' , 'TEXTURE_WRAP_T',
+        gl.TEXTURE_WRAP_T, gl.REPEAT, wrapValues));
+    this.addChild(new es3fSamplerStateQueryTests.SamplerModeCase('sampler_texture_wrap_r' , 'TEXTURE_WRAP_R',
+        gl.TEXTURE_WRAP_R, gl.REPEAT, wrapValues));
+
+    var magValues = [gl.NEAREST, gl.LINEAR];
+    this.addChild(new es3fSamplerStateQueryTests.SamplerModeCase('sampler_texture_mag_filter' , 'TEXTURE_MAG_FILTER',
+        gl.TEXTURE_MAG_FILTER, gl.LINEAR, magValues));
+
+    var minValues = [gl.NEAREST, gl.LINEAR, gl.NEAREST_MIPMAP_NEAREST, gl.NEAREST_MIPMAP_LINEAR, gl.LINEAR_MIPMAP_NEAREST, gl.LINEAR_MIPMAP_LINEAR];
+    this.addChild(new es3fSamplerStateQueryTests.SamplerModeCase('sampler_texture_min_filter' , 'TEXTURE_MIN_FILTER',
+        gl.TEXTURE_MIN_FILTER, gl.NEAREST_MIPMAP_LINEAR, minValues));
+
+    this.addChild(new es3fSamplerStateQueryTests.SamplerLODCase('sampler_texture_min_lod' , 'TEXTURE_MIN_LOD', gl.TEXTURE_MIN_LOD, -1000));
+    this.addChild(new es3fSamplerStateQueryTests.SamplerLODCase('sampler_texture_max_lod' , 'TEXTURE_MAX_LOD', gl.TEXTURE_MAX_LOD, 1000));
+
+    var modes = [gl.COMPARE_REF_TO_TEXTURE, gl.NONE];
+    this.addChild(new es3fSamplerStateQueryTests.SamplerModeCase('sampler_texture_compare_mode' , 'TEXTURE_COMPARE_MODE',
+        gl.TEXTURE_COMPARE_MODE, gl.NONE, modes));
+
+    var compareFuncs = [gl.LEQUAL, gl.GEQUAL, gl.LESS, gl.GREATER, gl.EQUAL, gl.NOTEQUAL, gl.ALWAYS, gl.NEVER];
+    this.addChild(new es3fSamplerStateQueryTests.SamplerModeCase('sampler_texture_compare_func' , 'TEXTURE_COMPARE_FUNC',
+        gl.TEXTURE_COMPARE_FUNC, gl.LEQUAL, compareFuncs));
 };
 
 /**
@@ -236,23 +183,23 @@ es3fSamplerStateQueryTests.SamplerStateQueryTests.prototype.init = function() {
 * @param {WebGL2RenderingContext} context
 */
 es3fSamplerStateQueryTests.run = function(context) {
-	gl = context;
-	//Set up Test Root parameters
-	var state = tcuTestCase.runner;
-	state.setRoot(new es3fSamplerStateQueryTests.SamplerStateQueryTests());
+    gl = context;
+    //Set up Test Root parameters
+    var state = tcuTestCase.runner;
+    state.setRoot(new es3fSamplerStateQueryTests.SamplerStateQueryTests());
 
-	//Set up name and description of this test series.
-	setCurrentTestName(state.testCases.fullName());
-	description(state.testCases.getDescription());
+    //Set up name and description of this test series.
+    setCurrentTestName(state.testCases.fullName());
+    description(state.testCases.getDescription());
 
-	try {
-		//Run test cases
-		tcuTestCase.runTestCases();
-	}
-	catch (err) {
-		testFailedOptions('Failed to es3fSamplerStateQueryTests.run tests', false);
-		tcuTestCase.runner.terminate();
-	}
+    try {
+        //Run test cases
+        tcuTestCase.runTestCases();
+    }
+    catch (err) {
+        testFailedOptions('Failed to es3fSamplerStateQueryTests.run tests', false);
+        tcuTestCase.runner.terminate();
+    }
 };
 
 });
