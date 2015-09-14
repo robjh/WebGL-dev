@@ -21,544 +21,16 @@
 'use strict';
 goog.provide('functional.gles3.es3fIntegerStateQueryTests');
 goog.require('framework.common.tcuTestCase');
+goog.require('framework.delibs.debase.deRandom');
 goog.require('functional.gles3.es3fApiCase');
+goog.require('modules.shared.glsStateQuery');
 
 goog.scope(function() {
 	var es3fIntegerStateQueryTests = functional.gles3.es3fIntegerStateQueryTests;
     var tcuTestCase = framework.common.tcuTestCase;
+	var deRandom = framework.delibs.debase.deRandom;
 	var es3fApiCase = functional.gles3.es3fApiCase;
-
-	/**
-	 * @constructor
-	 * @param  {string} testNamePostfix
-	 */
-	es3fIntegerStateQueryTests.StateVerifier = function(testNamePostfix) {
-		/** @type {string} */ this.m_testNamePostfix = testNamePostfix;
-	};
-
-	es3fIntegerStateQueryTests.StateVerifier.prototype.getTestNamePostfix = function() {
-		return this.m_testNamePostfix;
-	};
-
-	/**
-	 * @constructor
-	 * @extends {es3fIntegerStateQueryTests.StateVerifier}
-	 */
-	es3fIntegerStateQueryTests.GetBooleanVerifier = function() {
-		es3fIntegerStateQueryTests.StateVerifier.call(this, '_getboolean');
-	};
-
-	es3fIntegerStateQueryTests.GetBooleanVerifier.prototype = Object.create(es3fIntegerStateQueryTests.StateVerifier.prototype);
-	es3fIntegerStateQueryTests.GetBooleanVerifier.prototype.constructor = es3fIntegerStateQueryTests.GetBooleanVerifier;
-
-	/**
-	 * @param  {number} name
-	 * @param  {number} reference
-	 */
-	es3fIntegerStateQueryTests.GetBooleanVerifier.prototype.verifyInteger = function(name, reference) {
-		/** @type {boolean} */ var state = /** @type {boolean} */ (gl.getParameter(name));
-
-		/** @type {boolean} */ var expectedGLState = reference ? true : false;
-
-		if (state != expectedGLState) {
-			bufferedLogToConsole("ERROR: expected " + (expectedGLState === true ? "true" : "false") + "; got " + (state === true ? "true" : (state === false ? "false" : "non-boolean")));
-			testFailedOptions("Got invalid boolean value", false);
-		}
-	};
-
-	/**
-	 * @param  {number} name
-	 * @param  {number} reference0
-	 * @param  {number} reference1
-	 * @param  {number} reference2
-	 * @param  {number} reference3
-	 */
-	es3fIntegerStateQueryTests.GetBooleanVerifier.prototype.verifyInteger4 = function(name, reference0, reference1, reference2, reference3) {
-		this.verifyInteger4Mask(name, reference0, true, reference1, true, reference2, true, reference3, true);
-	};
-
-	/**
-	 * @param  {number} name
-	 * @param  {number} reference0
-	 * @param  {boolean} enableRef0
-	 * @param  {number} reference1
-	 * @param  {boolean} enableRef1
-	 * @param  {number} reference2
-	 * @param  {boolean} enableRef2
-	 * @param  {number} reference3
-	 * @param  {boolean} enableRef3
-	 */
-	es3fIntegerStateQueryTests.GetBooleanVerifier.prototype.verifyInteger4Mask = function(name, reference0, enableRef0, reference1, enableRef1, reference2, enableRef2, reference3, enableRef3) {
-		/** @type {Array<boolean>} */ var boolVector4 = /** @type {Array<boolean>} */ (gl.getParameter(name));
-
-		/** @type {Array<boolean>} */ var referenceAsGLBoolean = [
-			reference0 ? true : false,
-			reference1 ? true : false,
-			reference2 ? true : false,
-			reference3 ? true : false
-		];
-
-		if ((enableRef0 && (boolVector4[0] != referenceAsGLBoolean[0])) ||
-			(enableRef1 && (boolVector4[1] != referenceAsGLBoolean[1])) ||
-			(enableRef2 && (boolVector4[2] != referenceAsGLBoolean[2])) ||
-			(enableRef3 && (boolVector4[3] != referenceAsGLBoolean[3])))
-		{
-			bufferedLogToConsole("// ERROR: expected " +
-				(enableRef0 ? (referenceAsGLBoolean[0] ? "true" : "false") : " - ") + ", " +
-				(enableRef1 ? (referenceAsGLBoolean[1] ? "true" : "false") : " - ") + ", " +
-				(enableRef2 ? (referenceAsGLBoolean[2] ? "true" : "false") : " - ") + ", " +
-				(enableRef3 ? (referenceAsGLBoolean[3] ? "true" : "false") : " - ") );
-
-			testFailedOptions('Got invalid boolean value', false);
-		}
-	};
-
-	/**
-	 * @param  {number} name
-	 * @param  {number} reference
-	 */
-	es3fIntegerStateQueryTests.GetBooleanVerifier.prototype.verifyIntegerGreaterOrEqual = function(name, reference) {
-		/** @type {boolean} */ var state = /** @type {boolean} */ (gl.getParameter(name));
-
-		if (state === true) // state is non-zero, could be greater than reference (correct)
-			return;
-
-		if (state === false) {
-			// state is zero
-			if (reference > 0)  {
-				// and reference is greater than zero?
-				bufferedLogToConsole("ERROR: expected true");
-				testFailedOptions("Got invalid boolean value. Expected true", false);
-			}
-		} else {
-			bufferedLogToConsole('ERROR: expected true or false');
-			testFailedOptions("Got invalid boolean value. Expected true or false.", false);
-		}
-	};
-
-	/**
-	 * @param  {number} name
-	 * @param  {number} reference
-	 */
-	es3fIntegerStateQueryTests.GetBooleanVerifier.prototype.verifyUnsignedIntegerGreaterOrEqual = function(name, reference) {
-		/** @type {boolean} */ var state = /** @type {boolean} */ (gl.getParameter(name));
-		if (state === true) // state is non-zero, could be greater than reference (correct)
-			return;
-
-		if (state === false)  {
-			// state is zero
-			if (reference > 0)  {
-				// and reference is greater than zero?
-				bufferedLogToConsole('ERROR: expected true');
-				testFailedOptions("Got invalid boolean value. Expected true.", false);
-			}
-		} else {
-			bufferedLogToConsole('ERROR: expected true or false');
-			testFailedOptions("Got invalid boolean value. Expected true or false", false);
-		}
-	};
-
-	/**
-	 * @param  {number} name
-	 * @param  {number} reference
-	 */
-	es3fIntegerStateQueryTests.GetBooleanVerifier.prototype.verifyIntegerLessOrEqual = function(name, reference) {
-		/** @type {boolean} */ var state = /** @type {boolean} */ (gl.getParameter(name));
-
-		if (state === true) // state is non-zero, could be less than reference (correct)
-			return;
-
-		if (state === false)  {
-			// state is zero
-			if (reference < 0)  {
-				// and reference is less than zero?
-				bufferedLogToConsole('ERROR: expected true');
-				testFailedOptions("Got invalid boolean value. Expected true", false);
-			}
-		} else {
-			bufferedLogToConsole('ERROR: expected true or false');
-			testFailedOptions("Got invalid boolean value. Expected true or false", false);
-		}
-	};
-
-	/**
-	 * @param  {number} name
-	 * @param  {number} reference0
-	 * @param  {number} reference1
-	 */
-	es3fIntegerStateQueryTests.GetBooleanVerifier.prototype.verifyIntegerGreaterOrEqual2 = function(name, reference0, reference1) {
-		/** @type {Array<boolean>} */ var boolVector = /** @type {Array<boolean>} */ (gl.getParameter(name));
-
-		/** @type {Array<boolean>} */ var referenceAsGLBoolean = [
-			reference0 ? true : false,
-			reference1 ? true : false
-		];
-
-		for (var ndx = 0; ndx < referenceAsGLBoolean.length; ++ndx) {
-			if (boolVector[ndx] === true)  {
-				// state is non-zero, could be greater than any integer
-				continue;
-			} else if (boolVector[ndx] === false)  {
-				// state is zero
-				if (referenceAsGLBoolean[ndx] > 0)  {
-					// and reference is greater than zero?
-					bufferedLogToConsole('ERROR: expected true');
-					testFailedOptions("Got invalid boolean value. Expected true", false);
-				}
-			} else {
-				bufferedLogToConsole('ERROR: expected true or false');
-				testFailedOptions("Got invalid boolean value. Expected true or false", false);
-			}
-		}
-	};
-
-	/**
-	 * @param  {number} name
-	 * @param  {Array<number>} references
-	 */
-	es3fIntegerStateQueryTests.GetBooleanVerifier.prototype.verifyIntegerAnyOf = function(name, references) {
-		/** @type {boolean} */ var state = /** @type {boolean} */ (gl.getParameter(name));
-
-		for (var ndx = 0; ndx < references.length; ++ndx) {
-			/** @type {boolean} */ var expectedGLState = references[ndx] ? true : false;
-
-			if (state === expectedGLState)
-				return;
-		}
-
-		bufferedLogToConsole("ERROR: got " + (state === true ? "true" : "false"));
-		testFailedOptions("Got invalid boolean value", false);
-	};
-
-	/**
-	 * @param  {number} name
-	 * @param  {number} stencilBits
-	 */
-	es3fIntegerStateQueryTests.GetBooleanVerifier.prototype.verifyStencilMaskInitial = function(name, stencilBits) {
-		// if stencilBits == 0, the mask is allowed to be either true or false
-		// otherwise it must be true
-
-		/** @type {boolean} */ var state = /** @type {boolean} */ (gl.getParameter(name));
-
-		if (stencilBits > 0 && state !== true) {
-			bufferedLogToConsole('ERROR: expected true');
-			testFailedOptions("Got invalid boolean value. Expected true", false);
-		}
-	};
-
-	/**
-	 * @constructor
-	 * @extends {es3fIntegerStateQueryTests.StateVerifier}
-	 */
-	es3fIntegerStateQueryTests.GetIntegerVerifier = function() {
-		es3fIntegerStateQueryTests.StateVerifier.call(this, '_getinteger');
-	};
-
-	es3fIntegerStateQueryTests.GetIntegerVerifier.prototype = Object.create(es3fIntegerStateQueryTests.StateVerifier.prototype);
-	es3fIntegerStateQueryTests.GetIntegerVerifier.prototype.constructor = es3fIntegerStateQueryTests.GetIntegerVerifier;
-
-	/**
-	 * @param  {number} name
-	 * @param  {number} reference
-	 */
-	es3fIntegerStateQueryTests.GetIntegerVerifier.prototype.verifyInteger = function(name, reference) {
-		/** @type {number} */ var state = /** @type {number} */ (gl.getParameter(name));
-
-		if (state !== reference) {
-			bufferedLogToConsole("ERROR: expected " + reference + "; got " + state);
-			testFailedOptions("Got invalid integer value. Expected " + reference + "; got " + state, false);
-		}
-	};
-
-	/**
-	 * @param  {number} name
-	 * @param  {number} reference0
-	 * @param  {number} reference1
-	 * @param  {number} reference2
-	 * @param  {number} reference3
-	 */
-	es3fIntegerStateQueryTests.GetIntegerVerifier.prototype.verifyInteger4 = function(name, reference0, reference1, reference2, reference3) {
-		this.verifyInteger4Mask(name, reference0, true, reference1, true, reference2, true, reference3, true);
-	};
-
-	/**
-	 * @param {number} name
-	 * @param {number} reference0
-	 * @param {boolean} enableRef0
-	 * @param {number} reference1
-	 * @param {boolean} enableRef1
-	 * @param {number} reference2
-	 * @param {boolean} enableRef2
-	 * @param {number} reference3
-	 * @param {boolean} enableRef3
-	 */
-	es3fIntegerStateQueryTests.GetIntegerVerifier.prototype.verifyInteger4Mask = function(name, reference0, enableRef0, reference1, enableRef1, reference2, enableRef2, reference3, enableRef3) {
-		/** @type {Array<number>} */ var  intVector4 = /** @type {Array<number>} */ (gl.getParameter(name));
-
-		if ((enableRef0 && (intVector4[0] != reference0)) ||
-			(enableRef1 && (intVector4[1] != reference1)) ||
-			(enableRef2 && (intVector4[2] != reference2)) ||
-			(enableRef3 && (intVector4[3] != reference3)))
-		{
-			bufferedLogToConsole("// ERROR: expected " +
-				(enableRef0 ? "" : "(") + reference0 + (enableRef0 ? "" : ")") + ", " +
-				(enableRef1 ? "" : "(") + reference1 + (enableRef1 ? "" : ")") + ", " +
-				(enableRef2 ? "" : "(") + reference2 + (enableRef2 ? "" : ")") + ", " +
-				(enableRef3 ? "" : "(") + reference3 + (enableRef3 ? "" : ")"));
-
-			testFailedOptions("Got invalid integer value", false);
-		}
-	};
-
-	/**
-	 * @param {number} name
-	 * @param {number} reference
-	 */
-	es3fIntegerStateQueryTests.GetIntegerVerifier.prototype.verifyIntegerGreaterOrEqual = function(name, reference) {
-		/** @type {number} */ var state = /** @type {number} */ (gl.getParameter(name));
-
-		if (state < reference) {
-			bufferedLogToConsole("ERROR: expected greater or equal to " + reference + "; got " + state);
-			testFailedOptions("Got invalid integer value", false);
-		}
-	};
-
-	/**
-	 * @param {number} name
-	 * @param {number} reference
-	 */
-	es3fIntegerStateQueryTests.GetIntegerVerifier.prototype.verifyUnsignedIntegerGreaterOrEqual = function(name, reference) {
-		/** @type {number} */ var state = /** @type {number} */ (gl.getParameter(name));
-
-		if (Math.abs(state) < reference) {
-			bufferedLogToConsole("ERROR: expected greater or equal to " + reference + "; got " + Math.abs(state));
-			testFailedOptions("Got invalid integer value", false);
-		}
-	};
-
-	/**
-	 * @param {number} name
-	 * @param {number} reference
-	 */
-	es3fIntegerStateQueryTests.GetIntegerVerifier.prototype.verifyIntegerLessOrEqual = function(name, reference) {
-		/** @type {number} */ var state = /** @type {number} */ (gl.getParameter(name));
-
-		if (state > reference) {
-			bufferedLogToConsole("ERROR: expected less or equal to " + reference + "; got " + state);
-			testFailedOptions("Got invalid integer value", false);
-		}
-	};
-
-	/**
-	 * @param {number} name
-	 * @param {number} reference0
-	 * @param {number} reference1
-	 */
-	es3fIntegerStateQueryTests.GetIntegerVerifier.prototype.verifyIntegerGreaterOrEqual2 = function(name, reference0, reference1) {
-		/** @type {Array<number>} */ var intVector2 = /** @type {Array<number>} */ (gl.getParameter(name));
-
-		if (intVector2[0] < reference0 || intVector2[1] < reference1) {
-			bufferedLogToConsole("ERROR: expected greater or equal to " + reference0 + ", " + reference1 + "; got " + intVector2[0] + ", " + intVector2[0]);
-			testFailedOptions("Got invalid integer value", false);
-		}
-	};
-
-	/**
-	 * @param {number} name
-	 * @param {Array<number>} references
-	 */
-	es3fIntegerStateQueryTests.GetIntegerVerifier.prototype.verifyIntegerAnyOf = function(name, references) {
-		/** @type {number} */ var state = /** @type {number} */ (gl.getParameter(name));
-
-		for (var ndx = 0; ndx < references.length; ++ndx) {
-			/** @type {number} */ var expectedGLState = references[ndx];
-
-			if (state === expectedGLState)
-				return;
-		}
-
-		bufferedLogToConsole("ERROR: got " + state);
-		testFailedOptions("Got invalid integer value", false);
-	};
-
-	/**
-	 * @param {number} name
-	 * @param {number} stencilBits
-	 */
-	es3fIntegerStateQueryTests.GetIntegerVerifier.prototype.verifyStencilMaskInitial = function(name, stencilBits) {
-		/** @type {number} */ var state = /** @type {number} */ (gl.getParameter(name));
-
-		/** @type {number} */ var reference = (1 << stencilBits) - 1;
-
-		if ((state & reference) != reference) {
-			// the least significant stencilBits bits should be on
-			bufferedLogToConsole("ERROR: expected minimum mask of " + reference + "; got " + state);
-			testFailedOptions("Got invalid mask value", false);
-		}
-	};
-
-	/**
-	 * @constructor
-	 * @extends {es3fIntegerStateQueryTests.StateVerifier}
-	 */
-	es3fIntegerStateQueryTests.GetInteger64Verifier = function() {
-		es3fIntegerStateQueryTests.StateVerifier.call(this, '_getinteger64');
-	};
-
-	es3fIntegerStateQueryTests.GetInteger64Verifier.prototype = Object.create(es3fIntegerStateQueryTests.StateVerifier.prototype);
-	es3fIntegerStateQueryTests.GetInteger64Verifier.prototype.constructor = es3fIntegerStateQueryTests.GetInteger64Verifier;
-
-	/**
-	 * @param  {number} name
-	 * @param  {number} reference
-	 */
-	es3fIntegerStateQueryTests.GetInteger64Verifier.prototype.verifyInteger = function(name, reference) {
-		/** @type {number} */ var state = /** @type {number} */ (gl.getParameter(name));
-
-		if (state != reference) {
-			bufferedLogToConsole("ERROR: expected " + reference + "; got " + state);
-			testFailedOptions("Got invalid integer value", false);
-		}
-	};
-
-	/**
-	 * @param  {number} name
-	 * @param  {number} reference0
-	 * @param  {number} reference1
-	 * @param  {number} reference2
-	 * @param  {number} reference3
-	 */
-	es3fIntegerStateQueryTests.GetInteger64Verifier.prototype.verifyInteger4 = function(name, reference0, reference1, reference2, reference3) {
-		this.verifyInteger4Mask(name, reference0, true, reference1, true, reference2, true, reference3, true);
-	};
-
-	/**
-	 * @param  {number} name
-	 * @param  {number} reference0
-	 * @param  {boolean} enableRef0
-	 * @param  {number} reference1
-	 * @param  {boolean} enableRef1
-	 * @param  {number} reference2
-	 * @param  {boolean} enableRef2
-	 * @param  {number} reference3
-	 * @param  {boolean} enableRef3
-	 */
-	es3fIntegerStateQueryTests.GetInteger64Verifier.prototype.verifyInteger4Mask = function(name, reference0, enableRef0, reference1, enableRef1, reference2, enableRef2, reference3, enableRef3) {
-		/** @type {Array<number>} */ var intVector4 = /** @type {Array<number>} */ (gl.getParameter(name));
-
-		if ((enableRef0 && (intVector4[0] != reference0)) ||
-			(enableRef1 && (intVector4[1] != reference1)) ||
-			(enableRef2 && (intVector4[2] != reference2)) ||
-			(enableRef3 && (intVector4[3] != reference3)))
-		{
-			bufferedLogToConsole(
-				(enableRef0 ? "" : "(") + reference0 + (enableRef0 ? "" : ")") + ", " +
-				(enableRef1 ? "" : "(") + reference1 + (enableRef1 ? "" : ")") + ", " +
-				(enableRef2 ? "" : "(") + reference2 + (enableRef2 ? "" : ")") + ", " +
-				(enableRef3 ? "" : "(") + reference3 + (enableRef3 ? "" : ")"));
-
-			testFailedOptions("Got invalid integer value", false);
-		}
-	};
-
-	/**
-	 * @param  {number} name
-	 * @param  {number} reference
-	 */
-	es3fIntegerStateQueryTests.GetInteger64Verifier.prototype.verifyIntegerGreaterOrEqual = function(name, reference) {
-		/** @type {number} */ var state = /** @type {number} */ (gl.getParameter(name));
-
-		if (state < reference) {
-			bufferedLogToConsole("ERROR: expected greater or equal to " + reference + "; got " + state);
-			testFailedOptions("Got invalid integer value", false);
-		}
-	};
-
-	/**
-	 * @param  {number} name
-	 * @param  {number} reference
-	 */
-	es3fIntegerStateQueryTests.GetInteger64Verifier.prototype.verifyUnsignedIntegerGreaterOrEqual = function(name, reference) {
-		/** @type {number} */ var state = /** @type {number} */ (gl.getParameter(name));
-
-		if (state < reference) {
-			bufferedLogToConsole("ERROR: expected greater or equal to " + reference + "; got " + state);
-			testFailedOptions("Got invalid integer value", false);
-		}
-	};
-
-	/**
-	 * @param  {number} name
-	 * @param  {number} reference
-	 */
-	es3fIntegerStateQueryTests.GetInteger64Verifier.prototype.verifyIntegerLessOrEqual = function(name, reference) {
-		/** @type {number} */ var state = /** @type {number} */ (gl.getParameter(name));
-
-		if (state > reference) {
-			bufferedLogToConsole("ERROR: expected less or equal to " + reference + "; got " + state);
-			testFailedOptions("Got invalid integer value", false);
-		}
-	};
-
-	/**
-	 * @param  {number} name
-	 * @param  {number} reference0
-	 * @param  {number} reference1
-	 */
-	es3fIntegerStateQueryTests.GetInteger64Verifier.prototype.verifyIntegerGreaterOrEqual2 = function(name, reference0, reference1) {
-		/** @type {Array<number>} */ var intVector2 = /** @type {Array<number>} */ (gl.getParameter(name));
-
-		if (intVector2[0] < reference0 || intVector2[1] < reference1) {
-			bufferedLogToConsole("ERROR: expected greater or equal to " + reference0 + ", " + reference1 + "; got " + intVector2[0] + ", " + intVector2[1]);
-			testFailedOptions("Got invalid integer value", false);
-		}
-	};
-
-	/**
-	 * @param  {number} name
-	 * @param  {Array<number>} references
-	 */
-	es3fIntegerStateQueryTests.GetInteger64Verifier.prototype.verifyIntegerAnyOf = function(name, references) {
-		/** @type {number} */ var state = /** @type {number} */ (gl.getParameter(name));
-
-		for (var ndx = 0; ndx < references.length; ++ndx) {
-			/** @type {number} */ var expectedGLState = references[ndx];
-
-			if (state == expectedGLState)
-				return;
-		}
-
-		bufferedLogToConsole("ERROR: got " + state);
-		testFailedOptions("Got invalid integer value", false);
-	};
-
-	/**
-	 * @param {number} name
-	 * @param {number} stencilBits
-	 */
-	es3fIntegerStateQueryTests.GetInteger64Verifier.prototype.verifyStencilMaskInitial = function(name, stencilBits) {
-		/** @type {number} */ var state = /** @type {number} */ (gl.getParameter(name));
-
-		/** @type {number} */ var reference = (1 << stencilBits) - 1;
-
-		if ((state & reference) != reference) {
-			// the least significant stencilBits bits should be on
-			bufferedLogToConsole("ERROR: expected mimimum mask of " + reference + "; got " + state);
-			testFailedOptions("Got invalid mask value", false);
-		}
-	};
-
-	// continue at line 724
-	/**
-	 * @constructor
-	 * @extends {es3fIntegerStateQueryTests.StateVerifier}
-	 */
-	es3fIntegerStateQueryTests.GetFloatVerifier = function() {
-		es3fIntegerStateQueryTests.StateVerifier.call(this, '_getfloat');
-	};
-
-	es3fIntegerStateQueryTests.GetFloatVerifier.prototype = Object.create(es3fIntegerStateQueryTests.StateVerifier.prototype);
-	es3fIntegerStateQueryTests.GetFloatVerifier.prototype.constructor = es3fIntegerStateQueryTests.GetFloatVerifier;
+	var glsStateQuery = modules.shared.glsStateQuery;
 
 	// shaders (line 907)
 	/** @type {string} */ var transformFeedbackTestVertSource = '' +
@@ -591,17 +63,14 @@ goog.scope(function() {
 		"	fragColor = vec4(0.0);\n" +
 		"}\n";
 
-	// Test Cases (line 931)
 	/**
 	 * @constructor
 	 * @extends {es3fApiCase.ApiCase}
-	 * @param {es3fIntegerStateQueryTests.StateVerifier} verifier
 	 * @param {string} name
 	 * @param {string} description
 	 */
-	es3fIntegerStateQueryTests.TransformFeedbackTestCase = function(verifier, name, description) {
+	es3fIntegerStateQueryTests.TransformFeedbackTestCase = function(name, description) {
 		es3fApiCase.ApiCase.call(this, name, description, gl);
-		/** @type {es3fIntegerStateQueryTests.StateVerifier} */ this.m_verifier = verifier;
 		/** @type {WebGLTransformFeedback} */ this.m_transformfeedback;
 	};
 
@@ -610,9 +79,11 @@ goog.scope(function() {
 
 	es3fIntegerStateQueryTests.TransformFeedbackTestCase.prototype.testTransformFeedback = function() {
 		throw new Error('This method should be implemented by child classes.');
-	}
+	};
 
 	es3fIntegerStateQueryTests.TransformFeedbackTestCase.prototype.test = function() {
+		this.beforeTransformFeedbackTest(); // [dag] added this as there is no other way this method would be called.
+
 		this.m_transformfeedback = gl.createTransformFeedback();
 
 		/** @type {WebGLShader} */ var shaderVert = gl.createShader(gl.VERTEX_SHADER);
@@ -620,14 +91,14 @@ goog.scope(function() {
 		gl.compileShader(shaderVert);
 
 		/** @type {boolean} */ var compileStatus = /** @type {boolean} */ (gl.getShaderParameter(shaderVert, gl.COMPILE_STATUS));
-		this.checkBooleans(compileStatus, true);
+		glsStateQuery.compare(compileStatus, true);
 
 		/** @type {WebGLShader} */ var shaderFrag = gl.createShader(gl.FRAGMENT_SHADER);
 		gl.shaderSource(shaderFrag, transformFeedbackTestFragSource);
 		gl.compileShader(shaderFrag);
 
 		compileStatus = /** @type {boolean} */ (gl.getShaderParameter(shaderFrag, gl.COMPILE_STATUS));
-		this.checkBooleans(compileStatus, true);
+		glsStateQuery.compare(compileStatus, true);
 
 		/** @type {WebGLProgram} */ var shaderProg = gl.createProgram();
 		gl.attachShader(shaderProg, shaderVert);
@@ -637,7 +108,7 @@ goog.scope(function() {
 		gl.linkProgram(shaderProg);
 
 		/** @type {boolean} */ var linkStatus = /** @type {boolean} */ (gl.getProgramParameter(shaderProg, gl.LINK_STATUS));
-		this.checkBooleans(linkStatus, true);
+		glsStateQuery.compare(linkStatus, true);
 
 		gl.bindTransformFeedback(gl.TRANSFORM_FEEDBACK, this.m_transformfeedback);
 
@@ -658,9 +129,534 @@ goog.scope(function() {
 		gl.deleteShader(shaderVert);
 		gl.deleteShader(shaderFrag);
 		gl.deleteProgram(shaderProg);
+
+		this.afterTransformFeedbackTest(); // [dag] added this as there is no other way this method would be called.
 	};
 
-	// continue at line 1003, TransformFeedbackBindingTestCase
+	/**
+	 * @constructor
+	 * @extends {es3fIntegerStateQueryTests.TransformFeedbackTestCase}
+	 * @param {string} name
+	 */
+	es3fIntegerStateQueryTests.TransformFeedbackBindingTestCase = function(name) {
+		es3fIntegerStateQueryTests.TransformFeedbackTestCase.call(this, name, 'GL_TRANSFORM_FEEDBACK_BINDING');
+	};
+
+	es3fIntegerStateQueryTests.TransformFeedbackBindingTestCase.prototype = Object.create(es3fIntegerStateQueryTests.TransformFeedbackTestCase.prototype);
+	es3fIntegerStateQueryTests.TransformFeedbackBindingTestCase.prototype.constructor = es3fIntegerStateQueryTests.TransformFeedbackBindingTestCase;
+
+
+	es3fIntegerStateQueryTests.TransformFeedbackBindingTestCase.prototype.beforeTransformFeedbackTest = function() {
+		this.check(glsStateQuery.verify(gl.TRANSFORM_FEEDBACK_BINDING, null), 'beforeTransformFeedbackTest');
+	};
+
+	es3fIntegerStateQueryTests.TransformFeedbackBindingTestCase.prototype.testTransformFeedback = function() {
+		this.check(glsStateQuery.verify(gl.TRANSFORM_FEEDBACK_BINDING, this.m_transformfeedback), 'testTransformFeedback');
+	};
+
+	es3fIntegerStateQueryTests.TransformFeedbackBindingTestCase.prototype.afterTransformFeedbackTest = function() {
+		this.check(glsStateQuery.verify(gl.TRANSFORM_FEEDBACK_BINDING, null), 'afterTransformFeedbackTest');
+	};
+
+	/**
+	 * @constructor
+	 * @extends {es3fApiCase.ApiCase}
+	 * @param {string} name
+	 * @param {string} description
+	 * @param {number} targetName
+	 * @param {number} minValue
+	 */
+	es3fIntegerStateQueryTests.ConstantMinimumValueTestCase = function(name, description, targetName, minValue) {
+		es3fApiCase.ApiCase.call(this, name, description, gl);
+		/** @type {number} */ this.m_targetName = targetName;
+		/** @type {number} */ this.m_minValue = minValue;
+	};
+
+	es3fIntegerStateQueryTests.ConstantMinimumValueTestCase.prototype = Object.create(es3fApiCase.ApiCase.prototype);
+	es3fIntegerStateQueryTests.ConstantMinimumValueTestCase.prototype.constructor = es3fIntegerStateQueryTests.ConstantMinimumValueTestCase;
+
+	es3fIntegerStateQueryTests.ConstantMinimumValueTestCase.prototype.test = function() {
+		this.check(glsStateQuery.verifyGreaterOrEqual(this.m_targetName, this.m_minValue), 'Fail');
+	};
+
+	/**
+	 * @constructor
+	 * @extends {es3fApiCase.ApiCase}
+	 * @param {string} name
+	 * @param {string} description
+	 * @param {number} targetName
+	 * @param {number} minValue
+	 */
+	es3fIntegerStateQueryTests.ConstantMaximumValueTestCase = function(name, description, targetName, minValue) {
+		es3fApiCase.ApiCase.call(this, name, description, gl);
+		/** @type {number} */ this.m_targetName = targetName;
+		/** @type {number} */ this.m_minValue = minValue;
+	};
+
+	es3fIntegerStateQueryTests.ConstantMaximumValueTestCase.prototype = Object.create(es3fApiCase.ApiCase.prototype);
+	es3fIntegerStateQueryTests.ConstantMaximumValueTestCase.prototype.constructor = es3fIntegerStateQueryTests.ConstantMaximumValueTestCase;
+
+	es3fIntegerStateQueryTests.ConstantMaximumValueTestCase.prototype.test = function() {
+		this.check(glsStateQuery.verifyLessOrEqual(this.m_targetName, this.m_minValue), 'Fail');
+	};
+
+	/**
+	 * @constructor
+	 * @extends {es3fApiCase.ApiCase}
+	 * @param {string} name
+	 * @param {string} description
+	 */
+	es3fIntegerStateQueryTests.SampleBuffersTestCase = function(name, description) {
+		es3fApiCase.ApiCase.call(this, name, description, gl);
+	};
+
+	es3fIntegerStateQueryTests.SampleBuffersTestCase.prototype = Object.create(es3fApiCase.ApiCase.prototype);
+	es3fIntegerStateQueryTests.SampleBuffersTestCase.prototype.constructor = es3fIntegerStateQueryTests.SampleBuffersTestCase;
+
+	es3fIntegerStateQueryTests.SampleBuffersTestCase.prototype.test = function() {
+		/** @type {number} */ var expectedSampleBuffers = (/** @type {number} */ (gl.getParameter(gl.SAMPLES)) > 1) ? 1 : 0;
+
+		bufferedLogToConsole("Sample count is " + expectedSampleBuffers + ", expecting GL_SAMPLE_BUFFERS to be " + expectedSampleBuffers);
+
+		this.check(glsStateQuery.verify(gl.SAMPLE_BUFFERS, expectedSampleBuffers));
+	};
+
+	/**
+	 * @constructor
+	 * @extends {es3fApiCase.ApiCase}
+	 * @param {string} name
+	 * @param {string} description
+	 */
+	es3fIntegerStateQueryTests.SamplesTestCase = function(name, description) {
+		es3fApiCase.ApiCase.call(this, name, description, gl);
+	};
+
+	es3fIntegerStateQueryTests.SamplesTestCase.prototype = Object.create(es3fApiCase.ApiCase.prototype);
+	es3fIntegerStateQueryTests.SamplesTestCase.prototype.constructor = es3fIntegerStateQueryTests.SamplesTestCase;
+
+	es3fIntegerStateQueryTests.SamplesTestCase.prototype.test = function() {
+		/** @type {number} */ var numSamples = /** @type {number} */ (gl.getParameter(gl.SAMPLES));
+		// MSAA?
+		if (numSamples > 1) {
+			bufferedLogToConsole("Sample count is " + numSamples);
+
+			this.check(glsStateQuery.verify(gl.SAMPLES, numSamples));
+		} else {
+			/** @type {Array<number>} */ var validSamples = [0, 1];
+
+			bufferedLogToConsole("Expecting GL_SAMPLES to be 0 or 1");
+
+			this.check(glsStateQuery.verifyAnyOf(gl.SAMPLES, validSamples));
+		}
+	};
+
+	/**
+	 * @constructor
+	 * @extends {es3fApiCase.ApiCase}
+	 * @param {string} name
+	 * @param {string} description
+	 * @param {number} targetName
+	 */
+	es3fIntegerStateQueryTests.HintTestCase = function(name, description, targetName) {
+		es3fApiCase.ApiCase.call(this, name, description, gl);
+		/** @type {number} */ this.m_targetName = targetName;
+	};
+
+	es3fIntegerStateQueryTests.HintTestCase.prototype = Object.create(es3fApiCase.ApiCase.prototype);
+	es3fIntegerStateQueryTests.HintTestCase.prototype.constructor = es3fIntegerStateQueryTests.HintTestCase;
+
+	es3fIntegerStateQueryTests.HintTestCase.prototype.test = function() {
+		this.check(glsStateQuery.verify(this.m_targetName, gl.DONT_CARE));
+
+		gl.hint(this.m_targetName, gl.NICEST);
+		this.check(glsStateQuery.verify(this.m_targetName, gl.NICEST));
+
+		gl.hint(this.m_targetName, gl.FASTEST);
+		this.check(glsStateQuery.verify(this.m_targetName, gl.FASTEST));
+
+		gl.hint(this.m_targetName, gl.DONT_CARE);
+		this.check(glsStateQuery.verify(this.m_targetName, gl.DONT_CARE));
+	};
+
+	/**
+	 * @constructor
+	 * @extends {es3fApiCase.ApiCase}
+	 * @param {string} name
+	 * @param {string} description
+	 */
+	es3fIntegerStateQueryTests.DepthFuncTestCase = function(name, description) {
+		es3fApiCase.ApiCase.call(this, name, description, gl);
+	};
+
+	es3fIntegerStateQueryTests.DepthFuncTestCase.prototype = Object.create(es3fApiCase.ApiCase.prototype);
+	es3fIntegerStateQueryTests.DepthFuncTestCase.prototype.constructor = es3fIntegerStateQueryTests.DepthFuncTestCase;
+
+	es3fIntegerStateQueryTests.DepthFuncTestCase.prototype.test = function() {
+		this.check(glsStateQuery.verify(gl.DEPTH_FUNC, gl.LESS));
+
+		/** @type {Array<number>} */ var depthFunctions = [gl.NEVER, gl.ALWAYS, gl.LESS, gl.LEQUAL, gl.EQUAL, gl.GREATER, gl.GEQUAL, gl.NOTEQUAL];
+		for (var ndx = 0; ndx < depthFunctions.length; ndx++) {
+			gl.depthFunc(depthFunctions[ndx]);
+
+			this.check(glsStateQuery.verify(gl.DEPTH_FUNC, depthFunctions[ndx]));
+		}
+	};
+
+	/**
+	 * @constructor
+	 * @extends {es3fApiCase.ApiCase}
+	 * @param {string} name
+	 * @param {string} description
+	 */
+	es3fIntegerStateQueryTests.CullFaceTestCase = function(name, description) {
+		es3fApiCase.ApiCase.call(this, name, description, gl);
+	};
+
+	es3fIntegerStateQueryTests.CullFaceTestCase.prototype = Object.create(es3fApiCase.ApiCase.prototype);
+	es3fIntegerStateQueryTests.CullFaceTestCase.prototype.constructor = es3fIntegerStateQueryTests.CullFaceTestCase;
+
+	es3fIntegerStateQueryTests.CullFaceTestCase.prototype.test = function() {
+		this.check(glsStateQuery.verify(gl.CULL_FACE_MODE, gl.BACK));
+
+		/** @type {Array<number>} */ var cullFaces = [gl.FRONT, gl.BACK, gl.FRONT_AND_BACK];
+		for (var ndx = 0; ndx < cullFaces.length; ndx++) {
+			gl.cullFace(cullFaces[ndx]);
+
+			this.check(glsStateQuery.verify(gl.CULL_FACE_MODE, cullFaces[ndx]));
+		}
+	};
+
+	/**
+	 * @constructor
+	 * @extends {es3fApiCase.ApiCase}
+	 * @param {string} name
+	 * @param {string} description
+	 */
+	es3fIntegerStateQueryTests.FrontFaceTestCase = function(name, description) {
+		es3fApiCase.ApiCase.call(this, name, description, gl);
+	};
+
+	es3fIntegerStateQueryTests.FrontFaceTestCase.prototype = Object.create(es3fApiCase.ApiCase.prototype);
+	es3fIntegerStateQueryTests.FrontFaceTestCase.prototype.constructor = es3fIntegerStateQueryTests.FrontFaceTestCase;
+
+	es3fIntegerStateQueryTests.FrontFaceTestCase.prototype.test = function() {
+		this.check(glsStateQuery.verify(gl.FRONT_FACE, gl.CCW));
+
+		/** @type {Array<number>} */ var frontFaces = [gl.CW, gl.CCW];
+		for (var ndx = 0; ndx < frontFaces.length; ndx++) {
+			gl.frontFace(frontFaces[ndx]);
+
+			this.check(glsStateQuery.verify(gl.FRONT_FACE, frontFaces[ndx]));
+		}
+	};
+
+	/**
+	 * @constructor
+	 * @extends {es3fApiCase.ApiCase}
+	 * @param {string} name
+	 * @param {string} description
+	 */
+	es3fIntegerStateQueryTests.ViewPortTestCase = function(name, description) {
+		es3fApiCase.ApiCase.call(this, name, description, gl);
+	};
+
+	es3fIntegerStateQueryTests.ViewPortTestCase.prototype = Object.create(es3fApiCase.ApiCase.prototype);
+	es3fIntegerStateQueryTests.ViewPortTestCase.prototype.constructor = es3fIntegerStateQueryTests.ViewPortTestCase;
+
+	es3fIntegerStateQueryTests.ViewPortTestCase.prototype.test = function() {
+		/** @type {deRandom.Random} */ var rnd = new deRandom.Random(0xabcdef);
+
+		/** @type {Array<number>} */ var maxViewportDimensions = /** @type {Array<number>} */ (gl.getParameter(gl.MAX_VIEWPORT_DIMS));
+
+		// verify initial value of first two values
+		this.check(glsStateQuery.verify(gl.VIEWPORT, new Int32Array([0, 0, gl.drawingBufferWidth, gl.drawingBufferHeight])));
+
+		/** @type {number} */ var numIterations = 120;
+		for (var i = 0; i < numIterations; ++i) {
+			/** @type {number} */ var x = rnd.getInt(-64000, 64000);
+			/** @type {number} */ var y = rnd.getInt(-64000, 64000);
+			/** @type {number} */ var width = rnd.getInt(0, maxViewportDimensions[0]);
+			/** @type {number} */ var height = rnd.getInt(0, maxViewportDimensions[1]);
+
+			gl.viewport(x, y, width, height);
+			this.check(glsStateQuery.verify(gl.VIEWPORT, new Int32Array([x, y, width, height])));
+		}
+	};
+
+	/**
+	 * @constructor
+	 * @extends {es3fApiCase.ApiCase}
+	 * @param {string} name
+	 * @param {string} description
+	 */
+	es3fIntegerStateQueryTests.ScissorBoxTestCase = function(name, description) {
+		es3fApiCase.ApiCase.call(this, name, description, gl);
+	};
+
+	es3fIntegerStateQueryTests.ScissorBoxTestCase.prototype = Object.create(es3fApiCase.ApiCase.prototype);
+	es3fIntegerStateQueryTests.ScissorBoxTestCase.prototype.constructor = es3fIntegerStateQueryTests.ScissorBoxTestCase;
+
+	es3fIntegerStateQueryTests.ScissorBoxTestCase.prototype.test = function() {
+		/** @type {deRandom.Random} */ var rnd = new deRandom.Random(0xabcdef);
+
+		// verify initial value of first two values
+		// m_verifier->verifyInteger4Mask(gl.SCISSOR_BOX, 0, true, 0, true, 0, false, 0, false);
+		this.check(glsStateQuery.verifyMask(gl.SCISSOR_BOX, [0, 0, 0, 0], [true, true, false, false])); // TODO: check this line
+
+		/** @type {number} */ var numIterations = 120;
+		for (var i = 0; i < numIterations; ++i) {
+			/** @type {number} */ var left = rnd.getInt(-64000, 64000);
+			/** @type {number} */ var bottom = rnd.getInt(-64000, 64000);
+			/** @type {number} */ var width = rnd.getInt(0, 64000);
+			/** @type {number} */ var height = rnd.getInt(0, 64000);
+
+			gl.scissor(left, bottom, width, height);
+			this.check(glsStateQuery.verify(gl.SCISSOR_BOX, new Int32Array([left, bottom, width, height])));
+		}
+	};
+
+	/**
+	 * @constructor
+	 * @extends {es3fApiCase.ApiCase}
+	 * @param {string} name
+	 * @param {string} description
+	 */
+	es3fIntegerStateQueryTests.MaxViewportDimsTestCase = function(name, description) {
+		es3fApiCase.ApiCase.call(this, name, description, gl);
+	};
+
+	es3fIntegerStateQueryTests.MaxViewportDimsTestCase.prototype = Object.create(es3fApiCase.ApiCase.prototype);
+	es3fIntegerStateQueryTests.MaxViewportDimsTestCase.prototype.constructor = es3fIntegerStateQueryTests.MaxViewportDimsTestCase;
+
+	es3fIntegerStateQueryTests.MaxViewportDimsTestCase.prototype.test = function() {
+		this.check(glsStateQuery.verifyGreaterOrEqual(gl.MAX_VIEWPORT_DIMS, [gl.drawingBufferWidth, gl.drawingBufferHeight]));
+	};
+
+	/**
+	 * @constructor
+	 * @extends {es3fApiCase.ApiCase}
+	 * @param {string} name
+	 * @param {string} description
+	 * @param {number} testTargetName
+	 */
+	es3fIntegerStateQueryTests.StencilRefTestCase = function(name, description, testTargetName) {
+		es3fApiCase.ApiCase.call(this, name, description, gl);
+		/** @type {number} */ this.m_testTargetName = testTargetName;
+	};
+
+	es3fIntegerStateQueryTests.StencilRefTestCase.prototype = Object.create(es3fApiCase.ApiCase.prototype);
+	es3fIntegerStateQueryTests.StencilRefTestCase.prototype.constructor = es3fIntegerStateQueryTests.StencilRefTestCase;
+
+	es3fIntegerStateQueryTests.StencilRefTestCase.prototype.test = function() {
+		this.check(glsStateQuery.verify(this.m_testTargetName, 0));
+
+		/** @type {number} */ var stencilBits = /** @type {number} */ (gl.getParameter(gl.STENCIL_BITS));
+
+		for (var stencilBit = 0; stencilBit < stencilBits; ++stencilBit) {
+			/** @type {number} */ var ref = 1 << stencilBit;
+
+			gl.stencilFunc(gl.ALWAYS, ref, 0); // mask should not affect the REF
+
+			this.check(glsStateQuery.verify(this.m_testTargetName, ref));
+
+			gl.stencilFunc(gl.ALWAYS, ref, ref);
+
+			this.check(glsStateQuery.verify(this.m_testTargetName, ref));
+		}
+	};
+
+	/**
+	 * @constructor
+	 * @extends {es3fApiCase.ApiCase}
+	 * @param {string} name
+	 * @param {string} description
+	 * @param {number} testTargetName
+	 * @param {number} stencilFuncTargetFace
+	 */
+	es3fIntegerStateQueryTests.StencilRefSeparateTestCase = function(name, description, testTargetName, stencilFuncTargetFace) {
+		es3fApiCase.ApiCase.call(this, name, description, gl);
+		/** @type {number} */ this.m_testTargetName = testTargetName;
+		/** @type {number} */ this.m_stencilFuncTargetFace = stencilFuncTargetFace;
+	};
+
+	es3fIntegerStateQueryTests.StencilRefSeparateTestCase.prototype = Object.create(es3fApiCase.ApiCase.prototype);
+	es3fIntegerStateQueryTests.StencilRefSeparateTestCase.prototype.constructor = es3fIntegerStateQueryTests.StencilRefSeparateTestCase;
+
+	es3fIntegerStateQueryTests.StencilRefSeparateTestCase.prototype.test = function() {
+		this.check(glsStateQuery.verify(this.m_testTargetName, 0));
+
+		/** @type {number} */ var stencilBits = /** @type {number} */ (gl.getParameter(gl.STENCIL_BITS));
+
+		for (var stencilBit = 0; stencilBit < stencilBits; ++stencilBit) {
+			/** @type {number} */ var ref = 1 << stencilBit;
+
+			gl.stencilFuncSeparate(this.m_stencilFuncTargetFace, gl.ALWAYS, ref, 0);
+
+			this.check(glsStateQuery.verify(this.m_testTargetName, ref));
+
+			gl.stencilFuncSeparate(this.m_stencilFuncTargetFace, gl.ALWAYS, ref, ref);
+
+			this.check(glsStateQuery.verify(this.m_testTargetName, ref));
+		}
+	};
+
+	/**
+	 * @constructor
+	 * @extends {es3fApiCase.ApiCase}
+	 * @param {string} name
+	 * @param {string} description
+	 * @param {number} stencilOpName
+	 */
+	es3fIntegerStateQueryTests.StencilOpTestCase = function(name, description, stencilOpName) {
+		es3fApiCase.ApiCase.call(this, name, description, gl);
+		/** @type {number} */ this.m_stencilOpName = stencilOpName;
+	};
+
+	es3fIntegerStateQueryTests.StencilOpTestCase.prototype = Object.create(es3fApiCase.ApiCase.prototype);
+	es3fIntegerStateQueryTests.StencilOpTestCase.prototype.constructor = es3fIntegerStateQueryTests.StencilOpTestCase;
+
+	es3fIntegerStateQueryTests.StencilOpTestCase.prototype.test = function() {
+		this.check(glsStateQuery.verify(this.m_stencilOpName, gl.KEEP));
+
+		/** @type {Array<number>} */ var stencilOpValues = [gl.KEEP, gl.ZERO, gl.REPLACE, gl.INCR, gl.DECR, gl.INVERT, gl.INCR_WRAP, gl.DECR_WRAP];
+
+		for (var ndx = 0; ndx < stencilOpValues.length; ++ndx) {
+			this.SetStencilOp(stencilOpValues[ndx]);
+
+			this.check(glsStateQuery.verify(this.m_stencilOpName, stencilOpValues[ndx]));
+		}
+	};
+
+	/**
+	 * @param  {number} stencilOpValue
+	 */
+	es3fIntegerStateQueryTests.StencilOpTestCase.prototype.SetStencilOp = function(stencilOpValue) {
+		switch (this.m_stencilOpName) {
+			case gl.STENCIL_FAIL:
+			case gl.STENCIL_BACK_FAIL:
+				gl.stencilOp(stencilOpValue, gl.KEEP, gl.KEEP);
+				break;
+
+			case gl.STENCIL_PASS_DEPTH_FAIL:
+			case gl.STENCIL_BACK_PASS_DEPTH_FAIL:
+				gl.stencilOp(gl.KEEP, stencilOpValue, gl.KEEP);
+				break;
+
+			case gl.STENCIL_PASS_DEPTH_PASS:
+			case gl.STENCIL_BACK_PASS_DEPTH_PASS:
+				gl.stencilOp(gl.KEEP, gl.KEEP, stencilOpValue);
+				break;
+
+			default:
+				throw new Error("should not happen");
+		}
+	};
+
+	/**
+	 * @constructor
+	 * @extends {es3fIntegerStateQueryTests.StencilOpTestCase}
+	 * @param {string} name
+	 * @param {string} description
+	 * @param {number} stencilOpName
+	 * @param {number} stencilOpFace
+	 */
+	es3fIntegerStateQueryTests.StencilOpSeparateTestCase = function(name, description, stencilOpName, stencilOpFace) {
+		es3fIntegerStateQueryTests.StencilOpTestCase.call(this, name, description, stencilOpName);
+		/** @type {number} */ this.m_stencilOpName = stencilOpName;
+		/** @type {number} */ this.m_stencilOpFace = stencilOpFace;
+	};
+
+	es3fIntegerStateQueryTests.StencilOpSeparateTestCase.prototype = Object.create(es3fIntegerStateQueryTests.StencilOpTestCase.prototype);
+	es3fIntegerStateQueryTests.StencilOpSeparateTestCase.prototype.constructor = es3fIntegerStateQueryTests.StencilOpSeparateTestCase;
+
+	es3fIntegerStateQueryTests.StencilOpSeparateTestCase.prototype.test = function() {};
+
+	/**
+	 * @param  {number} stencilOpValue
+	 */
+	es3fIntegerStateQueryTests.StencilOpSeparateTestCase.prototype.SetStencilOp = function(stencilOpValue) {
+		switch (this.m_stencilOpName) {
+			case gl.STENCIL_FAIL:
+			case gl.STENCIL_BACK_FAIL:
+				gl.stencilOpSeparate(this.m_stencilOpFace, stencilOpValue, gl.KEEP, gl.KEEP);
+				break;
+
+			case gl.STENCIL_PASS_DEPTH_FAIL:
+			case gl.STENCIL_BACK_PASS_DEPTH_FAIL:
+				gl.stencilOpSeparate(this.m_stencilOpFace, gl.KEEP, stencilOpValue, gl.KEEP);
+				break;
+
+			case gl.STENCIL_PASS_DEPTH_PASS:
+			case gl.STENCIL_BACK_PASS_DEPTH_PASS:
+				gl.stencilOpSeparate(this.m_stencilOpFace, gl.KEEP, gl.KEEP, stencilOpValue);
+				break;
+
+			default:
+				throw new Error("should not happen");
+		}
+	};
+
+	// line 1519
+
+	// /**
+	//  * @constructor
+	//  * @extends {es3fApiCase.ApiCase}
+	//  * @param {string} name
+	//  * @param {string} description
+	//  */
+	// es3fIntegerStateQueryTests.ViewPortTestCase = function(name, description) {
+	// 	es3fApiCase.ApiCase.call(this, name, description, gl);
+	// };
+	//
+	// es3fIntegerStateQueryTests.ViewPortTestCase.prototype = Object.create(es3fApiCase.ApiCase.prototype);
+	// es3fIntegerStateQueryTests.ViewPortTestCase.prototype.constructor = es3fIntegerStateQueryTests.ViewPortTestCase;
+	//
+	// es3fIntegerStateQueryTests.ViewPortTestCase.prototype.test = function() {};
+	//
+	// /**
+	//  * @constructor
+	//  * @extends {es3fApiCase.ApiCase}
+	//  * @param {string} name
+	//  * @param {string} description
+	//  */
+	// es3fIntegerStateQueryTests.ViewPortTestCase = function(name, description) {
+	// 	es3fApiCase.ApiCase.call(this, name, description, gl);
+	// };
+	//
+	// es3fIntegerStateQueryTests.ViewPortTestCase.prototype = Object.create(es3fApiCase.ApiCase.prototype);
+	// es3fIntegerStateQueryTests.ViewPortTestCase.prototype.constructor = es3fIntegerStateQueryTests.ViewPortTestCase;
+	//
+	// es3fIntegerStateQueryTests.ViewPortTestCase.prototype.test = function() {};
+	//
+	// /**
+	//  * @constructor
+	//  * @extends {es3fApiCase.ApiCase}
+	//  * @param {string} name
+	//  * @param {string} description
+	//  */
+	// es3fIntegerStateQueryTests.ViewPortTestCase = function(name, description) {
+	// 	es3fApiCase.ApiCase.call(this, name, description, gl);
+	// };
+	//
+	// es3fIntegerStateQueryTests.ViewPortTestCase.prototype = Object.create(es3fApiCase.ApiCase.prototype);
+	// es3fIntegerStateQueryTests.ViewPortTestCase.prototype.constructor = es3fIntegerStateQueryTests.ViewPortTestCase;
+	//
+	// es3fIntegerStateQueryTests.ViewPortTestCase.prototype.test = function() {};
+	//
+	// /**
+	//  * @constructor
+	//  * @extends {es3fApiCase.ApiCase}
+	//  * @param {string} name
+	//  * @param {string} description
+	//  */
+	// es3fIntegerStateQueryTests.ViewPortTestCase = function(name, description) {
+	// 	es3fApiCase.ApiCase.call(this, name, description, gl);
+	// };
+	//
+	// es3fIntegerStateQueryTests.ViewPortTestCase.prototype = Object.create(es3fApiCase.ApiCase.prototype);
+	// es3fIntegerStateQueryTests.ViewPortTestCase.prototype.constructor = es3fIntegerStateQueryTests.ViewPortTestCase;
+	//
+	// es3fIntegerStateQueryTests.ViewPortTestCase.prototype.test = function() {};
 
     /**
     * @constructor
@@ -668,25 +664,13 @@ goog.scope(function() {
     */
     es3fIntegerStateQueryTests.IntegerStateQueryTests = function() {
         tcuTestCase.DeqpTest.call(this, "integers", "Integer Values");
-		/** @type {es3fIntegerStateQueryTests.GetBooleanVerifier} */ this.m_verifierBoolean = null;
-		/** @type {es3fIntegerStateQueryTests.GetIntegerVerifier} */ this.m_verifierInteger = null;
-		/** @type {es3fIntegerStateQueryTests.GetInteger64Verifier} */ this.m_verifierInteger64 = null;
-		/** @type {es3fIntegerStateQueryTests.GetFloatVerifier} */ this.m_verifierFloat = null;
     };
 
     es3fIntegerStateQueryTests.IntegerStateQueryTests.prototype = Object.create(tcuTestCase.DeqpTest.prototype);
     es3fIntegerStateQueryTests.IntegerStateQueryTests.prototype.constructor = es3fIntegerStateQueryTests.IntegerStateQueryTests;
 
     es3fIntegerStateQueryTests.IntegerStateQueryTests.prototype.init = function() {
-		assertMsgOptions(this.m_verifierBoolean === null, 'm_verifierBoolean to be null', false, true);
-		assertMsgOptions(this.m_verifierInteger === null, 'm_verifierInteger to be null', false, true);
-		assertMsgOptions(this.m_verifierInteger64 === null, 'm_verifierInteger64 to be null', false, true);
-		assertMsgOptions(this.m_verifierFloat === null, 'm_verifierFloat to be null', false, true);
 
-		this.m_verifierBoolean = new es3fIntegerStateQueryTests.GetBooleanVerifier();
-		this.m_verifierInteger = new es3fIntegerStateQueryTests.GetIntegerVerifier();
-		this.m_verifierInteger64 = new es3fIntegerStateQueryTests.GetInteger64Verifier();
-		this.m_verifierFloat = new es3fIntegerStateQueryTests.GetFloatVerifier();
 
 		/**
 		 * @struct
@@ -753,87 +737,87 @@ goog.scope(function() {
 		];
 
 		// \note implementation defined limits have their own tests so just check the conversions to boolean, int64 and float
-		/** @type {Array<es3fIntegerStateQueryTests.StateVerifier>} */ var  implementationLimitVerifiers = [this.m_verifierBoolean, this.m_verifierInteger64, this.m_verifierFloat];
+		///** @type {Array<es3fIntegerStateQueryTests.StateVerifier>} */ var  implementationLimitVerifiers = [this.m_verifierBoolean, this.m_verifierInteger64, this.m_verifierFloat];
 
 		var testCtx = this;
 
 		// TODO: commenting until this is implemented
-		// for (var testNdx = 0; testNdx < implementationMinLimits.length; testNdx++)
-		// 	implementationLimitVerifiers.forEach(function(verifier) { testCtx.addChild(new es3fIntegerStateQueryTests.ConstantMinimumValueTestCase(verifier, implementationMinLimits[testNdx].name + verifier.getTestNamePostfix(), implementationMinLimits[testNdx].description, implementationMinLimits[testNdx].targetName, implementationMinLimits[testNdx].value)); });
-		//
-		// for (var testNdx = 0; testNdx < implementationMaxLimits.length; testNdx++)
-		// 	implementationLimitVerifiers.forEach(function(verifier) { testCtx.addChild(new es3fIntegerStateQueryTests.ConstantMaximumValueTestCase(verifier, implementationMaxLimits[testNdx].name + verifier.getTestNamePostfix(), implementationMaxLimits[testNdx].description, implementationMaxLimits[testNdx].targetName, implementationMaxLimits[testNdx].value)); });
+		for (var testNdx = 0; testNdx < implementationMinLimits.length; testNdx++)
+			testCtx.addChild(new es3fIntegerStateQueryTests.ConstantMinimumValueTestCase(implementationMinLimits[testNdx].name, implementationMinLimits[testNdx].description, implementationMinLimits[testNdx].targetName, implementationMinLimits[testNdx].value));
+
+		for (var testNdx = 0; testNdx < implementationMaxLimits.length; testNdx++)
+			testCtx.addChild(new es3fIntegerStateQueryTests.ConstantMaximumValueTestCase(implementationMaxLimits[testNdx].name, implementationMaxLimits[testNdx].description, implementationMaxLimits[testNdx].targetName, implementationMaxLimits[testNdx].value));
 
 		// /** @type {Array<es3fIntegerStateQueryTests.StateVerifier>} */ var  normalVerifiers = [this.m_verifierBoolean, this.m_verifierInteger, this.m_verifierInteger64, this.m_verifierFloat];
-		// implementationLimitVerifiers.forEach(function(verifier) { testCtx.addChild(new es3fIntegerStateQueryTests.SampleBuffersTestCase(verifier, "sample_buffers" + verifier.getTestNamePostfix(), "SAMPLE_BUFFERS")); });
+		testCtx.addChild(new es3fIntegerStateQueryTests.SampleBuffersTestCase("sample_buffers", "SAMPLE_BUFFERS"));
 		//
-		// normalVerifiers.forEach(function(verifier) { testCtx.addChild(new es3fIntegerStateQueryTests.SamplesTestCase(verifier, "samples" + verifier.getTestNamePostfix(), "SAMPLES")); });
-		// normalVerifiers.forEach(function(verifier) { testCtx.addChild(new es3fIntegerStateQueryTests.HintTestCase(verifier, "generate_mipmap_hint" + verifier.getTestNamePostfix(), "GENERATE_MIPMAP_HINT", gl.GENERATE_MIPMAP_HINT)); });
-		// normalVerifiers.forEach(function(verifier) { testCtx.addChild(new es3fIntegerStateQueryTests.HintTestCase(verifier, "fragment_shader_derivative_hint" + verifier.getTestNamePostfix(), "FRAGMENT_SHADER_DERIVATIVE_HINT", gl.FRAGMENT_SHADER_DERIVATIVE_HINT)); });
-		// normalVerifiers.forEach(function(verifier) { testCtx.addChild(new es3fIntegerStateQueryTests.DepthFuncTestCase(verifier, "depth_func" + verifier.getTestNamePostfix(), "DEPTH_FUNC")); });
-		// normalVerifiers.forEach(function(verifier) { testCtx.addChild(new es3fIntegerStateQueryTests.CullFaceTestCase(verifier, "cull_face_mode" + verifier.getTestNamePostfix(), "CULL_FACE_MODE")); });
-		// normalVerifiers.forEach(function(verifier) { testCtx.addChild(new es3fIntegerStateQueryTests.FrontFaceTestCase(verifier, "front_face_mode" + verifier.getTestNamePostfix(), "FRONT_FACE")); });
-		// normalVerifiers.forEach(function(verifier) { testCtx.addChild(new es3fIntegerStateQueryTests.ViewPortTestCase(verifier, "viewport" + verifier.getTestNamePostfix(), "VIEWPORT")); });
-		// normalVerifiers.forEach(function(verifier) { testCtx.addChild(new es3fIntegerStateQueryTests.ScissorBoxTestCase(verifier, "scissor_box" + verifier.getTestNamePostfix(), "SCISSOR_BOX")); });
-		// normalVerifiers.forEach(function(verifier) { testCtx.addChild(new es3fIntegerStateQueryTests.MaxViewportDimsTestCase(verifier, "max_viewport_dims" + verifier.getTestNamePostfix(), "MAX_VIEWPORT_DIMS")); });
-		// normalVerifiers.forEach(function(verifier) { testCtx.addChild(new es3fIntegerStateQueryTests.StencilRefTestCase(verifier, "stencil_ref" + verifier.getTestNamePostfix(), "STENCIL_REF", gl.STENCIL_REF)); });
-		// normalVerifiers.forEach(function(verifier) { testCtx.addChild(new es3fIntegerStateQueryTests.StencilRefTestCase(verifier, "stencil_back_ref" + verifier.getTestNamePostfix(), "STENCIL_BACK_REF", gl.STENCIL_BACK_REF)); });
-		// normalVerifiers.forEach(function(verifier) { testCtx.addChild(new es3fIntegerStateQueryTests.StencilRefSeparateTestCase(verifier, "stencil_ref_separate" + verifier.getTestNamePostfix(), "STENCIL_REF (separate)", gl.STENCIL_REF, gl.FRONT)); });
-		// normalVerifiers.forEach(function(verifier) { testCtx.addChild(new es3fIntegerStateQueryTests.StencilRefSeparateTestCase(verifier, "stencil_ref_separate_both" + verifier.getTestNamePostfix(), "STENCIL_REF (separate)", gl.STENCIL_REF, gl.FRONT_AND_BACK)); });
-		// normalVerifiers.forEach(function(verifier) { testCtx.addChild(new es3fIntegerStateQueryTests.StencilRefSeparateTestCase(verifier, "stencil_back_ref_separate" + verifier.getTestNamePostfix(), "STENCIL_BACK_REF (separate)", gl.STENCIL_BACK_REF, gl.BACK)); });
-		// normalVerifiers.forEach(function(verifier) { testCtx.addChild(new es3fIntegerStateQueryTests.StencilRefSeparateTestCase(verifier, "stencil_back_ref_separate_both" + verifier.getTestNamePostfix(), "STENCIL_BACK_REF (separate)", gl.STENCIL_BACK_REF, gl.FRONT_AND_BACK)); });
+		testCtx.addChild(new es3fIntegerStateQueryTests.SamplesTestCase("samples" , "SAMPLES"));
+		testCtx.addChild(new es3fIntegerStateQueryTests.HintTestCase("generate_mipmap_hint", "GENERATE_MIPMAP_HINT", gl.GENERATE_MIPMAP_HINT));
+		testCtx.addChild(new es3fIntegerStateQueryTests.HintTestCase("fragment_shader_derivative_hint", "FRAGMENT_SHADER_DERIVATIVE_HINT", gl.FRAGMENT_SHADER_DERIVATIVE_HINT));
+		testCtx.addChild(new es3fIntegerStateQueryTests.DepthFuncTestCase("depth_func", "DEPTH_FUNC"));
+		testCtx.addChild(new es3fIntegerStateQueryTests.CullFaceTestCase("cull_face_mode", "CULL_FACE_MODE"));
+		testCtx.addChild(new es3fIntegerStateQueryTests.FrontFaceTestCase("front_face_mode", "FRONT_FACE"));
+		testCtx.addChild(new es3fIntegerStateQueryTests.ViewPortTestCase("viewport", "VIEWPORT"));
+		testCtx.addChild(new es3fIntegerStateQueryTests.ScissorBoxTestCase("scissor_box", "SCISSOR_BOX"));
+		testCtx.addChild(new es3fIntegerStateQueryTests.MaxViewportDimsTestCase("max_viewport_dims", "MAX_VIEWPORT_DIMS"));
+		testCtx.addChild(new es3fIntegerStateQueryTests.StencilRefTestCase("stencil_ref", "STENCIL_REF", gl.STENCIL_REF));
+		testCtx.addChild(new es3fIntegerStateQueryTests.StencilRefTestCase("stencil_back_ref", "STENCIL_BACK_REF", gl.STENCIL_BACK_REF));
+		testCtx.addChild(new es3fIntegerStateQueryTests.StencilRefSeparateTestCase("stencil_ref_separate", "STENCIL_REF (separate)", gl.STENCIL_REF, gl.FRONT));
+		testCtx.addChild(new es3fIntegerStateQueryTests.StencilRefSeparateTestCase("stencil_ref_separate_both", "STENCIL_REF (separate)", gl.STENCIL_REF, gl.FRONT_AND_BACK));
+		testCtx.addChild(new es3fIntegerStateQueryTests.StencilRefSeparateTestCase("stencil_back_ref_separate", "STENCIL_BACK_REF (separate)", gl.STENCIL_BACK_REF, gl.BACK));
+		testCtx.addChild(new es3fIntegerStateQueryTests.StencilRefSeparateTestCase("stencil_back_ref_separate_both", "STENCIL_BACK_REF (separate)", gl.STENCIL_BACK_REF, gl.FRONT_AND_BACK));
+
+		/**
+		 * @struct
+		 * @constructor
+		 * @param {string} name
+		 * @param {string} frontDescription
+		 * @param {number} frontTarget
+		 * @param {string} backDescription
+		 * @param {number} backTarget
+		 */
+		 var NamedStencilOp = function(name, frontDescription, frontTarget, backDescription, backTarget) {
+			/** @type {string} */ this.name = name;
+    		/** @type {string} */ this.frontDescription = frontDescription;
+    		/** @type {number} */ this.frontTarget = frontTarget;
+    		/** @type {string} */ this.backDescription = backDescription;
+    		/** @type {number} */ this.backTarget = backTarget;
+		};
+
+		/** @type {Array<NamedStencilOp>} */ var stencilOps = [
+			new NamedStencilOp("fail", "STENCIL_FAIL", gl.STENCIL_FAIL, "STENCIL_BACK_FAIL", gl.STENCIL_BACK_FAIL),
+			new NamedStencilOp("depth_fail", "STENCIL_PASS_DEPTH_FAIL", gl.STENCIL_PASS_DEPTH_FAIL, "STENCIL_BACK_PASS_DEPTH_FAIL", gl.STENCIL_BACK_PASS_DEPTH_FAIL),
+			new NamedStencilOp("depth_pass", "STENCIL_PASS_DEPTH_PASS", gl.STENCIL_PASS_DEPTH_PASS, "STENCIL_BACK_PASS_DEPTH_PASS", gl.STENCIL_BACK_PASS_DEPTH_PASS)
+		];
+
+		for (var testNdx = 0; testNdx < stencilOps.length; testNdx++) {
+			testCtx.addChild(new es3fIntegerStateQueryTests.StencilOpTestCase("stencil_" + stencilOps[testNdx].name, stencilOps[testNdx].frontDescription, stencilOps[testNdx].frontTarget));
+			testCtx.addChild(new es3fIntegerStateQueryTests.StencilOpTestCase("stencil_back_" + stencilOps[testNdx].name, stencilOps[testNdx].backDescription, stencilOps[testNdx].backTarget));
+
+			testCtx.addChild(new es3fIntegerStateQueryTests.StencilOpSeparateTestCase("stencil_" + stencilOps[testNdx].name + "_separate_both", stencilOps[testNdx].frontDescription, stencilOps[testNdx].frontTarget, gl.FRONT_AND_BACK));
+			testCtx.addChild(new es3fIntegerStateQueryTests.StencilOpSeparateTestCase("stencil_back_" + stencilOps[testNdx].name + "_separate_both", stencilOps[testNdx].backDescription, stencilOps[testNdx].backTarget, gl.FRONT_AND_BACK));
+
+			testCtx.addChild(new es3fIntegerStateQueryTests.StencilOpSeparateTestCase("stencil_" + stencilOps[testNdx].name + "_separate", stencilOps[testNdx].frontDescription, stencilOps[testNdx].frontTarget, gl.FRONT));
+			testCtx.addChild(new es3fIntegerStateQueryTests.StencilOpSeparateTestCase("stencil_back_" + stencilOps[testNdx].name + "_separate", stencilOps[testNdx].backDescription, stencilOps[testNdx].backTarget, gl.BACK));
+		}
 		//
-		// /**
-		//  * @struct
-		//  * @constructor
-		//  * @param {string} name
-		//  * @param {string} frontDescription
-		//  * @param {number} frontTarget
-		//  * @param {string} backDescription
-		//  * @param {number} backTarget
-		//  */
-		//  NamedStencilOp = function(name, frontDescription, frontTarget, backDescription, backTarget) {
-		// 	/** @type {string} */ this.name = name;
-    	// 	/** @type {string} */ this.frontDescription = frontDescription;
-    	// 	/** @type {number} */ this.frontTarget = frontTarget;
-    	// 	/** @type {string} */ this.backDescription = backDescription;
-    	// 	/** @type {number} */ this.backTarget = backTarget;
-		// };
-		//
-		// /** @type {Array<NamedStencilOp>} */ var stencilOps = [
-		// 	new NamedStencilOp("fail", "STENCIL_FAIL", gl.STENCIL_FAIL, "STENCIL_BACK_FAIL", gl.STENCIL_BACK_FAIL),
-		// 	new NamedStencilOp("depth_fail", "STENCIL_PASS_DEPTH_FAIL", gl.STENCIL_PASS_DEPTH_FAIL, "STENCIL_BACK_PASS_DEPTH_FAIL", gl.STENCIL_BACK_PASS_DEPTH_FAIL),
-		// 	new NamedStencilOp("depth_pass", "STENCIL_PASS_DEPTH_PASS", gl.STENCIL_PASS_DEPTH_PASS, "STENCIL_BACK_PASS_DEPTH_PASS", gl.STENCIL_BACK_PASS_DEPTH_PASS)
-		// ];
-		//
-		// for (var testNdx = 0; testNdx < stencilOps.length; testNdx++) {
-		// 	normalVerifiers.forEach(function(verifier) { testCtx.addChild(new es3fIntegerStateQueryTests.StencilOpTestCase(verifier, "stencil_" + stencilOps[testNdx].name + verifier.getTestNamePostfix(), stencilOps[testNdx].frontDescription, stencilOps[testNdx].frontTarget)); });
-		// 	normalVerifiers.forEach(function(verifier) { testCtx.addChild(new es3fIntegerStateQueryTests.StencilOpTestCase(verifier, "stencil_back_" + stencilOps[testNdx].name + verifier.getTestNamePostfix(), stencilOps[testNdx].backDescription, stencilOps[testNdx].backTarget)); });
-		//
-		// 	normalVerifiers.forEach(function(verifier) { testCtx.addChild(new es3fIntegerStateQueryTests.StencilOpSeparateTestCase(verifier, "stencil_" + stencilOps[testNdx].name + "_separate_both" + verifier.getTestNamePostfix(), stencilOps[testNdx].frontDescription, stencilOps[testNdx].frontTarget, gl.FRONT_AND_BACK)); });
-		// 	normalVerifiers.forEach(function(verifier) { testCtx.addChild(new es3fIntegerStateQueryTests.StencilOpSeparateTestCase(verifier, "stencil_back_" + stencilOps[testNdx].name + "_separate_both" + verifier.getTestNamePostfix(), stencilOps[testNdx].backDescription, stencilOps[testNdx].backTarget, gl.FRONT_AND_BACK)); });
-		//
-		// 	normalVerifiers.forEach(function(verifier) { testCtx.addChild(new es3fIntegerStateQueryTests.StencilOpSeparateTestCase(verifier, "stencil_" + stencilOps[testNdx].name + "_separate" + verifier.getTestNamePostfix(), stencilOps[testNdx].frontDescription, stencilOps[testNdx].frontTarget, gl.FRONT)); });
-		// 	normalVerifiers.forEach(function(verifier) { testCtx.addChild(new es3fIntegerStateQueryTests.StencilOpSeparateTestCase(verifier, "stencil_back_" + stencilOps[testNdx].name + "_separate" + verifier.getTestNamePostfix(), stencilOps[testNdx].backDescription, stencilOps[testNdx].backTarget, gl.BACK)); });
-		// }
-		//
-		// normalVerifiers.forEach(function(verifier) { testCtx.addChild(new es3fIntegetStateQueryTests.StencilFuncTestCase(verifier, "stencil_func" + verifier.getTestNamePostfix(), "STENCIL_FUNC")); });
-		// normalVerifiers.forEach(function(verifier) { testCtx.addChild(new es3fIntegetStateQueryTests.StencilFuncSeparateTestCase(verifier, "stencil_func_separate" + verifier.getTestNamePostfix(), "STENCIL_FUNC (separate)", gl.STENCIL_FUNC, gl.FRONT)); });
-		// normalVerifiers.forEach(function(verifier) { testCtx.addChild(new es3fIntegetStateQueryTests.StencilFuncSeparateTestCase(verifier, "stencil_func_separate_both" + verifier.getTestNamePostfix(), "STENCIL_FUNC (separate)", gl.STENCIL_FUNC, gl.FRONT_AND_BACK)); });
-		// normalVerifiers.forEach(function(verifier) { testCtx.addChild(new es3fIntegetStateQueryTests.StencilFuncSeparateTestCase(verifier, "stencil_back_func_separate" + verifier.getTestNamePostfix(), "STENCIL_FUNC (separate)", gl.STENCIL_BACK_FUNC, gl.BACK)); });
-		// normalVerifiers.forEach(function(verifier) { testCtx.addChild(new es3fIntegetStateQueryTests.StencilFuncSeparateTestCase(verifier, "stencil_back_func_separate_both" + verifier.getTestNamePostfix(), "STENCIL_FUNC (separate)", gl.STENCIL_BACK_FUNC, gl.FRONT_AND_BACK)); });
-		// normalVerifiers.forEach(function(verifier) { testCtx.addChild(new es3fIntegetStateQueryTests.StencilMaskTestCase(verifier, "stencil_value_mask" + verifier.getTestNamePostfix(), "STENCIL_VALUE_MASK", gl.STENCIL_VALUE_MASK)); });
-		// normalVerifiers.forEach(function(verifier) { testCtx.addChild(new es3fIntegetStateQueryTests.StencilMaskTestCase(verifier, "stencil_back_value_mask" + verifier.getTestNamePostfix(), "STENCIL_BACK_VALUE_MASK", gl.STENCIL_BACK_VALUE_MASK)); });
-		// normalVerifiers.forEach(function(verifier) { testCtx.addChild(new es3fIntegetStateQueryTests.StencilMaskSeparateTestCase(verifier, "stencil_value_mask_separate" + verifier.getTestNamePostfix(), "STENCIL_VALUE_MASK (separate)", gl.STENCIL_VALUE_MASK, gl.FRONT)); });
-		// normalVerifiers.forEach(function(verifier) { testCtx.addChild(new es3fIntegetStateQueryTests.StencilMaskSeparateTestCase(verifier, "stencil_value_mask_separate_both" + verifier.getTestNamePostfix(), "STENCIL_VALUE_MASK (separate)", gl.STENCIL_VALUE_MASK, gl.FRONT_AND_BACK)); });
-		// normalVerifiers.forEach(function(verifier) { testCtx.addChild(new es3fIntegetStateQueryTests.StencilMaskSeparateTestCase(verifier, "stencil_back_value_mask_separate" + verifier.getTestNamePostfix(), "STENCIL_BACK_VALUE_MASK (separate)", gl.STENCIL_BACK_VALUE_MASK, gl.BACK)); });
-		// normalVerifiers.forEach(function(verifier) { testCtx.addChild(new es3fIntegetStateQueryTests.StencilMaskSeparateTestCase(verifier, "stencil_back_value_mask_separate_both" + verifier.getTestNamePostfix(), "STENCIL_BACK_VALUE_MASK (separate)", gl.STENCIL_BACK_VALUE_MASK, gl.FRONT_AND_BACK)); });
-		// normalVerifiers.forEach(function(verifier) { testCtx.addChild(new es3fIntegetStateQueryTests.StencilWriteMaskTestCase(verifier, "stencil_writemask" + verifier.getTestNamePostfix(), "STENCIL_WRITEMASK", gl.STENCIL_WRITEMASK)); });
-		// normalVerifiers.forEach(function(verifier) { testCtx.addChild(new es3fIntegetStateQueryTests.StencilWriteMaskTestCase(verifier, "stencil_back_writemask" + verifier.getTestNamePostfix(), "STENCIL_BACK_WRITEMASK", gl.STENCIL_BACK_WRITEMASK)); });
-		// normalVerifiers.forEach(function(verifier) { testCtx.addChild(new es3fIntegetStateQueryTests.StencilWriteMaskSeparateTestCase(verifier, "stencil_writemask_separate" + verifier.getTestNamePostfix(), "STENCIL_WRITEMASK (separate)", gl.STENCIL_WRITEMASK, gl.FRONT)); });
-		// normalVerifiers.forEach(function(verifier) { testCtx.addChild(new es3fIntegetStateQueryTests.StencilWriteMaskSeparateTestCase(verifier, "stencil_writemask_separate_both" + verifier.getTestNamePostfix(), "STENCIL_WRITEMASK (separate)", gl.STENCIL_WRITEMASK, gl.FRONT_AND_BACK)); });
-		// normalVerifiers.forEach(function(verifier) { testCtx.addChild(new es3fIntegetStateQueryTests.StencilWriteMaskSeparateTestCase(verifier, "stencil_back_writemask_separate" + verifier.getTestNamePostfix(), "STENCIL_BACK_WRITEMASK (separate)", gl.STENCIL_BACK_WRITEMASK, gl.BACK)); });
-		// normalVerifiers.forEach(function(verifier) { testCtx.addChild(new es3fIntegetStateQueryTests.StencilWriteMaskSeparateTestCase(verifier, "stencil_back_writemask_separate_both" + verifier.getTestNamePostfix(), "STENCIL_BACK_WRITEMASK (separate)", gl.STENCIL_BACK_WRITEMASK, gl.FRONT_AND_BACK)); });
+		// normalVerifiers.forEach(function(verifier) { testCtx.addChild(new es3fIntegerStateQueryTests.StencilFuncTestCase(verifier, "stencil_func" + verifier.getTestNamePostfix(), "STENCIL_FUNC")); });
+		// normalVerifiers.forEach(function(verifier) { testCtx.addChild(new es3fIntegerStateQueryTests.StencilFuncSeparateTestCase(verifier, "stencil_func_separate" + verifier.getTestNamePostfix(), "STENCIL_FUNC (separate)", gl.STENCIL_FUNC, gl.FRONT)); });
+		// normalVerifiers.forEach(function(verifier) { testCtx.addChild(new es3fIntegerStateQueryTests.StencilFuncSeparateTestCase(verifier, "stencil_func_separate_both" + verifier.getTestNamePostfix(), "STENCIL_FUNC (separate)", gl.STENCIL_FUNC, gl.FRONT_AND_BACK)); });
+		// normalVerifiers.forEach(function(verifier) { testCtx.addChild(new es3fIntegerStateQueryTests.StencilFuncSeparateTestCase(verifier, "stencil_back_func_separate" + verifier.getTestNamePostfix(), "STENCIL_FUNC (separate)", gl.STENCIL_BACK_FUNC, gl.BACK)); });
+		// normalVerifiers.forEach(function(verifier) { testCtx.addChild(new es3fIntegerStateQueryTests.StencilFuncSeparateTestCase(verifier, "stencil_back_func_separate_both" + verifier.getTestNamePostfix(), "STENCIL_FUNC (separate)", gl.STENCIL_BACK_FUNC, gl.FRONT_AND_BACK)); });
+		// normalVerifiers.forEach(function(verifier) { testCtx.addChild(new es3fIntegerStateQueryTests.StencilMaskTestCase(verifier, "stencil_value_mask" + verifier.getTestNamePostfix(), "STENCIL_VALUE_MASK", gl.STENCIL_VALUE_MASK)); });
+		// normalVerifiers.forEach(function(verifier) { testCtx.addChild(new es3fIntegerStateQueryTests.StencilMaskTestCase(verifier, "stencil_back_value_mask" + verifier.getTestNamePostfix(), "STENCIL_BACK_VALUE_MASK", gl.STENCIL_BACK_VALUE_MASK)); });
+		// normalVerifiers.forEach(function(verifier) { testCtx.addChild(new es3fIntegerStateQueryTests.StencilMaskSeparateTestCase(verifier, "stencil_value_mask_separate" + verifier.getTestNamePostfix(), "STENCIL_VALUE_MASK (separate)", gl.STENCIL_VALUE_MASK, gl.FRONT)); });
+		// normalVerifiers.forEach(function(verifier) { testCtx.addChild(new es3fIntegerStateQueryTests.StencilMaskSeparateTestCase(verifier, "stencil_value_mask_separate_both" + verifier.getTestNamePostfix(), "STENCIL_VALUE_MASK (separate)", gl.STENCIL_VALUE_MASK, gl.FRONT_AND_BACK)); });
+		// normalVerifiers.forEach(function(verifier) { testCtx.addChild(new es3fIntegerStateQueryTests.StencilMaskSeparateTestCase(verifier, "stencil_back_value_mask_separate" + verifier.getTestNamePostfix(), "STENCIL_BACK_VALUE_MASK (separate)", gl.STENCIL_BACK_VALUE_MASK, gl.BACK)); });
+		// normalVerifiers.forEach(function(verifier) { testCtx.addChild(new es3fIntegerStateQueryTests.StencilMaskSeparateTestCase(verifier, "stencil_back_value_mask_separate_both" + verifier.getTestNamePostfix(), "STENCIL_BACK_VALUE_MASK (separate)", gl.STENCIL_BACK_VALUE_MASK, gl.FRONT_AND_BACK)); });
+		// normalVerifiers.forEach(function(verifier) { testCtx.addChild(new es3fIntegerStateQueryTests.StencilWriteMaskTestCase(verifier, "stencil_writemask" + verifier.getTestNamePostfix(), "STENCIL_WRITEMASK", gl.STENCIL_WRITEMASK)); });
+		// normalVerifiers.forEach(function(verifier) { testCtx.addChild(new es3fIntegerStateQueryTests.StencilWriteMaskTestCase(verifier, "stencil_back_writemask" + verifier.getTestNamePostfix(), "STENCIL_BACK_WRITEMASK", gl.STENCIL_BACK_WRITEMASK)); });
+		// normalVerifiers.forEach(function(verifier) { testCtx.addChild(new es3fIntegerStateQueryTests.StencilWriteMaskSeparateTestCase(verifier, "stencil_writemask_separate" + verifier.getTestNamePostfix(), "STENCIL_WRITEMASK (separate)", gl.STENCIL_WRITEMASK, gl.FRONT)); });
+		// normalVerifiers.forEach(function(verifier) { testCtx.addChild(new es3fIntegerStateQueryTests.StencilWriteMaskSeparateTestCase(verifier, "stencil_writemask_separate_both" + verifier.getTestNamePostfix(), "STENCIL_WRITEMASK (separate)", gl.STENCIL_WRITEMASK, gl.FRONT_AND_BACK)); });
+		// normalVerifiers.forEach(function(verifier) { testCtx.addChild(new es3fIntegerStateQueryTests.StencilWriteMaskSeparateTestCase(verifier, "stencil_back_writemask_separate" + verifier.getTestNamePostfix(), "STENCIL_BACK_WRITEMASK (separate)", gl.STENCIL_BACK_WRITEMASK, gl.BACK)); });
+		// normalVerifiers.forEach(function(verifier) { testCtx.addChild(new es3fIntegerStateQueryTests.StencilWriteMaskSeparateTestCase(verifier, "stencil_back_writemask_separate_both" + verifier.getTestNamePostfix(), "STENCIL_BACK_WRITEMASK (separate)", gl.STENCIL_BACK_WRITEMASK, gl.FRONT_AND_BACK)); });
 		//
 		// /**
 		//  * @struct
@@ -864,8 +848,8 @@ goog.scope(function() {
 		// for (var testNdx = 0; testNdx < pixelStoreStates.length; testNdx++)
 		// 	normalVerifiers.forEach(function(verifier) { testCtx.addChild(new es3fIntegerStateQueryTests.PixelStoreTestCase(verifier, pixelStoreStates[testNdx].name + verifier.getTestNamePostfix(), pixelStoreStates[testNdx].description, pixelStoreStates[testNdx].target, pixelStoreStates[testNdx].initialValue)); });
 		//
-		// normalVerifiers.forEach(function(verifier) { testCtx.addChild(new es3fIntegetStateQueryTests.PixelStoreAlignTestCase(verifier, "unpack_alignment" + verifier.getTestNamePostfix(), "UNPACK_ALIGNMENT", gl.UNPACK_ALIGNMENT)); });
-		// normalVerifiers.forEach(function(verifier) { testCtx.addChild(new es3fIntegetStateQueryTests.PixelStoreAlignTestCase(verifier, "pack_alignment" + verifier.getTestNamePostfix(), "PACK_ALIGNMENT", gl.PACK_ALIGNMENT)); });
+		// normalVerifiers.forEach(function(verifier) { testCtx.addChild(new es3fIntegerStateQueryTests.PixelStoreAlignTestCase(verifier, "unpack_alignment" + verifier.getTestNamePostfix(), "UNPACK_ALIGNMENT", gl.UNPACK_ALIGNMENT)); });
+		// normalVerifiers.forEach(function(verifier) { testCtx.addChild(new es3fIntegerStateQueryTests.PixelStoreAlignTestCase(verifier, "pack_alignment" + verifier.getTestNamePostfix(), "PACK_ALIGNMENT", gl.PACK_ALIGNMENT)); });
 		//
 		// /**
 		//  * @struct
@@ -915,8 +899,8 @@ goog.scope(function() {
 		// ];
 		//
 		// for (var testNdx = 0; testNdx < blendEquationStates.length; testNdx++) {
-		// 	normalVerifiers.forEach(function(verifier) { testCtx.addChild(new es3fIntegetStateQueryTests.BlendEquationTestCase(verifier, blendEquationStates[testNdx].name + verifier.getTestNamePostfix(), blendEquationStates[testNdx].description, blendEquationStates[testNdx].target, blendEquationStates[testNdx].initialValue)); });
-		// 	normalVerifiers.forEach(function(verifier) { testCtx.addChild(new es3fIntegetStateQueryTests.BlendEquationSeparateTestCase(verifier, blendEquationStates[testNdx].name + "_separate" + verifier.getTestNamePostfix(), blendEquationStates[testNdx].description, blendEquationStates[testNdx].target, blendEquationStates[testNdx].initialValue)); });
+		// 	normalVerifiers.forEach(function(verifier) { testCtx.addChild(new es3fIntegerStateQueryTests.BlendEquationTestCase(verifier, blendEquationStates[testNdx].name + verifier.getTestNamePostfix(), blendEquationStates[testNdx].description, blendEquationStates[testNdx].target, blendEquationStates[testNdx].initialValue)); });
+		// 	normalVerifiers.forEach(function(verifier) { testCtx.addChild(new es3fIntegerStateQueryTests.BlendEquationSeparateTestCase(verifier, blendEquationStates[testNdx].name + "_separate" + verifier.getTestNamePostfix(), blendEquationStates[testNdx].description, blendEquationStates[testNdx].target, blendEquationStates[testNdx].initialValue)); });
 		// }
 		//
 		// /**
@@ -943,7 +927,7 @@ goog.scope(function() {
 		// ];
 		//
 		// for (var testNdx = 0; testNdx < implementationArrayReturningStates.length; testNdx++)
-		// 	normalVerifiers.forEach(function(verifier) { testCtx.addChild(new es3fIntegetStateQueryTests.ImplementationArrayTestCase(verifier, implementationArrayReturningStates[testNdx].name + verifier.getTestNamePostfix(), implementationArrayReturningStates[testNdx].description,	implementationArrayReturningStates[testNdx].target,	implementationArrayReturningStates[testNdx].targetLengthTarget,	implementationArrayReturningStates[testNdx].minLength)); });
+		// 	normalVerifiers.forEach(function(verifier) { testCtx.addChild(new es3fIntegerStateQueryTests.ImplementationArrayTestCase(verifier, implementationArrayReturningStates[testNdx].name + verifier.getTestNamePostfix(), implementationArrayReturningStates[testNdx].description,	implementationArrayReturningStates[testNdx].target,	implementationArrayReturningStates[testNdx].targetLengthTarget,	implementationArrayReturningStates[testNdx].minLength)); });
 		//
 		// /**
 		//  * @struct
@@ -971,16 +955,17 @@ goog.scope(function() {
 		// ];
 		//
 		// for (vartestNdx = 0; testNdx < bufferBindingStates.length; testNdx++)
-		// 	normalVerifiers.forEach(function(verifier) { testCtx.addChild(new es3fIntegetStateQueryTests.BufferBindingTestCase(verifier, bufferBindingStates[testNdx].name + verifier.getTestNamePostfix(), bufferBindingStates[testNdx].description, bufferBindingStates[testNdx].target, bufferBindingStates[testNdx].type)); });
+		// 	normalVerifiers.forEach(function(verifier) { testCtx.addChild(new es3fIntegerStateQueryTests.BufferBindingTestCase(verifier, bufferBindingStates[testNdx].name + verifier.getTestNamePostfix(), bufferBindingStates[testNdx].description, bufferBindingStates[testNdx].target, bufferBindingStates[testNdx].type)); });
 		//
-		// normalVerifiers.forEach(function(verifier) { testCtx.addChild(new es3fIntegetStateQueryTests.ElementArrayBufferBindingTestCase(verifier, "element_array_buffer_binding" + verifier.getTestNamePostfix())); });
-		// normalVerifiers.forEach(function(verifier) { testCtx.addChild(new es3fIntegetStateQueryTests.TransformFeedbackBindingTestCase(verifier, "transform_feedback_binding" + verifier.getTestNamePostfix())); });
-		// normalVerifiers.forEach(function(verifier) { testCtx.addChild(new es3fIntegetStateQueryTests.CurrentProgramBindingTestCase(verifier, "current_program_binding" + verifier.getTestNamePostfix(),	"CURRENT_PROGRAM")); });
-		// normalVerifiers.forEach(function(verifier) { testCtx.addChild(new es3fIntegetStateQueryTests.VertexArrayBindingTestCase(verifier, "vertex_array_binding" + verifier.getTestNamePostfix(),	"VERTEX_ARRAY_BINDING")); });
-		// normalVerifiers.forEach(function(verifier) { testCtx.addChild(new es3fIntegetStateQueryTests.StencilClearValueTestCase(verifier, "stencil_clear_value" + verifier.getTestNamePostfix(),	"STENCIL_CLEAR_VALUE")); });
-		// normalVerifiers.forEach(function(verifier) { testCtx.addChild(new es3fIntegetStateQueryTests.ActiveTextureTestCase(verifier, "active_texture" + verifier.getTestNamePostfix(),	"ACTIVE_TEXTURE")); });
-		// normalVerifiers.forEach(function(verifier) { testCtx.addChild(new es3fIntegetStateQueryTests.RenderbufferBindingTestCase(verifier, "renderbuffer_binding" + verifier.getTestNamePostfix(),	"RENDERBUFFER_BINDING")); });
-		// normalVerifiers.forEach(function(verifier) { testCtx.addChild(new es3fIntegetStateQueryTests.SamplerObjectBindingTestCase(verifier, "sampler_binding" + verifier.getTestNamePostfix(),	"SAMPLER_BINDING")); });
+		// normalVerifiers.forEach(function(verifier) { testCtx.addChild(new es3fIntegerStateQueryTests.ElementArrayBufferBindingTestCase(verifier, "element_array_buffer_binding" + verifier.getTestNamePostfix())); });
+		// normalVerifiers.forEach(function(verifier) { testCtx.addChild(new es3fIntegerStateQueryTests.TransformFeedbackBindingTestCase(verifier, "transform_feedback_binding" + verifier.getTestNamePostfix())); });
+		testCtx.addChild(new es3fIntegerStateQueryTests.TransformFeedbackBindingTestCase("transform_feedback_binding"));
+		// normalVerifiers.forEach(function(verifier) { testCtx.addChild(new es3fIntegerStateQueryTests.CurrentProgramBindingTestCase(verifier, "current_program_binding" + verifier.getTestNamePostfix(),	"CURRENT_PROGRAM")); });
+		// normalVerifiers.forEach(function(verifier) { testCtx.addChild(new es3fIntegerStateQueryTests.VertexArrayBindingTestCase(verifier, "vertex_array_binding" + verifier.getTestNamePostfix(),	"VERTEX_ARRAY_BINDING")); });
+		// normalVerifiers.forEach(function(verifier) { testCtx.addChild(new es3fIntegerStateQueryTests.StencilClearValueTestCase(verifier, "stencil_clear_value" + verifier.getTestNamePostfix(),	"STENCIL_CLEAR_VALUE")); });
+		// normalVerifiers.forEach(function(verifier) { testCtx.addChild(new es3fIntegerStateQueryTests.ActiveTextureTestCase(verifier, "active_texture" + verifier.getTestNamePostfix(),	"ACTIVE_TEXTURE")); });
+		// normalVerifiers.forEach(function(verifier) { testCtx.addChild(new es3fIntegerStateQueryTests.RenderbufferBindingTestCase(verifier, "renderbuffer_binding" + verifier.getTestNamePostfix(),	"RENDERBUFFER_BINDING")); });
+		// normalVerifiers.forEach(function(verifier) { testCtx.addChild(new es3fIntegerStateQueryTests.SamplerObjectBindingTestCase(verifier, "sampler_binding" + verifier.getTestNamePostfix(),	"SAMPLER_BINDING")); });
 		//
 		// /**
 		//  * @struct
@@ -1005,12 +990,12 @@ goog.scope(function() {
 		// ];
 		//
 		// for (var testNdx = 0; testNdx < textureBindings.length; testNdx++)
-		// 	normalVerifiers.forEach(function(verifier) { testCtx.addChild(new es3fIntegetStateQueryTests.TextureBindingTestCase(verifier, textureBindings[testNdx].name + verifier.getTestNamePostfix(), textureBindings[testNdx].description, textureBindings[testNdx].target, textureBindings[testNdx].type)); });
+		// 	normalVerifiers.forEach(function(verifier) { testCtx.addChild(new es3fIntegerStateQueryTests.TextureBindingTestCase(verifier, textureBindings[testNdx].name + verifier.getTestNamePostfix(), textureBindings[testNdx].description, textureBindings[testNdx].target, textureBindings[testNdx].type)); });
 		//
-		// normalVerifiers.forEach(function(verifier) { testCtx.addChild(new es3fIntegetStateQueryTests.FrameBufferBindingTestCase(verifier, "framebuffer_binding" + verifier.getTestNamePostfix(), "DRAW_FRAMEBUFFER_BINDING and READ_FRAMEBUFFER_BINDING")); });
-		// normalVerifiers.forEach(function(verifier) { testCtx.addChild(new es3fIntegetStateQueryTests.ImplementationColorReadTestCase(verifier, "implementation_color_read" + verifier.getTestNamePostfix(), "IMPLEMENTATION_COLOR_READ_TYPE and IMPLEMENTATION_COLOR_READ_FORMAT")); });
-		// normalVerifiers.forEach(function(verifier) { testCtx.addChild(new es3fIntegetStateQueryTests.ReadBufferCase(verifier, "read_buffer" + verifier.getTestNamePostfix(), "READ_BUFFER")); });
-		// normalVerifiers.forEach(function(verifier) { testCtx.addChild(new es3fIntegetStateQueryTests.DrawBufferCase(verifier, "draw_buffer" + verifier.getTestNamePostfix(), "DRAW_BUFFER")); });
+		// normalVerifiers.forEach(function(verifier) { testCtx.addChild(new es3fIntegerStateQueryTests.FrameBufferBindingTestCase(verifier, "framebuffer_binding" + verifier.getTestNamePostfix(), "DRAW_FRAMEBUFFER_BINDING and READ_FRAMEBUFFER_BINDING")); });
+		// normalVerifiers.forEach(function(verifier) { testCtx.addChild(new es3fIntegerStateQueryTests.ImplementationColorReadTestCase(verifier, "implementation_color_read" + verifier.getTestNamePostfix(), "IMPLEMENTATION_COLOR_READ_TYPE and IMPLEMENTATION_COLOR_READ_FORMAT")); });
+		// normalVerifiers.forEach(function(verifier) { testCtx.addChild(new es3fIntegerStateQueryTests.ReadBufferCase(verifier, "read_buffer" + verifier.getTestNamePostfix(), "READ_BUFFER")); });
+		// normalVerifiers.forEach(function(verifier) { testCtx.addChild(new es3fIntegerStateQueryTests.DrawBufferCase(verifier, "draw_buffer" + verifier.getTestNamePostfix(), "DRAW_BUFFER")); });
 
 	};
 
