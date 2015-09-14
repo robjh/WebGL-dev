@@ -156,6 +156,22 @@ glsStateQuery.verifyProgram = function(program, param, reference) {
 };
 
 /**
+ * Verify that WebGL sampler state 'param' has the expected value
+ * @param {WebGLSampler} sampler
+ * @param {number} param
+ * @param {*} reference
+ * @return {boolean}
+ */
+glsStateQuery.verifySampler = function(sampler, param, reference) {
+    var value = gl.getSamplerParameter(sampler, param);
+    var result = glsStateQuery.compare(value, reference);
+    if (!result) {
+        bufferedLogToConsole('Result: ' + value + ' Expected: ' + reference);
+    }
+    return result;
+};
+
+/**
  * Verify that WebGL state 'param' has one of the expected values
  * @param {number} param
  * @param {Array<*>} reference
