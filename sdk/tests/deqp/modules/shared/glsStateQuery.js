@@ -32,7 +32,7 @@ var glsStateQuery = modules.shared.glsStateQuery;
  * return {boolean}
  */
 glsStateQuery.compare = function(a, b) {
-    /** @const */ var eps = 0.00001;
+    /** @const */ var eps = 0.01;
     if (a === b)
         return true;
 
@@ -148,6 +148,38 @@ glsStateQuery.verifyShader = function(shader, param, reference) {
  */
 glsStateQuery.verifyProgram = function(program, param, reference) {
     var value = gl.getProgramParameter(program, param);
+    var result = glsStateQuery.compare(value, reference);
+    if (!result) {
+        bufferedLogToConsole('Result: ' + value + ' Expected: ' + reference);
+    }
+    return result;
+};
+
+/**
+ * Verify that WebGL sampler state 'param' has the expected value
+ * @param {WebGLSampler} sampler
+ * @param {number} param
+ * @param {*} reference
+ * @return {boolean}
+ */
+glsStateQuery.verifySampler = function(sampler, param, reference) {
+    var value = gl.getSamplerParameter(sampler, param);
+    var result = glsStateQuery.compare(value, reference);
+    if (!result) {
+        bufferedLogToConsole('Result: ' + value + ' Expected: ' + reference);
+    }
+    return result;
+};
+
+/**
+ * Verify that WebGL texture state 'param' has the expected value
+ * @param {number} target
+ * @param {number} param
+ * @param {*} reference
+ * @return {boolean}
+ */
+glsStateQuery.verifyTexture = function(target, param, reference) {
+    var value = gl.getTexParameter(target, param);
     var result = glsStateQuery.compare(value, reference);
     if (!result) {
         bufferedLogToConsole('Result: ' + value + ' Expected: ' + reference);
