@@ -172,6 +172,22 @@ glsStateQuery.verifySampler = function(sampler, param, reference) {
 };
 
 /**
+ * Verify that WebGL texture state 'param' has the expected value
+ * @param {number} target
+ * @param {number} param
+ * @param {*} reference
+ * @return {boolean}
+ */
+glsStateQuery.verifyTexture = function(target, param, reference) {
+    var value = gl.getTexParameter(target, param);
+    var result = glsStateQuery.compare(value, reference);
+    if (!result) {
+        bufferedLogToConsole('Result: ' + value + ' Expected: ' + reference);
+    }
+    return result;
+};
+
+/**
  * Verify that WebGL state 'param' has one of the expected values
  * @param {number} param
  * @param {Array<*>} reference
