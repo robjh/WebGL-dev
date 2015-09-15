@@ -98,6 +98,26 @@ var lessThan = function(a, b) {
     return a < b ? 1 : 0;
 }
 
+var lessThanEqual = function(a, b) {
+    return a <= b ? 1 : 0;
+}
+
+var greaterThan = function(a, b) {
+    return a > b ? 1 : 0;
+}
+
+var greaterThanEqual = function(a, b) {
+    return a >= b ? 1 : 0;
+}
+
+var allEqual = function(a, b) {
+    return a == b ? 1 : 0;
+}
+
+var anyNotEqual = function(a, b) {
+    return a != b ? 1 : 0;
+}
+
 /**
  * @param {number} a
  * @param {Array<number>} b
@@ -1049,6 +1069,7 @@ es3fShaderOperatorTests.ShaderOperatorTests.prototype.init = function() {
     var GT = es3fShaderOperatorTests.ValueType.FLOAT_GENTYPE;
     var UGT = es3fShaderOperatorTests.ValueType.UINT_GENTYPE;
     var IGT = es3fShaderOperatorTests.ValueType.INT_GENTYPE;
+    var BGT = es3fShaderOperatorTests.ValueType.BOOL_GENTYPE;
     var F = es3fShaderOperatorTests.ValueType.FLOAT;
     var I = es3fShaderOperatorTests.ValueType.INT;
     var U = es3fShaderOperatorTests.ValueType.UINT;
@@ -1636,10 +1657,68 @@ es3fShaderOperatorTests.ShaderOperatorTests.prototype.init = function() {
     }
 
     // Rest of binary operators.
-    var lessThanFuncs = es3fShaderOperatorTests.binaryGenTypeFuncs(lessThan);
+    // Scalar relational operators.
+
     binary.push(op("less", "<", B, [v(F, -1.0, 1.0), v(F, -1.0, 1.0)], f(1.0), f(0.0),
-        all, {scalar:
-                es3fShaderOperatorTests.binaryGenTypeFuncs(lessThan).scalar}));
+        all, {scalar: es3fShaderOperatorTests.binaryGenTypeFuncs(lessThan).scalar}));
+    binary.push(op("less", "<", B, [v(I, -5.0, 5.0), v(I, -5.0, 5.0)], f(1.0), f(0.0),
+        all, {scalar: es3fShaderOperatorTests.binaryGenTypeFuncs(lessThan, gluShaderUtil.DataType.INT,
+        gluShaderUtil.DataType.INT).scalar}));
+    binary.push(op("less", "<", B, [v(U, 0.0, 16.0), v(U, 0.0, 16.0)], f(1.0), f(0.0),
+        all, {scalar: es3fShaderOperatorTests.binaryGenTypeFuncs(lessThan, gluShaderUtil.DataType.UINT,
+        gluShaderUtil.DataType.UINT).scalar}));
+    binary.push(op("less_or_equal", "<=", B, [v(F, -1.0, 1.0), v(F, -1.0, 1.0)], f(1.0), f(0.0),
+        all, {scalar: es3fShaderOperatorTests.binaryGenTypeFuncs(lessThanEqual).scalar}));
+    binary.push(op("less_or_equal", "<=", B, [v(I, -5.0, 5.0), v(I, -5.0, 5.0)], f(1.0), f(0.0),
+        all, {scalar: es3fShaderOperatorTests.binaryGenTypeFuncs(lessThanEqual, gluShaderUtil.DataType.INT,
+        gluShaderUtil.DataType.INT).scalar}));
+    binary.push(op("less_or_equal", "<=", B, [v(U, 0.0, 16.0), v(U, 0.0, 16.0)], f(1.0), f(0.0),
+        all, {scalar: es3fShaderOperatorTests.binaryGenTypeFuncs(lessThanEqual, gluShaderUtil.DataType.UINT,
+        gluShaderUtil.DataType.UINT).scalar}));
+    binary.push(op("greater", ">", B, [v(F, -1.0, 1.0), v(F, -1.0, 1.0)], f(1.0), f(0.0),
+        all, {scalar: es3fShaderOperatorTests.binaryGenTypeFuncs(greaterThan).scalar}));
+    binary.push(op("greater", ">", B, [v(I, -5.0, 5.0), v(I, -5.0, 5.0)], f(1.0), f(0.0),
+        all, {scalar: es3fShaderOperatorTests.binaryGenTypeFuncs(greaterThan, gluShaderUtil.DataType.INT,
+        gluShaderUtil.DataType.INT).scalar}));
+    binary.push(op("greater", ">", B, [v(U, 0.0, 16.0), v(U, 0.0, 16.0)], f(1.0), f(0.0),
+        all, {scalar: es3fShaderOperatorTests.binaryGenTypeFuncs(greaterThan, gluShaderUtil.DataType.UINT,
+        gluShaderUtil.DataType.UINT).scalar}));
+    binary.push(op("greater_or_equal", ">=", B, [v(F, -1.0, 1.0), v(F, -1.0, 1.0)], f(1.0), f(0.0),
+        all, {scalar: es3fShaderOperatorTests.binaryGenTypeFuncs(greaterThanEqual).scalar}));
+    binary.push(op("greater_or_equal", ">=", B, [v(I, -5.0, 5.0), v(I, -5.0, 5.0)], f(1.0), f(0.0),
+        all, {scalar: es3fShaderOperatorTests.binaryGenTypeFuncs(greaterThanEqual, gluShaderUtil.DataType.INT,
+        gluShaderUtil.DataType.INT).scalar}));
+    binary.push(op("greater_or_equal", ">=", B, [v(U, 0.0, 16.0), v(U, 0.0, 16.0)], f(1.0), f(0.0),
+        all, {scalar: es3fShaderOperatorTests.binaryGenTypeFuncs(greaterThanEqual, gluShaderUtil.DataType.UINT,
+        gluShaderUtil.DataType.UINT).scalar}));
+
+    // Equality comparison operators.
+    binary.push(op("equal", "==", B, [v(GT, -1.0, 1.0), v(GT, -1.0, 1.0)], f(1.0), f(0.0),
+        all, es3fShaderOperatorTests.binaryGenTypeFuncs(allEqual)));
+    binary.push(op("equal", "==", B, [v(IGT, -5.5, 4.7), v(IGT, -2.1, 0.1)], f(1.0), f(0.0),
+        all, es3fShaderOperatorTests.binaryGenTypeFuncs(allEqual, gluShaderUtil.DataType.INT,
+        gluShaderUtil.DataType.INT)));
+    binary.push(op("equal", "==", B, [v(UGT, 0.0, 8.0), v(UGT, 3.5, 4.5)], f(1.0), f(0.0),
+        all, es3fShaderOperatorTests.binaryGenTypeFuncs(allEqual, gluShaderUtil.DataType.UINT,
+        gluShaderUtil.DataType.UINT)));
+    binary.push(op("equal", "==", B, [v(BGT, -2.1, 2.1), v(BGT, -1.1, 16.0)], f(1.0), f(0.0),
+        na, es3fShaderOperatorTests.binaryGenTypeFuncs(allEqual, gluShaderUtil.DataType.BOOL,
+        gluShaderUtil.DataType.BOOL)));
+    binary.push(op("not_equal", "!=", B, [v(GT, -1.0, 1.0), v(GT, -1.0, 1.0)], f(1.0), f(0.0),
+        all, es3fShaderOperatorTests.binaryGenTypeFuncs(anyNotEqual)));
+    binary.push(op("not_equal", "!=", B, [v(IGT, -5.5, 4.7), v(IGT, -2.1, 0.1)], f(1.0), f(0.0),
+        all, es3fShaderOperatorTests.binaryGenTypeFuncs(anyNotEqual, gluShaderUtil.DataType.INT,
+        gluShaderUtil.DataType.INT)));
+    binary.push(op("not_equal", "!=", B, [v(UGT, 0.0, 8.0), v(UGT, 3.5, 4.5)], f(1.0), f(0.0),
+        all, es3fShaderOperatorTests.binaryGenTypeFuncs(anyNotEqual, gluShaderUtil.DataType.UINT,
+        gluShaderUtil.DataType.UINT)));
+    binary.push(op("not_equal", "!=", B, [v(BGT, -2.1, 2.1), v(BGT, -1.1, 16.0)], f(1.0), f(0.0),
+        na, es3fShaderOperatorTests.binaryGenTypeFuncs(anyNotEqual, gluShaderUtil.DataType.BOOL,
+        gluShaderUtil.DataType.BOOL)));
+
+    // Logical operators.
+
+    
 
     funcInfoGroups.push(binary);
 
