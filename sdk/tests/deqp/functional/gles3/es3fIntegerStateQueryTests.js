@@ -681,6 +681,93 @@ goog.scope(function() {
 		}
 	};
 
+	/**
+	 * @constructor
+	 * @extends {es3fApiCase.ApiCase}
+	 * @param {string} name
+	 * @param {string} description
+	 * @param {number} testTargetName
+	 * @param {number} stencilFuncTargetFace
+	 */
+	es3fIntegerStateQueryTests.StencilMaskSeparateTestCase = function(name, description, testTargetName, stencilFuncTargetFace) {
+		es3fApiCase.ApiCase.call(this, name, description, gl);
+		/** @type {number} */ this.m_testTargetName = testTargetName;
+		/** @type {number} */ this.m_stencilFuncTargetFace = stencilFuncTargetFace;
+	};
+
+	es3fIntegerStateQueryTests.StencilMaskSeparateTestCase.prototype = Object.create(es3fApiCase.ApiCase.prototype);
+	es3fIntegerStateQueryTests.StencilMaskSeparateTestCase.prototype.constructor = es3fIntegerStateQueryTests.StencilMaskSeparateTestCase;
+
+	es3fIntegerStateQueryTests.StencilMaskSeparateTestCase.prototype.test = function() {
+		/** @type {number} */ var stencilBits = /** @type {number} */ (gl.getParameter(gl.STENCIL_BITS));
+
+		this.check(glsStateQuery.verify(this.m_testTargetName, stencilBits));
+
+		for (var stencilBit = 0; stencilBit < stencilBits; ++stencilBit) {
+			/** @type {number} */ var mask = 1 << stencilBit;
+
+			gl.stencilFuncSeparate(this.m_stencilFuncTargetFace, gl.ALWAYS, 0, mask);
+
+			this.check(glsStateQuery.verify(this.m_testTargetName, mask));
+		}
+	};
+
+	/**
+	 * @constructor
+	 * @extends {es3fApiCase.ApiCase}
+	 * @param {string} name
+	 * @param {string} description
+	 * @param {number} testTargetName
+	 */
+	es3fIntegerStateQueryTests.StencilWriteMaskTestCase = function(name, description, testTargetName) {
+		/** @type {number} */ this.m_testTargetName = testTargetName;
+		es3fApiCase.ApiCase.call(this, name, description, gl);
+	};
+
+	es3fIntegerStateQueryTests.StencilWriteMaskTestCase.prototype = Object.create(es3fApiCase.ApiCase.prototype);
+	es3fIntegerStateQueryTests.StencilWriteMaskTestCase.prototype.constructor = es3fIntegerStateQueryTests.StencilWriteMaskTestCase;
+
+	es3fIntegerStateQueryTests.StencilWriteMaskTestCase.prototype.test = function() {
+		/** @type {number} */ var stencilBits = /** @type {number} */ (gl.getParameter(gl.STENCIL_BITS));
+
+		for (var stencilBit = 0; stencilBit < stencilBits; ++stencilBit) {
+			/** @type {number} */ var mask = 1 << stencilBit;
+
+			gl.stencilMask(mask);
+
+			this.check(glsStateQuery.verify(this.m_testTargetName, mask));
+		}
+	};
+
+	/**
+	 * @constructor
+	 * @extends {es3fApiCase.ApiCase}
+	 * @param {string} name
+	 * @param {string} description
+	 * @param {number} testTargetName
+	 * @param {number} stencilFuncTargetFace
+	 */
+	es3fIntegerStateQueryTests.StencilWriteMaskSeparateTestCase = function(name, description, testTargetName, stencilFuncTargetFace) {
+		es3fApiCase.ApiCase.call(this, name, description, gl);
+		/** @type {number} */ this.m_testTargetName = testTargetName;
+		/** @type {number} */ this.m_stencilFuncTargetFace = stencilFuncTargetFace;
+	};
+
+	es3fIntegerStateQueryTests.StencilWriteMaskSeparateTestCase.prototype = Object.create(es3fApiCase.ApiCase.prototype);
+	es3fIntegerStateQueryTests.StencilWriteMaskSeparateTestCase.prototype.constructor = es3fIntegerStateQueryTests.StencilWriteMaskSeparateTestCase;
+
+	es3fIntegerStateQueryTests.StencilWriteMaskSeparateTestCase.prototype.test = function() {
+		/** @type {number} */ var stencilBits = /** @type {number} */ (gl.getParameter(gl.STENCIL_BITS));
+
+		for (var stencilBit = 0; stencilBit < stencilBits; ++stencilBit) {
+			/** @type {number} */ var mask = 1 << stencilBit;
+
+			gl.stencilMaskSeparate(this.m_stencilTargetFace, mask);
+
+			this.check(glsStateQuery.verify(this.m_testTargetName, mask));
+		}
+	};
+
 	// /**
 	//  * @constructor
 	//  * @extends {es3fApiCase.ApiCase}
@@ -846,16 +933,16 @@ goog.scope(function() {
 		testCtx.addChild(new es3fIntegerStateQueryTests.StencilFuncSeparateTestCase("stencil_back_func_separate_both", "STENCIL_FUNC (separate)", gl.STENCIL_BACK_FUNC, gl.FRONT_AND_BACK));
 		testCtx.addChild(new es3fIntegerStateQueryTests.StencilMaskTestCase("stencil_value_mask", "STENCIL_VALUE_MASK", gl.STENCIL_VALUE_MASK));
 		testCtx.addChild(new es3fIntegerStateQueryTests.StencilMaskTestCase("stencil_back_value_mask", "STENCIL_BACK_VALUE_MASK", gl.STENCIL_BACK_VALUE_MASK));
-		// normalVerifiers.forEach(function(verifier) { testCtx.addChild(new es3fIntegerStateQueryTests.StencilMaskSeparateTestCase(verifier, "stencil_value_mask_separate" + verifier.getTestNamePostfix(), "STENCIL_VALUE_MASK (separate)", gl.STENCIL_VALUE_MASK, gl.FRONT)); });
-		// normalVerifiers.forEach(function(verifier) { testCtx.addChild(new es3fIntegerStateQueryTests.StencilMaskSeparateTestCase(verifier, "stencil_value_mask_separate_both" + verifier.getTestNamePostfix(), "STENCIL_VALUE_MASK (separate)", gl.STENCIL_VALUE_MASK, gl.FRONT_AND_BACK)); });
-		// normalVerifiers.forEach(function(verifier) { testCtx.addChild(new es3fIntegerStateQueryTests.StencilMaskSeparateTestCase(verifier, "stencil_back_value_mask_separate" + verifier.getTestNamePostfix(), "STENCIL_BACK_VALUE_MASK (separate)", gl.STENCIL_BACK_VALUE_MASK, gl.BACK)); });
-		// normalVerifiers.forEach(function(verifier) { testCtx.addChild(new es3fIntegerStateQueryTests.StencilMaskSeparateTestCase(verifier, "stencil_back_value_mask_separate_both" + verifier.getTestNamePostfix(), "STENCIL_BACK_VALUE_MASK (separate)", gl.STENCIL_BACK_VALUE_MASK, gl.FRONT_AND_BACK)); });
-		// normalVerifiers.forEach(function(verifier) { testCtx.addChild(new es3fIntegerStateQueryTests.StencilWriteMaskTestCase(verifier, "stencil_writemask" + verifier.getTestNamePostfix(), "STENCIL_WRITEMASK", gl.STENCIL_WRITEMASK)); });
-		// normalVerifiers.forEach(function(verifier) { testCtx.addChild(new es3fIntegerStateQueryTests.StencilWriteMaskTestCase(verifier, "stencil_back_writemask" + verifier.getTestNamePostfix(), "STENCIL_BACK_WRITEMASK", gl.STENCIL_BACK_WRITEMASK)); });
-		// normalVerifiers.forEach(function(verifier) { testCtx.addChild(new es3fIntegerStateQueryTests.StencilWriteMaskSeparateTestCase(verifier, "stencil_writemask_separate" + verifier.getTestNamePostfix(), "STENCIL_WRITEMASK (separate)", gl.STENCIL_WRITEMASK, gl.FRONT)); });
-		// normalVerifiers.forEach(function(verifier) { testCtx.addChild(new es3fIntegerStateQueryTests.StencilWriteMaskSeparateTestCase(verifier, "stencil_writemask_separate_both" + verifier.getTestNamePostfix(), "STENCIL_WRITEMASK (separate)", gl.STENCIL_WRITEMASK, gl.FRONT_AND_BACK)); });
-		// normalVerifiers.forEach(function(verifier) { testCtx.addChild(new es3fIntegerStateQueryTests.StencilWriteMaskSeparateTestCase(verifier, "stencil_back_writemask_separate" + verifier.getTestNamePostfix(), "STENCIL_BACK_WRITEMASK (separate)", gl.STENCIL_BACK_WRITEMASK, gl.BACK)); });
-		// normalVerifiers.forEach(function(verifier) { testCtx.addChild(new es3fIntegerStateQueryTests.StencilWriteMaskSeparateTestCase(verifier, "stencil_back_writemask_separate_both" + verifier.getTestNamePostfix(), "STENCIL_BACK_WRITEMASK (separate)", gl.STENCIL_BACK_WRITEMASK, gl.FRONT_AND_BACK)); });
+		testCtx.addChild(new es3fIntegerStateQueryTests.StencilMaskSeparateTestCase("stencil_value_mask_separate", "STENCIL_VALUE_MASK (separate)", gl.STENCIL_VALUE_MASK, gl.FRONT));
+		testCtx.addChild(new es3fIntegerStateQueryTests.StencilMaskSeparateTestCase("stencil_value_mask_separate_both", "STENCIL_VALUE_MASK (separate)", gl.STENCIL_VALUE_MASK, gl.FRONT_AND_BACK));
+		testCtx.addChild(new es3fIntegerStateQueryTests.StencilMaskSeparateTestCase("stencil_back_value_mask_separate", "STENCIL_BACK_VALUE_MASK (separate)", gl.STENCIL_BACK_VALUE_MASK, gl.BACK));
+		testCtx.addChild(new es3fIntegerStateQueryTests.StencilMaskSeparateTestCase("stencil_back_value_mask_separate_both", "STENCIL_BACK_VALUE_MASK (separate)", gl.STENCIL_BACK_VALUE_MASK, gl.FRONT_AND_BACK));
+		testCtx.addChild(new es3fIntegerStateQueryTests.StencilWriteMaskTestCase("stencil_writemask", "STENCIL_WRITEMASK", gl.STENCIL_WRITEMASK));
+		testCtx.addChild(new es3fIntegerStateQueryTests.StencilWriteMaskTestCase("stencil_back_writemask", "STENCIL_BACK_WRITEMASK", gl.STENCIL_BACK_WRITEMASK));
+		testCtx.addChild(new es3fIntegerStateQueryTests.StencilWriteMaskSeparateTestCase("stencil_writemask_separate", "STENCIL_WRITEMASK (separate)", gl.STENCIL_WRITEMASK, gl.FRONT));
+		testCtx.addChild(new es3fIntegerStateQueryTests.StencilWriteMaskSeparateTestCase("stencil_writemask_separate_both", "STENCIL_WRITEMASK (separate)", gl.STENCIL_WRITEMASK, gl.FRONT_AND_BACK));
+		testCtx.addChild(new es3fIntegerStateQueryTests.StencilWriteMaskSeparateTestCase("stencil_back_writemask_separate", "STENCIL_BACK_WRITEMASK (separate)", gl.STENCIL_BACK_WRITEMASK, gl.BACK));
+		testCtx.addChild(new es3fIntegerStateQueryTests.StencilWriteMaskSeparateTestCase("stencil_back_writemask_separate_both", "STENCIL_BACK_WRITEMASK (separate)", gl.STENCIL_BACK_WRITEMASK, gl.FRONT_AND_BACK));
 		//
 		// /**
 		//  * @struct
