@@ -1300,7 +1300,7 @@ goog.scope(function() {
 
 	es3fIntegerStateQueryTests.SamplerObjectBindingTestCase.prototype.test = function() {
 		this.check(glsStateQuery.verify(gl.SAMPLER_BINDING, null));
-debugger;
+
 		bufferedLogToConsole('SingleUnit: Single unit');
 		/** @type {WebGLSampler} */ var sampler = gl.createSampler();
 
