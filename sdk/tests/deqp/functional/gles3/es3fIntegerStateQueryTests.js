@@ -745,12 +745,12 @@ goog.scope(function() {
 	 * @param {string} name
 	 * @param {string} description
 	 * @param {number} testTargetName
-	 * @param {number} stencilFuncTargetFace
+	 * @param {number} stencilTargetFace
 	 */
-	es3fIntegerStateQueryTests.StencilWriteMaskSeparateTestCase = function(name, description, testTargetName, stencilFuncTargetFace) {
+	es3fIntegerStateQueryTests.StencilWriteMaskSeparateTestCase = function(name, description, testTargetName, stencilTargetFace) {
 		es3fApiCase.ApiCase.call(this, name, description, gl);
 		/** @type {number} */ this.m_testTargetName = testTargetName;
-		/** @type {number} */ this.m_stencilFuncTargetFace = stencilFuncTargetFace;
+		/** @type {number} */ this.m_stencilTargetFace = stencilTargetFace;
 	};
 
 	es3fIntegerStateQueryTests.StencilWriteMaskSeparateTestCase.prototype = Object.create(es3fApiCase.ApiCase.prototype);
@@ -768,20 +768,820 @@ goog.scope(function() {
 		}
 	};
 
-	// /**
-	//  * @constructor
-	//  * @extends {es3fApiCase.ApiCase}
-	//  * @param {string} name
-	//  * @param {string} description
-	//  */
-	// es3fIntegerStateQueryTests.ViewPortTestCase = function(name, description) {
-	// 	es3fApiCase.ApiCase.call(this, name, description, gl);
-	// };
-	//
-	// es3fIntegerStateQueryTests.ViewPortTestCase.prototype = Object.create(es3fApiCase.ApiCase.prototype);
-	// es3fIntegerStateQueryTests.ViewPortTestCase.prototype.constructor = es3fIntegerStateQueryTests.ViewPortTestCase;
-	//
-	// es3fIntegerStateQueryTests.ViewPortTestCase.prototype.test = function() {};
+	/**
+	 * @constructor
+	 * @extends {es3fApiCase.ApiCase}
+	 * @param {string} name
+	 * @param {string} description
+	 * @param {number} testTargetName
+	 * @param {number} initialValue
+	 */
+	es3fIntegerStateQueryTests.PixelStoreTestCase = function(name, description, testTargetName, initialValue) {
+		es3fApiCase.ApiCase.call(this, name, description, gl);
+		/** @type {number} */ this.m_testTargetName = testTargetName;
+		/** @type {number} */ this.m_initialValue = initialValue;
+	};
+
+	es3fIntegerStateQueryTests.PixelStoreTestCase.prototype = Object.create(es3fApiCase.ApiCase.prototype);
+	es3fIntegerStateQueryTests.PixelStoreTestCase.prototype.constructor = es3fIntegerStateQueryTests.PixelStoreTestCase;
+
+	es3fIntegerStateQueryTests.PixelStoreTestCase.prototype.test = function() {
+		/** @type {deRandom.Random} */ var rnd = new deRandom.Random(0xabcdef);
+
+		this.check(glsStateQuery.verify(this.m_testTargetName, this.m_initialValue));
+
+		/** @type {number} */ var numIterations = 120;
+		for (var i = 0; i < numIterations; ++i) {
+			/** @type {number} */ var referenceValue = rnd.getInt(0, 64000);
+
+			gl.pixelStorei(this.m_testTargetName, referenceValue);
+
+			this.check(glsStateQuery.verify(this.m_testTargetName, referenceValue));
+		}
+	};
+
+	/**
+	 * @constructor
+	 * @extends {es3fApiCase.ApiCase}
+	 * @param {string} name
+	 * @param {string} description
+	 * @param {number} testTargetName
+	 */
+	es3fIntegerStateQueryTests.PixelStoreAlignTestCase = function(name, description, testTargetName) {
+		es3fApiCase.ApiCase.call(this, name, description, gl);
+		/** @type {number} */ this.m_testTargetName = testTargetName;
+	};
+
+	es3fIntegerStateQueryTests.PixelStoreAlignTestCase.prototype = Object.create(es3fApiCase.ApiCase.prototype);
+	es3fIntegerStateQueryTests.PixelStoreAlignTestCase.prototype.constructor = es3fIntegerStateQueryTests.PixelStoreAlignTestCase;
+
+	es3fIntegerStateQueryTests.PixelStoreAlignTestCase.prototype.test = function() {
+		this.check(glsStateQuery.verify(this.m_testTargetName, 4));
+
+		/** @type {Array<number>} */ var alignments = [1, 2, 4, 8];
+
+		for (var ndx = 0; ndx < alignments.length; ++ndx) {
+			/** @type {number} */ var referenceValue = alignments[ndx];
+
+			gl.pixelStorei(this.m_testTargetName, referenceValue);
+
+			this.check(glsStateQuery.verify(this.m_testTargetName, referenceValue));
+		}
+	};
+
+	/**
+	 * @constructor
+	 * @extends {es3fApiCase.ApiCase}
+	 * @param {string} name
+	 * @param {string} description
+	 * @param {number} testTargetName
+	 * @param {number} initialValue
+	 */
+	es3fIntegerStateQueryTests.BlendFuncTestCase = function(name, description, testTargetName, initialValue) {
+		es3fApiCase.ApiCase.call(this, name, description, gl);
+		/** @type {number} */ this.m_testTargetName = testTargetName;
+		/** @type {number} */ this.m_initialValue = initialValue;
+	};
+
+	es3fIntegerStateQueryTests.BlendFuncTestCase.prototype = Object.create(es3fApiCase.ApiCase.prototype);
+	es3fIntegerStateQueryTests.BlendFuncTestCase.prototype.constructor = es3fIntegerStateQueryTests.BlendFuncTestCase;
+
+	es3fIntegerStateQueryTests.BlendFuncTestCase.prototype.test = function() {
+		this.check(glsStateQuery.verify(this.m_testTargetName, this.m_initialValue));
+
+		/** @type {Array<number>} */ var blendFuncValues =[
+			gl.ZERO, gl.ONE, gl.SRC_COLOR, gl.ONE_MINUS_SRC_COLOR, gl.DST_COLOR, gl.ONE_MINUS_DST_COLOR,
+			gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA, gl.DST_ALPHA, gl.ONE_MINUS_DST_ALPHA, gl.CONSTANT_COLOR,
+			gl.ONE_MINUS_CONSTANT_COLOR, gl.CONSTANT_ALPHA, gl.ONE_MINUS_CONSTANT_ALPHA,
+			gl.SRC_ALPHA_SATURATE
+		];
+
+		for (var ndx = 0; ndx < blendFuncValues.length; ++ndx) {
+			/** @type {number} */ var referenceValue = blendFuncValues[ndx];
+
+			this.SetBlendFunc(referenceValue);
+
+			this.check(glsStateQuery.verify(this.m_testTargetName, referenceValue));
+		}};
+
+	/**
+	 * @param  {number} func
+	 */
+	es3fIntegerStateQueryTests.BlendFuncTestCase.prototype.SetBlendFunc = function(func) {
+		switch (this.m_testTargetName) {
+			case gl.BLEND_SRC_RGB:
+			case gl.BLEND_SRC_ALPHA:
+				gl.blendFunc(func, gl.ZERO);
+				break;
+
+			case gl.BLEND_DST_RGB:
+			case gl.BLEND_DST_ALPHA:
+				gl.blendFunc(gl.ZERO, func);
+				break;
+
+			default:
+				throw new Error("should not happen");
+		}
+	};
+
+	/**
+	 * @constructor
+	 * @extends {es3fIntegerStateQueryTests.BlendFuncTestCase}
+	 * @param {string} name
+	 * @param {string} description
+	 * @param {number} testTargetName
+	 * @param {number} initialValue
+	 */
+	es3fIntegerStateQueryTests.BlendFuncSeparateTestCase = function(name, description, testTargetName, initialValue) {
+		es3fIntegerStateQueryTests.BlendFuncTestCase.call(this, name, description, testTargetName, initialValue);
+	 /** @type {number} */ this.m_testTargetName = testTargetName;
+	 /** @type {number} */ this.m_initialValue = initialValue;
+	};
+
+	es3fIntegerStateQueryTests.BlendFuncSeparateTestCase.prototype = Object.create(es3fIntegerStateQueryTests.BlendFuncTestCase.prototype);
+	es3fIntegerStateQueryTests.BlendFuncSeparateTestCase.prototype.constructor = es3fIntegerStateQueryTests.BlendFuncSeparateTestCase;
+
+	/**
+	 * @param  {number} func
+	 */
+	es3fIntegerStateQueryTests.BlendFuncSeparateTestCase.prototype.SetBlendFunc = function(func) {
+		switch (this.m_testTargetName) {
+			case gl.BLEND_SRC_RGB:
+				gl.blendFuncSeparate(func, gl.ZERO, gl.ZERO, gl.ZERO);
+				break;
+
+			case gl.BLEND_DST_RGB:
+				gl.blendFuncSeparate(gl.ZERO, func, gl.ZERO, gl.ZERO);
+				break;
+
+			case gl.BLEND_SRC_ALPHA:
+				gl.blendFuncSeparate(gl.ZERO, gl.ZERO, func, gl.ZERO);
+				break;
+
+			case gl.BLEND_DST_ALPHA:
+				gl.blendFuncSeparate(gl.ZERO, gl.ZERO, gl.ZERO, func);
+				break;
+
+			default:
+				throw new Error("should not happen");
+		}
+	};
+
+	/**
+	 * @constructor
+	 * @extends {es3fApiCase.ApiCase}
+	 * @param {string} name
+	 * @param {string} description
+	 * @param {number} testTargetName
+	 * @param {number} initialValue
+	 */
+	es3fIntegerStateQueryTests.BlendEquationTestCase = function(name, description, testTargetName, initialValue) {
+		es3fApiCase.ApiCase.call(this, name, description, gl);
+	 /** @type {number} */ this.m_testTargetName = testTargetName;
+	 /** @type {number} */ this.m_initialValue = initialValue;
+	};
+
+	es3fIntegerStateQueryTests.BlendEquationTestCase.prototype = Object.create(es3fApiCase.ApiCase.prototype);
+	es3fIntegerStateQueryTests.BlendEquationTestCase.prototype.constructor = es3fIntegerStateQueryTests.BlendEquationTestCase;
+
+	es3fIntegerStateQueryTests.BlendEquationTestCase.prototype.test = function() {
+		this.check(glsStateQuery.verify(this.m_testTargetName, this.m_initialValue));
+
+		/** @type {Array<number>} */ var blendFuncValues = [gl.FUNC_ADD, gl.FUNC_SUBTRACT, gl.FUNC_REVERSE_SUBTRACT, gl.MIN, gl.MAX];
+
+		for (var ndx = 0; ndx < blendFuncValues.length; ++ndx) {
+			/** @type {number} */ var referenceValue = blendFuncValues[ndx];
+
+			this.SetBlendEquation(referenceValue);
+
+			this.check(glsStateQuery.verify(this.m_testTargetName, referenceValue));
+		}
+	};
+
+	/**
+	 * @param  {number} equation
+	 */
+	es3fIntegerStateQueryTests.BlendEquationTestCase.prototype.SetBlendEquation = function(equation) {
+		gl.blendEquation(equation);
+	};
+
+	/**
+	 * @constructor
+	 * @extends {es3fIntegerStateQueryTests.BlendEquationTestCase}
+	 * @param {string} name
+	 * @param {string} description
+	 * @param {number} testTargetName
+	 * @param {number} initialValue
+	 */
+	es3fIntegerStateQueryTests.BlendEquationSeparateTestCase = function(name, description, testTargetName, initialValue) {
+		es3fIntegerStateQueryTests.BlendEquationTestCase.call(this, name, description, testTargetName, initialValue);
+	 /** @type {number} */ this.m_testTargetName = testTargetName;
+	 /** @type {number} */ this.m_initialValue = initialValue;
+	};
+
+	es3fIntegerStateQueryTests.BlendEquationSeparateTestCase.prototype = Object.create(es3fIntegerStateQueryTests.BlendEquationTestCase.prototype);
+	es3fIntegerStateQueryTests.BlendEquationSeparateTestCase.prototype.constructor = es3fIntegerStateQueryTests.BlendEquationSeparateTestCase;
+
+	/**
+	 * @param  {number} equation
+	 */
+	es3fIntegerStateQueryTests.BlendEquationSeparateTestCase.prototype.SetBlendEquation = function(equation) {
+		switch (this.m_testTargetName) {
+			case gl.BLEND_EQUATION_RGB:
+				gl.blendEquationSeparate(equation, gl.FUNC_ADD);
+				break;
+
+			case gl.BLEND_EQUATION_ALPHA:
+				gl.blendEquationSeparate(gl.FUNC_ADD, equation);
+				break;
+
+			default:
+				throw new Error("should not happen");
+		}
+	};
+
+	/**
+	 * @constructor
+	 * @extends {es3fApiCase.ApiCase}
+	 * @param {string} name
+	 * @param {string} description
+	 * @param {number} testTargetName
+	 * @param {number} minValue
+	 */
+	es3fIntegerStateQueryTests.ImplementationArrayTestCase = function(name, description, testTargetName, minValue) {
+		es3fApiCase.ApiCase.call(this, name, description, gl);
+	 	/** @type {number} */ this.m_testTargetName = testTargetName;
+	 	/** @type {number} */ this.m_minValue = minValue;
+	};
+
+	es3fIntegerStateQueryTests.ImplementationArrayTestCase.prototype = Object.create(es3fApiCase.ApiCase.prototype);
+	es3fIntegerStateQueryTests.ImplementationArrayTestCase.prototype.constructor = es3fIntegerStateQueryTests.ImplementationArrayTestCase;
+
+	es3fIntegerStateQueryTests.ImplementationArrayTestCase.prototype.test = function() {
+		/** @type {Array<number>} */ var queryResult = /** @type {Array<number>} */ (gl.getParameter(this.m_testTargetName));
+		this.check(glsStateQuery.compare(queryResult.length, this.m_minValue));
+
+		/** @type {Array<number>} */ var textureFormats = [
+			gl.COMPRESSED_R11_EAC, gl.COMPRESSED_SIGNED_R11_EAC, gl.COMPRESSED_RG11_EAC, gl.COMPRESSED_SIGNED_RG11_EAC, gl.COMPRESSED_RGB8_ETC2, gl.COMPRESSED_SRGB8_ETC2,
+			gl.COMPRESSED_RGB8_PUNCHTHROUGH_ALPHA1_ETC2, gl.COMPRESSED_SRGB8_PUNCHTHROUGH_ALPHA1_ETC2, gl.COMPRESSED_RGBA8_ETC2_EAC, gl.COMPRESSED_SRGB8_ALPHA8_ETC2_EAC
+		];
+
+		for (var ndx = 0; ndx < textureFormats.length; ndx++) {
+			/** @type {number} */ var format = textureFormats[ndx];
+			/** @type {boolean} */ var isInArray = queryResult.indexOf(format) !== -1;
+			this.check(glsStateQuery.compare(isInArray, true));
+		}
+
+	};
+
+	/**
+	 * @constructor
+	 * @extends {es3fApiCase.ApiCase}
+	 * @param {string} name
+	 * @param {string} description
+	 */
+	es3fIntegerStateQueryTests.CurrentProgramBindingTestCase = function(name, description) {
+		es3fApiCase.ApiCase.call(this, name, description, gl);
+	};
+
+	es3fIntegerStateQueryTests.CurrentProgramBindingTestCase.prototype = Object.create(es3fApiCase.ApiCase.prototype);
+	es3fIntegerStateQueryTests.CurrentProgramBindingTestCase.prototype.constructor = es3fIntegerStateQueryTests.CurrentProgramBindingTestCase;
+
+	es3fIntegerStateQueryTests.CurrentProgramBindingTestCase.prototype.test = function() {
+		this.check(glsStateQuery.verify(gl.CURRENT_PROGRAM, null));
+
+		/** @type {WebGLShader} */ var shaderVert = gl.createShader(gl.VERTEX_SHADER);
+		gl.shaderSource(shaderVert, testVertSource);
+		gl.compileShader(shaderVert);
+		/** @type {boolean} */ var compileStatus = /** @type {boolean} */ (gl.getShaderParameter(shaderVert, gl.COMPILE_STATUS));
+		this.check(glsStateQuery.compare(compileStatus, true));
+
+		/** @type {WebGLShader} */ var shaderFrag = gl.createShader(gl.FRAGMENT_SHADER);
+		gl.shaderSource(shaderFrag, testFragSource);
+		gl.compileShader(shaderFrag);
+		compileStatus = /** @type {boolean} */ (gl.getShaderParameter(shaderFrag, gl.COMPILE_STATUS));
+		this.check(glsStateQuery.compare(compileStatus, true));
+
+		/** @type {WebGLProgram} */ var shaderProg = gl.createProgram();
+		gl.attachShader(shaderProg, shaderVert);
+		gl.attachShader(shaderProg, shaderFrag);
+		gl.linkProgram(shaderProg);
+		/** @type {boolean} */ var linkStatus = /** @type {boolean} */ (gl.getProgramParameter(shaderProg, gl.LINK_STATUS));
+		this.check(glsStateQuery.compare(linkStatus, true));
+
+		gl.useProgram(shaderProg);
+
+		this.check(glsStateQuery.verify(gl.CURRENT_PROGRAM, shaderProg));
+
+		gl.deleteShader(shaderVert);
+		gl.deleteShader(shaderFrag);
+		gl.deleteProgram(shaderProg);
+
+		this.check(glsStateQuery.verify(gl.CURRENT_PROGRAM, shaderProg));
+
+		gl.useProgram(null);
+		this.check(glsStateQuery.verify(gl.CURRENT_PROGRAM, null));
+	};
+
+	/**
+	 * @constructor
+	 * @extends {es3fApiCase.ApiCase}
+	 * @param {string} name
+	 * @param {string} description
+	 */
+	es3fIntegerStateQueryTests.VertexArrayBindingTestCase = function(name, description) {
+		es3fApiCase.ApiCase.call(this, name, description, gl);
+	};
+
+	es3fIntegerStateQueryTests.VertexArrayBindingTestCase.prototype = Object.create(es3fApiCase.ApiCase.prototype);
+	es3fIntegerStateQueryTests.VertexArrayBindingTestCase.prototype.constructor = es3fIntegerStateQueryTests.VertexArrayBindingTestCase;
+
+	es3fIntegerStateQueryTests.VertexArrayBindingTestCase.prototype.test = function() {
+		this.check(glsStateQuery.verify(gl.VERTEX_ARRAY_BINDING, null));
+
+		/** @type {WebGLVertexArrayObject} */ var vertexArrayObject = gl.createVertexArray();
+
+		gl.bindVertexArray(vertexArrayObject);
+		this.check(glsStateQuery.verify(gl.VERTEX_ARRAY_BINDING, vertexArrayObject));
+
+		gl.deleteVertexArray(vertexArrayObject);
+		this.check(glsStateQuery.verify(gl.VERTEX_ARRAY_BINDING, null));
+	};
+
+	/**
+	 * @constructor
+	 * @extends {es3fApiCase.ApiCase}
+	 * @param {string} name
+	 * @param {string} description
+	 * @param {number} bufferBindingName
+	 * @param {number} bufferType
+	 */
+	es3fIntegerStateQueryTests.BufferBindingTestCase = function(name, description, bufferBindingName, bufferType) {
+		es3fApiCase.ApiCase.call(this, name, description, gl);
+	 /** @type {number} */ this.m_bufferBindingName = bufferBindingName;
+	 /** @type {number} */ this.m_bufferType = bufferType;
+	};
+
+	es3fIntegerStateQueryTests.BufferBindingTestCase.prototype = Object.create(es3fApiCase.ApiCase.prototype);
+	es3fIntegerStateQueryTests.BufferBindingTestCase.prototype.constructor = es3fIntegerStateQueryTests.BufferBindingTestCase;
+
+	es3fIntegerStateQueryTests.BufferBindingTestCase.prototype.test = function() {
+		this.check(glsStateQuery.verify(this.m_bufferBindingName, 0));
+
+		/** @type {WebGLBuffer} */ var bufferObject = gl.createBuffer();
+
+		gl.bindBuffer(this.m_bufferType, bufferObject);
+		this.check(glsStateQuery.verify(this.m_bufferBindingName, bufferObject));
+
+		gl.deleteBuffer(bufferObject);
+		this.check(glsStateQuery.verify(this.m_bufferBindingName, 0));
+	};
+
+	/**
+	 * @constructor
+	 * @extends {es3fApiCase.ApiCase}
+	 * @param {string} name
+	 */
+	es3fIntegerStateQueryTests.ElementArrayBufferBindingTestCase = function(name) {
+		es3fApiCase.ApiCase.call(this, name, "GL_ELEMENT_ARRAY_BUFFER_BINDING", gl);
+	};
+
+	es3fIntegerStateQueryTests.ElementArrayBufferBindingTestCase.prototype = Object.create(es3fApiCase.ApiCase.prototype);
+	es3fIntegerStateQueryTests.ElementArrayBufferBindingTestCase.prototype.constructor = es3fIntegerStateQueryTests.ElementArrayBufferBindingTestCase;
+
+	es3fIntegerStateQueryTests.ElementArrayBufferBindingTestCase.prototype.test = function() {
+		// Test with default VAO
+		bufferedLogToConsole("DefaultVAO: Test with default VAO");
+
+		this.check(glsStateQuery.verify(gl.ELEMENT_ARRAY_BUFFER_BINDING, null));
+
+		/** @type {WebGLBuffer} */ var bufferObject = gl.createBuffer();
+
+		gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, bufferObject);
+		this.check(glsStateQuery.verify(gl.ELEMENT_ARRAY_BUFFER_BINDING, bufferObject));
+
+		gl.deleteBuffer(bufferObject);
+		this.check(glsStateQuery.verify(gl.ELEMENT_ARRAY_BUFFER_BINDING, null));
+
+		// Test with multiple VAOs
+		bufferedLogToConsole("WithVAO: Test with VAO");
+
+		/** @type {Array<WebGLVertexArrayObject>} */ var vaos = [];
+		/** @type {Array<WebGLBuffer>} */ var buffers = [];
+
+		for (var ndx = 0; ndx < 2; ndx++) {
+			vaos[ndx] = gl.createVertexArray();
+			buffers[ndx] = gl.createBuffer();
+		}
+
+		// initial
+		gl.bindVertexArray(vaos[0]);
+		this.check(glsStateQuery.verify(gl.ELEMENT_ARRAY_BUFFER_BINDING, null));
+
+		// after setting
+		gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, buffers[0]);
+		this.check(glsStateQuery.verify(gl.ELEMENT_ARRAY_BUFFER_BINDING, buffers[0]));
+
+		// initial of vao 2
+		gl.bindVertexArray(vaos[1]);
+		this.check(glsStateQuery.verify(gl.ELEMENT_ARRAY_BUFFER_BINDING, null));
+
+		// after setting to 2
+		gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, buffers[1]);
+		this.check(glsStateQuery.verify(gl.ELEMENT_ARRAY_BUFFER_BINDING, buffers[1]));
+
+		// vao 1 still has buffer 1 bound?
+		gl.bindVertexArray(vaos[0]);
+		this.check(glsStateQuery.verify(gl.ELEMENT_ARRAY_BUFFER_BINDING, buffers[0]));
+
+		// deleting clears from bound vaos ...
+		for (var ndx = 0; ndx < 2; ndx++)
+			gl.deleteBuffer(buffers[ndx]);
+		this.check(glsStateQuery.verify(gl.ELEMENT_ARRAY_BUFFER_BINDING, null));
+
+		// ... but does not from non-bound vaos?
+		gl.bindVertexArray(vaos[1]);
+		this.check(glsStateQuery.verify(gl.ELEMENT_ARRAY_BUFFER_BINDING, buffers[1]));
+
+		for (var ndx = 0; ndx < 2; ndx++)
+			gl.deleteVertexArray(vaos[ndx]);
+	};
+
+	/**
+	 * @constructor
+	 * @extends {es3fApiCase.ApiCase}
+	 * @param {string} name
+	 * @param {string} description
+	 */
+	es3fIntegerStateQueryTests.StencilClearValueTestCase = function(name, description) {
+		es3fApiCase.ApiCase.call(this, name, description, gl);
+	};
+
+	es3fIntegerStateQueryTests.StencilClearValueTestCase.prototype = Object.create(es3fApiCase.ApiCase.prototype);
+	es3fIntegerStateQueryTests.StencilClearValueTestCase.prototype.constructor = es3fIntegerStateQueryTests.StencilClearValueTestCase;
+
+	es3fIntegerStateQueryTests.StencilClearValueTestCase.prototype.test = function() {
+		this.check(glsStateQuery.verify(gl.STENCIL_CLEAR_VALUE, null));
+
+		/** @type {number} */ var stencilBits = /** @type {number} */ (gl.getParameter(gl.STENCIL_BITS));
+
+		for (var stencilBit = 0; stencilBit < stencilBits; ++stencilBit) {
+			/** @type {number} */ var ref = 1 << stencilBit;
+
+			gl.clearStencil(ref); // mask should not affect the REF
+
+			this.check(glsStateQuery.verify(gl.STENCIL_CLEAR_VALUE, ref));
+		}
+	};
+
+	/**
+	 * @constructor
+	 * @extends {es3fApiCase.ApiCase}
+	 * @param {string} name
+	 * @param {string} description
+	 */
+	es3fIntegerStateQueryTests.ActiveTextureTestCase = function(name, description) {
+		es3fApiCase.ApiCase.call(this, name, description, gl);
+	};
+
+	es3fIntegerStateQueryTests.ActiveTextureTestCase.prototype = Object.create(es3fApiCase.ApiCase.prototype);
+	es3fIntegerStateQueryTests.ActiveTextureTestCase.prototype.constructor = es3fIntegerStateQueryTests.ActiveTextureTestCase;
+
+	es3fIntegerStateQueryTests.ActiveTextureTestCase.prototype.test = function() {
+		this.check(glsStateQuery.verify(gl.ACTIVE_TEXTURE, gl.TEXTURE0));
+
+		/** @type {number} */ var textureUnits = /** @type {number} */ (gl.getParameter(gl.MAX_COMBINED_TEXTURE_IMAGE_UNITS));
+
+		for (var ndx = 0; ndx < textureUnits; ++ndx) {
+			gl.activeTexture(gl.TEXTURE0 + ndx);
+
+			this.check(glsStateQuery.verify(gl.ACTIVE_TEXTURE, gl.TEXTURE0 + ndx));
+		}
+	};
+
+	/**
+	 * @constructor
+	 * @extends {es3fApiCase.ApiCase}
+	 * @param {string} name
+	 * @param {string} description
+	 */
+	es3fIntegerStateQueryTests.RenderbufferBindingTestCase = function(name, description) {
+		es3fApiCase.ApiCase.call(this, name, description, gl);
+	};
+
+	es3fIntegerStateQueryTests.RenderbufferBindingTestCase.prototype = Object.create(es3fApiCase.ApiCase.prototype);
+	es3fIntegerStateQueryTests.RenderbufferBindingTestCase.prototype.constructor = es3fIntegerStateQueryTests.RenderbufferBindingTestCase;
+
+	es3fIntegerStateQueryTests.RenderbufferBindingTestCase.prototype.test = function() {
+		this.check(glsStateQuery.verify(gl.RENDERBUFFER_BINDING, null));
+
+		/** @type {WebGLRenderbuffer} */ var renderBuffer = gl.createRenderbuffer();
+
+		gl.bindRenderbuffer(gl.RENDERBUFFER, renderBuffer);
+
+		this.check(glsStateQuery.verify(gl.RENDERBUFFER_BINDING, renderBuffer));
+
+		gl.deleteRenderbuffer(renderBuffer);
+		this.check(glsStateQuery.verify(gl.RENDERBUFFER_BINDING, null));
+	};
+
+	/**
+	 * @constructor
+	 * @extends {es3fApiCase.ApiCase}
+	 * @param {string} name
+	 * @param {string} description
+	 */
+	es3fIntegerStateQueryTests.SamplerObjectBindingTestCase = function(name, description) {
+		es3fApiCase.ApiCase.call(this, name, description, gl);
+	};
+
+	es3fIntegerStateQueryTests.SamplerObjectBindingTestCase.prototype = Object.create(es3fApiCase.ApiCase.prototype);
+	es3fIntegerStateQueryTests.SamplerObjectBindingTestCase.prototype.constructor = es3fIntegerStateQueryTests.SamplerObjectBindingTestCase;
+
+	es3fIntegerStateQueryTests.SamplerObjectBindingTestCase.prototype.test = function() {
+		this.check(glsStateQuery.verify(gl.SAMPLER_BINDING, null));
+debugger;
+		bufferedLogToConsole("SingleUnit: Single unit");
+		/** @type {WebGLSampler} */ var sampler = gl.createSampler();
+
+		gl.bindSampler(0, sampler);
+
+		this.check(glsStateQuery.verify(gl.SAMPLER_BINDING, sampler));
+
+		gl.deleteSampler(sampler);
+		this.check(glsStateQuery.verify(gl.SAMPLER_BINDING, null));
+
+		bufferedLogToConsole("MultipleUnits: Multiple units");
+
+		/** @type {WebGLSampler} */ var samplerA = gl.createSampler();
+		/** @type {WebGLSampler} */ var samplerB = gl.createSampler();
+
+		gl.bindSampler(1, samplerA);
+		gl.bindSampler(2, samplerB);
+
+		this.check(glsStateQuery.verify(gl.SAMPLER_BINDING, null));
+
+		gl.activeTexture(gl.TEXTURE1);
+		this.check(glsStateQuery.verify(gl.SAMPLER_BINDING, samplerA));
+
+		gl.activeTexture(gl.TEXTURE2);
+		this.check(glsStateQuery.verify(gl.SAMPLER_BINDING, samplerB));
+
+		gl.deleteSampler(samplerB);
+		gl.deleteSampler(samplerA);
+	};
+
+	/**
+	 * @constructor
+	 * @extends {es3fApiCase.ApiCase}
+	 * @param {string} name
+	 * @param {string} description
+	 * @param {number} testBindingName
+	 * @param {number} textureType
+	 */
+	es3fIntegerStateQueryTests.TextureBindingTestCase = function(name, description, testBindingName, textureType) {
+		es3fApiCase.ApiCase.call(this, name, description, gl);
+	 /** @type {number} */ this.m_testBindingName = testBindingName;
+	 /** @type {number} */ this.m_textureType = textureType;
+	};
+
+	es3fIntegerStateQueryTests.TextureBindingTestCase.prototype = Object.create(es3fApiCase.ApiCase.prototype);
+	es3fIntegerStateQueryTests.TextureBindingTestCase.prototype.constructor = es3fIntegerStateQueryTests.TextureBindingTestCase;
+
+	es3fIntegerStateQueryTests.TextureBindingTestCase.prototype.test = function() {
+		this.check(glsStateQuery.verify(this.m_testBindingName, null));
+
+		/** @type {WebGLTexture} */ var texture = gl.createTexture();
+
+		gl.bindTexture(this.m_textureType, texture);
+		this.check(glsStateQuery.verify(this.m_testBindingName, texture));
+
+		gl.deleteTexture(texture);
+
+		this.check(glsStateQuery.verify(this.m_testBindingName, null));
+	};
+
+	/**
+	 * @constructor
+	 * @extends {es3fApiCase.ApiCase}
+	 * @param {string} name
+	 * @param {string} description
+	 */
+	es3fIntegerStateQueryTests.FrameBufferBindingTestCase = function(name, description) {
+		es3fApiCase.ApiCase.call(this, name, description, gl);
+	};
+
+	es3fIntegerStateQueryTests.FrameBufferBindingTestCase.prototype = Object.create(es3fApiCase.ApiCase.prototype);
+	es3fIntegerStateQueryTests.FrameBufferBindingTestCase.prototype.constructor = es3fIntegerStateQueryTests.FrameBufferBindingTestCase;
+
+	es3fIntegerStateQueryTests.FrameBufferBindingTestCase.prototype.test = function() {
+		this.check(glsStateQuery.verify(gl.DRAW_FRAMEBUFFER_BINDING, null));
+		this.check(glsStateQuery.verify(gl.FRAMEBUFFER_BINDING, null));
+		this.check(glsStateQuery.verify(gl.READ_FRAMEBUFFER_BINDING, null));
+
+		/** @type {WebGLFramebuffer} */ var framebufferId = gl.createFramebuffer();
+
+		gl.bindFramebuffer(gl.FRAMEBUFFER, framebufferId);
+
+		this.check(glsStateQuery.verify(gl.DRAW_FRAMEBUFFER_BINDING,	framebufferId));
+		this.check(glsStateQuery.verify(gl.FRAMEBUFFER_BINDING,		framebufferId));
+		this.check(glsStateQuery.verify(gl.READ_FRAMEBUFFER_BINDING,	framebufferId));
+
+		gl.bindFramebuffer(gl.FRAMEBUFFER, null);
+
+		this.check(glsStateQuery.verify(gl.DRAW_FRAMEBUFFER_BINDING, null));
+		this.check(glsStateQuery.verify(gl.FRAMEBUFFER_BINDING, null));
+		this.check(glsStateQuery.verify(gl.READ_FRAMEBUFFER_BINDING, null));
+
+		gl.bindFramebuffer(gl.READ_FRAMEBUFFER, framebufferId);
+
+		this.check(glsStateQuery.verify(gl.DRAW_FRAMEBUFFER_BINDING, null));
+		this.check(glsStateQuery.verify(gl.FRAMEBUFFER_BINDING, null));
+		this.check(glsStateQuery.verify(gl.READ_FRAMEBUFFER_BINDING,	framebufferId));
+
+		gl.bindFramebuffer(gl.DRAW_FRAMEBUFFER, framebufferId);
+
+		this.check(glsStateQuery.verify(gl.DRAW_FRAMEBUFFER_BINDING,	framebufferId));
+		this.check(glsStateQuery.verify(gl.FRAMEBUFFER_BINDING,		framebufferId));
+		this.check(glsStateQuery.verify(gl.READ_FRAMEBUFFER_BINDING,	framebufferId));
+
+		gl.deleteFramebuffer(framebufferId);
+
+		this.check(glsStateQuery.verify(gl.DRAW_FRAMEBUFFER_BINDING, null));
+		this.check(glsStateQuery.verify(gl.FRAMEBUFFER_BINDING, null));
+		this.check(glsStateQuery.verify(gl.READ_FRAMEBUFFER_BINDING, null));
+	};
+
+	/**
+	 * @constructor
+	 * @extends {es3fApiCase.ApiCase}
+	 * @param {string} name
+	 * @param {string} description
+	 */
+	es3fIntegerStateQueryTests.ImplementationColorReadTestCase = function(name, description) {
+		es3fApiCase.ApiCase.call(this, name, description, gl);
+	};
+
+	es3fIntegerStateQueryTests.ImplementationColorReadTestCase.prototype = Object.create(es3fApiCase.ApiCase.prototype);
+	es3fIntegerStateQueryTests.ImplementationColorReadTestCase.prototype.constructor = es3fIntegerStateQueryTests.ImplementationColorReadTestCase;
+
+	es3fIntegerStateQueryTests.ImplementationColorReadTestCase.prototype.test = function() {
+		/** @type {Array<number>} */ var defaultColorTypes =[
+			gl.UNSIGNED_BYTE, gl.BYTE, gl.UNSIGNED_SHORT, gl.SHORT,
+			gl.UNSIGNED_INT, gl.INT, gl.HALF_FLOAT, gl.FLOAT, gl.UNSIGNED_SHORT_5_6_5,
+			gl.UNSIGNED_SHORT_4_4_4_4, gl.UNSIGNED_SHORT_5_5_5_1,
+			gl.UNSIGNED_INT_2_10_10_10_REV, gl.UNSIGNED_INT_10F_11F_11F_REV
+		];
+
+		/** @type {Array<number>} */ var defaultColorFormats = [
+			gl.RGBA, gl.RGBA_INTEGER, gl.RGB, gl.RGB_INTEGER,
+			gl.RG, gl.RG_INTEGER, gl.RED, gl.RED_INTEGER
+		];
+
+		/** @type {Array<number>} */ var validColorTypes = [];
+		/** @type {Array<number>} */ var validColorFormats = [];
+
+		// Defined by the spec
+
+		for (var ndx = 0; ndx < defaultColorTypes.length; ++ndx)
+			validColorTypes.push(defaultColorTypes[ndx]);
+		for (var ndx = 0; ndx < defaultColorFormats.length; ++ndx)
+			validColorFormats.push(defaultColorFormats[ndx]);
+
+		// Extensions
+
+		// if (this.m_context.getContextInfo().isExtensionSupported("gl.EXT_texture_format_BGRA8888") ||
+		// 	this.m_context.getContextInfo().isExtensionSupported("gl.APPLE_texture_format_BGRA8888"))
+		// 	validColorFormats.push(gl.BGRA);
+		//
+		// if (this.m_context.getContextInfo().isExtensionSupported("gl.EXT_read_format_bgra")) {
+		// 	validColorFormats.push(gl.BGRA);
+		// 	validColorTypes.push(gl.UNSIGNED_SHORT_4_4_4_4_REV);
+		// 	validColorTypes.push(gl.UNSIGNED_SHORT_1_5_5_5_REV);
+		// }
+		//
+		// if (this.m_context.getContextInfo().isExtensionSupported("gl.IMG_read_format")) {
+		// 	validColorFormats.push(gl.BGRA);
+		// 	validColorTypes.push(gl.UNSIGNED_SHORT_4_4_4_4_REV);
+		// }
+		//
+		// if (this.m_context.getContextInfo().isExtensionSupported("gl.NV_sRGB_formats")) {
+		// 	validColorFormats.push(gl.SLUMINANCE_NV);
+		// 	validColorFormats.push(gl.SLUMINANCE_ALPHA_NV);
+		// }
+		//
+		// if (this.m_context.getContextInfo().isExtensionSupported("gl.NV_bgr")) {
+		// 	validColorFormats.push(gl.BGR_NV);
+		// }
+
+		this.check(glsStateQuery.verifyAnyOf(gl.IMPLEMENTATION_COLOR_READ_TYPE, validColorTypes));
+		this.check(glsStateQuery.verifyAnyOf(gl.IMPLEMENTATION_COLOR_READ_FORMAT, validColorFormats));
+	};
+
+	/**
+	 * @constructor
+	 * @extends {es3fApiCase.ApiCase}
+	 * @param {string} name
+	 * @param {string} description
+	 */
+	es3fIntegerStateQueryTests.ReadBufferCase = function(name, description) {
+		es3fApiCase.ApiCase.call(this, name, description, gl);
+	};
+
+	es3fIntegerStateQueryTests.ReadBufferCase.prototype = Object.create(es3fApiCase.ApiCase.prototype);
+	es3fIntegerStateQueryTests.ReadBufferCase.prototype.constructor = es3fIntegerStateQueryTests.ReadBufferCase;
+
+	es3fIntegerStateQueryTests.ReadBufferCase.prototype.test = function() {
+		/** @type {Array<number>} */ var validInitialValues = [gl.BACK, gl.NONE];
+		this.check(glsStateQuery.verifyAnyOf(gl.READ_BUFFER, validInitialValues));
+
+		gl.readBuffer(gl.NONE);
+		this.check(glsStateQuery.verify(gl.READ_BUFFER, gl.NONE));
+
+		gl.readBuffer(gl.BACK);
+		this.check(glsStateQuery.verify(gl.READ_BUFFER, gl.BACK));
+
+		// test gl.READ_BUFFER with framebuffers
+
+		/** @type {WebGLFramebuffer} */ var framebufferId = gl.createFramebuffer();
+
+		/** @type {WebGLRenderbuffer} */ var renderbuffer_id = gl.createRenderbuffer();
+
+		gl.bindRenderbuffer(gl.RENDERBUFFER, renderbuffer_id);
+
+		gl.renderbufferStorage(gl.RENDERBUFFER, gl.RGBA8, 128, 128);
+
+		gl.bindFramebuffer(gl.READ_FRAMEBUFFER, framebufferId);
+
+		gl.framebufferRenderbuffer(gl.READ_FRAMEBUFFER, gl.COLOR_ATTACHMENT0, gl.RENDERBUFFER, renderbuffer_id);
+
+		this.check(glsStateQuery.verify(gl.READ_BUFFER, gl.COLOR_ATTACHMENT0));
+
+		gl.deleteFramebuffer(framebufferId);
+		gl.deleteRenderbuffer(renderbuffer_id);
+
+		this.check(glsStateQuery.verify(gl.READ_BUFFER, gl.BACK));
+	};
+
+	/**
+	 * @constructor
+	 * @extends {es3fApiCase.ApiCase}
+	 * @param {string} name
+	 * @param {string} description
+	 */
+	es3fIntegerStateQueryTests.DrawBufferCase = function(name, description) {
+		es3fApiCase.ApiCase.call(this, name, description, gl);
+	};
+
+	es3fIntegerStateQueryTests.DrawBufferCase.prototype = Object.create(es3fApiCase.ApiCase.prototype);
+	es3fIntegerStateQueryTests.DrawBufferCase.prototype.constructor = es3fIntegerStateQueryTests.DrawBufferCase;
+
+	es3fIntegerStateQueryTests.DrawBufferCase.prototype.test = function() {
+		/** @type {Array<number>} */ var validInitialValues = [gl.BACK, gl.NONE];
+		this.check(glsStateQuery.verifyAnyOf(gl.DRAW_BUFFER0, validInitialValues));
+
+		/** @type {number} */ var bufs = gl.NONE;
+		gl.drawBuffers([bufs]);
+		this.check(glsStateQuery.verify(gl.DRAW_BUFFER0, gl.NONE));
+
+		bufs = gl.BACK;
+		gl.drawBuffers([bufs]);
+		this.check(glsStateQuery.verify(gl.DRAW_BUFFER0, gl.BACK));
+
+		// test gl.DRAW_BUFFER with framebuffers
+
+		/** @type {WebGLFramebuffer} */ var framebufferId = gl.createFramebuffer();
+
+		/** @type {Array<WebGLRenderbuffer>} */ var renderbuffer_ids = [];
+
+		for (var ndx = 0; ndx < 2; ndx++)
+			renderbuffer_ids[ndx] = gl.createRenderbuffer();
+
+		gl.bindRenderbuffer(gl.RENDERBUFFER, renderbuffer_ids[0]);
+		gl.renderbufferStorage(gl.RENDERBUFFER, gl.RGBA8, 128, 128);
+
+		gl.bindRenderbuffer(gl.RENDERBUFFER, renderbuffer_ids[1]);
+		gl.renderbufferStorage(gl.RENDERBUFFER, gl.RGBA8, 128, 128);
+
+		gl.bindFramebuffer(gl.DRAW_FRAMEBUFFER, framebufferId);
+
+		gl.framebufferRenderbuffer(gl.DRAW_FRAMEBUFFER, gl.COLOR_ATTACHMENT0, gl.RENDERBUFFER, renderbuffer_ids[0]);
+		gl.framebufferRenderbuffer(gl.DRAW_FRAMEBUFFER, gl.COLOR_ATTACHMENT1, gl.RENDERBUFFER, renderbuffer_ids[1]);
+
+		// only the initial state the draw buffer for fragment color zero is defined
+		this.check(glsStateQuery.verify(gl.DRAW_BUFFER0, gl.COLOR_ATTACHMENT0));
+
+		/** @type {Array<number>} */ var bufTargets = [gl.NONE, gl.COLOR_ATTACHMENT1];
+		gl.drawBuffers(bufTargets);
+		this.check(glsStateQuery.verify(gl.DRAW_BUFFER0, gl.NONE));
+		this.check(glsStateQuery.verify(gl.DRAW_BUFFER1, gl.COLOR_ATTACHMENT1));
+
+		gl.deleteFramebuffer(framebufferId);
+		gl.deleteRenderbuffer(renderbuffer_ids[0]);
+		gl.deleteRenderbuffer(renderbuffer_ids[1]);
+
+		this.check(glsStateQuery.verify(gl.DRAW_BUFFER0, gl.BACK));
+	};
 
     /**
     * @constructor
@@ -795,8 +1595,6 @@ goog.scope(function() {
     es3fIntegerStateQueryTests.IntegerStateQueryTests.prototype.constructor = es3fIntegerStateQueryTests.IntegerStateQueryTests;
 
     es3fIntegerStateQueryTests.IntegerStateQueryTests.prototype.init = function() {
-
-
 		/**
 		 * @struct
 		 * @constructor
@@ -823,10 +1621,6 @@ goog.scope(function() {
 			new LimitedStateInteger("max_color_attachments", "MAX_COLOR_ATTACHMENTS has minimum value of 4", gl.MAX_COLOR_ATTACHMENTS, 4),
 			new LimitedStateInteger("max_elements_indices", "MAX_ELEMENTS_INDICES has minimum value of 0", gl.MAX_ELEMENTS_INDICES, 0),
 			new LimitedStateInteger("max_elements_vertices", "MAX_ELEMENTS_VERTICES has minimum value of 0", gl.MAX_ELEMENTS_VERTICES, 0),
-			// TODO: update for WebGL
-			// new LimitedStateInteger("num_extensions", "NUM_EXTENSIONS has minimum value of 0", gl.NUM_EXTENSIONS, 0),
-			// new LimitedStateInteger("major_version", "MAJOR_VERSION has minimum value of 3", gl.MAJOR_VERSION, 3),
-			// new LimitedStateInteger("minor_version", "MINOR_VERSION has minimum value of 0", gl.MINOR_VERSION, 0),
 			new LimitedStateInteger("max_vertex_attribs", "MAX_VERTEX_ATTRIBS has minimum value of 16", gl.MAX_VERTEX_ATTRIBS, 16),
 			new LimitedStateInteger("max_vertex_uniform_components", "MAX_VERTEX_UNIFORM_COMPONENTS has minimum value of 1024", gl.MAX_VERTEX_UNIFORM_COMPONENTS, 1024),
 			new LimitedStateInteger("max_vertex_uniform_vectors", "MAX_VERTEX_UNIFORM_VECTORS has minimum value of 256", gl.MAX_VERTEX_UNIFORM_VECTORS, 256),
@@ -861,21 +1655,15 @@ goog.scope(function() {
 			new LimitedStateInteger("uniform_buffer_offset_alignment", "UNIFORM_BUFFER_OFFSET_ALIGNMENT has minimum value of 1", gl.UNIFORM_BUFFER_OFFSET_ALIGNMENT, 256)
 		];
 
-		// \note implementation defined limits have their own tests so just check the conversions to boolean, int64 and float
-		///** @type {Array<es3fIntegerStateQueryTests.StateVerifier>} */ var  implementationLimitVerifiers = [this.m_verifierBoolean, this.m_verifierInteger64, this.m_verifierFloat];
-
 		var testCtx = this;
 
-		// TODO: commenting until this is implemented
 		for (var testNdx = 0; testNdx < implementationMinLimits.length; testNdx++)
 			testCtx.addChild(new es3fIntegerStateQueryTests.ConstantMinimumValueTestCase(implementationMinLimits[testNdx].name, implementationMinLimits[testNdx].description, implementationMinLimits[testNdx].targetName, implementationMinLimits[testNdx].value));
 
 		for (var testNdx = 0; testNdx < implementationMaxLimits.length; testNdx++)
 			testCtx.addChild(new es3fIntegerStateQueryTests.ConstantMaximumValueTestCase(implementationMaxLimits[testNdx].name, implementationMaxLimits[testNdx].description, implementationMaxLimits[testNdx].targetName, implementationMaxLimits[testNdx].value));
 
-		// /** @type {Array<es3fIntegerStateQueryTests.StateVerifier>} */ var  normalVerifiers = [this.m_verifierBoolean, this.m_verifierInteger, this.m_verifierInteger64, this.m_verifierFloat];
 		testCtx.addChild(new es3fIntegerStateQueryTests.SampleBuffersTestCase("sample_buffers", "SAMPLE_BUFFERS"));
-		//
 		testCtx.addChild(new es3fIntegerStateQueryTests.SamplesTestCase("samples" , "SAMPLES"));
 		testCtx.addChild(new es3fIntegerStateQueryTests.HintTestCase("generate_mipmap_hint", "GENERATE_MIPMAP_HINT", gl.GENERATE_MIPMAP_HINT));
 		testCtx.addChild(new es3fIntegerStateQueryTests.HintTestCase("fragment_shader_derivative_hint", "FRAGMENT_SHADER_DERIVATIVE_HINT", gl.FRAGMENT_SHADER_DERIVATIVE_HINT));
@@ -943,184 +1731,177 @@ goog.scope(function() {
 		testCtx.addChild(new es3fIntegerStateQueryTests.StencilWriteMaskSeparateTestCase("stencil_writemask_separate_both", "STENCIL_WRITEMASK (separate)", gl.STENCIL_WRITEMASK, gl.FRONT_AND_BACK));
 		testCtx.addChild(new es3fIntegerStateQueryTests.StencilWriteMaskSeparateTestCase("stencil_back_writemask_separate", "STENCIL_BACK_WRITEMASK (separate)", gl.STENCIL_BACK_WRITEMASK, gl.BACK));
 		testCtx.addChild(new es3fIntegerStateQueryTests.StencilWriteMaskSeparateTestCase("stencil_back_writemask_separate_both", "STENCIL_BACK_WRITEMASK (separate)", gl.STENCIL_BACK_WRITEMASK, gl.FRONT_AND_BACK));
-		//
-		// /**
-		//  * @struct
-		//  * @constructor
-		//  * @param {string} name
-		//  * @param {string} description
-		//  * @param {number} target
-		//  * @param {number} initialValue
-		//  */
-		// PixelStoreState = function(name, description, target, initialValue) {
-		//     /** @type {string} */ this.name = name;
-		//     /** @type {string} */ this.description = description;
-		//     /** @type {number} */ this.target = target;
-		//     /** @type {number} */ this.initialValue = initialValue;
-		// };
-		//
-		// /** @type {Array<PixelStoreState>} */ var pixelStoreStates = [
-		// 	new PixelStoreState("unpack_image_height", "UNPACK_IMAGE_HEIGHT", gl.UNPACK_IMAGE_HEIGHT, 0),
-		// 	new PixelStoreState("unpack_skip_images", "UNPACK_SKIP_IMAGES", gl.UNPACK_SKIP_IMAGES, 0),
-		// 	new PixelStoreState("unpack_row_length", "UNPACK_ROW_LENGTH", gl.UNPACK_ROW_LENGTH, 0),
-		// 	new PixelStoreState("unpack_skip_rows", "UNPACK_SKIP_ROWS", gl.UNPACK_SKIP_ROWS, 0),
-		// 	new PixelStoreState("unpack_skip_pixels", "UNPACK_SKIP_PIXELS", gl.UNPACK_SKIP_PIXELS, 0),
-		// 	new PixelStoreState("pack_row_length", "PACK_ROW_LENGTH", gl.PACK_ROW_LENGTH, 0),
-		// 	new PixelStoreState("pack_skip_rows", "PACK_SKIP_ROWS", gl.PACK_SKIP_ROWS, 0),
-		// 	new PixelStoreState("pack_skip_pixels", "PACK_SKIP_PIXELS", gl.PACK_SKIP_PIXELS, 0)
-		// ];
-		//
-		// for (var testNdx = 0; testNdx < pixelStoreStates.length; testNdx++)
-		// 	normalVerifiers.forEach(function(verifier) { testCtx.addChild(new es3fIntegerStateQueryTests.PixelStoreTestCase(verifier, pixelStoreStates[testNdx].name + verifier.getTestNamePostfix(), pixelStoreStates[testNdx].description, pixelStoreStates[testNdx].target, pixelStoreStates[testNdx].initialValue)); });
-		//
-		// normalVerifiers.forEach(function(verifier) { testCtx.addChild(new es3fIntegerStateQueryTests.PixelStoreAlignTestCase(verifier, "unpack_alignment" + verifier.getTestNamePostfix(), "UNPACK_ALIGNMENT", gl.UNPACK_ALIGNMENT)); });
-		// normalVerifiers.forEach(function(verifier) { testCtx.addChild(new es3fIntegerStateQueryTests.PixelStoreAlignTestCase(verifier, "pack_alignment" + verifier.getTestNamePostfix(), "PACK_ALIGNMENT", gl.PACK_ALIGNMENT)); });
-		//
-		// /**
-		//  * @struct
-		//  * @constructor
-		//  * @param {string} name
-		//  * @param {string} description
-		//  * @param {number} target
-		//  * @param {number} initialValue
-		//  */
-		// BlendColorState = function(name, description, target, initialValue) {
-		//     /** @type {string} */ this.name = name;
-		//     /** @type {string} */ this.description = description;
-		//     /** @type {number} */ this.target = target;
-		//     /** @type {number} */ this.initialValue = initialValue;
-		// };
-		//
-		// /** @type {Array<PixelStoreState>} */ var blendColorStates = [
-		// 	new BlendColorState("blend_src_rgb", "BLEND_SRC_RGB", gl.BLEND_SRC_RGB, gl.ONE),
-		// 	new BlendColorState("blend_src_alpha", "BLEND_SRC_ALPHA", gl.BLEND_SRC_ALPHA, gl.ONE),
-		// 	new BlendColorState("blend_dst_rgb", "BLEND_DST_RGB", gl.BLEND_DST_RGB, gl.ZERO),
-		// 	new BlendColorState("blend_dst_alpha", "BLEND_DST_ALPHA", gl.BLEND_DST_ALPHA, gl.ZERO)
-		// ];
-		//
-		// for (var testNdx = 0; testNdx < blendColorStates.length; testNdx++) {
-		// 	normalVerifiers.forEach(function(verifier) { testCtx.addChild(new es3fIntegerStateQueryTests.BlendFuncTestCase(verifier, blendColorStates[testNdx].name + verifier.getTestNamePostfix(), blendColorStates[testNdx].description,	blendColorStates[testNdx].target, blendColorStates[testNdx].initialValue)); });
-		// 	normalVerifiers.forEach(function(verifier) { testCtx.addChild(new es3fIntegerStateQueryTests.BlendFuncSeparateTestCase(verifier, blendColorStates[testNdx].name + "_separate" + verifier.getTestNamePostfix(), blendColorStates[testNdx].description, blendColorStates[testNdx].target, blendColorStates[testNdx].initialValue)); });
-		// }
-		//
-		// /**
-		//  * @struct
-		//  * @constructor
-		//  * @param {string} name
-		//  * @param {string} description
-		//  * @param {number} target
-		//  * @param {number} initialValue
-		//  */
-		// BlendEquationState = function(name, description, target, initialValue) {
-		//     /** @type {string} */ this.name = name;
-		//     /** @type {string} */ this.description = description;
-		//     /** @type {number} */ this.target = target;
-		//     /** @type {number} */ this.initialValue = initialValue;
-		// };
-		//
-		// /** @type {Array<PixelStoreState>} */ var blendColorStates = [
-		// 	new BlendEquationState("blend_equation_rgb", "BLEND_EQUATION_RGB", gl.BLEND_EQUATION_RGB, gl.FUNC_ADD),
-		// 	new BlendEquationState("blend_equation_alpha", "BLEND_EQUATION_ALPHA", gl.BLEND_EQUATION_ALPHA, gl.FUNC_ADD)
-		// ];
-		//
-		// for (var testNdx = 0; testNdx < blendEquationStates.length; testNdx++) {
-		// 	normalVerifiers.forEach(function(verifier) { testCtx.addChild(new es3fIntegerStateQueryTests.BlendEquationTestCase(verifier, blendEquationStates[testNdx].name + verifier.getTestNamePostfix(), blendEquationStates[testNdx].description, blendEquationStates[testNdx].target, blendEquationStates[testNdx].initialValue)); });
-		// 	normalVerifiers.forEach(function(verifier) { testCtx.addChild(new es3fIntegerStateQueryTests.BlendEquationSeparateTestCase(verifier, blendEquationStates[testNdx].name + "_separate" + verifier.getTestNamePostfix(), blendEquationStates[testNdx].description, blendEquationStates[testNdx].target, blendEquationStates[testNdx].initialValue)); });
-		// }
-		//
-		// /**
-		//  * @struct
-		//  * @constructor
-		//  * @param {string} name
-		//  * @param {string} description
-		//  * @param {number} target
-		//  * @param {number} targetLengthTarget
-		//  * @param {number} minLength
-		//  */
-		// ImplementationArrayReturningState = function(name, description, target, targetLengthTarget, minLength) {
-		//     /** @type {string} */ this.name = name;
-		//     /** @type {string} */ this.description = description;
-		//     /** @type {number} */ this.target = target;
-		//     /** @type {number} */ this.targetLengthTarget = targetLengthTarget;
-		//     /** @type {number} */ this.minLength = minLength;
-		// };
-		//
-		// /** @type {Array<ImplementationArrayReturningState>} */ var implementationArrayReturningStates = [
-		// 	new ImplementationArrayReturningState("compressed_texture_formats", "COMPRESSED_TEXTURE_FORMATS", gl.COMPRESSED_TEXTURE_FORMATS, gl.NUM_COMPRESSED_TEXTURE_FORMATS, 10),
-		// 	new ImplementationArrayReturningState("program_binary_formats", "PROGRAM_BINARY_FORMATS", gl.PROGRAM_BINARY_FORMATS, gl.NUM_PROGRAM_BINARY_FORMATS, 0),
-		// 	new ImplementationArrayReturningState("shader_binary_formats", "SHADER_BINARY_FORMATS", gl.SHADER_BINARY_FORMATS, gl.NUM_SHADER_BINARY_FORMATS, 0)
-		// ];
-		//
-		// for (var testNdx = 0; testNdx < implementationArrayReturningStates.length; testNdx++)
-		// 	normalVerifiers.forEach(function(verifier) { testCtx.addChild(new es3fIntegerStateQueryTests.ImplementationArrayTestCase(verifier, implementationArrayReturningStates[testNdx].name + verifier.getTestNamePostfix(), implementationArrayReturningStates[testNdx].description,	implementationArrayReturningStates[testNdx].target,	implementationArrayReturningStates[testNdx].targetLengthTarget,	implementationArrayReturningStates[testNdx].minLength)); });
-		//
-		// /**
-		//  * @struct
-		//  * @constructor
-		//  * @param {string} name
-		//  * @param {string} description
-		//  * @param {number} target
-		//  * @param {number} type
-		//  */
-		// BufferBindingState = function(name, description, target, type) {
-		// 	/** @type {string} */ this.name = name;
-		// 	/** @type {string} */ this.description = description;
-		// 	/** @type {number} */ this.target = target;
-		// 	/** @type {number} */ this.type = type;
-		// };
-		//
-		// /** @type {Array<BufferBindingState>} */ var bufferBindingStates = [
-		// 	new BufferBindingState("array_buffer_binding", "ARRAY_BUFFER_BINDING", gl.ARRAY_BUFFER_BINDING, gl.ARRAY_BUFFER),
-		// 	new BufferBindingState("uniform_buffer_binding", "UNIFORM_BUFFER_BINDING", gl.UNIFORM_BUFFER_BINDING, gl.UNIFORM_BUFFER),
-		// 	new BufferBindingState("pixel_pack_buffer_binding", "PIXEL_PACK_BUFFER_BINDING", gl.PIXEL_PACK_BUFFER_BINDING, gl.PIXEL_PACK_BUFFER),
-		// 	new BufferBindingState("pixel_unpack_buffer_binding", "PIXEL_UNPACK_BUFFER_BINDING", gl.PIXEL_UNPACK_BUFFER_BINDING, gl.PIXEL_UNPACK_BUFFER),
-		// 	new BufferBindingState("transform_feedback_buffer_binding", "TRANSFORM_FEEDBACK_BUFFER_BINDING", gl.TRANSFORM_FEEDBACK_BUFFER_BINDING, gl.TRANSFORM_FEEDBACK_BUFFER),
-		// 	new BufferBindingState("copy_read_buffer_binding", "COPY_READ_BUFFER_BINDING", gl.COPY_READ_BUFFER_BINDING, gl.COPY_READ_BUFFER),
-		// 	new BufferBindingState("copy_write_buffer_binding", "COPY_WRITE_BUFFER_BINDING", gl.COPY_WRITE_BUFFER_BINDING, gl.COPY_WRITE_BUFFER)
-		// ];
-		//
-		// for (vartestNdx = 0; testNdx < bufferBindingStates.length; testNdx++)
-		// 	normalVerifiers.forEach(function(verifier) { testCtx.addChild(new es3fIntegerStateQueryTests.BufferBindingTestCase(verifier, bufferBindingStates[testNdx].name + verifier.getTestNamePostfix(), bufferBindingStates[testNdx].description, bufferBindingStates[testNdx].target, bufferBindingStates[testNdx].type)); });
-		//
-		// normalVerifiers.forEach(function(verifier) { testCtx.addChild(new es3fIntegerStateQueryTests.ElementArrayBufferBindingTestCase(verifier, "element_array_buffer_binding" + verifier.getTestNamePostfix())); });
-		// normalVerifiers.forEach(function(verifier) { testCtx.addChild(new es3fIntegerStateQueryTests.TransformFeedbackBindingTestCase(verifier, "transform_feedback_binding" + verifier.getTestNamePostfix())); });
+
+		/**
+		 * @struct
+		 * @constructor
+		 * @param {string} name
+		 * @param {string} description
+		 * @param {number} target
+		 * @param {number} initialValue
+		 */
+		var PixelStoreState = function(name, description, target, initialValue) {
+		    /** @type {string} */ this.name = name;
+		    /** @type {string} */ this.description = description;
+		    /** @type {number} */ this.target = target;
+		    /** @type {number} */ this.initialValue = initialValue;
+		};
+
+		/** @type {Array<PixelStoreState>} */ var pixelStoreStates = [
+			new PixelStoreState("unpack_image_height", "UNPACK_IMAGE_HEIGHT", gl.UNPACK_IMAGE_HEIGHT, 0),
+			new PixelStoreState("unpack_skip_images", "UNPACK_SKIP_IMAGES", gl.UNPACK_SKIP_IMAGES, 0),
+			new PixelStoreState("unpack_row_length", "UNPACK_ROW_LENGTH", gl.UNPACK_ROW_LENGTH, 0),
+			new PixelStoreState("unpack_skip_rows", "UNPACK_SKIP_ROWS", gl.UNPACK_SKIP_ROWS, 0),
+			new PixelStoreState("unpack_skip_pixels", "UNPACK_SKIP_PIXELS", gl.UNPACK_SKIP_PIXELS, 0),
+			new PixelStoreState("pack_row_length", "PACK_ROW_LENGTH", gl.PACK_ROW_LENGTH, 0),
+			new PixelStoreState("pack_skip_rows", "PACK_SKIP_ROWS", gl.PACK_SKIP_ROWS, 0),
+			new PixelStoreState("pack_skip_pixels", "PACK_SKIP_PIXELS", gl.PACK_SKIP_PIXELS, 0)
+		];
+
+		for (var testNdx = 0; testNdx < pixelStoreStates.length; testNdx++)
+			testCtx.addChild(new es3fIntegerStateQueryTests.PixelStoreTestCase(pixelStoreStates[testNdx].name, pixelStoreStates[testNdx].description, pixelStoreStates[testNdx].target, pixelStoreStates[testNdx].initialValue));
+
+		testCtx.addChild(new es3fIntegerStateQueryTests.PixelStoreAlignTestCase("unpack_alignment", "UNPACK_ALIGNMENT", gl.UNPACK_ALIGNMENT));
+		testCtx.addChild(new es3fIntegerStateQueryTests.PixelStoreAlignTestCase("pack_alignment", "PACK_ALIGNMENT", gl.PACK_ALIGNMENT));
+
+		/**
+		 * @struct
+		 * @constructor
+		 * @param {string} name
+		 * @param {string} description
+		 * @param {number} target
+		 * @param {number} initialValue
+		 */
+		var BlendColorState = function(name, description, target, initialValue) {
+		    /** @type {string} */ this.name = name;
+		    /** @type {string} */ this.description = description;
+		    /** @type {number} */ this.target = target;
+		    /** @type {number} */ this.initialValue = initialValue;
+		};
+
+		/** @type {Array<PixelStoreState>} */ var blendColorStates = [
+			new BlendColorState("blend_src_rgb", "BLEND_SRC_RGB", gl.BLEND_SRC_RGB, gl.ONE),
+			new BlendColorState("blend_src_alpha", "BLEND_SRC_ALPHA", gl.BLEND_SRC_ALPHA, gl.ONE),
+			new BlendColorState("blend_dst_rgb", "BLEND_DST_RGB", gl.BLEND_DST_RGB, gl.ZERO),
+			new BlendColorState("blend_dst_alpha", "BLEND_DST_ALPHA", gl.BLEND_DST_ALPHA, gl.ZERO)
+		];
+
+		for (var testNdx = 0; testNdx < blendColorStates.length; testNdx++) {
+			testCtx.addChild(new es3fIntegerStateQueryTests.BlendFuncTestCase(blendColorStates[testNdx].name, blendColorStates[testNdx].description, blendColorStates[testNdx].target, blendColorStates[testNdx].initialValue));
+			testCtx.addChild(new es3fIntegerStateQueryTests.BlendFuncSeparateTestCase(blendColorStates[testNdx].name + "_separate", blendColorStates[testNdx].description, blendColorStates[testNdx].target, blendColorStates[testNdx].initialValue));
+		}
+
+		/**
+		 * @struct
+		 * @constructor
+		 * @param {string} name
+		 * @param {string} description
+		 * @param {number} target
+		 * @param {number} initialValue
+		 */
+		var BlendEquationState = function(name, description, target, initialValue) {
+		    /** @type {string} */ this.name = name;
+		    /** @type {string} */ this.description = description;
+		    /** @type {number} */ this.target = target;
+		    /** @type {number} */ this.initialValue = initialValue;
+		};
+
+		/** @type {Array<PixelStoreState>} */ var blendEquationStates = [
+			new BlendEquationState("blend_equation_rgb", "BLEND_EQUATION_RGB", gl.BLEND_EQUATION_RGB, gl.FUNC_ADD),
+			new BlendEquationState("blend_equation_alpha", "BLEND_EQUATION_ALPHA", gl.BLEND_EQUATION_ALPHA, gl.FUNC_ADD)
+		];
+
+		for (var testNdx = 0; testNdx < blendEquationStates.length; testNdx++) {
+			testCtx.addChild(new es3fIntegerStateQueryTests.BlendEquationTestCase(blendEquationStates[testNdx].name, blendEquationStates[testNdx].description, blendEquationStates[testNdx].target, blendEquationStates[testNdx].initialValue));
+			testCtx.addChild(new es3fIntegerStateQueryTests.BlendEquationSeparateTestCase(blendEquationStates[testNdx].name + "_separate", blendEquationStates[testNdx].description, blendEquationStates[testNdx].target, blendEquationStates[testNdx].initialValue));
+		}
+
+		/**
+		 * @struct
+		 * @constructor
+		 * @param {string} name
+		 * @param {string} description
+		 * @param {number} target
+		 * @param {number} minValue
+		 */
+		var ImplementationArrayReturningState = function(name, description, target, minValue) {
+		    /** @type {string} */ this.name = name;
+		    /** @type {string} */ this.description = description;
+		    /** @type {number} */ this.target = target;
+		    /** @type {number} */ this.minValue = minValue;
+		};
+
+		/** @type {ImplementationArrayReturningState} */ var implementationArrayReturningStates = new ImplementationArrayReturningState("compressed_texture_formats", "COMPRESSED_TEXTURE_FORMATS", gl.COMPRESSED_TEXTURE_FORMATS, 10);
+
+		testCtx.addChild(new es3fIntegerStateQueryTests.ImplementationArrayTestCase(implementationArrayReturningStates.name, implementationArrayReturningStates.description, implementationArrayReturningStates.target, implementationArrayReturningStates.minValue));
+
+		/**
+		 * @struct
+		 * @constructor
+		 * @param {string} name
+		 * @param {string} description
+		 * @param {number} target
+		 * @param {number} type
+		 */
+		var BufferBindingState = function(name, description, target, type) {
+			/** @type {string} */ this.name = name;
+			/** @type {string} */ this.description = description;
+			/** @type {number} */ this.target = target;
+			/** @type {number} */ this.type = type;
+		};
+
+		/** @type {Array<BufferBindingState>} */ var bufferBindingStates = [
+			new BufferBindingState("array_buffer_binding", "ARRAY_BUFFER_BINDING", gl.ARRAY_BUFFER_BINDING, gl.ARRAY_BUFFER),
+			new BufferBindingState("uniform_buffer_binding", "UNIFORM_BUFFER_BINDING", gl.UNIFORM_BUFFER_BINDING, gl.UNIFORM_BUFFER),
+			new BufferBindingState("pixel_pack_buffer_binding", "PIXEL_PACK_BUFFER_BINDING", gl.PIXEL_PACK_BUFFER_BINDING, gl.PIXEL_PACK_BUFFER),
+			new BufferBindingState("pixel_unpack_buffer_binding", "PIXEL_UNPACK_BUFFER_BINDING", gl.PIXEL_UNPACK_BUFFER_BINDING, gl.PIXEL_UNPACK_BUFFER),
+			new BufferBindingState("transform_feedback_buffer_binding", "TRANSFORM_FEEDBACK_BUFFER_BINDING", gl.TRANSFORM_FEEDBACK_BUFFER_BINDING, gl.TRANSFORM_FEEDBACK_BUFFER),
+			new BufferBindingState("copy_read_buffer_binding", "COPY_READ_BUFFER_BINDING", gl.COPY_READ_BUFFER_BINDING, gl.COPY_READ_BUFFER),
+			new BufferBindingState("copy_write_buffer_binding", "COPY_WRITE_BUFFER_BINDING", gl.COPY_WRITE_BUFFER_BINDING, gl.COPY_WRITE_BUFFER)
+		];
+
+		for (var testNdx = 0; testNdx < bufferBindingStates.length; testNdx++)
+			testCtx.addChild(new es3fIntegerStateQueryTests.BufferBindingTestCase(bufferBindingStates[testNdx].name, bufferBindingStates[testNdx].description, bufferBindingStates[testNdx].target, bufferBindingStates[testNdx].type));
+
+		testCtx.addChild(new es3fIntegerStateQueryTests.ElementArrayBufferBindingTestCase("element_array_buffer_binding"));
 		testCtx.addChild(new es3fIntegerStateQueryTests.TransformFeedbackBindingTestCase("transform_feedback_binding"));
-		// normalVerifiers.forEach(function(verifier) { testCtx.addChild(new es3fIntegerStateQueryTests.CurrentProgramBindingTestCase(verifier, "current_program_binding" + verifier.getTestNamePostfix(),	"CURRENT_PROGRAM")); });
-		// normalVerifiers.forEach(function(verifier) { testCtx.addChild(new es3fIntegerStateQueryTests.VertexArrayBindingTestCase(verifier, "vertex_array_binding" + verifier.getTestNamePostfix(),	"VERTEX_ARRAY_BINDING")); });
-		// normalVerifiers.forEach(function(verifier) { testCtx.addChild(new es3fIntegerStateQueryTests.StencilClearValueTestCase(verifier, "stencil_clear_value" + verifier.getTestNamePostfix(),	"STENCIL_CLEAR_VALUE")); });
-		// normalVerifiers.forEach(function(verifier) { testCtx.addChild(new es3fIntegerStateQueryTests.ActiveTextureTestCase(verifier, "active_texture" + verifier.getTestNamePostfix(),	"ACTIVE_TEXTURE")); });
-		// normalVerifiers.forEach(function(verifier) { testCtx.addChild(new es3fIntegerStateQueryTests.RenderbufferBindingTestCase(verifier, "renderbuffer_binding" + verifier.getTestNamePostfix(),	"RENDERBUFFER_BINDING")); });
-		// normalVerifiers.forEach(function(verifier) { testCtx.addChild(new es3fIntegerStateQueryTests.SamplerObjectBindingTestCase(verifier, "sampler_binding" + verifier.getTestNamePostfix(),	"SAMPLER_BINDING")); });
-		//
-		// /**
-		//  * @struct
-		//  * @constructor
-		//  * @param {string} name
-		//  * @param {string} description
-		//  * @param {number} target
-		//  * @param {number} type
-		//  */
-		// TextureBinding = function(name, description, target, type) {
-		// 	/** @type {string} */ this.name = name;
-		// 	/** @type {string} */ this.description = description;
-		// 	/** @type {number} */ this.target = target;
-		// 	/** @type {number} */ this.type = type;
-		// };
-		//
-		// /** @type {Array<TextureBinding>} */ var textureBindings = [
-		// 	new TextureBinding("texture_binding_2d", "TEXTURE_BINDING_2D", gl.TEXTURE_BINDING_2D, gl.TEXTURE_2D),
-		// 	new TextureBinding("texture_binding_3d", "TEXTURE_BINDING_3D", gl.TEXTURE_BINDING_3D, gl.TEXTURE_3D),
-		// 	new TextureBinding("texture_binding_2d_array", "TEXTURE_BINDING_2D_ARRAY", gl.TEXTURE_BINDING_2D_ARRAY, gl.TEXTURE_2D_ARRAY),
-		// 	new TextureBinding("texture_binding_cube_map", "TEXTURE_BINDING_CUBE_MAP", gl.TEXTURE_BINDING_CUBE_MAP, gl.TEXTURE_CUBE_MAP)
-		// ];
-		//
-		// for (var testNdx = 0; testNdx < textureBindings.length; testNdx++)
-		// 	normalVerifiers.forEach(function(verifier) { testCtx.addChild(new es3fIntegerStateQueryTests.TextureBindingTestCase(verifier, textureBindings[testNdx].name + verifier.getTestNamePostfix(), textureBindings[testNdx].description, textureBindings[testNdx].target, textureBindings[testNdx].type)); });
-		//
-		// normalVerifiers.forEach(function(verifier) { testCtx.addChild(new es3fIntegerStateQueryTests.FrameBufferBindingTestCase(verifier, "framebuffer_binding" + verifier.getTestNamePostfix(), "DRAW_FRAMEBUFFER_BINDING and READ_FRAMEBUFFER_BINDING")); });
-		// normalVerifiers.forEach(function(verifier) { testCtx.addChild(new es3fIntegerStateQueryTests.ImplementationColorReadTestCase(verifier, "implementation_color_read" + verifier.getTestNamePostfix(), "IMPLEMENTATION_COLOR_READ_TYPE and IMPLEMENTATION_COLOR_READ_FORMAT")); });
-		// normalVerifiers.forEach(function(verifier) { testCtx.addChild(new es3fIntegerStateQueryTests.ReadBufferCase(verifier, "read_buffer" + verifier.getTestNamePostfix(), "READ_BUFFER")); });
-		// normalVerifiers.forEach(function(verifier) { testCtx.addChild(new es3fIntegerStateQueryTests.DrawBufferCase(verifier, "draw_buffer" + verifier.getTestNamePostfix(), "DRAW_BUFFER")); });
+		testCtx.addChild(new es3fIntegerStateQueryTests.TransformFeedbackBindingTestCase("transform_feedback_binding"));
+		testCtx.addChild(new es3fIntegerStateQueryTests.CurrentProgramBindingTestCase("current_program_binding", "CURRENT_PROGRAM"));
+		testCtx.addChild(new es3fIntegerStateQueryTests.VertexArrayBindingTestCase("vertex_array_binding", "VERTEX_ARRAY_BINDING"));
+		testCtx.addChild(new es3fIntegerStateQueryTests.StencilClearValueTestCase("stencil_clear_value", "STENCIL_CLEAR_VALUE"));
+		testCtx.addChild(new es3fIntegerStateQueryTests.ActiveTextureTestCase("active_texture", "ACTIVE_TEXTURE"));
+		testCtx.addChild(new es3fIntegerStateQueryTests.RenderbufferBindingTestCase("renderbuffer_binding", "RENDERBUFFER_BINDING"));
+		testCtx.addChild(new es3fIntegerStateQueryTests.SamplerObjectBindingTestCase("sampler_binding", "SAMPLER_BINDING"));
+
+		/**
+		 * @struct
+		 * @constructor
+		 * @param {string} name
+		 * @param {string} description
+		 * @param {number} target
+		 * @param {number} type
+		 */
+		var TextureBinding = function(name, description, target, type) {
+			/** @type {string} */ this.name = name;
+			/** @type {string} */ this.description = description;
+			/** @type {number} */ this.target = target;
+			/** @type {number} */ this.type = type;
+		};
+
+		/** @type {Array<TextureBinding>} */ var textureBindings = [
+			new TextureBinding("texture_binding_2d", "TEXTURE_BINDING_2D", gl.TEXTURE_BINDING_2D, gl.TEXTURE_2D),
+			new TextureBinding("texture_binding_3d", "TEXTURE_BINDING_3D", gl.TEXTURE_BINDING_3D, gl.TEXTURE_3D),
+			new TextureBinding("texture_binding_2d_array", "TEXTURE_BINDING_2D_ARRAY", gl.TEXTURE_BINDING_2D_ARRAY, gl.TEXTURE_2D_ARRAY),
+			new TextureBinding("texture_binding_cube_map", "TEXTURE_BINDING_CUBE_MAP", gl.TEXTURE_BINDING_CUBE_MAP, gl.TEXTURE_CUBE_MAP)
+		];
+
+		for (var testNdx = 0; testNdx < textureBindings.length; testNdx++)
+			testCtx.addChild(new es3fIntegerStateQueryTests.TextureBindingTestCase(textureBindings[testNdx].name, textureBindings[testNdx].description, textureBindings[testNdx].target, textureBindings[testNdx].type));
+
+		testCtx.addChild(new es3fIntegerStateQueryTests.FrameBufferBindingTestCase("framebuffer_binding", "DRAW_FRAMEBUFFER_BINDING and READ_FRAMEBUFFER_BINDING"));
+		testCtx.addChild(new es3fIntegerStateQueryTests.ImplementationColorReadTestCase("implementation_color_read", "IMPLEMENTATION_COLOR_READ_TYPE and IMPLEMENTATION_COLOR_READ_FORMAT"));
+		testCtx.addChild(new es3fIntegerStateQueryTests.ReadBufferCase("read_buffer", "READ_BUFFER"));
+		testCtx.addChild(new es3fIntegerStateQueryTests.DrawBufferCase("draw_buffer", "DRAW_BUFFER"));
 
 	};
 
