@@ -34,34 +34,34 @@ goog.scope(function() {
 
 	// shaders (line 907)
 	/** @type {string} */ var transformFeedbackTestVertSource = '' +
-		"#version 300 es\n" +
-		"void main (void)\n" +
-		"{\n" +
-		"	gl_Position = vec4(0.0);\n" +
-		"}\n";
+		'#version 300 es\n' +
+		'void main (void)\n' +
+		'{\n' +
+		'	gl_Position = vec4(0.0);\n' +
+		'}\n';
 
 	/** @type {string} */ var transformFeedbackTestFragSource = '' +
-		"#version 300 es\n" +
-		"layout(location = 0) out mediump vec4 fragColor;" +
-		"void main (void)\n" +
-		"{\n" +
-		"	fragColor = vec4(0.0);\n" +
-		"}\n";
+		'#version 300 es\n' +
+		'layout(location = 0) out mediump vec4 fragColor;' +
+		'void main (void)\n' +
+		'{\n' +
+		'	fragColor = vec4(0.0);\n' +
+		'}\n';
 
 	/** @type {string} */ var testVertSource = '' +
-		"#version 300 es\n" +
-		"void main (void)\n" +
-		"{\n" +
-		"	gl_Position = vec4(0.0);\n" +
-		"}\n";
+		'#version 300 es\n' +
+		'void main (void)\n' +
+		'{\n' +
+		'	gl_Position = vec4(0.0);\n' +
+		'}\n';
 
 	/** @type {string} */ var testFragSource = '' +
-		"#version 300 es\n" +
-		"layout(location = 0) out mediump vec4 fragColor;" +
-		"void main (void)\n" +
-		"{\n" +
-		"	fragColor = vec4(0.0);\n" +
-		"}\n";
+		'#version 300 es\n' +
+		'layout(location = 0) out mediump vec4 fragColor;' +
+		'void main (void)\n' +
+		'{\n' +
+		'	fragColor = vec4(0.0);\n' +
+		'}\n';
 
 	/**
 	 * @constructor
@@ -103,7 +103,7 @@ goog.scope(function() {
 		/** @type {WebGLProgram} */ var shaderProg = gl.createProgram();
 		gl.attachShader(shaderProg, shaderVert);
 		gl.attachShader(shaderProg, shaderFrag);
-		/** @type {Array<string>} */ var transform_feedback_outputs = ["gl_Position"];
+		/** @type {Array<string>} */ var transform_feedback_outputs = ['gl_Position'];
 		gl.transformFeedbackVaryings(shaderProg, transform_feedback_outputs, gl.INTERLEAVED_ATTRIBS);
 		gl.linkProgram(shaderProg);
 
@@ -216,7 +216,7 @@ goog.scope(function() {
 	es3fIntegerStateQueryTests.SampleBuffersTestCase.prototype.test = function() {
 		/** @type {number} */ var expectedSampleBuffers = (/** @type {number} */ (gl.getParameter(gl.SAMPLES)) > 1) ? 1 : 0;
 
-		bufferedLogToConsole("Sample count is " + expectedSampleBuffers + ", expecting GL_SAMPLE_BUFFERS to be " + expectedSampleBuffers);
+		bufferedLogToConsole('Sample count is ' + expectedSampleBuffers + ', expecting GL_SAMPLE_BUFFERS to be ' + expectedSampleBuffers);
 
 		this.check(glsStateQuery.verify(gl.SAMPLE_BUFFERS, expectedSampleBuffers));
 	};
@@ -238,13 +238,13 @@ goog.scope(function() {
 		/** @type {number} */ var numSamples = /** @type {number} */ (gl.getParameter(gl.SAMPLES));
 		// MSAA?
 		if (numSamples > 1) {
-			bufferedLogToConsole("Sample count is " + numSamples);
+			bufferedLogToConsole('Sample count is ' + numSamples);
 
 			this.check(glsStateQuery.verify(gl.SAMPLES, numSamples));
 		} else {
 			/** @type {Array<number>} */ var validSamples = [0, 1];
 
-			bufferedLogToConsole("Expecting GL_SAMPLES to be 0 or 1");
+			bufferedLogToConsole('Expecting GL_SAMPLES to be 0 or 1');
 
 			this.check(glsStateQuery.verifyAnyOf(gl.SAMPLES, validSamples));
 		}
@@ -548,7 +548,7 @@ goog.scope(function() {
 				break;
 
 			default:
-				throw new Error("should not happen");
+				throw new Error('should not happen');
 		}
 	};
 
@@ -592,7 +592,7 @@ goog.scope(function() {
 				break;
 
 			default:
-				throw new Error("should not happen");
+				throw new Error('should not happen');
 		}
 	};
 
@@ -849,7 +849,7 @@ goog.scope(function() {
 	es3fIntegerStateQueryTests.BlendFuncTestCase.prototype.test = function() {
 		this.check(glsStateQuery.verify(this.m_testTargetName, this.m_initialValue));
 
-		/** @type {Array<number>} */ var blendFuncValues =[
+		/** @type {Array<number>} */ var blendFuncValues = [
 			gl.ZERO, gl.ONE, gl.SRC_COLOR, gl.ONE_MINUS_SRC_COLOR, gl.DST_COLOR, gl.ONE_MINUS_DST_COLOR,
 			gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA, gl.DST_ALPHA, gl.ONE_MINUS_DST_ALPHA, gl.CONSTANT_COLOR,
 			gl.ONE_MINUS_CONSTANT_COLOR, gl.CONSTANT_ALPHA, gl.ONE_MINUS_CONSTANT_ALPHA,
@@ -880,7 +880,7 @@ goog.scope(function() {
 				break;
 
 			default:
-				throw new Error("should not happen");
+				throw new Error('should not happen');
 		}
 	};
 
@@ -923,7 +923,7 @@ goog.scope(function() {
 				break;
 
 			default:
-				throw new Error("should not happen");
+				throw new Error('should not happen');
 		}
 	};
 
@@ -996,7 +996,7 @@ goog.scope(function() {
 				break;
 
 			default:
-				throw new Error("should not happen");
+				throw new Error('should not happen');
 		}
 	};
 
@@ -1143,7 +1143,7 @@ goog.scope(function() {
 	 * @param {string} name
 	 */
 	es3fIntegerStateQueryTests.ElementArrayBufferBindingTestCase = function(name) {
-		es3fApiCase.ApiCase.call(this, name, "GL_ELEMENT_ARRAY_BUFFER_BINDING", gl);
+		es3fApiCase.ApiCase.call(this, name, 'GL_ELEMENT_ARRAY_BUFFER_BINDING', gl);
 	};
 
 	es3fIntegerStateQueryTests.ElementArrayBufferBindingTestCase.prototype = Object.create(es3fApiCase.ApiCase.prototype);
@@ -1151,7 +1151,7 @@ goog.scope(function() {
 
 	es3fIntegerStateQueryTests.ElementArrayBufferBindingTestCase.prototype.test = function() {
 		// Test with default VAO
-		bufferedLogToConsole("DefaultVAO: Test with default VAO");
+		bufferedLogToConsole('DefaultVAO: Test with default VAO');
 
 		this.check(glsStateQuery.verify(gl.ELEMENT_ARRAY_BUFFER_BINDING, null));
 
@@ -1164,7 +1164,7 @@ goog.scope(function() {
 		this.check(glsStateQuery.verify(gl.ELEMENT_ARRAY_BUFFER_BINDING, null));
 
 		// Test with multiple VAOs
-		bufferedLogToConsole("WithVAO: Test with VAO");
+		bufferedLogToConsole('WithVAO: Test with VAO');
 
 		/** @type {Array<WebGLVertexArrayObject>} */ var vaos = [];
 		/** @type {Array<WebGLBuffer>} */ var buffers = [];
@@ -1301,7 +1301,7 @@ goog.scope(function() {
 	es3fIntegerStateQueryTests.SamplerObjectBindingTestCase.prototype.test = function() {
 		this.check(glsStateQuery.verify(gl.SAMPLER_BINDING, null));
 debugger;
-		bufferedLogToConsole("SingleUnit: Single unit");
+		bufferedLogToConsole('SingleUnit: Single unit');
 		/** @type {WebGLSampler} */ var sampler = gl.createSampler();
 
 		gl.bindSampler(0, sampler);
@@ -1311,7 +1311,7 @@ debugger;
 		gl.deleteSampler(sampler);
 		this.check(glsStateQuery.verify(gl.SAMPLER_BINDING, null));
 
-		bufferedLogToConsole("MultipleUnits: Multiple units");
+		bufferedLogToConsole('MultipleUnits: Multiple units');
 
 		/** @type {WebGLSampler} */ var samplerA = gl.createSampler();
 		/** @type {WebGLSampler} */ var samplerB = gl.createSampler();
@@ -1384,7 +1384,7 @@ debugger;
 		gl.bindFramebuffer(gl.FRAMEBUFFER, framebufferId);
 
 		this.check(glsStateQuery.verify(gl.DRAW_FRAMEBUFFER_BINDING,	framebufferId));
-		this.check(glsStateQuery.verify(gl.FRAMEBUFFER_BINDING,		framebufferId));
+		this.check(glsStateQuery.verify(gl.FRAMEBUFFER_BINDING,	framebufferId));
 		this.check(glsStateQuery.verify(gl.READ_FRAMEBUFFER_BINDING,	framebufferId));
 
 		gl.bindFramebuffer(gl.FRAMEBUFFER, null);
@@ -1402,7 +1402,7 @@ debugger;
 		gl.bindFramebuffer(gl.DRAW_FRAMEBUFFER, framebufferId);
 
 		this.check(glsStateQuery.verify(gl.DRAW_FRAMEBUFFER_BINDING,	framebufferId));
-		this.check(glsStateQuery.verify(gl.FRAMEBUFFER_BINDING,		framebufferId));
+		this.check(glsStateQuery.verify(gl.FRAMEBUFFER_BINDING,	framebufferId));
 		this.check(glsStateQuery.verify(gl.READ_FRAMEBUFFER_BINDING,	framebufferId));
 
 		gl.deleteFramebuffer(framebufferId);
@@ -1426,7 +1426,7 @@ debugger;
 	es3fIntegerStateQueryTests.ImplementationColorReadTestCase.prototype.constructor = es3fIntegerStateQueryTests.ImplementationColorReadTestCase;
 
 	es3fIntegerStateQueryTests.ImplementationColorReadTestCase.prototype.test = function() {
-		/** @type {Array<number>} */ var defaultColorTypes =[
+		/** @type {Array<number>} */ var defaultColorTypes = [
 			gl.UNSIGNED_BYTE, gl.BYTE, gl.UNSIGNED_SHORT, gl.SHORT,
 			gl.UNSIGNED_INT, gl.INT, gl.HALF_FLOAT, gl.FLOAT, gl.UNSIGNED_SHORT_5_6_5,
 			gl.UNSIGNED_SHORT_4_4_4_4, gl.UNSIGNED_SHORT_5_5_5_1,
@@ -1588,7 +1588,7 @@ debugger;
     * @extends {tcuTestCase.DeqpTest}
     */
     es3fIntegerStateQueryTests.IntegerStateQueryTests = function() {
-        tcuTestCase.DeqpTest.call(this, "integers", "Integer Values");
+        tcuTestCase.DeqpTest.call(this, 'integers', 'Integer Values');
     };
 
     es3fIntegerStateQueryTests.IntegerStateQueryTests.prototype = Object.create(tcuTestCase.DeqpTest.prototype);
@@ -1611,48 +1611,48 @@ debugger;
 		};
 
 		/** @type {Array<LimitedStateInteger>} */ var implementationMinLimits = [
-			new LimitedStateInteger("subpixel_bits", "SUBPIXEL_BITS has minimum value of 4", gl.SUBPIXEL_BITS, 4),
-			new LimitedStateInteger("max_3d_texture_size", "MAX_3D_TEXTURE_SIZE has minimum value of 256", gl.MAX_3D_TEXTURE_SIZE, 256),
-			new LimitedStateInteger("max_texture_size", "MAX_TEXTURE_SIZE has minimum value of 2048", gl.MAX_TEXTURE_SIZE, 2048),
-			new LimitedStateInteger("max_array_texture_layers", "MAX_ARRAY_TEXTURE_LAYERS has minimum value of 256", gl.MAX_ARRAY_TEXTURE_LAYERS, 256),
-			new LimitedStateInteger("max_cube_map_texture_size", "MAX_CUBE_MAP_TEXTURE_SIZE has minimum value of 2048", gl.MAX_CUBE_MAP_TEXTURE_SIZE, 2048),
-			new LimitedStateInteger("max_renderbuffer_size", "MAX_RENDERBUFFER_SIZE has minimum value of 2048", gl.MAX_RENDERBUFFER_SIZE, 2048),
-			new LimitedStateInteger("max_draw_buffers", "MAX_DRAW_BUFFERS has minimum value of 4", gl.MAX_DRAW_BUFFERS, 4),
-			new LimitedStateInteger("max_color_attachments", "MAX_COLOR_ATTACHMENTS has minimum value of 4", gl.MAX_COLOR_ATTACHMENTS, 4),
-			new LimitedStateInteger("max_elements_indices", "MAX_ELEMENTS_INDICES has minimum value of 0", gl.MAX_ELEMENTS_INDICES, 0),
-			new LimitedStateInteger("max_elements_vertices", "MAX_ELEMENTS_VERTICES has minimum value of 0", gl.MAX_ELEMENTS_VERTICES, 0),
-			new LimitedStateInteger("max_vertex_attribs", "MAX_VERTEX_ATTRIBS has minimum value of 16", gl.MAX_VERTEX_ATTRIBS, 16),
-			new LimitedStateInteger("max_vertex_uniform_components", "MAX_VERTEX_UNIFORM_COMPONENTS has minimum value of 1024", gl.MAX_VERTEX_UNIFORM_COMPONENTS, 1024),
-			new LimitedStateInteger("max_vertex_uniform_vectors", "MAX_VERTEX_UNIFORM_VECTORS has minimum value of 256", gl.MAX_VERTEX_UNIFORM_VECTORS, 256),
-			new LimitedStateInteger("max_vertex_uniform_blocks", "MAX_VERTEX_UNIFORM_BLOCKS has minimum value of 12", gl.MAX_VERTEX_UNIFORM_BLOCKS, 12),
-			new LimitedStateInteger("max_vertex_output_components", "MAX_VERTEX_OUTPUT_COMPONENTS has minimum value of 64", gl.MAX_VERTEX_OUTPUT_COMPONENTS, 64),
-			new LimitedStateInteger("max_vertex_texture_image_units", "MAX_VERTEX_TEXTURE_IMAGE_UNITS has minimum value of 16", gl.MAX_VERTEX_TEXTURE_IMAGE_UNITS, 16),
-			new LimitedStateInteger("max_fragment_uniform_components", "MAX_FRAGMENT_UNIFORM_COMPONENTS has minimum value of 896", gl.MAX_FRAGMENT_UNIFORM_COMPONENTS, 896),
-			new LimitedStateInteger("max_fragment_uniform_vectors", "MAX_FRAGMENT_UNIFORM_VECTORS has minimum value of 224", gl.MAX_FRAGMENT_UNIFORM_VECTORS, 224),
-			new LimitedStateInteger("max_fragment_uniform_blocks", "MAX_FRAGMENT_UNIFORM_BLOCKS has minimum value of 12", gl.MAX_FRAGMENT_UNIFORM_BLOCKS, 12),
-			new LimitedStateInteger("max_fragment_input_components", "MAX_FRAGMENT_INPUT_COMPONENTS has minimum value of 60", gl.MAX_FRAGMENT_INPUT_COMPONENTS, 60),
-			new LimitedStateInteger("max_texture_image_units", "MAX_TEXTURE_IMAGE_UNITS has minimum value of 16", gl.MAX_TEXTURE_IMAGE_UNITS, 16),
-			new LimitedStateInteger("max_program_texel_offset", "MAX_PROGRAM_TEXEL_OFFSET has minimum value of 7", gl.MAX_PROGRAM_TEXEL_OFFSET, 7),
-			new LimitedStateInteger("max_uniform_buffer_bindings", "MAX_UNIFORM_BUFFER_BINDINGS has minimum value of 24", gl.MAX_UNIFORM_BUFFER_BINDINGS, 24),
-			new LimitedStateInteger("max_combined_uniform_blocks", "MAX_COMBINED_UNIFORM_BLOCKS has minimum value of 24", gl.MAX_COMBINED_UNIFORM_BLOCKS, 24),
-			new LimitedStateInteger("max_varying_components", "MAX_VARYING_COMPONENTS has minimum value of 60", gl.MAX_VARYING_COMPONENTS, 60),
-			new LimitedStateInteger("max_varying_vectors", "MAX_VARYING_VECTORS has minimum value of 15", gl.MAX_VARYING_VECTORS, 15),
-			new LimitedStateInteger("max_combined_texture_image_units", "MAX_COMBINED_TEXTURE_IMAGE_UNITS has minimum value of 32", gl.MAX_COMBINED_TEXTURE_IMAGE_UNITS, 32),
-			new LimitedStateInteger("max_transform_feedback_interleaved_components", "MAX_TRANSFORM_FEEDBACK_INTERLEAVED_COMPONENTS has minimum value of 64", gl.MAX_TRANSFORM_FEEDBACK_INTERLEAVED_COMPONENTS, 64),
-			new LimitedStateInteger("max_transform_feedback_separate_attribs", "MAX_TRANSFORM_FEEDBACK_SEPARATE_ATTRIBS has minimum value of 4", gl.MAX_TRANSFORM_FEEDBACK_SEPARATE_ATTRIBS, 4),
-			new LimitedStateInteger("max_transform_feedback_separate_components", "MAX_TRANSFORM_FEEDBACK_SEPARATE_COMPONENTS has minimum value of 4", gl.MAX_TRANSFORM_FEEDBACK_SEPARATE_COMPONENTS, 4),
-			new LimitedStateInteger("max_samples", "MAX_SAMPLES has minimum value of 4", gl.MAX_SAMPLES, 4),
-			new LimitedStateInteger("red_bits", "RED_BITS has minimum value of 0", gl.RED_BITS, 0),
-			new LimitedStateInteger("green_bits", "GREEN_BITS has minimum value of 0", gl.GREEN_BITS, 0),
-			new LimitedStateInteger("blue_bits", "BLUE_BITS has minimum value of 0", gl.BLUE_BITS, 0),
-			new LimitedStateInteger("alpha_bits", "ALPHA_BITS has minimum value of 0", gl.ALPHA_BITS, 0),
-			new LimitedStateInteger("depth_bits", "DEPTH_BITS has minimum value of 0", gl.DEPTH_BITS, 0),
-			new LimitedStateInteger("stencil_bits", "STENCIL_BITS has minimum value of 0", gl.STENCIL_BITS, 0)
+			new LimitedStateInteger('subpixel_bits', 'SUBPIXEL_BITS has minimum value of 4', gl.SUBPIXEL_BITS, 4),
+			new LimitedStateInteger('max_3d_texture_size', 'MAX_3D_TEXTURE_SIZE has minimum value of 256', gl.MAX_3D_TEXTURE_SIZE, 256),
+			new LimitedStateInteger('max_texture_size', 'MAX_TEXTURE_SIZE has minimum value of 2048', gl.MAX_TEXTURE_SIZE, 2048),
+			new LimitedStateInteger('max_array_texture_layers', 'MAX_ARRAY_TEXTURE_LAYERS has minimum value of 256', gl.MAX_ARRAY_TEXTURE_LAYERS, 256),
+			new LimitedStateInteger('max_cube_map_texture_size', 'MAX_CUBE_MAP_TEXTURE_SIZE has minimum value of 2048', gl.MAX_CUBE_MAP_TEXTURE_SIZE, 2048),
+			new LimitedStateInteger('max_renderbuffer_size', 'MAX_RENDERBUFFER_SIZE has minimum value of 2048', gl.MAX_RENDERBUFFER_SIZE, 2048),
+			new LimitedStateInteger('max_draw_buffers', 'MAX_DRAW_BUFFERS has minimum value of 4', gl.MAX_DRAW_BUFFERS, 4),
+			new LimitedStateInteger('max_color_attachments', 'MAX_COLOR_ATTACHMENTS has minimum value of 4', gl.MAX_COLOR_ATTACHMENTS, 4),
+			new LimitedStateInteger('max_elements_indices', 'MAX_ELEMENTS_INDICES has minimum value of 0', gl.MAX_ELEMENTS_INDICES, 0),
+			new LimitedStateInteger('max_elements_vertices', 'MAX_ELEMENTS_VERTICES has minimum value of 0', gl.MAX_ELEMENTS_VERTICES, 0),
+			new LimitedStateInteger('max_vertex_attribs', 'MAX_VERTEX_ATTRIBS has minimum value of 16', gl.MAX_VERTEX_ATTRIBS, 16),
+			new LimitedStateInteger('max_vertex_uniform_components', 'MAX_VERTEX_UNIFORM_COMPONENTS has minimum value of 1024', gl.MAX_VERTEX_UNIFORM_COMPONENTS, 1024),
+			new LimitedStateInteger('max_vertex_uniform_vectors', 'MAX_VERTEX_UNIFORM_VECTORS has minimum value of 256', gl.MAX_VERTEX_UNIFORM_VECTORS, 256),
+			new LimitedStateInteger('max_vertex_uniform_blocks', 'MAX_VERTEX_UNIFORM_BLOCKS has minimum value of 12', gl.MAX_VERTEX_UNIFORM_BLOCKS, 12),
+			new LimitedStateInteger('max_vertex_output_components', 'MAX_VERTEX_OUTPUT_COMPONENTS has minimum value of 64', gl.MAX_VERTEX_OUTPUT_COMPONENTS, 64),
+			new LimitedStateInteger('max_vertex_texture_image_units', 'MAX_VERTEX_TEXTURE_IMAGE_UNITS has minimum value of 16', gl.MAX_VERTEX_TEXTURE_IMAGE_UNITS, 16),
+			new LimitedStateInteger('max_fragment_uniform_components', 'MAX_FRAGMENT_UNIFORM_COMPONENTS has minimum value of 896', gl.MAX_FRAGMENT_UNIFORM_COMPONENTS, 896),
+			new LimitedStateInteger('max_fragment_uniform_vectors', 'MAX_FRAGMENT_UNIFORM_VECTORS has minimum value of 224', gl.MAX_FRAGMENT_UNIFORM_VECTORS, 224),
+			new LimitedStateInteger('max_fragment_uniform_blocks', 'MAX_FRAGMENT_UNIFORM_BLOCKS has minimum value of 12', gl.MAX_FRAGMENT_UNIFORM_BLOCKS, 12),
+			new LimitedStateInteger('max_fragment_input_components', 'MAX_FRAGMENT_INPUT_COMPONENTS has minimum value of 60', gl.MAX_FRAGMENT_INPUT_COMPONENTS, 60),
+			new LimitedStateInteger('max_texture_image_units', 'MAX_TEXTURE_IMAGE_UNITS has minimum value of 16', gl.MAX_TEXTURE_IMAGE_UNITS, 16),
+			new LimitedStateInteger('max_program_texel_offset', 'MAX_PROGRAM_TEXEL_OFFSET has minimum value of 7', gl.MAX_PROGRAM_TEXEL_OFFSET, 7),
+			new LimitedStateInteger('max_uniform_buffer_bindings', 'MAX_UNIFORM_BUFFER_BINDINGS has minimum value of 24', gl.MAX_UNIFORM_BUFFER_BINDINGS, 24),
+			new LimitedStateInteger('max_combined_uniform_blocks', 'MAX_COMBINED_UNIFORM_BLOCKS has minimum value of 24', gl.MAX_COMBINED_UNIFORM_BLOCKS, 24),
+			new LimitedStateInteger('max_varying_components', 'MAX_VARYING_COMPONENTS has minimum value of 60', gl.MAX_VARYING_COMPONENTS, 60),
+			new LimitedStateInteger('max_varying_vectors', 'MAX_VARYING_VECTORS has minimum value of 15', gl.MAX_VARYING_VECTORS, 15),
+			new LimitedStateInteger('max_combined_texture_image_units', 'MAX_COMBINED_TEXTURE_IMAGE_UNITS has minimum value of 32', gl.MAX_COMBINED_TEXTURE_IMAGE_UNITS, 32),
+			new LimitedStateInteger('max_transform_feedback_interleaved_components', 'MAX_TRANSFORM_FEEDBACK_INTERLEAVED_COMPONENTS has minimum value of 64', gl.MAX_TRANSFORM_FEEDBACK_INTERLEAVED_COMPONENTS, 64),
+			new LimitedStateInteger('max_transform_feedback_separate_attribs', 'MAX_TRANSFORM_FEEDBACK_SEPARATE_ATTRIBS has minimum value of 4', gl.MAX_TRANSFORM_FEEDBACK_SEPARATE_ATTRIBS, 4),
+			new LimitedStateInteger('max_transform_feedback_separate_components', 'MAX_TRANSFORM_FEEDBACK_SEPARATE_COMPONENTS has minimum value of 4', gl.MAX_TRANSFORM_FEEDBACK_SEPARATE_COMPONENTS, 4),
+			new LimitedStateInteger('max_samples', 'MAX_SAMPLES has minimum value of 4', gl.MAX_SAMPLES, 4),
+			new LimitedStateInteger('red_bits', 'RED_BITS has minimum value of 0', gl.RED_BITS, 0),
+			new LimitedStateInteger('green_bits', 'GREEN_BITS has minimum value of 0', gl.GREEN_BITS, 0),
+			new LimitedStateInteger('blue_bits', 'BLUE_BITS has minimum value of 0', gl.BLUE_BITS, 0),
+			new LimitedStateInteger('alpha_bits', 'ALPHA_BITS has minimum value of 0', gl.ALPHA_BITS, 0),
+			new LimitedStateInteger('depth_bits', 'DEPTH_BITS has minimum value of 0', gl.DEPTH_BITS, 0),
+			new LimitedStateInteger('stencil_bits', 'STENCIL_BITS has minimum value of 0', gl.STENCIL_BITS, 0)
 		];
 
 		/** @type {Array<LimitedStateInteger>} */ var implementationMaxLimits = [
-			new LimitedStateInteger("min_program_texel_offset", "MIN_PROGRAM_TEXEL_OFFSET has maximum value of -8", gl.MIN_PROGRAM_TEXEL_OFFSET, -8),
-			new LimitedStateInteger("uniform_buffer_offset_alignment", "UNIFORM_BUFFER_OFFSET_ALIGNMENT has minimum value of 1", gl.UNIFORM_BUFFER_OFFSET_ALIGNMENT, 256)
+			new LimitedStateInteger('min_program_texel_offset', 'MIN_PROGRAM_TEXEL_OFFSET has maximum value of -8', gl.MIN_PROGRAM_TEXEL_OFFSET, -8),
+			new LimitedStateInteger('uniform_buffer_offset_alignment', 'UNIFORM_BUFFER_OFFSET_ALIGNMENT has minimum value of 1', gl.UNIFORM_BUFFER_OFFSET_ALIGNMENT, 256)
 		];
 
 		var testCtx = this;
@@ -1663,22 +1663,22 @@ debugger;
 		for (var testNdx = 0; testNdx < implementationMaxLimits.length; testNdx++)
 			testCtx.addChild(new es3fIntegerStateQueryTests.ConstantMaximumValueTestCase(implementationMaxLimits[testNdx].name, implementationMaxLimits[testNdx].description, implementationMaxLimits[testNdx].targetName, implementationMaxLimits[testNdx].value));
 
-		testCtx.addChild(new es3fIntegerStateQueryTests.SampleBuffersTestCase("sample_buffers", "SAMPLE_BUFFERS"));
-		testCtx.addChild(new es3fIntegerStateQueryTests.SamplesTestCase("samples" , "SAMPLES"));
-		testCtx.addChild(new es3fIntegerStateQueryTests.HintTestCase("generate_mipmap_hint", "GENERATE_MIPMAP_HINT", gl.GENERATE_MIPMAP_HINT));
-		testCtx.addChild(new es3fIntegerStateQueryTests.HintTestCase("fragment_shader_derivative_hint", "FRAGMENT_SHADER_DERIVATIVE_HINT", gl.FRAGMENT_SHADER_DERIVATIVE_HINT));
-		testCtx.addChild(new es3fIntegerStateQueryTests.DepthFuncTestCase("depth_func", "DEPTH_FUNC"));
-		testCtx.addChild(new es3fIntegerStateQueryTests.CullFaceTestCase("cull_face_mode", "CULL_FACE_MODE"));
-		testCtx.addChild(new es3fIntegerStateQueryTests.FrontFaceTestCase("front_face_mode", "FRONT_FACE"));
-		testCtx.addChild(new es3fIntegerStateQueryTests.ViewPortTestCase("viewport", "VIEWPORT"));
-		testCtx.addChild(new es3fIntegerStateQueryTests.ScissorBoxTestCase("scissor_box", "SCISSOR_BOX"));
-		testCtx.addChild(new es3fIntegerStateQueryTests.MaxViewportDimsTestCase("max_viewport_dims", "MAX_VIEWPORT_DIMS"));
-		testCtx.addChild(new es3fIntegerStateQueryTests.StencilRefTestCase("stencil_ref", "STENCIL_REF", gl.STENCIL_REF));
-		testCtx.addChild(new es3fIntegerStateQueryTests.StencilRefTestCase("stencil_back_ref", "STENCIL_BACK_REF", gl.STENCIL_BACK_REF));
-		testCtx.addChild(new es3fIntegerStateQueryTests.StencilRefSeparateTestCase("stencil_ref_separate", "STENCIL_REF (separate)", gl.STENCIL_REF, gl.FRONT));
-		testCtx.addChild(new es3fIntegerStateQueryTests.StencilRefSeparateTestCase("stencil_ref_separate_both", "STENCIL_REF (separate)", gl.STENCIL_REF, gl.FRONT_AND_BACK));
-		testCtx.addChild(new es3fIntegerStateQueryTests.StencilRefSeparateTestCase("stencil_back_ref_separate", "STENCIL_BACK_REF (separate)", gl.STENCIL_BACK_REF, gl.BACK));
-		testCtx.addChild(new es3fIntegerStateQueryTests.StencilRefSeparateTestCase("stencil_back_ref_separate_both", "STENCIL_BACK_REF (separate)", gl.STENCIL_BACK_REF, gl.FRONT_AND_BACK));
+		testCtx.addChild(new es3fIntegerStateQueryTests.SampleBuffersTestCase('sample_buffers', 'SAMPLE_BUFFERS'));
+		testCtx.addChild(new es3fIntegerStateQueryTests.SamplesTestCase('samples' , 'SAMPLES'));
+		testCtx.addChild(new es3fIntegerStateQueryTests.HintTestCase('generate_mipmap_hint', 'GENERATE_MIPMAP_HINT', gl.GENERATE_MIPMAP_HINT));
+		testCtx.addChild(new es3fIntegerStateQueryTests.HintTestCase('fragment_shader_derivative_hint', 'FRAGMENT_SHADER_DERIVATIVE_HINT', gl.FRAGMENT_SHADER_DERIVATIVE_HINT));
+		testCtx.addChild(new es3fIntegerStateQueryTests.DepthFuncTestCase('depth_func', 'DEPTH_FUNC'));
+		testCtx.addChild(new es3fIntegerStateQueryTests.CullFaceTestCase('cull_face_mode', 'CULL_FACE_MODE'));
+		testCtx.addChild(new es3fIntegerStateQueryTests.FrontFaceTestCase('front_face_mode', 'FRONT_FACE'));
+		testCtx.addChild(new es3fIntegerStateQueryTests.ViewPortTestCase('viewport', 'VIEWPORT'));
+		testCtx.addChild(new es3fIntegerStateQueryTests.ScissorBoxTestCase('scissor_box', 'SCISSOR_BOX'));
+		testCtx.addChild(new es3fIntegerStateQueryTests.MaxViewportDimsTestCase('max_viewport_dims', 'MAX_VIEWPORT_DIMS'));
+		testCtx.addChild(new es3fIntegerStateQueryTests.StencilRefTestCase('stencil_ref', 'STENCIL_REF', gl.STENCIL_REF));
+		testCtx.addChild(new es3fIntegerStateQueryTests.StencilRefTestCase('stencil_back_ref', 'STENCIL_BACK_REF', gl.STENCIL_BACK_REF));
+		testCtx.addChild(new es3fIntegerStateQueryTests.StencilRefSeparateTestCase('stencil_ref_separate', 'STENCIL_REF (separate)', gl.STENCIL_REF, gl.FRONT));
+		testCtx.addChild(new es3fIntegerStateQueryTests.StencilRefSeparateTestCase('stencil_ref_separate_both', 'STENCIL_REF (separate)', gl.STENCIL_REF, gl.FRONT_AND_BACK));
+		testCtx.addChild(new es3fIntegerStateQueryTests.StencilRefSeparateTestCase('stencil_back_ref_separate', 'STENCIL_BACK_REF (separate)', gl.STENCIL_BACK_REF, gl.BACK));
+		testCtx.addChild(new es3fIntegerStateQueryTests.StencilRefSeparateTestCase('stencil_back_ref_separate_both', 'STENCIL_BACK_REF (separate)', gl.STENCIL_BACK_REF, gl.FRONT_AND_BACK));
 
 		/**
 		 * @struct
@@ -1698,39 +1698,39 @@ debugger;
 		};
 
 		/** @type {Array<NamedStencilOp>} */ var stencilOps = [
-			new NamedStencilOp("fail", "STENCIL_FAIL", gl.STENCIL_FAIL, "STENCIL_BACK_FAIL", gl.STENCIL_BACK_FAIL),
-			new NamedStencilOp("depth_fail", "STENCIL_PASS_DEPTH_FAIL", gl.STENCIL_PASS_DEPTH_FAIL, "STENCIL_BACK_PASS_DEPTH_FAIL", gl.STENCIL_BACK_PASS_DEPTH_FAIL),
-			new NamedStencilOp("depth_pass", "STENCIL_PASS_DEPTH_PASS", gl.STENCIL_PASS_DEPTH_PASS, "STENCIL_BACK_PASS_DEPTH_PASS", gl.STENCIL_BACK_PASS_DEPTH_PASS)
+			new NamedStencilOp('fail', 'STENCIL_FAIL', gl.STENCIL_FAIL, 'STENCIL_BACK_FAIL', gl.STENCIL_BACK_FAIL),
+			new NamedStencilOp('depth_fail', 'STENCIL_PASS_DEPTH_FAIL', gl.STENCIL_PASS_DEPTH_FAIL, 'STENCIL_BACK_PASS_DEPTH_FAIL', gl.STENCIL_BACK_PASS_DEPTH_FAIL),
+			new NamedStencilOp('depth_pass', 'STENCIL_PASS_DEPTH_PASS', gl.STENCIL_PASS_DEPTH_PASS, 'STENCIL_BACK_PASS_DEPTH_PASS', gl.STENCIL_BACK_PASS_DEPTH_PASS)
 		];
 
 		for (var testNdx = 0; testNdx < stencilOps.length; testNdx++) {
-			testCtx.addChild(new es3fIntegerStateQueryTests.StencilOpTestCase("stencil_" + stencilOps[testNdx].name, stencilOps[testNdx].frontDescription, stencilOps[testNdx].frontTarget));
-			testCtx.addChild(new es3fIntegerStateQueryTests.StencilOpTestCase("stencil_back_" + stencilOps[testNdx].name, stencilOps[testNdx].backDescription, stencilOps[testNdx].backTarget));
+			testCtx.addChild(new es3fIntegerStateQueryTests.StencilOpTestCase('stencil_' + stencilOps[testNdx].name, stencilOps[testNdx].frontDescription, stencilOps[testNdx].frontTarget));
+			testCtx.addChild(new es3fIntegerStateQueryTests.StencilOpTestCase('stencil_back_' + stencilOps[testNdx].name, stencilOps[testNdx].backDescription, stencilOps[testNdx].backTarget));
 
-			testCtx.addChild(new es3fIntegerStateQueryTests.StencilOpSeparateTestCase("stencil_" + stencilOps[testNdx].name + "_separate_both", stencilOps[testNdx].frontDescription, stencilOps[testNdx].frontTarget, gl.FRONT_AND_BACK));
-			testCtx.addChild(new es3fIntegerStateQueryTests.StencilOpSeparateTestCase("stencil_back_" + stencilOps[testNdx].name + "_separate_both", stencilOps[testNdx].backDescription, stencilOps[testNdx].backTarget, gl.FRONT_AND_BACK));
+			testCtx.addChild(new es3fIntegerStateQueryTests.StencilOpSeparateTestCase('stencil_' + stencilOps[testNdx].name + '_separate_both', stencilOps[testNdx].frontDescription, stencilOps[testNdx].frontTarget, gl.FRONT_AND_BACK));
+			testCtx.addChild(new es3fIntegerStateQueryTests.StencilOpSeparateTestCase('stencil_back_' + stencilOps[testNdx].name + '_separate_both', stencilOps[testNdx].backDescription, stencilOps[testNdx].backTarget, gl.FRONT_AND_BACK));
 
-			testCtx.addChild(new es3fIntegerStateQueryTests.StencilOpSeparateTestCase("stencil_" + stencilOps[testNdx].name + "_separate", stencilOps[testNdx].frontDescription, stencilOps[testNdx].frontTarget, gl.FRONT));
-			testCtx.addChild(new es3fIntegerStateQueryTests.StencilOpSeparateTestCase("stencil_back_" + stencilOps[testNdx].name + "_separate", stencilOps[testNdx].backDescription, stencilOps[testNdx].backTarget, gl.BACK));
+			testCtx.addChild(new es3fIntegerStateQueryTests.StencilOpSeparateTestCase('stencil_' + stencilOps[testNdx].name + '_separate', stencilOps[testNdx].frontDescription, stencilOps[testNdx].frontTarget, gl.FRONT));
+			testCtx.addChild(new es3fIntegerStateQueryTests.StencilOpSeparateTestCase('stencil_back_' + stencilOps[testNdx].name + '_separate', stencilOps[testNdx].backDescription, stencilOps[testNdx].backTarget, gl.BACK));
 		}
 		//
-		testCtx.addChild(new es3fIntegerStateQueryTests.StencilFuncTestCase("stencil_func", "STENCIL_FUNC"));
-		testCtx.addChild(new es3fIntegerStateQueryTests.StencilFuncSeparateTestCase("stencil_func_separate", "STENCIL_FUNC (separate)", gl.STENCIL_FUNC, gl.FRONT));
-		testCtx.addChild(new es3fIntegerStateQueryTests.StencilFuncSeparateTestCase("stencil_func_separate_both", "STENCIL_FUNC (separate)", gl.STENCIL_FUNC, gl.FRONT_AND_BACK));
-		testCtx.addChild(new es3fIntegerStateQueryTests.StencilFuncSeparateTestCase("stencil_back_func_separate", "STENCIL_FUNC (separate)", gl.STENCIL_BACK_FUNC, gl.BACK));
-		testCtx.addChild(new es3fIntegerStateQueryTests.StencilFuncSeparateTestCase("stencil_back_func_separate_both", "STENCIL_FUNC (separate)", gl.STENCIL_BACK_FUNC, gl.FRONT_AND_BACK));
-		testCtx.addChild(new es3fIntegerStateQueryTests.StencilMaskTestCase("stencil_value_mask", "STENCIL_VALUE_MASK", gl.STENCIL_VALUE_MASK));
-		testCtx.addChild(new es3fIntegerStateQueryTests.StencilMaskTestCase("stencil_back_value_mask", "STENCIL_BACK_VALUE_MASK", gl.STENCIL_BACK_VALUE_MASK));
-		testCtx.addChild(new es3fIntegerStateQueryTests.StencilMaskSeparateTestCase("stencil_value_mask_separate", "STENCIL_VALUE_MASK (separate)", gl.STENCIL_VALUE_MASK, gl.FRONT));
-		testCtx.addChild(new es3fIntegerStateQueryTests.StencilMaskSeparateTestCase("stencil_value_mask_separate_both", "STENCIL_VALUE_MASK (separate)", gl.STENCIL_VALUE_MASK, gl.FRONT_AND_BACK));
-		testCtx.addChild(new es3fIntegerStateQueryTests.StencilMaskSeparateTestCase("stencil_back_value_mask_separate", "STENCIL_BACK_VALUE_MASK (separate)", gl.STENCIL_BACK_VALUE_MASK, gl.BACK));
-		testCtx.addChild(new es3fIntegerStateQueryTests.StencilMaskSeparateTestCase("stencil_back_value_mask_separate_both", "STENCIL_BACK_VALUE_MASK (separate)", gl.STENCIL_BACK_VALUE_MASK, gl.FRONT_AND_BACK));
-		testCtx.addChild(new es3fIntegerStateQueryTests.StencilWriteMaskTestCase("stencil_writemask", "STENCIL_WRITEMASK", gl.STENCIL_WRITEMASK));
-		testCtx.addChild(new es3fIntegerStateQueryTests.StencilWriteMaskTestCase("stencil_back_writemask", "STENCIL_BACK_WRITEMASK", gl.STENCIL_BACK_WRITEMASK));
-		testCtx.addChild(new es3fIntegerStateQueryTests.StencilWriteMaskSeparateTestCase("stencil_writemask_separate", "STENCIL_WRITEMASK (separate)", gl.STENCIL_WRITEMASK, gl.FRONT));
-		testCtx.addChild(new es3fIntegerStateQueryTests.StencilWriteMaskSeparateTestCase("stencil_writemask_separate_both", "STENCIL_WRITEMASK (separate)", gl.STENCIL_WRITEMASK, gl.FRONT_AND_BACK));
-		testCtx.addChild(new es3fIntegerStateQueryTests.StencilWriteMaskSeparateTestCase("stencil_back_writemask_separate", "STENCIL_BACK_WRITEMASK (separate)", gl.STENCIL_BACK_WRITEMASK, gl.BACK));
-		testCtx.addChild(new es3fIntegerStateQueryTests.StencilWriteMaskSeparateTestCase("stencil_back_writemask_separate_both", "STENCIL_BACK_WRITEMASK (separate)", gl.STENCIL_BACK_WRITEMASK, gl.FRONT_AND_BACK));
+		testCtx.addChild(new es3fIntegerStateQueryTests.StencilFuncTestCase('stencil_func', 'STENCIL_FUNC'));
+		testCtx.addChild(new es3fIntegerStateQueryTests.StencilFuncSeparateTestCase('stencil_func_separate', 'STENCIL_FUNC (separate)', gl.STENCIL_FUNC, gl.FRONT));
+		testCtx.addChild(new es3fIntegerStateQueryTests.StencilFuncSeparateTestCase('stencil_func_separate_both', 'STENCIL_FUNC (separate)', gl.STENCIL_FUNC, gl.FRONT_AND_BACK));
+		testCtx.addChild(new es3fIntegerStateQueryTests.StencilFuncSeparateTestCase('stencil_back_func_separate', 'STENCIL_FUNC (separate)', gl.STENCIL_BACK_FUNC, gl.BACK));
+		testCtx.addChild(new es3fIntegerStateQueryTests.StencilFuncSeparateTestCase('stencil_back_func_separate_both', 'STENCIL_FUNC (separate)', gl.STENCIL_BACK_FUNC, gl.FRONT_AND_BACK));
+		testCtx.addChild(new es3fIntegerStateQueryTests.StencilMaskTestCase('stencil_value_mask', 'STENCIL_VALUE_MASK', gl.STENCIL_VALUE_MASK));
+		testCtx.addChild(new es3fIntegerStateQueryTests.StencilMaskTestCase('stencil_back_value_mask', 'STENCIL_BACK_VALUE_MASK', gl.STENCIL_BACK_VALUE_MASK));
+		testCtx.addChild(new es3fIntegerStateQueryTests.StencilMaskSeparateTestCase('stencil_value_mask_separate', 'STENCIL_VALUE_MASK (separate)', gl.STENCIL_VALUE_MASK, gl.FRONT));
+		testCtx.addChild(new es3fIntegerStateQueryTests.StencilMaskSeparateTestCase('stencil_value_mask_separate_both', 'STENCIL_VALUE_MASK (separate)', gl.STENCIL_VALUE_MASK, gl.FRONT_AND_BACK));
+		testCtx.addChild(new es3fIntegerStateQueryTests.StencilMaskSeparateTestCase('stencil_back_value_mask_separate', 'STENCIL_BACK_VALUE_MASK (separate)', gl.STENCIL_BACK_VALUE_MASK, gl.BACK));
+		testCtx.addChild(new es3fIntegerStateQueryTests.StencilMaskSeparateTestCase('stencil_back_value_mask_separate_both', 'STENCIL_BACK_VALUE_MASK (separate)', gl.STENCIL_BACK_VALUE_MASK, gl.FRONT_AND_BACK));
+		testCtx.addChild(new es3fIntegerStateQueryTests.StencilWriteMaskTestCase('stencil_writemask', 'STENCIL_WRITEMASK', gl.STENCIL_WRITEMASK));
+		testCtx.addChild(new es3fIntegerStateQueryTests.StencilWriteMaskTestCase('stencil_back_writemask', 'STENCIL_BACK_WRITEMASK', gl.STENCIL_BACK_WRITEMASK));
+		testCtx.addChild(new es3fIntegerStateQueryTests.StencilWriteMaskSeparateTestCase('stencil_writemask_separate', 'STENCIL_WRITEMASK (separate)', gl.STENCIL_WRITEMASK, gl.FRONT));
+		testCtx.addChild(new es3fIntegerStateQueryTests.StencilWriteMaskSeparateTestCase('stencil_writemask_separate_both', 'STENCIL_WRITEMASK (separate)', gl.STENCIL_WRITEMASK, gl.FRONT_AND_BACK));
+		testCtx.addChild(new es3fIntegerStateQueryTests.StencilWriteMaskSeparateTestCase('stencil_back_writemask_separate', 'STENCIL_BACK_WRITEMASK (separate)', gl.STENCIL_BACK_WRITEMASK, gl.BACK));
+		testCtx.addChild(new es3fIntegerStateQueryTests.StencilWriteMaskSeparateTestCase('stencil_back_writemask_separate_both', 'STENCIL_BACK_WRITEMASK (separate)', gl.STENCIL_BACK_WRITEMASK, gl.FRONT_AND_BACK));
 
 		/**
 		 * @struct
@@ -1748,21 +1748,21 @@ debugger;
 		};
 
 		/** @type {Array<PixelStoreState>} */ var pixelStoreStates = [
-			new PixelStoreState("unpack_image_height", "UNPACK_IMAGE_HEIGHT", gl.UNPACK_IMAGE_HEIGHT, 0),
-			new PixelStoreState("unpack_skip_images", "UNPACK_SKIP_IMAGES", gl.UNPACK_SKIP_IMAGES, 0),
-			new PixelStoreState("unpack_row_length", "UNPACK_ROW_LENGTH", gl.UNPACK_ROW_LENGTH, 0),
-			new PixelStoreState("unpack_skip_rows", "UNPACK_SKIP_ROWS", gl.UNPACK_SKIP_ROWS, 0),
-			new PixelStoreState("unpack_skip_pixels", "UNPACK_SKIP_PIXELS", gl.UNPACK_SKIP_PIXELS, 0),
-			new PixelStoreState("pack_row_length", "PACK_ROW_LENGTH", gl.PACK_ROW_LENGTH, 0),
-			new PixelStoreState("pack_skip_rows", "PACK_SKIP_ROWS", gl.PACK_SKIP_ROWS, 0),
-			new PixelStoreState("pack_skip_pixels", "PACK_SKIP_PIXELS", gl.PACK_SKIP_PIXELS, 0)
+			new PixelStoreState('unpack_image_height', 'UNPACK_IMAGE_HEIGHT', gl.UNPACK_IMAGE_HEIGHT, 0),
+			new PixelStoreState('unpack_skip_images', 'UNPACK_SKIP_IMAGES', gl.UNPACK_SKIP_IMAGES, 0),
+			new PixelStoreState('unpack_row_length', 'UNPACK_ROW_LENGTH', gl.UNPACK_ROW_LENGTH, 0),
+			new PixelStoreState('unpack_skip_rows', 'UNPACK_SKIP_ROWS', gl.UNPACK_SKIP_ROWS, 0),
+			new PixelStoreState('unpack_skip_pixels', 'UNPACK_SKIP_PIXELS', gl.UNPACK_SKIP_PIXELS, 0),
+			new PixelStoreState('pack_row_length', 'PACK_ROW_LENGTH', gl.PACK_ROW_LENGTH, 0),
+			new PixelStoreState('pack_skip_rows', 'PACK_SKIP_ROWS', gl.PACK_SKIP_ROWS, 0),
+			new PixelStoreState('pack_skip_pixels', 'PACK_SKIP_PIXELS', gl.PACK_SKIP_PIXELS, 0)
 		];
 
 		for (var testNdx = 0; testNdx < pixelStoreStates.length; testNdx++)
 			testCtx.addChild(new es3fIntegerStateQueryTests.PixelStoreTestCase(pixelStoreStates[testNdx].name, pixelStoreStates[testNdx].description, pixelStoreStates[testNdx].target, pixelStoreStates[testNdx].initialValue));
 
-		testCtx.addChild(new es3fIntegerStateQueryTests.PixelStoreAlignTestCase("unpack_alignment", "UNPACK_ALIGNMENT", gl.UNPACK_ALIGNMENT));
-		testCtx.addChild(new es3fIntegerStateQueryTests.PixelStoreAlignTestCase("pack_alignment", "PACK_ALIGNMENT", gl.PACK_ALIGNMENT));
+		testCtx.addChild(new es3fIntegerStateQueryTests.PixelStoreAlignTestCase('unpack_alignment', 'UNPACK_ALIGNMENT', gl.UNPACK_ALIGNMENT));
+		testCtx.addChild(new es3fIntegerStateQueryTests.PixelStoreAlignTestCase('pack_alignment', 'PACK_ALIGNMENT', gl.PACK_ALIGNMENT));
 
 		/**
 		 * @struct
@@ -1780,15 +1780,15 @@ debugger;
 		};
 
 		/** @type {Array<PixelStoreState>} */ var blendColorStates = [
-			new BlendColorState("blend_src_rgb", "BLEND_SRC_RGB", gl.BLEND_SRC_RGB, gl.ONE),
-			new BlendColorState("blend_src_alpha", "BLEND_SRC_ALPHA", gl.BLEND_SRC_ALPHA, gl.ONE),
-			new BlendColorState("blend_dst_rgb", "BLEND_DST_RGB", gl.BLEND_DST_RGB, gl.ZERO),
-			new BlendColorState("blend_dst_alpha", "BLEND_DST_ALPHA", gl.BLEND_DST_ALPHA, gl.ZERO)
+			new BlendColorState('blend_src_rgb', 'BLEND_SRC_RGB', gl.BLEND_SRC_RGB, gl.ONE),
+			new BlendColorState('blend_src_alpha', 'BLEND_SRC_ALPHA', gl.BLEND_SRC_ALPHA, gl.ONE),
+			new BlendColorState('blend_dst_rgb', 'BLEND_DST_RGB', gl.BLEND_DST_RGB, gl.ZERO),
+			new BlendColorState('blend_dst_alpha', 'BLEND_DST_ALPHA', gl.BLEND_DST_ALPHA, gl.ZERO)
 		];
 
 		for (var testNdx = 0; testNdx < blendColorStates.length; testNdx++) {
 			testCtx.addChild(new es3fIntegerStateQueryTests.BlendFuncTestCase(blendColorStates[testNdx].name, blendColorStates[testNdx].description, blendColorStates[testNdx].target, blendColorStates[testNdx].initialValue));
-			testCtx.addChild(new es3fIntegerStateQueryTests.BlendFuncSeparateTestCase(blendColorStates[testNdx].name + "_separate", blendColorStates[testNdx].description, blendColorStates[testNdx].target, blendColorStates[testNdx].initialValue));
+			testCtx.addChild(new es3fIntegerStateQueryTests.BlendFuncSeparateTestCase(blendColorStates[testNdx].name + '_separate', blendColorStates[testNdx].description, blendColorStates[testNdx].target, blendColorStates[testNdx].initialValue));
 		}
 
 		/**
@@ -1807,13 +1807,13 @@ debugger;
 		};
 
 		/** @type {Array<PixelStoreState>} */ var blendEquationStates = [
-			new BlendEquationState("blend_equation_rgb", "BLEND_EQUATION_RGB", gl.BLEND_EQUATION_RGB, gl.FUNC_ADD),
-			new BlendEquationState("blend_equation_alpha", "BLEND_EQUATION_ALPHA", gl.BLEND_EQUATION_ALPHA, gl.FUNC_ADD)
+			new BlendEquationState('blend_equation_rgb', 'BLEND_EQUATION_RGB', gl.BLEND_EQUATION_RGB, gl.FUNC_ADD),
+			new BlendEquationState('blend_equation_alpha', 'BLEND_EQUATION_ALPHA', gl.BLEND_EQUATION_ALPHA, gl.FUNC_ADD)
 		];
 
 		for (var testNdx = 0; testNdx < blendEquationStates.length; testNdx++) {
 			testCtx.addChild(new es3fIntegerStateQueryTests.BlendEquationTestCase(blendEquationStates[testNdx].name, blendEquationStates[testNdx].description, blendEquationStates[testNdx].target, blendEquationStates[testNdx].initialValue));
-			testCtx.addChild(new es3fIntegerStateQueryTests.BlendEquationSeparateTestCase(blendEquationStates[testNdx].name + "_separate", blendEquationStates[testNdx].description, blendEquationStates[testNdx].target, blendEquationStates[testNdx].initialValue));
+			testCtx.addChild(new es3fIntegerStateQueryTests.BlendEquationSeparateTestCase(blendEquationStates[testNdx].name + '_separate', blendEquationStates[testNdx].description, blendEquationStates[testNdx].target, blendEquationStates[testNdx].initialValue));
 		}
 
 		/**
@@ -1831,7 +1831,7 @@ debugger;
 		    /** @type {number} */ this.minValue = minValue;
 		};
 
-		/** @type {ImplementationArrayReturningState} */ var implementationArrayReturningStates = new ImplementationArrayReturningState("compressed_texture_formats", "COMPRESSED_TEXTURE_FORMATS", gl.COMPRESSED_TEXTURE_FORMATS, 10);
+		/** @type {ImplementationArrayReturningState} */ var implementationArrayReturningStates = new ImplementationArrayReturningState('compressed_texture_formats', 'COMPRESSED_TEXTURE_FORMATS', gl.COMPRESSED_TEXTURE_FORMATS, 10);
 
 		testCtx.addChild(new es3fIntegerStateQueryTests.ImplementationArrayTestCase(implementationArrayReturningStates.name, implementationArrayReturningStates.description, implementationArrayReturningStates.target, implementationArrayReturningStates.minValue));
 
@@ -1851,27 +1851,27 @@ debugger;
 		};
 
 		/** @type {Array<BufferBindingState>} */ var bufferBindingStates = [
-			new BufferBindingState("array_buffer_binding", "ARRAY_BUFFER_BINDING", gl.ARRAY_BUFFER_BINDING, gl.ARRAY_BUFFER),
-			new BufferBindingState("uniform_buffer_binding", "UNIFORM_BUFFER_BINDING", gl.UNIFORM_BUFFER_BINDING, gl.UNIFORM_BUFFER),
-			new BufferBindingState("pixel_pack_buffer_binding", "PIXEL_PACK_BUFFER_BINDING", gl.PIXEL_PACK_BUFFER_BINDING, gl.PIXEL_PACK_BUFFER),
-			new BufferBindingState("pixel_unpack_buffer_binding", "PIXEL_UNPACK_BUFFER_BINDING", gl.PIXEL_UNPACK_BUFFER_BINDING, gl.PIXEL_UNPACK_BUFFER),
-			new BufferBindingState("transform_feedback_buffer_binding", "TRANSFORM_FEEDBACK_BUFFER_BINDING", gl.TRANSFORM_FEEDBACK_BUFFER_BINDING, gl.TRANSFORM_FEEDBACK_BUFFER),
-			new BufferBindingState("copy_read_buffer_binding", "COPY_READ_BUFFER_BINDING", gl.COPY_READ_BUFFER_BINDING, gl.COPY_READ_BUFFER),
-			new BufferBindingState("copy_write_buffer_binding", "COPY_WRITE_BUFFER_BINDING", gl.COPY_WRITE_BUFFER_BINDING, gl.COPY_WRITE_BUFFER)
+			new BufferBindingState('array_buffer_binding', 'ARRAY_BUFFER_BINDING', gl.ARRAY_BUFFER_BINDING, gl.ARRAY_BUFFER),
+			new BufferBindingState('uniform_buffer_binding', 'UNIFORM_BUFFER_BINDING', gl.UNIFORM_BUFFER_BINDING, gl.UNIFORM_BUFFER),
+			new BufferBindingState('pixel_pack_buffer_binding', 'PIXEL_PACK_BUFFER_BINDING', gl.PIXEL_PACK_BUFFER_BINDING, gl.PIXEL_PACK_BUFFER),
+			new BufferBindingState('pixel_unpack_buffer_binding', 'PIXEL_UNPACK_BUFFER_BINDING', gl.PIXEL_UNPACK_BUFFER_BINDING, gl.PIXEL_UNPACK_BUFFER),
+			new BufferBindingState('transform_feedback_buffer_binding', 'TRANSFORM_FEEDBACK_BUFFER_BINDING', gl.TRANSFORM_FEEDBACK_BUFFER_BINDING, gl.TRANSFORM_FEEDBACK_BUFFER),
+			new BufferBindingState('copy_read_buffer_binding', 'COPY_READ_BUFFER_BINDING', gl.COPY_READ_BUFFER_BINDING, gl.COPY_READ_BUFFER),
+			new BufferBindingState('copy_write_buffer_binding', 'COPY_WRITE_BUFFER_BINDING', gl.COPY_WRITE_BUFFER_BINDING, gl.COPY_WRITE_BUFFER)
 		];
 
 		for (var testNdx = 0; testNdx < bufferBindingStates.length; testNdx++)
 			testCtx.addChild(new es3fIntegerStateQueryTests.BufferBindingTestCase(bufferBindingStates[testNdx].name, bufferBindingStates[testNdx].description, bufferBindingStates[testNdx].target, bufferBindingStates[testNdx].type));
 
-		testCtx.addChild(new es3fIntegerStateQueryTests.ElementArrayBufferBindingTestCase("element_array_buffer_binding"));
-		testCtx.addChild(new es3fIntegerStateQueryTests.TransformFeedbackBindingTestCase("transform_feedback_binding"));
-		testCtx.addChild(new es3fIntegerStateQueryTests.TransformFeedbackBindingTestCase("transform_feedback_binding"));
-		testCtx.addChild(new es3fIntegerStateQueryTests.CurrentProgramBindingTestCase("current_program_binding", "CURRENT_PROGRAM"));
-		testCtx.addChild(new es3fIntegerStateQueryTests.VertexArrayBindingTestCase("vertex_array_binding", "VERTEX_ARRAY_BINDING"));
-		testCtx.addChild(new es3fIntegerStateQueryTests.StencilClearValueTestCase("stencil_clear_value", "STENCIL_CLEAR_VALUE"));
-		testCtx.addChild(new es3fIntegerStateQueryTests.ActiveTextureTestCase("active_texture", "ACTIVE_TEXTURE"));
-		testCtx.addChild(new es3fIntegerStateQueryTests.RenderbufferBindingTestCase("renderbuffer_binding", "RENDERBUFFER_BINDING"));
-		testCtx.addChild(new es3fIntegerStateQueryTests.SamplerObjectBindingTestCase("sampler_binding", "SAMPLER_BINDING"));
+		testCtx.addChild(new es3fIntegerStateQueryTests.ElementArrayBufferBindingTestCase('element_array_buffer_binding'));
+		testCtx.addChild(new es3fIntegerStateQueryTests.TransformFeedbackBindingTestCase('transform_feedback_binding'));
+		testCtx.addChild(new es3fIntegerStateQueryTests.TransformFeedbackBindingTestCase('transform_feedback_binding'));
+		testCtx.addChild(new es3fIntegerStateQueryTests.CurrentProgramBindingTestCase('current_program_binding', 'CURRENT_PROGRAM'));
+		testCtx.addChild(new es3fIntegerStateQueryTests.VertexArrayBindingTestCase('vertex_array_binding', 'VERTEX_ARRAY_BINDING'));
+		testCtx.addChild(new es3fIntegerStateQueryTests.StencilClearValueTestCase('stencil_clear_value', 'STENCIL_CLEAR_VALUE'));
+		testCtx.addChild(new es3fIntegerStateQueryTests.ActiveTextureTestCase('active_texture', 'ACTIVE_TEXTURE'));
+		testCtx.addChild(new es3fIntegerStateQueryTests.RenderbufferBindingTestCase('renderbuffer_binding', 'RENDERBUFFER_BINDING'));
+		testCtx.addChild(new es3fIntegerStateQueryTests.SamplerObjectBindingTestCase('sampler_binding', 'SAMPLER_BINDING'));
 
 		/**
 		 * @struct
@@ -1889,19 +1889,19 @@ debugger;
 		};
 
 		/** @type {Array<TextureBinding>} */ var textureBindings = [
-			new TextureBinding("texture_binding_2d", "TEXTURE_BINDING_2D", gl.TEXTURE_BINDING_2D, gl.TEXTURE_2D),
-			new TextureBinding("texture_binding_3d", "TEXTURE_BINDING_3D", gl.TEXTURE_BINDING_3D, gl.TEXTURE_3D),
-			new TextureBinding("texture_binding_2d_array", "TEXTURE_BINDING_2D_ARRAY", gl.TEXTURE_BINDING_2D_ARRAY, gl.TEXTURE_2D_ARRAY),
-			new TextureBinding("texture_binding_cube_map", "TEXTURE_BINDING_CUBE_MAP", gl.TEXTURE_BINDING_CUBE_MAP, gl.TEXTURE_CUBE_MAP)
+			new TextureBinding('texture_binding_2d', 'TEXTURE_BINDING_2D', gl.TEXTURE_BINDING_2D, gl.TEXTURE_2D),
+			new TextureBinding('texture_binding_3d', 'TEXTURE_BINDING_3D', gl.TEXTURE_BINDING_3D, gl.TEXTURE_3D),
+			new TextureBinding('texture_binding_2d_array', 'TEXTURE_BINDING_2D_ARRAY', gl.TEXTURE_BINDING_2D_ARRAY, gl.TEXTURE_2D_ARRAY),
+			new TextureBinding('texture_binding_cube_map', 'TEXTURE_BINDING_CUBE_MAP', gl.TEXTURE_BINDING_CUBE_MAP, gl.TEXTURE_CUBE_MAP)
 		];
 
 		for (var testNdx = 0; testNdx < textureBindings.length; testNdx++)
 			testCtx.addChild(new es3fIntegerStateQueryTests.TextureBindingTestCase(textureBindings[testNdx].name, textureBindings[testNdx].description, textureBindings[testNdx].target, textureBindings[testNdx].type));
 
-		testCtx.addChild(new es3fIntegerStateQueryTests.FrameBufferBindingTestCase("framebuffer_binding", "DRAW_FRAMEBUFFER_BINDING and READ_FRAMEBUFFER_BINDING"));
-		testCtx.addChild(new es3fIntegerStateQueryTests.ImplementationColorReadTestCase("implementation_color_read", "IMPLEMENTATION_COLOR_READ_TYPE and IMPLEMENTATION_COLOR_READ_FORMAT"));
-		testCtx.addChild(new es3fIntegerStateQueryTests.ReadBufferCase("read_buffer", "READ_BUFFER"));
-		testCtx.addChild(new es3fIntegerStateQueryTests.DrawBufferCase("draw_buffer", "DRAW_BUFFER"));
+		testCtx.addChild(new es3fIntegerStateQueryTests.FrameBufferBindingTestCase('framebuffer_binding', 'DRAW_FRAMEBUFFER_BINDING and READ_FRAMEBUFFER_BINDING'));
+		testCtx.addChild(new es3fIntegerStateQueryTests.ImplementationColorReadTestCase('implementation_color_read', 'IMPLEMENTATION_COLOR_READ_TYPE and IMPLEMENTATION_COLOR_READ_FORMAT'));
+		testCtx.addChild(new es3fIntegerStateQueryTests.ReadBufferCase('read_buffer', 'READ_BUFFER'));
+		testCtx.addChild(new es3fIntegerStateQueryTests.DrawBufferCase('draw_buffer', 'DRAW_BUFFER'));
 
 	};
 
