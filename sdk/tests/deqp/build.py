@@ -115,7 +115,8 @@ targets = {
     'readpixel' : 'functional.gles3.es3fReadPixelTests',
     'stringquery' : 'functional.gles3.es3fStringQueryTests',
     'indexedstate' : 'functional.gles3.es3fIndexedStateQueryTests',
-    'integerstate' : 'functional.gles3.es3fIntegerStateQueryTests'
+    'integerstate' : 'functional.gles3.es3fIntegerStateQueryTests',
+    'integer64state' : 'functional.gles3.es3fInteger64StateQueryTests'
 }
 
 total_errors = 0
