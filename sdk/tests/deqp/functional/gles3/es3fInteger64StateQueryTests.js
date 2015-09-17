@@ -110,16 +110,16 @@ goog.scope(function() {
 		};
 
 		/** @type {Array<LimitedStateInteger64>} */ var implementationLimits = [
-			new LimitedStateInteger64("max_element_index", "MAX_ELEMENT_INDEX", gl.MAX_ELEMENT_INDEX, 0x00FFFFFF),
-			new LimitedStateInteger64("max_server_wait_timeout", "MAX_SERVER_WAIT_TIMEOUT", gl.MAX_SERVER_WAIT_TIMEOUT, 0),
-			new LimitedStateInteger64("max_uniform_block_size", "MAX_UNIFORM_BLOCK_SIZE", gl.MAX_UNIFORM_BLOCK_SIZE, 16384)
+			new LimitedStateInteger64('max_element_index', 'MAX_ELEMENT_INDEX', gl.MAX_ELEMENT_INDEX, 0x00FFFFFF),
+			new LimitedStateInteger64('max_server_wait_timeout', 'MAX_SERVER_WAIT_TIMEOUT', gl.MAX_SERVER_WAIT_TIMEOUT, 0),
+			new LimitedStateInteger64('max_uniform_block_size', 'MAX_UNIFORM_BLOCK_SIZE', gl.MAX_UNIFORM_BLOCK_SIZE, 16384)
 		];
 
 		for (var testNdx = 0; testNdx < implementationLimits.length; testNdx++)
 			this.addChild(new es3fInteger64StateQueryTests.ConstantMinimumValue64TestCase(implementationLimits[testNdx].name, implementationLimits[testNdx].description, implementationLimits[testNdx].targetName, implementationLimits[testNdx].minValue));
 
-		this.addChild(new es3fInteger64StateQueryTests.MaxCombinedStageUniformComponentsCase("max_combined_vertex_uniform_components", "MAX_COMBINED_VERTEX_UNIFORM_COMPONENTS", gl.MAX_COMBINED_VERTEX_UNIFORM_COMPONENTS, gl.MAX_VERTEX_UNIFORM_BLOCKS, gl.MAX_VERTEX_UNIFORM_COMPONENTS));
-		this.addChild(new es3fInteger64StateQueryTests.MaxCombinedStageUniformComponentsCase("max_combined_fragment_uniform_components", "MAX_COMBINED_FRAGMENT_UNIFORM_COMPONENTS", gl.MAX_COMBINED_FRAGMENT_UNIFORM_COMPONENTS, gl.MAX_FRAGMENT_UNIFORM_BLOCKS, gl.MAX_FRAGMENT_UNIFORM_COMPONENTS));
+		this.addChild(new es3fInteger64StateQueryTests.MaxCombinedStageUniformComponentsCase('max_combined_vertex_uniform_components', 'MAX_COMBINED_VERTEX_UNIFORM_COMPONENTS', gl.MAX_COMBINED_VERTEX_UNIFORM_COMPONENTS, gl.MAX_VERTEX_UNIFORM_BLOCKS, gl.MAX_VERTEX_UNIFORM_COMPONENTS));
+		this.addChild(new es3fInteger64StateQueryTests.MaxCombinedStageUniformComponentsCase('max_combined_fragment_uniform_components', 'MAX_COMBINED_FRAGMENT_UNIFORM_COMPONENTS', gl.MAX_COMBINED_FRAGMENT_UNIFORM_COMPONENTS, gl.MAX_FRAGMENT_UNIFORM_BLOCKS, gl.MAX_FRAGMENT_UNIFORM_COMPONENTS));
 
     };
 
