@@ -32,7 +32,6 @@ goog.scope(function() {
 	var es3fApiCase = functional.gles3.es3fApiCase;
 	var glsStateQuery = modules.shared.glsStateQuery;
 
-	// shaders (line 907)
 	/** @type {string} */ var transformFeedbackTestVertSource = '' +
 		'#version 300 es\n' +
 		'void main (void)\n' +
@@ -400,8 +399,7 @@ goog.scope(function() {
 		/** @type {deRandom.Random} */ var rnd = new deRandom.Random(0xabcdef);
 
 		// verify initial value of first two values
-		// m_verifier->verifyInteger4Mask(gl.SCISSOR_BOX, 0, true, 0, true, 0, false, 0, false);
-		this.check(glsStateQuery.verifyMask(gl.SCISSOR_BOX, [0, 0, 0, 0], [true, true, false, false])); // TODO: check this line
+		this.check(glsStateQuery.verifyMask(gl.SCISSOR_BOX, [0, 0, 0, 0], [true, true, false, false]));
 
 		/** @type {number} */ var numIterations = 120;
 		for (var i = 0; i < numIterations; ++i) {
@@ -519,12 +517,16 @@ goog.scope(function() {
 		this.check(glsStateQuery.verify(this.m_stencilOpName, gl.KEEP));
 
 		/** @type {Array<number>} */ var stencilOpValues = [gl.KEEP, gl.ZERO, gl.REPLACE, gl.INCR, gl.DECR, gl.INVERT, gl.INCR_WRAP, gl.DECR_WRAP];
-
 		for (var ndx = 0; ndx < stencilOpValues.length; ++ndx) {
 			this.SetStencilOp(stencilOpValues[ndx]);
 
 			this.check(glsStateQuery.verify(this.m_stencilOpName, stencilOpValues[ndx]));
 		}
+	};
+
+	es3fIntegerStateQueryTests.StencilOpTestCase.prototype.deinit = function() {
+		// [dag] need to reset everything once the test is done, otherwise related tests fail
+		gl.stencilOp(gl.KEEP, gl.KEEP, gl.KEEP);
 	};
 
 	/**
@@ -623,6 +625,11 @@ goog.scope(function() {
 		}
 	};
 
+	es3fIntegerStateQueryTests.StencilFuncTestCase.prototype.deinit = function() {
+		// [dag] reset stencilFunc to ALWAYS
+		gl.stencilFunc(gl.ALWAYS, 0, 0);
+	};
+
 	/**
 	 * @constructor
 	 * @extends {es3fApiCase.ApiCase}
@@ -650,6 +657,11 @@ goog.scope(function() {
 
 			this.check(glsStateQuery.verify(this.m_stencilFuncName, stencilfuncValues[ndx]));
 		}
+	};
+
+	es3fIntegerStateQueryTests.StencilFuncSeparateTestCase.prototype.deinit = function() {
+		// [dag] reset the stencil func
+		gl.stencilFuncSeparate(this.m_stencilFuncFace, gl.ALWAYS, 0, 0);
 	};
 
 	/**
@@ -884,6 +896,10 @@ goog.scope(function() {
 		}
 	};
 
+	es3fIntegerStateQueryTests.BlendFuncTestCase.prototype.deinit = function() {
+		gl.blendFunc(this.m_initialValue, this.m_initialValue);
+	};
+
 	/**
 	 * @constructor
 	 * @extends {es3fIntegerStateQueryTests.BlendFuncTestCase}
@@ -927,6 +943,10 @@ goog.scope(function() {
 		}
 	};
 
+	es3fIntegerStateQueryTests.BlendFuncSeparateTestCase.prototype.deinit = function() {
+		gl.blendFuncSeparate(this.m_initialValue, this.m_initialValue, this.m_initialValue, this.m_initialValue);
+	};
+
 	/**
 	 * @constructor
 	 * @extends {es3fApiCase.ApiCase}
@@ -963,6 +983,10 @@ goog.scope(function() {
 	 */
 	es3fIntegerStateQueryTests.BlendEquationTestCase.prototype.SetBlendEquation = function(equation) {
 		gl.blendEquation(equation);
+	};
+
+	es3fIntegerStateQueryTests.BlendEquationTestCase.prototype.deinit = function() {
+		gl.blendEquation(this.m_initialValue);
 	};
 
 	/**
@@ -1126,7 +1150,7 @@ goog.scope(function() {
 	es3fIntegerStateQueryTests.BufferBindingTestCase.prototype.constructor = es3fIntegerStateQueryTests.BufferBindingTestCase;
 
 	es3fIntegerStateQueryTests.BufferBindingTestCase.prototype.test = function() {
-		this.check(glsStateQuery.verify(this.m_bufferBindingName, 0));
+		this.check(glsStateQuery.verify(this.m_bufferBindingName, null));
 
 		/** @type {WebGLBuffer} */ var bufferObject = gl.createBuffer();
 
@@ -1134,7 +1158,7 @@ goog.scope(function() {
 		this.check(glsStateQuery.verify(this.m_bufferBindingName, bufferObject));
 
 		gl.deleteBuffer(bufferObject);
-		this.check(glsStateQuery.verify(this.m_bufferBindingName, 0));
+		this.check(glsStateQuery.verify(this.m_bufferBindingName, null));
 	};
 
 	/**
@@ -1221,7 +1245,7 @@ goog.scope(function() {
 	es3fIntegerStateQueryTests.StencilClearValueTestCase.prototype.constructor = es3fIntegerStateQueryTests.StencilClearValueTestCase;
 
 	es3fIntegerStateQueryTests.StencilClearValueTestCase.prototype.test = function() {
-		this.check(glsStateQuery.verify(gl.STENCIL_CLEAR_VALUE, null));
+		this.check(glsStateQuery.verify(gl.STENCIL_CLEAR_VALUE, 0));
 
 		/** @type {number} */ var stencilBits = /** @type {number} */ (gl.getParameter(gl.STENCIL_BITS));
 
@@ -1257,6 +1281,11 @@ goog.scope(function() {
 
 			this.check(glsStateQuery.verify(gl.ACTIVE_TEXTURE, gl.TEXTURE0 + ndx));
 		}
+	};
+
+	es3fIntegerStateQueryTests.ActiveTextureTestCase.prototype.deinit = function() {
+		// [dag] reset the state of the context
+ 		gl.activeTexture(gl.TEXTURE0);
 	};
 
 	/**
@@ -1329,6 +1358,10 @@ goog.scope(function() {
 
 		gl.deleteSampler(samplerB);
 		gl.deleteSampler(samplerA);
+	};
+
+	es3fIntegerStateQueryTests.SamplerObjectBindingTestCase.prototype.deinit = function() {
+		gl.activeTexture(gl.TEXTURE0);
 	};
 
 	/**
@@ -1713,7 +1746,7 @@ goog.scope(function() {
 			testCtx.addChild(new es3fIntegerStateQueryTests.StencilOpSeparateTestCase('stencil_' + stencilOps[testNdx].name + '_separate', stencilOps[testNdx].frontDescription, stencilOps[testNdx].frontTarget, gl.FRONT));
 			testCtx.addChild(new es3fIntegerStateQueryTests.StencilOpSeparateTestCase('stencil_back_' + stencilOps[testNdx].name + '_separate', stencilOps[testNdx].backDescription, stencilOps[testNdx].backTarget, gl.BACK));
 		}
-		//
+
 		testCtx.addChild(new es3fIntegerStateQueryTests.StencilFuncTestCase('stencil_func', 'STENCIL_FUNC'));
 		testCtx.addChild(new es3fIntegerStateQueryTests.StencilFuncSeparateTestCase('stencil_func_separate', 'STENCIL_FUNC (separate)', gl.STENCIL_FUNC, gl.FRONT));
 		testCtx.addChild(new es3fIntegerStateQueryTests.StencilFuncSeparateTestCase('stencil_func_separate_both', 'STENCIL_FUNC (separate)', gl.STENCIL_FUNC, gl.FRONT_AND_BACK));
