@@ -74,47 +74,115 @@ var subOne = function(x) {
     return x - 1;
 };
 
+/**
+ * @param {number} a
+ * @param {number} b
+ */
 var add = function(a, b) {
     return a + b;
 };
 
+/**
+ * @param {number} a
+ * @param {number} b
+ */
 var sub = function(a, b) {
     return a - b;
 };
 
+/**
+ * @param {number} a
+ * @param {number} b
+ */
 var mul = function(a, b) {
     return a * b;
 };
 
+/**
+ * @param {number} a
+ * @param {number} b
+ */
 var div = function(a, b) {
     return a / b;
 };
 
+/**
+ * @param {number} a
+ * @param {number} b
+ */
 var mod = function(a, b) {
     return a % b;
 };
 
+/**
+ * @param {number} a
+ * @param {number} b
+ */
 var lessThan = function(a, b) {
     return a < b ? 1 : 0;
 }
 
+/**
+ * @param {number} a
+ * @param {number} b
+ */
 var lessThanEqual = function(a, b) {
     return a <= b ? 1 : 0;
 }
 
+/**
+ * @param {number} a
+ * @param {number} b
+ */
 var greaterThan = function(a, b) {
     return a > b ? 1 : 0;
 }
 
+/**
+ * @param {number} a
+ * @param {number} b
+ */
 var greaterThanEqual = function(a, b) {
     return a >= b ? 1 : 0;
 }
 
+/**
+ * @param {number} a
+ * @param {number} b
+ */
 var allEqual = function(a, b) {
     return a == b ? 1 : 0;
 }
 
+/**
+ * @param {number} a
+ * @param {number} b
+ */
 var anyNotEqual = function(a, b) {
+    return a != b ? 1 : 0;
+}
+
+/**
+ * @param {number} a
+ * @param {number} b
+ */
+var logicalAnd = function(a, b) {
+    return a && b ? 1 : 0;
+}
+
+/**
+ * @param {number} a
+ * @param {number} b
+ */
+var logicalOr = function(a, b) {
+    return a || b ? 1 : 0;
+}
+
+/**
+ * @param {number} a
+ * @param {number} b
+ */
+var logicalXor = function(a, b) {
     return a != b ? 1 : 0;
 }
 
@@ -1692,7 +1760,7 @@ es3fShaderOperatorTests.ShaderOperatorTests.prototype.init = function() {
         all, {scalar: es3fShaderOperatorTests.binaryGenTypeFuncs(greaterThanEqual, gluShaderUtil.DataType.UINT,
         gluShaderUtil.DataType.UINT).scalar}));
 
-    // Equality comparison operators.
+    // TODO: Equality comparison operators are failing.
     binary.push(op("equal", "==", B, [v(GT, -1.0, 1.0), v(GT, -1.0, 1.0)], f(1.0), f(0.0),
         all, es3fShaderOperatorTests.binaryGenTypeFuncs(allEqual)));
     binary.push(op("equal", "==", B, [v(IGT, -5.5, 4.7), v(IGT, -2.1, 0.1)], f(1.0), f(0.0),
@@ -1717,8 +1785,15 @@ es3fShaderOperatorTests.ShaderOperatorTests.prototype.init = function() {
         gluShaderUtil.DataType.BOOL)));
 
     // Logical operators.
-
-    
+    binary.push(op("logical_and", "&&", B, [v(B, -1.0, 1.0), v(B, -1.0, 1.0)], f(1.0), f(0.0),
+        na, {scalar: es3fShaderOperatorTests.binaryGenTypeFuncs(logicalAnd, gluShaderUtil.DataType.BOOL,
+        gluShaderUtil.DataType.BOOL).scalar}));
+    binary.push(op("logical_or", "||", B, [v(B, -1.0, 1.0), v(B, -1.0, 1.0)], f(1.0), f(0.0),
+        na, {scalar: es3fShaderOperatorTests.binaryGenTypeFuncs(logicalOr, gluShaderUtil.DataType.BOOL,
+        gluShaderUtil.DataType.BOOL).scalar}));
+    binary.push(op("logical_xor", "^^", B, [v(B, -1.0, 1.0), v(B, -1.0, 1.0)], f(1.0), f(0.0),
+        na, {scalar: es3fShaderOperatorTests.binaryGenTypeFuncs(logicalXor, gluShaderUtil.DataType.BOOL,
+        gluShaderUtil.DataType.BOOL).scalar}));
 
     funcInfoGroups.push(binary);
 
