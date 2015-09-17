@@ -1616,6 +1616,58 @@ goog.scope(function() {
 		this.check(glsStateQuery.verify(gl.DRAW_BUFFER0, gl.BACK));
 	};
 
+	// Integer64
+	/**
+	 * @constructor
+	 * @extends {es3fApiCase.ApiCase}
+	 * @param {string} name
+	 * @param {string} description
+	 * @param {number} targetName
+	 * @param {number} minValue
+	 */
+	es3fIntegerStateQueryTests.ConstantMinimumValue64TestCase = function(name, description, targetName, minValue) {
+		es3fApiCase.ApiCase.call(this, name, description, gl);
+		/** @type {number} */ this.m_targetName = targetName;
+		/** @type {number} */ this.m_minValue = minValue;
+	};
+
+	es3fIntegerStateQueryTests.ConstantMinimumValue64TestCase.prototype = Object.create(es3fApiCase.ApiCase.prototype);
+	es3fIntegerStateQueryTests.ConstantMinimumValue64TestCase.prototype.constructor = es3fIntegerStateQueryTests.ConstantMinimumValue64TestCase;
+
+	es3fIntegerStateQueryTests.ConstantMinimumValue64TestCase.prototype.test = function() {
+		this.check(glsStateQuery.verifyGreaterOrEqual(this.m_targetName, this.m_minValue), 'Fail');
+	};
+
+	/**
+	 * @constructor
+	 * @extends {es3fApiCase.ApiCase}
+	 * @param {string} name
+	 * @param {string} description
+	 * @param {number} targetName
+	 * @param {number} targetMaxUniformBlocksName
+	 * @param {number} targetMaxUniformComponentsName
+	 */
+	es3fIntegerStateQueryTests.MaxCombinedStageUniformComponentsCase = function(name, description, targetName, targetMaxUniformBlocksName, targetMaxUniformComponentsName) {
+		es3fApiCase.ApiCase.call(this, name, description, gl);
+		/** @type {number} */ this.m_targetName = targetName;
+		/** @type {number} */ this.m_targetMaxUniformBlocksName = targetMaxUniformBlocksName;
+		/** @type {number} */ this.m_targetMaxUniformComponentsName = targetMaxUniformComponentsName;
+	};
+
+	es3fIntegerStateQueryTests.MaxCombinedStageUniformComponentsCase.prototype = Object.create(es3fApiCase.ApiCase.prototype);
+	es3fIntegerStateQueryTests.MaxCombinedStageUniformComponentsCase.prototype.constructor = es3fIntegerStateQueryTests.MaxCombinedStageUniformComponentsCase;
+
+	es3fIntegerStateQueryTests.MaxCombinedStageUniformComponentsCase.prototype.test = function() {
+		/** @type {number} */ var uniformBlockSize = /** @type {number} */ (gl.getParameter(gl.MAX_UNIFORM_BLOCK_SIZE));
+		/** @type {number} */ var maxUniformBlocks = /** @type {number} */ (gl.getParameter(this.m_targetMaxUniformBlocksName));
+		/** @type {number} */ var maxUniformComponents = /** @type {number} */ (gl.getParameter(this.m_targetMaxUniformComponentsName));
+
+		// MAX_stage_UNIFORM_BLOCKS * MAX_UNIFORM_BLOCK_SIZE / 4 + MAX_stage_UNIFORM_COMPONENTS
+		/** @type {number} */ var minCombinedUniformComponents = maxUniformBlocks * uniformBlockSize / 4 + maxUniformComponents;
+
+		this.check(glsStateQuery.verifyGreaterOrEqual(this.m_targetName, minCombinedUniformComponents));
+	};
+
     /**
     * @constructor
     * @extends {tcuTestCase.DeqpTest}
@@ -1935,6 +1987,36 @@ goog.scope(function() {
 		testCtx.addChild(new es3fIntegerStateQueryTests.ImplementationColorReadTestCase('implementation_color_read', 'IMPLEMENTATION_COLOR_READ_TYPE and IMPLEMENTATION_COLOR_READ_FORMAT'));
 		testCtx.addChild(new es3fIntegerStateQueryTests.ReadBufferCase('read_buffer', 'READ_BUFFER'));
 		testCtx.addChild(new es3fIntegerStateQueryTests.DrawBufferCase('draw_buffer', 'DRAW_BUFFER'));
+
+
+		// Integer64
+		/**
+		 * @struct
+		 * @constructor
+		 * @param {string} name
+		 * @param {string} description
+		 * @param {number} targetName
+		 * @param {number} minValue
+		 */
+		var LimitedStateInteger64 = function(name, description, targetName, minValue) {
+			/** @type {string} */ this.name = name;
+			/** @type {string} */ this.description = description;
+			/** @type {number} */ this.targetName = targetName;
+			/** @type {number} */ this.minValue = minValue;
+
+		};
+
+		/** @type {Array<LimitedStateInteger64>} */ var implementationLimits = [
+			new LimitedStateInteger64('max_element_index', 'MAX_ELEMENT_INDEX', gl.MAX_ELEMENT_INDEX, 0x00FFFFFF),
+			new LimitedStateInteger64('max_server_wait_timeout', 'MAX_SERVER_WAIT_TIMEOUT', gl.MAX_SERVER_WAIT_TIMEOUT, 0),
+			new LimitedStateInteger64('max_uniform_block_size', 'MAX_UNIFORM_BLOCK_SIZE', gl.MAX_UNIFORM_BLOCK_SIZE, 16384)
+		];
+
+		for (var testNdx = 0; testNdx < implementationLimits.length; testNdx++)
+			this.addChild(new es3fIntegerStateQueryTests.ConstantMinimumValue64TestCase(implementationLimits[testNdx].name, implementationLimits[testNdx].description, implementationLimits[testNdx].targetName, implementationLimits[testNdx].minValue));
+
+		this.addChild(new es3fIntegerStateQueryTests.MaxCombinedStageUniformComponentsCase('max_combined_vertex_uniform_components', 'MAX_COMBINED_VERTEX_UNIFORM_COMPONENTS', gl.MAX_COMBINED_VERTEX_UNIFORM_COMPONENTS, gl.MAX_VERTEX_UNIFORM_BLOCKS, gl.MAX_VERTEX_UNIFORM_COMPONENTS));
+		this.addChild(new es3fIntegerStateQueryTests.MaxCombinedStageUniformComponentsCase('max_combined_fragment_uniform_components', 'MAX_COMBINED_FRAGMENT_UNIFORM_COMPONENTS', gl.MAX_COMBINED_FRAGMENT_UNIFORM_COMPONENTS, gl.MAX_FRAGMENT_UNIFORM_BLOCKS, gl.MAX_FRAGMENT_UNIFORM_COMPONENTS));
 
 	};
 
