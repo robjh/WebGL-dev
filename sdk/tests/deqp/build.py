@@ -116,7 +116,6 @@ targets = {
     'stringquery' : 'functional.gles3.es3fStringQueryTests',
     'indexedstate' : 'functional.gles3.es3fIndexedStateQueryTests',
     'integerstate' : 'functional.gles3.es3fIntegerStateQueryTests',
-    'integer64state' : 'functional.gles3.es3fInteger64StateQueryTests',
     'floatstate' : 'functional.gles3.es3fFloatStateQueryTests'
 }
 
