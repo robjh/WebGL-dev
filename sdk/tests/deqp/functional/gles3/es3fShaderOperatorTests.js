@@ -188,6 +188,41 @@ var logicalXor = function(a, b) {
 
 /**
  * @param {number} a
+ */
+var exp2 = function(a) {
+    return deMath.deFloatExp2(a);
+}
+
+/**
+ * @param {number} a
+ */
+var inverseSqrt = function(a) {
+    return deMath.deFloatRsq(a);
+}
+
+/**
+ * @param {number} a
+ */
+var log2 = function(a) {
+    return deMath.deFloatLog2(a);
+}
+
+/**
+ * @param {number} a
+ */
+var radians = function(a) {
+    return deMath.deFloatRadians(a);
+}
+
+/**
+ * @param {number} a
+ */
+var degrees = function(a) {
+    return deMath.deFloatDegrees(a);
+}
+
+/**
+ * @param {number} a
  * @param {Array<number>} b
  */
 var addScalarVec = function(a, b) {
@@ -1132,6 +1167,7 @@ es3fShaderOperatorTests.ShaderOperatorTests.prototype.init = function() {
     var all = es3fShaderOperatorTests.Precision.All;
     var highp = es3fShaderOperatorTests.Precision.High;
     var mediump = es3fShaderOperatorTests.Precision.Medium;
+    var mediumhighp = es3fShaderOperatorTests.Precision.MediumHigh;
     var lowp = es3fShaderOperatorTests.Precision.Low;
     var na = es3fShaderOperatorTests.Precision.None
     var GT = es3fShaderOperatorTests.ValueType.FLOAT_GENTYPE;
@@ -1797,12 +1833,76 @@ es3fShaderOperatorTests.ShaderOperatorTests.prototype.init = function() {
 
     funcInfoGroups.push(binary);
 
+    // 8.1 Angle and Trigonometry Functions.
     var trig = new es3fShaderOperatorTests.BuiltinFuncGroup("angle_and_trigonometry", "Angle and trigonometry function tests.");
     op = es3fShaderOperatorTests.builtinFunctionInfo;
-    trig.push(op("sin",         "sin",          GT, [v(GT, -5.0, 5.0)], f(0.5), f(0.5),     highp, es3fShaderOperatorTests.unaryGenTypeFuncs(Math.sin)));
+    trig.push(op("radians", "radians", GT, [v(GT, -1.0, 1.0)], f(25.0), f(0.5),
+        mediumhighp, es3fShaderOperatorTests.unaryGenTypeFuncs(radians)));
+    trig.push(op("degrees", "degrees", GT, [v(GT, -1.0, 1.0)], f(0.04), f(0.5),
+        mediumhighp, es3fShaderOperatorTests.unaryGenTypeFuncs(degrees)));
+    trig.push(op("sin", "sin", GT, [v(GT, -5.0, 5.0)], f(0.5), f(0.5),
+        mediumhighp, es3fShaderOperatorTests.unaryGenTypeFuncs(Math.sin)));
+    trig.push(op("sin", "sin", GT, [v(GT, -1.5, 1.5)], f(0.5), f(0.5),
+        lowp, es3fShaderOperatorTests.unaryGenTypeFuncs(Math.sin)));
+    trig.push(op("cos", "cos", GT, [v(GT, -5.0, 5.0)], f(0.5), f(0.5),
+        mediumhighp, es3fShaderOperatorTests.unaryGenTypeFuncs(Math.cos)));
+    trig.push(op("cos", "cos", GT, [v(GT, -1.5, 1.5)], f(0.5), f(0.5),
+        lowp, es3fShaderOperatorTests.unaryGenTypeFuncs(Math.cos)));
+    trig.push(op("tan", "tan", GT, [v(GT, -5.0, 5.0)], f(0.5), f(0.5),
+        mediumhighp, es3fShaderOperatorTests.unaryGenTypeFuncs(Math.tan)));
+    trig.push(op("tan", "tan", GT, [v(GT, -1.5, 1.5)], f(0.5), f(0.5),
+        lowp, es3fShaderOperatorTests.unaryGenTypeFuncs(Math.tan)));
+    trig.push(op("asin", "asin", GT, [v(GT, -1.0, 1.0)], f(1.0), f(0.0),
+        mediumhighp, es3fShaderOperatorTests.unaryGenTypeFuncs(Math.asin)));
+    trig.push(op("acos", "acos", GT, [v(GT, -1.0, 1.0)], f(1.0), f(0.0),
+        mediumhighp, es3fShaderOperatorTests.unaryGenTypeFuncs(Math.acos)));
+    trig.push(op("atan", "atan", GT, [v(GT, -4.0, 4.0)], f(0.5), f(0.5),
+        mediumhighp, es3fShaderOperatorTests.unaryGenTypeFuncs(Math.atan)));
+    trig.push(op("atan2", "atan", GT, [v(GT, -4.0, 4.0), v(GT, 0.5, 2.0)], f(0.5), f(0.5),
+        mediumhighp, es3fShaderOperatorTests.binaryGenTypeFuncs(Math.atan2)));
+    trig.push(op("sinh", "sinh", GT, [v(GT, -5.0, 5.0)], f(0.5), f(0.5),
+        mediumhighp, es3fShaderOperatorTests.unaryGenTypeFuncs(Math.sinh)));
+    trig.push(op("sinh", "sinh", GT, [v(GT, -1.5, 1.5)], f(0.5), f(0.5),
+        lowp, es3fShaderOperatorTests.unaryGenTypeFuncs(Math.sinh)));
+    trig.push(op("cosh", "cosh", GT, [v(GT, -5.0, 5.0)], f(0.5), f(0.5),
+        mediumhighp, es3fShaderOperatorTests.unaryGenTypeFuncs(Math.cosh)));
+    trig.push(op("cosh", "cosh", GT, [v(GT, -1.5, 1.5)], f(0.5), f(0.5),
+        lowp, es3fShaderOperatorTests.unaryGenTypeFuncs(Math.cosh)));
+    trig.push(op("tanh", "tanh", GT, [v(GT, -5.0, 5.0)], f(0.5), f(0.5),
+        mediumhighp, es3fShaderOperatorTests.unaryGenTypeFuncs(Math.tanh)));
+    trig.push(op("tanh", "tanh", GT, [v(GT, -1.5, 1.5)], f(0.5), f(0.5),
+        lowp, es3fShaderOperatorTests.unaryGenTypeFuncs(Math.tanh)));
+    trig.push(op("asinh", "asinh", GT, [v(GT, -1.0, 1.0)], f(1.0), f(0.0),
+        mediumhighp, es3fShaderOperatorTests.unaryGenTypeFuncs(Math.asinh)));
+    trig.push(op("acosh", "acosh", GT, [v(GT, 1.0, 2.2)], f(1.0), f(0.0),
+        mediumhighp, es3fShaderOperatorTests.unaryGenTypeFuncs(Math.acosh)));
+    //TODO: This is failing due a infinity values
+    trig.push(op("atanh", "atanh", GT, [v(GT, -1.0, 1.0)], f(1.0), f(0.0),
+        mediumhighp, es3fShaderOperatorTests.unaryGenTypeFuncs(Math.atanh)));
 
     funcInfoGroups.push(trig);
 
+    // 8.2 Exponential Functions.
+    var exps = new es3fShaderOperatorTests.BuiltinFuncGroup("exponential", "Exponential function tests");
+    exps.push(op("pow", "pow", GT, [v(GT, 0.1, 8.0), v(GT, -4.0, 2.0)], f(1.0), f(0.0),
+        mediumhighp, es3fShaderOperatorTests.binaryGenTypeFuncs(Math.pow)));
+    exps.push(op("exp", "exp", GT, [v(GT, -6.0, 3.0)], f(0.5), f(0.0),
+        mediumhighp, es3fShaderOperatorTests.unaryGenTypeFuncs(Math.exp)));
+    exps.push(op("log", "log", GT, [v(GT, 0.1, 10.0)], f(0.5), f(0.3),
+        mediumhighp, es3fShaderOperatorTests.unaryGenTypeFuncs(Math.log)));
+    exps.push(op("exp2", "exp2", GT, [v(GT, -7.0, 2.0)], f(1.0), f(0.0),
+        mediumhighp, es3fShaderOperatorTests.unaryGenTypeFuncs(exp2)));
+    exps.push(op("log2", "log2", GT, [v(GT, 0.1, 10.0)], f(1.0), f(0.0),
+        mediumhighp, es3fShaderOperatorTests.unaryGenTypeFuncs(log2)));
+    exps.push(op("sqrt", "sqrt", GT, [v(GT, 0.0, 10.0)], f(0.3), f(0.0),
+        mediumhighp, es3fShaderOperatorTests.unaryGenTypeFuncs(Math.sqrt)));
+    //TODO: Shader compile error.
+    exps.push(op("inverseSqrt", "inverseSqrt", GT, [v(GT, 0.5, 10.0)], f(1.0), f(0.0),
+        mediumhighp, es3fShaderOperatorTests.unaryGenTypeFuncs(inverseSqrt)));
+
+    funcInfoGroups.push(exps);
+
+    // 8.4 Geometric Functions.
     var geom = new es3fShaderOperatorTests.BuiltinFuncGroup("geometric", "Geometric function tests.");
     geom.push(op("length",      "length",       F,  [v(GT, -5.0, 5.0)], f(0.1), f(0.5),     highp, es3fShaderOperatorTests.unaryScalarGenTypeFuncs(length)));
 
