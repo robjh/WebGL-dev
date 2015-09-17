@@ -1938,13 +1938,6 @@ goog.scope(function() {
 
 	};
 
-	es3fIntegerStateQueryTests.IntegerStateQueryTests.prototype.deinit = function() {
-		if (this.m_verifierBoolean !== null) this.m_verifierBoolean = null;
-		if (this.m_verifierInteger !== null) this.m_verifierInteger = null;
-		if (this.m_verifierInteger64 !== null) this.m_verifierInteger64 = null;
-		if (this.m_verifierFloat !== null) this.m_verifierFloat = null;
-	};
-
     /**
     * Run test
     * @param {WebGL2RenderingContext} context
