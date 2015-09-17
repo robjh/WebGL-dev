@@ -518,7 +518,7 @@ goog.scope(function() {
 
 		/** @type {Array<number>} */ var stencilOpValues = [gl.KEEP, gl.ZERO, gl.REPLACE, gl.INCR, gl.DECR, gl.INVERT, gl.INCR_WRAP, gl.DECR_WRAP];
 		for (var ndx = 0; ndx < stencilOpValues.length; ++ndx) {
-			this.SetStencilOp(stencilOpValues[ndx]);
+			this.setStencilOp(stencilOpValues[ndx]);
 
 			this.check(glsStateQuery.verify(this.m_stencilOpName, stencilOpValues[ndx]));
 		}
@@ -532,7 +532,7 @@ goog.scope(function() {
 	/**
 	 * @param  {number} stencilOpValue
 	 */
-	es3fIntegerStateQueryTests.StencilOpTestCase.prototype.SetStencilOp = function(stencilOpValue) {
+	es3fIntegerStateQueryTests.StencilOpTestCase.prototype.setStencilOp = function(stencilOpValue) {
 		switch (this.m_stencilOpName) {
 			case gl.STENCIL_FAIL:
 			case gl.STENCIL_BACK_FAIL:
@@ -576,7 +576,7 @@ goog.scope(function() {
 	/**
 	 * @param  {number} stencilOpValue
 	 */
-	es3fIntegerStateQueryTests.StencilOpSeparateTestCase.prototype.SetStencilOp = function(stencilOpValue) {
+	es3fIntegerStateQueryTests.StencilOpSeparateTestCase.prototype.setStencilOp = function(stencilOpValue) {
 		switch (this.m_stencilOpName) {
 			case gl.STENCIL_FAIL:
 			case gl.STENCIL_BACK_FAIL:
@@ -871,7 +871,7 @@ goog.scope(function() {
 		for (var ndx = 0; ndx < blendFuncValues.length; ++ndx) {
 			/** @type {number} */ var referenceValue = blendFuncValues[ndx];
 
-			this.SetBlendFunc(referenceValue);
+			this.setBlendFunc(referenceValue);
 
 			this.check(glsStateQuery.verify(this.m_testTargetName, referenceValue));
 		}};
@@ -879,7 +879,7 @@ goog.scope(function() {
 	/**
 	 * @param  {number} func
 	 */
-	es3fIntegerStateQueryTests.BlendFuncTestCase.prototype.SetBlendFunc = function(func) {
+	es3fIntegerStateQueryTests.BlendFuncTestCase.prototype.setBlendFunc = function(func) {
 		switch (this.m_testTargetName) {
 			case gl.BLEND_SRC_RGB:
 			case gl.BLEND_SRC_ALPHA:
@@ -920,7 +920,7 @@ goog.scope(function() {
 	/**
 	 * @param  {number} func
 	 */
-	es3fIntegerStateQueryTests.BlendFuncSeparateTestCase.prototype.SetBlendFunc = function(func) {
+	es3fIntegerStateQueryTests.BlendFuncSeparateTestCase.prototype.setBlendFunc = function(func) {
 		switch (this.m_testTargetName) {
 			case gl.BLEND_SRC_RGB:
 				gl.blendFuncSeparate(func, gl.ZERO, gl.ZERO, gl.ZERO);
@@ -972,7 +972,7 @@ goog.scope(function() {
 		for (var ndx = 0; ndx < blendFuncValues.length; ++ndx) {
 			/** @type {number} */ var referenceValue = blendFuncValues[ndx];
 
-			this.SetBlendEquation(referenceValue);
+			this.setBlendEquation(referenceValue);
 
 			this.check(glsStateQuery.verify(this.m_testTargetName, referenceValue));
 		}
@@ -981,7 +981,7 @@ goog.scope(function() {
 	/**
 	 * @param  {number} equation
 	 */
-	es3fIntegerStateQueryTests.BlendEquationTestCase.prototype.SetBlendEquation = function(equation) {
+	es3fIntegerStateQueryTests.BlendEquationTestCase.prototype.setBlendEquation = function(equation) {
 		gl.blendEquation(equation);
 	};
 
@@ -1009,7 +1009,7 @@ goog.scope(function() {
 	/**
 	 * @param  {number} equation
 	 */
-	es3fIntegerStateQueryTests.BlendEquationSeparateTestCase.prototype.SetBlendEquation = function(equation) {
+	es3fIntegerStateQueryTests.BlendEquationSeparateTestCase.prototype.setBlendEquation = function(equation) {
 		switch (this.m_testTargetName) {
 			case gl.BLEND_EQUATION_RGB:
 				gl.blendEquationSeparate(equation, gl.FUNC_ADD);
