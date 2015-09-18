@@ -354,7 +354,9 @@ goog.scope(function() {
 	es3fFloatStateQueryTests.AliasedPointSizeRangeCase.prototype.constructor = es3fFloatStateQueryTests.AliasedPointSizeRangeCase;
 
 	es3fFloatStateQueryTests.AliasedPointSizeRangeCase.prototype.test = function() {
-		this.check(glsStateQuery.verify(gl.ALIASED_POINT_SIZE_RANGE, new Float32Array([1, 1])));
+		var pointSizeRange = /** @type {Float32Array} */ (gl.getParameter(gl.ALIASED_POINT_SIZE_RANGE));
+		/** @type {Float32Array} */ var reference = new Float32Array([1, 1]);
+		this.check(pointSizeRange[0] <= reference[0] && pointSizeRange[1] >= reference[1]);
 	};
 
 	/**
@@ -371,7 +373,9 @@ goog.scope(function() {
 	es3fFloatStateQueryTests.AliasedLineWidthRangeCase.prototype.constructor = es3fFloatStateQueryTests.AliasedLineWidthRangeCase;
 
 	es3fFloatStateQueryTests.AliasedLineWidthRangeCase.prototype.test = function() {
-		this.check(glsStateQuery.verify(gl.ALIASED_LINE_WIDTH_RANGE, new Float32Array([1, 1])));
+		var lineWidthRange = /** @type {Float32Array} */ (gl.getParameter(gl.ALIASED_LINE_WIDTH_RANGE));
+		/** @type {Float32Array} */ var reference = new Float32Array([1, 1]);
+		this.check(lineWidthRange[0] <= reference[0] && lineWidthRange[1] >= reference[1]);
 	};
 
     /**
