@@ -539,7 +539,7 @@ deMath.getBitRange = function(x, firstNdx, lastNdx) {
     var bitSize = lastNdx - firstNdx;
     var mask;
     if (bitSize < 32)
-        mask = (1 << bitSize) -1
+        mask = (1 << bitSize) - 1;
     else
         mask = Math.pow(2, bitSize) - 1;
     var masked = deMath.binaryAnd(shifted, mask);

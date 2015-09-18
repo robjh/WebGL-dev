@@ -1205,7 +1205,9 @@ es3fShaderOperatorTests.sequenceSideEffCase2 = function(in0, in1, in2) {
 es3fShaderOperatorTests.sequenceSideEffCase3 = function(in0, in1, in2) {
     in1 = convert(in1, gluShaderUtil.DataType.INT);
     in2 = convert(in2, gluShaderUtil.DataType.BOOL);
-    return convert(deMath.add(in1, deMath.add(in0, [in2[0], in2[1], in2[2], in2[3]])), gluShaderUtil.DataType.INT);
+    in0 = deMath.add(in0, in2);
+    in1 = deMath.add(in1, convert(in0, gluShaderUtil.DataType.INT));
+    return in1;
 };
 
 
@@ -2335,22 +2337,22 @@ es3fShaderOperatorTests.ShaderOperatorTests.prototype.init = function() {
 				shaderSpec.numInputs = s_sequenceCases[caseNdx].numInputs;
 				shaderSpec.precision = gluShaderUtil.precision[precision];
 				shaderSpec.output = s_sequenceCases[caseNdx].resultType;
-				shaderSpec.resultScale = new es3fShaderOperatorTests.FloatScalar(0.5);
-				shaderSpec.resultBias = new es3fShaderOperatorTests.FloatScalar(0.0);
+				shaderSpec.resultScale = f(0.5);
+				shaderSpec.resultBias = f(0.0);
 				shaderSpec.referenceScale = shaderSpec.resultScale;
 				shaderSpec.referenceBias = shaderSpec.resultBias;
 
 				for (var inputNdx = 0; inputNdx < s_sequenceCases[caseNdx].numInputs; inputNdx++) {
 					/** @type {gluShaderUtil.DataType} */ var type = s_sequenceCases[caseNdx].inputTypes[inputNdx];
 					/** @type {es3fShaderOperatorTests.FloatScalar} */ var rangeMin = gluShaderUtil.isDataTypeFloatOrVec(type) ?
-                        new es3fShaderOperatorTests.FloatScalar(-0.5) : gluShaderUtil.isDataTypeIntOrIVec(type) ?
-                        new es3fShaderOperatorTests.FloatScalar(-2.0) : gluShaderUtil.isDataTypeUintOrUVec(type) ?
-                        new es3fShaderOperatorTests.FloatScalar(0.0) : new es3fShaderOperatorTests.FloatScalar(-1.0);
+                        f(-0.5) : gluShaderUtil.isDataTypeIntOrIVec(type) ?
+                        f(-2.0) : gluShaderUtil.isDataTypeUintOrUVec(type) ?
+                        f(0.0) : f(-1.0);
 
 					/** @type {es3fShaderOperatorTests.FloatScalar} */ var rangeMax = gluShaderUtil.isDataTypeFloatOrVec(type) ?
-                        new es3fShaderOperatorTests.FloatScalar(0.5) : gluShaderUtil.isDataTypeIntOrIVec(type) ?
-                        new es3fShaderOperatorTests.FloatScalar(2.0) : gluShaderUtil.isDataTypeUintOrUVec(type) ?
-                        new es3fShaderOperatorTests.FloatScalar(2.0) : new es3fShaderOperatorTests.FloatScalar(1.0);
+                        f(0.5) : gluShaderUtil.isDataTypeIntOrIVec(type) ?
+                        f(2.0) : gluShaderUtil.isDataTypeUintOrUVec(type) ?
+                        f(2.0) : f(1.0);
 
 					shaderSpec.inputs[inputNdx] = new es3fShaderOperatorTests.ShaderValue(type, rangeMin, rangeMax);
 				}
