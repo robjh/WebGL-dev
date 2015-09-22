@@ -54,6 +54,15 @@ goog.scope(function() {
         child.prototype.constructor = child;
     };
 
+    /**
+     * @enum
+     */
+    es3fTransformFeedbackTests.State = {
+        DRAW: 0,
+        VERIFY: 1,
+        FINISH: 2
+    };
+
     /** @const @type {number} */ es3fTransformFeedbackTests.VIEWPORT_WIDTH = 128;
     /** @const @type {number} */ es3fTransformFeedbackTests.VIEWPORT_HEIGHT = 128;
     /** @const @type {number} */ es3fTransformFeedbackTests.BUFFER_GUARD_MULTIPLIER = 2;
@@ -864,6 +873,9 @@ goog.scope(function() {
 
         this.m_iterNdx = 0; // int
 
+        // State machine
+        this.m_state = es3fTransformFeedbackTests.State.DRAW;
+
     };
 
     setParentClass(es3fTransformFeedbackTests.TransformFeedbackCase, tcuTestCase.DeqpTest);
@@ -978,51 +990,39 @@ goog.scope(function() {
     };
 
     es3fTransformFeedbackTests.TransformFeedbackCase.prototype.iterate = function() {
-
         // static vars
+        // debugger;
         var s = es3fTransformFeedbackTests.TransformFeedbackCase.s_iterate;
+        var numIterations = s.iterations.length;
+        var seed = deMath.deMathHash(this.m_iterNdx);
+        switch(this.m_state) {
+            case es3fTransformFeedbackTests.State.DRAW:
+                bufferedLogToConsole('Testing ' +
+                    s.testCases[s.iterations[this.m_iterNdx]].length +
+                    ' draw calls, (element es3fTransformFeedbackTests.count, TF state): ' +
+                    s.testCases[s.iterations[this.m_iterNdx]]
+                );
 
-//          var log = this.m_textCtx.getLog();
-        var isOk = true;
-        var seed = /*deString.deStringHash(getName()) ^ */ deMath.deMathHash(this.m_iterNdx);
-        var numIterations = es3fTransformFeedbackTests.TransformFeedbackCase.s_iterate.iterations.length;
-        // first and end ignored.
-
-        var sectionName = 'Iteration' + (this.m_iterNdx + 1);
-        var sectionDesc = 'Iteration ' + (this.m_iterNdx + 1) + ' / ' + numIterations;
-//            var section; // something weird.
-
-        bufferedLogToConsole('Testing ' +
-            s.testCases[s.iterations[this.m_iterNdx]].length +
-            ' draw calls, (element es3fTransformFeedbackTests.count, TF state): ' +
-        //  tcu.formatArray(
-                s.testCases[s.iterations[this.m_iterNdx]]
-        //  )
-        );
-
-        isOk = this.runTest(s.testCases[s.iterations[this.m_iterNdx]], seed);
-
-        if (!isOk) {
-            // fail the test
-            testFailedOptions('Result comparison failed', false);
-//              this.m_testCtx.setTestResult(QP_TEST_RESULT_FAIL, 'Result comparison failed');
-        } else {
-            testPassedOptions('Result comparison succeeded', true);
+                this.m_testPassed = this.runTest(s.testCases[s.iterations[this.m_iterNdx]], seed);
+                this.m_iterNdx += 1;
+                if (this.m_testPassed && this.m_iterNdx < numIterations)
+                    break;
+                else
+                    this.m_state = es3fTransformFeedbackTests.State.FINISH;
+            //case es3fTransformFeedbackTests.State.VERIFY:
+            case es3fTransformFeedbackTests.State.FINISH:
+                if (!this.m_testPassed) testFailedOptions('Result comparison failed', false);
+                else testPassedOptions('Result comparison succeeded', true);
+                return tcuTestCase.IterateResult.STOP;
         }
 
-        this.m_iterNdx += 1;
-
-        return (isOk && this.m_iterNdx < numIterations) ?
-               tcuTestCase.IterateResult.CONTINUE :
-               tcuTestCase.IterateResult.STOP;
+        return tcuTestCase.IterateResult.CONTINUE;
 
     };
 
     es3fTransformFeedbackTests.TransformFeedbackCase.prototype.runTest = function(calls, seed) {
-
         var _min = function(x, y) { return x < y ? x : y; };
 
-    //  var log = this.m_testCtx.getLog();
         var rnd = new deRandom.Random(seed);
         var numInputs = 0;
         var numOutputs = 0;
@@ -1166,21 +1166,6 @@ goog.scope(function() {
 
             gl.getBufferSubData(gl.TRANSFORM_FEEDBACK_BUFFER, 0, buffer);
 
-            // function genString(buffer, prefix) {
-            //     var str = prefix + ":";
-            //     var arr = new Float32Array(buffer);
-            //     var len = (arr.length < 12 ? arr.length : 12);
-            //     for (var ii = 0; ii < len; ++ii) {
-            //         if (ii > 0) {
-            //             str += ",";
-            //         }
-            //         str += " " + arr[ii];
-            //     }
-            //     return str;
-            // }
-            // debug(genString(inputData, "input data"));
-            // debug(genString(buffer, "output data"));
-
             // Verify all output variables that are written to this buffer.
             for (var i = 0; i < this.m_transformFeedbackOutputs.length; ++i) {
                 var out = this.m_transformFeedbackOutputs[i];
@@ -1218,7 +1203,6 @@ goog.scope(function() {
 
                     inputOffset += call.numElements;
                     outputOffset += call.transformFeedbackEnabled ? es3fTransformFeedbackTests.getTransformFeedbackOutputCount(this.m_primitiveType, call.numElements) : 0;
-
                 }
             }
 
@@ -1238,7 +1222,7 @@ goog.scope(function() {
         var expectedCount = es3fTransformFeedbackTests.computeTransformFeedbackPrimitiveCount(this.m_primitiveType, calls); // const int
         var available = false; // deUint32
         var numPrimitives = 0; // deUint32
-
+        // [DAG] verify()
         available = gl.getQueryParameter(primitiveQuery, gl.QUERY_RESULT_AVAILABLE);
         numPrimitives = gl.getQueryParameter(primitiveQuery, gl.QUERY_RESULT); // formerly getQueryObjectuiv()
 
@@ -1286,11 +1270,10 @@ goog.scope(function() {
         // Compare images with and without transform feedback.
         imagesOk = tcuImageCompare.pixelThresholdCompare('Result', 'Image comparison result', frameWithoutTf, frameWithTf, [1, 1, 1, 1], tcuImageCompare.CompareLogMode.ON_ERROR);
 
-        if (imagesOk) {
+        if (imagesOk)
             bufferedLogToConsole('Rendering result comparison between TF enabled and TF disabled passed.');
-        } else {
+        else
             bufferedLogToConsole('ERROR: Rendering result comparison between TF enabled and TF disabled failed!');
-        }
 
         return outputsOk && imagesOk && queryOk;
 
