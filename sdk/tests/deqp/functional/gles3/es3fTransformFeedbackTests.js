@@ -793,7 +793,7 @@ goog.scope(function() {
     /**
      * Returns (for all the draw calls) the type of Primitive Mode, as it calls "es3fTransformFeedbackTests.getTransformFeedbackPrimitiveCount".
      * @param {gluDrawUtil.primitiveType} primitiveType GLenum that specifies what kind of primitive is
-     * @param {Object.<number, boolean>} array es3fTransformFeedbackTests.DrawCall object
+     * @param {Array<es3fTransformFeedbackTests.DrawCall>} array Object.<number, boolean>
      * @return {number} primCount
      */
     es3fTransformFeedbackTests.computeTransformFeedbackPrimitiveCount = function(primitiveType, array) {
