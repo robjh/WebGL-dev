@@ -2326,8 +2326,12 @@ es3fShaderOperatorTests.ShaderOperatorTests.prototype.init = function() {
     geom.push(op("refract", "refract", GT, [v(GT, -0.8, 1.2), v(GT, -1.1, 0.5), v(F, 0.2, 1.5)], f(0.5), f(0.5),
         mediumhighp, es3fShaderOperatorTests.ternaryVecVecScalarFuncs(refract)));
 
-
     funcInfoGroups.push(geom);
+
+    // 8.6 Vector Relational Functions.
+
+    
+
 
     var s_shaderTypes = [
         gluShaderProgram.shaderType.VERTEX,
