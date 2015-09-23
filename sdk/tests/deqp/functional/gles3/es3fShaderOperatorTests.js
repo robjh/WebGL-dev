@@ -147,19 +147,21 @@ var greaterThanEqual = function(a, b) {
 };
 
 /**
- * @param {number} a
- * @param {number} b
+ * @param {Array<number>} a
+ * @param {Array<number>} b
+ * @return {number}
  */
 var allEqual = function(a, b) {
-    return a == b ? 1 : 0;
+    return deMath.equal(a, b) ? 1 : 0;
 };
 
 /**
- * @param {number} a
- * @param {number} b
+ * @param {Array<number>} a
+ * @param {Array<number>} b
+ * @return {number}
  */
 var anyNotEqual = function(a, b) {
-    return a != b ? 1 : 0;
+    return !deMath.equal(a, b) ? 1 : 0;
 };
 
 /**
@@ -801,9 +803,9 @@ es3fShaderOperatorTests.ternaryVecVecScalarFuncs = function(func, dataTypeOut, d
         cp(output, value);
     };
     var functions = {};
-    functions.vec2 = function(c) { run(c.color, func, deMath.swizzle(c.in_[0], [3, 1]), deMath.swizzle(c.in_[1], [1, 0]), c.in_[1][0]); };
-    functions.vec3 = function(c) { run(c.color, func, deMath.swizzle(c.in_[0], [2, 0, 1]), deMath.swizzle(c.in_[1], [1, 2, 0]), c.in_[1][0]); };
-    functions.vec4 = function(c) { run(c.color, func, deMath.swizzle(c.in_[0], [1, 2, 3, 0]), deMath.swizzle(c.in_[1], [3, 2, 1, 0]), c.in_[1][0]); };
+    functions.vec2 = function(c) { run(c.color, func, deMath.swizzle(c.in_[0], [3, 1]), deMath.swizzle(c.in_[1], [1, 0]), c.in_[2][1]); };
+    functions.vec3 = function(c) { run(c.color, func, deMath.swizzle(c.in_[0], [2, 0, 1]), deMath.swizzle(c.in_[1], [1, 2, 0]), c.in_[2][1]); };
+    functions.vec4 = function(c) { run(c.color, func, deMath.swizzle(c.in_[0], [1, 2, 3, 0]), deMath.swizzle(c.in_[1], [3, 2, 1, 0]), c.in_[2][1]); };
     return functions;
 };
 
@@ -2185,28 +2187,27 @@ es3fShaderOperatorTests.ShaderOperatorTests.prototype.init = function() {
         all, {scalar: es3fShaderOperatorTests.binaryGenTypeFuncs(greaterThanEqual, gluShaderUtil.DataType.UINT,
         gluShaderUtil.DataType.UINT).scalar}));
 
-    // TODO: Equality comparison operators are failing.
     binary.push(op('equal', '==', B, [v(GT, -1.0, 1.0), v(GT, -1.0, 1.0)], f(1.0), f(0.0),
-        all, es3fShaderOperatorTests.binaryGenTypeFuncs(allEqual)));
+        all, es3fShaderOperatorTests.binaryScalarGenTypeFuncs(allEqual)));
     binary.push(op('equal', '==', B, [v(IGT, -5.5, 4.7), v(IGT, -2.1, 0.1)], f(1.0), f(0.0),
-        all, es3fShaderOperatorTests.binaryGenTypeFuncs(allEqual, gluShaderUtil.DataType.INT,
+        all, es3fShaderOperatorTests.binaryScalarGenTypeFuncs(allEqual, gluShaderUtil.DataType.INT,
         gluShaderUtil.DataType.INT)));
     binary.push(op('equal', '==', B, [v(UGT, 0.0, 8.0), v(UGT, 3.5, 4.5)], f(1.0), f(0.0),
-        all, es3fShaderOperatorTests.binaryGenTypeFuncs(allEqual, gluShaderUtil.DataType.UINT,
+        all, es3fShaderOperatorTests.binaryScalarGenTypeFuncs(allEqual, gluShaderUtil.DataType.UINT,
         gluShaderUtil.DataType.UINT)));
     binary.push(op('equal', '==', B, [v(BGT, -2.1, 2.1), v(BGT, -1.1, 16.0)], f(1.0), f(0.0),
-        na, es3fShaderOperatorTests.binaryGenTypeFuncs(allEqual, gluShaderUtil.DataType.BOOL,
+        na, es3fShaderOperatorTests.binaryScalarGenTypeFuncs(allEqual, gluShaderUtil.DataType.BOOL,
         gluShaderUtil.DataType.BOOL)));
     binary.push(op('not_equal', '!=', B, [v(GT, -1.0, 1.0), v(GT, -1.0, 1.0)], f(1.0), f(0.0),
-        all, es3fShaderOperatorTests.binaryGenTypeFuncs(anyNotEqual)));
+        all, es3fShaderOperatorTests.binaryScalarGenTypeFuncs(anyNotEqual)));
     binary.push(op('not_equal', '!=', B, [v(IGT, -5.5, 4.7), v(IGT, -2.1, 0.1)], f(1.0), f(0.0),
-        all, es3fShaderOperatorTests.binaryGenTypeFuncs(anyNotEqual, gluShaderUtil.DataType.INT,
+        all, es3fShaderOperatorTests.binaryScalarGenTypeFuncs(anyNotEqual, gluShaderUtil.DataType.INT,
         gluShaderUtil.DataType.INT)));
     binary.push(op('not_equal', '!=', B, [v(UGT, 0.0, 8.0), v(UGT, 3.5, 4.5)], f(1.0), f(0.0),
-        all, es3fShaderOperatorTests.binaryGenTypeFuncs(anyNotEqual, gluShaderUtil.DataType.UINT,
+        all, es3fShaderOperatorTests.binaryScalarGenTypeFuncs(anyNotEqual, gluShaderUtil.DataType.UINT,
         gluShaderUtil.DataType.UINT)));
     binary.push(op('not_equal', '!=', B, [v(BGT, -2.1, 2.1), v(BGT, -1.1, 16.0)], f(1.0), f(0.0),
-        na, es3fShaderOperatorTests.binaryGenTypeFuncs(anyNotEqual, gluShaderUtil.DataType.BOOL,
+        na, es3fShaderOperatorTests.binaryScalarGenTypeFuncs(anyNotEqual, gluShaderUtil.DataType.BOOL,
         gluShaderUtil.DataType.BOOL)));
 
     // Logical operators.
@@ -2265,8 +2266,7 @@ es3fShaderOperatorTests.ShaderOperatorTests.prototype.init = function() {
         mediumhighp, es3fShaderOperatorTests.unaryGenTypeFuncs(Math.asinh)));
     trig.push(op("acosh", "acosh", GT, [v(GT, 1.0, 2.2)], f(1.0), f(0.0),
         mediumhighp, es3fShaderOperatorTests.unaryGenTypeFuncs(Math.acosh)));
-    //TODO: This is failing due a infinity values
-    trig.push(op("atanh", "atanh", GT, [v(GT, -1.0, 1.0)], f(1.0), f(0.0),
+    trig.push(op("atanh", "atanh", GT, [v(GT, -0.99, 0.99)], f(1.0), f(0.0),
         mediumhighp, es3fShaderOperatorTests.unaryGenTypeFuncs(Math.atanh)));
 
     funcInfoGroups.push(trig);
@@ -2285,8 +2285,7 @@ es3fShaderOperatorTests.ShaderOperatorTests.prototype.init = function() {
         mediumhighp, es3fShaderOperatorTests.unaryGenTypeFuncs(log2)));
     exps.push(op("sqrt", "sqrt", GT, [v(GT, 0.0, 10.0)], f(0.3), f(0.0),
         mediumhighp, es3fShaderOperatorTests.unaryGenTypeFuncs(Math.sqrt)));
-    //TODO: Shader compile error.
-    exps.push(op("inverseSqrt", "inverseSqrt", GT, [v(GT, 0.5, 10.0)], f(1.0), f(0.0),
+    exps.push(op("inversesqrt", "inversesqrt", GT, [v(GT, 0.5, 10.0)], f(1.0), f(0.0),
         mediumhighp, es3fShaderOperatorTests.unaryGenTypeFuncs(inverseSqrt)));
 
     funcInfoGroups.push(exps);
@@ -2330,7 +2329,7 @@ es3fShaderOperatorTests.ShaderOperatorTests.prototype.init = function() {
 
     // 8.6 Vector Relational Functions.
 
-    
+
 
 
     var s_shaderTypes = [
