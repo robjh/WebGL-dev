@@ -885,6 +885,11 @@ goog.scope(function() {
 
         this.m_viewportW = 0;
         this.m_viewportH = 0;
+        this.m_viewportX = 0;
+        this.m_viewportY = 0;
+
+        this.m_primitiveQuery = null;
+        this.m_outputsOk = true;
 
     };
 
@@ -1012,8 +1017,8 @@ goog.scope(function() {
                     ' draw calls, (element es3fTransformFeedbackTests.count, TF state): ' +
                     s.testCases[s.iterations[this.m_iterNdx]]
                 );
-
-                this.m_testPassed = this.runTest(s.testCases[s.iterations[this.m_iterNdx]], seed);
+                this.runTest(s.testCases[s.iterations[this.m_iterNdx]], seed);
+                this.m_testPassed = this.verify(s.testCases[s.iterations[this.m_iterNdx]]);
                 this.m_iterNdx += 1;
                 if (this.m_testPassed && this.m_iterNdx < numIterations)
                     break;
@@ -1040,14 +1045,12 @@ goog.scope(function() {
     	var height = gl.drawingBufferHeight;
     	this.m_viewportW = _min(es3fTransformFeedbackTests.VIEWPORT_WIDTH, width);
     	this.m_viewportH = _min(es3fTransformFeedbackTests.VIEWPORT_HEIGHT, height);
-    	var viewportX = rnd.getInt(0, width - this.m_viewportW);
-    	var viewportY = rnd.getInt(0, height - this.m_viewportH);
+    	this.m_viewportX = rnd.getInt(0, width - this.m_viewportW);
+    	this.m_viewportY = rnd.getInt(0, height - this.m_viewportH);
     	this.m_frameWithTf = new tcuSurface.Surface(this.m_viewportW, this.m_viewportH); // tcu::Surface
     	this.m_frameWithoutTf = new tcuSurface.Surface(this.m_viewportW, this.m_viewportH); // tcu::Surface
-    	var primitiveQuery = gl.createQuery();
-    	var outputsOk = true;
-    	var imagesOk = true;
-    	var queryOk = true;
+    	this.m_primitiveQuery = gl.createQuery();
+    	this.m_outputsOk = true;
 
     	// Compute totals.
     	for (var i = 0; i < calls.length; ++i) {
@@ -1105,7 +1108,7 @@ goog.scope(function() {
     	}
 
     	// Setup viewport.
-    	gl.viewport(viewportX, viewportY, this.m_viewportW, this.m_viewportH);
+    	gl.viewport(this.m_viewportX, this.m_viewportY, this.m_viewportW, this.m_viewportH);
 
     	// Setup program.
     	gl.useProgram(this.m_program.getProgram());
@@ -1120,7 +1123,7 @@ goog.scope(function() {
     	);
 
     	// Enable query.
-    	gl.beginQuery(gl.TRANSFORM_FEEDBACK_PRIMITIVES_WRITTEN, primitiveQuery);
+    	gl.beginQuery(gl.TRANSFORM_FEEDBACK_PRIMITIVES_WRITTEN, this.m_primitiveQuery);
 
     	// Draw
     	var offset = 0;
@@ -1156,9 +1159,11 @@ goog.scope(function() {
     	gl.endQuery(gl.TRANSFORM_FEEDBACK_PRIMITIVES_WRITTEN);
 
     	// Check and log query status right after submit
+    	var query = this.m_primitiveQuery;
     	(function() {
+            debugger;
     		var available = false; // deUint32
-    		available = gl.getQueryParameter(primitiveQuery, gl.QUERY_RESULT_AVAILABLE); // formerly glGetQueryObjectuiv()
+    		available = gl.getQueryParameter(query, gl.QUERY_RESULT_AVAILABLE); // formerly glGetQueryObjectuiv()
 
     		bufferedLogToConsole('gl.TRANSFORM_FEEDBACK_PRIMITIVES_WRITTEN status after submit: ' +
     			(available != false ? 'true' : 'false'));
@@ -1206,7 +1211,7 @@ goog.scope(function() {
     								stride: stride
     							}
     						})) {
-    						outputsOk = false;
+    						this.m_outputsOk = false;
     						break;
     					}
     				}
@@ -1219,21 +1224,22 @@ goog.scope(function() {
     		// Verify guardband.
     		if (!es3fTransformFeedbackTests.verifyGuard(buffer, size)) {
     			bufferedLogToConsole('Error: Transform feedback buffer overrun detected');
-    			outputsOk = false;
+    			this.m_outputsOk = false;
     		}
 
     	//    Javascript, and lazy memory management
     	//    gl.unmapBuffer(gl.TRANSFORM_FEEDBACK_BUFFER);
 
     	}
-    // };
-    // es3fTransformFeedbackTests.TransformFeedbackCase.prototype.verify = function(calls, seed) {
+    };
+    es3fTransformFeedbackTests.TransformFeedbackCase.prototype.verify = function(calls) {
     	debugger;
     	// Check status after mapping buffers.
     	var mustBeReady = this.m_outputBuffers.length > 0; // Mapping buffer forces synchronization. // const bool
     	var expectedCount = es3fTransformFeedbackTests.computeTransformFeedbackPrimitiveCount(this.m_primitiveType, calls); // const int
-    	var available = /** @type {boolean} */ (gl.getQueryParameter(primitiveQuery, gl.QUERY_RESULT_AVAILABLE));
-
+    	var available = /** @type {boolean} */ (gl.getQueryParameter(this.m_primitiveQuery, gl.QUERY_RESULT_AVAILABLE));
+        var verify_offset = 0;
+        var queryOk = true;
     	if (!available) {
     		if (!this.m_verifyStart)
     			this.m_verifyStart = new Date();
@@ -1249,7 +1255,7 @@ goog.scope(function() {
     	}
 
 
-    	var numPrimitives = /** @type {number} */ (gl.getQueryParameter(primitiveQuery, gl.QUERY_RESULT));
+    	var numPrimitives = /** @type {number} */ (gl.getQueryParameter(this.m_primitiveQuery, gl.QUERY_RESULT));
 
     	// TODO(kbr): queries must not be available the same frame as they're issued. Have to
     	// restructure the logic to make this work.
@@ -1273,29 +1279,28 @@ goog.scope(function() {
     	gl.bindBuffer(gl.ARRAY_BUFFER, null);
 
     	// Read back rendered image.
-    	this.m_frameWithTf.readViewport(gl, [viewportX, viewportY, this.m_viewportW, this.m_viewportH]);
+    	this.m_frameWithTf.readViewport(gl, [this.m_viewportX, this.m_viewportY, this.m_viewportW, this.m_viewportH]);
 
     	// Render without transform feedback.
-    	offset = 0; // int
 
     	gl.clear(gl.COLOR_BUFFER_BIT);
 
     	for (var i = 0; i < calls.length; ++i) {
     		var call = calls[i];
-    		gl.drawArrays(gluDrawUtil.getPrimitiveGLType(gl, this.m_primitiveType), offset, call.numElements);
-    		offset += call.numElements;
+    		gl.drawArrays(gluDrawUtil.getPrimitiveGLType(gl, this.m_primitiveType), verify_offset, call.numElements);
+    		verify_offset += call.numElements;
     	}
-    	this.m_frameWithoutTf.readViewport(gl, [viewportX, viewportY, this.m_viewportW, this.m_viewportH]);
+    	this.m_frameWithoutTf.readViewport(gl, [this.m_viewportX, this.m_viewportY, this.m_viewportW, this.m_viewportH]);
 
     	// Compare images with and without transform feedback.
-    	imagesOk = tcuImageCompare.pixelThresholdCompare('Result', 'Image comparison result', this.m_frameWithoutTf, this.m_frameWithTf, [1, 1, 1, 1], tcuImageCompare.CompareLogMode.ON_ERROR);
+    	var imagesOk = tcuImageCompare.pixelThresholdCompare('Result', 'Image comparison result', this.m_frameWithoutTf, this.m_frameWithTf, [1, 1, 1, 1], tcuImageCompare.CompareLogMode.ON_ERROR);
 
     	if (imagesOk)
     		bufferedLogToConsole('Rendering result comparison between TF enabled and TF disabled passed.');
     	else
     		bufferedLogToConsole('ERROR: Rendering result comparison between TF enabled and TF disabled failed!');
 
-    	return outputsOk && imagesOk && queryOk;
+    	return this.m_outputsOk && imagesOk && queryOk;
 
     };
 
