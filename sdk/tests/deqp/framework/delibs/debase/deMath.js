@@ -1023,7 +1023,7 @@ deMath.deFractExp = function(x) {
  */
 deMath.deFloatRadians = function(x) {
     return x * (Math.PI / 180.0);
-}
+};
 
 /**
  * @param {number} x
@@ -1031,7 +1031,7 @@ deMath.deFloatRadians = function(x) {
  */
 deMath.deFloatDegrees = function(x) {
     return x * (180.0 / Math.PI);
-}
+};
 
 /**
  * @param {number} x
@@ -1039,7 +1039,7 @@ deMath.deFloatDegrees = function(x) {
  */
 deMath.deFloatExp2 = function(x) {
     return Math.exp(x * Math.LN2);
-}
+};
 
 /**
  * @param {number} x
@@ -1047,7 +1047,7 @@ deMath.deFloatExp2 = function(x) {
  */
 deMath.deFloatLog2 = function(x) {
     return Math.log(x) * Math.LOG2E;
-}
+};
 
 /**
  * @param {number} x
@@ -1056,6 +1056,6 @@ deMath.deFloatLog2 = function(x) {
 deMath.deFloatRsq = function(x) {
     var s = Math.sqrt(x);
     return s == 0.0 ? 0.0 : (1.0 / s);
-}
+};
 
 });

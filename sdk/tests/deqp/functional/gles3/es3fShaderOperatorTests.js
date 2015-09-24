@@ -109,6 +109,7 @@ var div = function(a, b) {
 /**
  * @param {number} a
  * @param {number} b
+ * @return {number}
  */
 var mod = function(a, b) {
     return a % b;
@@ -117,6 +118,7 @@ var mod = function(a, b) {
 /**
  * @param {number} a
  * @param {number} b
+ * @return {number}
  */
 var lessThan = function(a, b) {
     return a < b ? 1 : 0;
@@ -193,17 +195,101 @@ var logicalXor = function(a, b) {
  */
 var exp2 = function(a) {
     return deMath.deFloatExp2(a);
-}
+};
 
 /**
  * @param {number} a
  */
 var inverseSqrt = function(a) {
     return deMath.deFloatRsq(a);
-}
+};
+
+/**
+ * @param {Array<number>} a
+ * @param {number} b
+ * @return {Array<number>}
+ */
+var minVecScalar = function(a, b) {
+    var res = [];
+    for (var i = 0; i < a.length; i++)
+        res[i] = Math.min(a[i], b);
+    return res;
+};
+
+/**
+ * @param {Array<number>} a
+ * @param {number} b
+ * @return {Array<number>}
+ */
+var maxVecScalar = function(a, b) {
+    var res = [];
+    for (var i = 0; i < a.length; i++)
+        res[i] = Math.max(a[i], b);
+    return res;
+};
 
 /**
  * @param {number} a
+ * @param {number} b
+ * @param {number} c
+ * @return {Array<number>}
+ */
+var mix = function(a, b, c) {
+    return a * (1.0 - c) + b * c;
+};
+/**
+ * @param {Array<number>} a
+ * @param {Array<number>} b
+ * @param {number} c
+ * @return {Array<number>}
+ */
+var mixVecVecScalar = function(a, b, c) {
+    var res = [];
+    for (var i = 0; i < a.length; i++)
+        res[i] = mix(a[i], b[i], c);
+    return res;
+};
+
+/**
+ * @param {Array<number>} a
+ * @param {number} b
+ * @param {number} c
+ * @return {Array<number>}
+ */
+var clampVecScalarScalar = function(a, b, c) {
+    var res = [];
+    for (var i = 0; i < a.length; i++)
+        res[i] = deMath.clamp(a[i], b, c);
+    return res;
+};
+
+/**
+ * @param {number} a
+ * @return {number}
+ */
+var roundToEven = function (a) {
+	var q = deMath.deFloatFrac(a);
+	var r = a - q;
+
+	if (q > 0.5)
+		r += 1.0;
+	else if (q == 0.5 && r % 2 != 0)
+		r += 1.0;
+
+	return r;
+};
+
+/**
+ * @param {number} a
+ * @return {number}
+ */
+var fract = function(a) {
+    return a - Math.floor(a);
+};
+
+/**
+ * @param {number} a
+ * @return {number}
  */
 var log2 = function(a) {
     return deMath.deFloatLog2(a);
@@ -211,6 +297,7 @@ var log2 = function(a) {
 
 /**
  * @param {number} a
+ * @return {number}
  */
 var radians = function(a) {
     return deMath.deFloatRadians(a);
@@ -218,6 +305,7 @@ var radians = function(a) {
 
 /**
  * @param {number} a
+ * @return {number}
  */
 var degrees = function(a) {
     return deMath.deFloatDegrees(a);
@@ -371,7 +459,7 @@ var refract = function (a, b, c) {
 	var cosAngle = dot(b, a);
     var k = 1 - c * c * (1 - cosAngle * cosAngle);
 	if (k < 0)
-		return [];
+		return new Array(a.length).fill(0)
 	else
 		return deMath.subtract(deMath.scale(a, c), deMath.scale(b, c * cosAngle + Math.sqrt(k)));
 };
@@ -677,6 +765,33 @@ es3fShaderOperatorTests.binaryGenTypeFuncs = function(func, dataTypeOut, dataTyp
 
 /**
  * Generate binary functions which have the same input and return type
+ * @param {function(number, number, number): number} func
+ * @param {gluShaderUtil.DataType=} dataTypeIn
+ * @param {gluShaderUtil.DataType=} dataTypeOut
+ */
+es3fShaderOperatorTests.ternaryGenTypeFuncs = function(func, dataTypeOut, dataTypeIn) {
+    var run = function(output, func, input1, input2, input3) {
+        if (input1 instanceof Array) {
+            var len = input1.length;
+            var indices = es3fShaderOperatorTests.outIndices[len];
+            for (var i = 0; i < input1.length; i++)
+                 output[indices[i]] = convert(func(convert(input1[i], dataTypeIn), convert(input2[i], dataTypeIn), convert(input3[i], dataTypeIn)), dataTypeOut);
+        } else {
+            var value = convert(func(convert(input1, dataTypeIn), convert(input2, dataTypeIn), convert(input3, dataTypeIn)), dataTypeOut);
+            output[0] = value;
+        }
+    };
+
+    var functions = {};
+    functions.scalar = function(c) { run(c.color, func, c.in_[0][2], c.in_[1][0], c.in_[2][1]); };
+    functions.vec2 = function(c) { run(c.color, func, deMath.swizzle(c.in_[0], [3, 1]), deMath.swizzle(c.in_[1], [1, 0]), deMath.swizzle(c.in_[2], [2, 1])); };
+    functions.vec3 = function(c) { run(c.color, func, deMath.swizzle(c.in_[0], [2, 0, 1]), deMath.swizzle(c.in_[1], [1, 2, 0]), deMath.swizzle(c.in_[2], [3, 1, 2])); };
+    functions.vec4 = function(c) { run(c.color, func, deMath.swizzle(c.in_[0], [1, 2, 3, 0]), deMath.swizzle(c.in_[1], [3, 2, 1, 0]), deMath.swizzle(c.in_[2], [0, 3, 2, 1])); };
+    return functions;
+};
+
+/**
+ * Generate binary functions which have the same input and return type
  * @param {function(Array<number>, Array<number>): number} func
  * @param {gluShaderUtil.DataType=} dataTypeIn
  * @param {gluShaderUtil.DataType=} dataTypeOut
@@ -803,9 +918,38 @@ es3fShaderOperatorTests.ternaryVecVecScalarFuncs = function(func, dataTypeOut, d
         cp(output, value);
     };
     var functions = {};
+    functions.scalar = function(c) { run(c.color, func, [c.in_[0][2]], [c.in_[1][0]], c.in_[2][1]); };
     functions.vec2 = function(c) { run(c.color, func, deMath.swizzle(c.in_[0], [3, 1]), deMath.swizzle(c.in_[1], [1, 0]), c.in_[2][1]); };
     functions.vec3 = function(c) { run(c.color, func, deMath.swizzle(c.in_[0], [2, 0, 1]), deMath.swizzle(c.in_[1], [1, 2, 0]), c.in_[2][1]); };
     functions.vec4 = function(c) { run(c.color, func, deMath.swizzle(c.in_[0], [1, 2, 3, 0]), deMath.swizzle(c.in_[1], [3, 2, 1, 0]), c.in_[2][1]); };
+    return functions;
+};
+
+/**
+ * Generate binary functions of form: vec = func(vec, scalar, scalar)
+ * @param {function(Array<number>, number, number): Array<number>} func
+ * @param {gluShaderUtil.DataType=} dataTypeIn
+ * @param {gluShaderUtil.DataType=} dataTypeOut
+ */
+es3fShaderOperatorTests.ternaryVecScalarScalarFuncs = function(func, dataTypeOut, dataTypeIn) {
+    /**
+     * @param {function(Array<number>, number, number): Array<number>} func
+     * @param {Array<number>} input1
+     * @param {number} input2
+     * @param {number} input3
+     */
+    var run = function(output, func, input1, input2, input3) {
+        var in1 = convert(input1, dataTypeIn);
+        var in2 = convert(input2, dataTypeIn);
+        var in3 = convert(input3, dataTypeIn);
+        var value = func(in1, in2, in3);
+        value = convert(value, dataTypeOut);
+        cp(output, value);
+    };
+    var functions = {};
+    functions.vec2 = function(c) { run(c.color, func, deMath.swizzle(c.in_[0], [3, 1]), c.in_[1][0], c.in_[2][1]); };
+    functions.vec3 = function(c) { run(c.color, func, deMath.swizzle(c.in_[0], [2, 0, 1]), c.in_[1][0], c.in_[2][1]); };
+    functions.vec4 = function(c) { run(c.color, func, deMath.swizzle(c.in_[0], [1, 2, 3, 0]), c.in_[1][0], c.in_[2][1]); };
     return functions;
 };
 
@@ -1567,6 +1711,7 @@ es3fShaderOperatorTests.ShaderOperatorTests.prototype.init = function() {
     var F = es3fShaderOperatorTests.ValueType.FLOAT;
     var I = es3fShaderOperatorTests.ValueType.INT;
     var U = es3fShaderOperatorTests.ValueType.UINT;
+    var BV = es3fShaderOperatorTests.ValueType.BOOL_VEC;
     var FV = es3fShaderOperatorTests.ValueType.FLOAT_VEC;
     var IV = es3fShaderOperatorTests.ValueType.INT_VEC;
     var UV = es3fShaderOperatorTests.ValueType.UINT_VEC;
@@ -2301,7 +2446,69 @@ es3fShaderOperatorTests.ShaderOperatorTests.prototype.init = function() {
     comm.push(op("trunc", "trunc", GT, [v(GT, 2.5, 2.5)], f(0.2), f(0.7),
         all, es3fShaderOperatorTests.unaryGenTypeFuncs(Math.trunc)));
     comm.push(op("round", "round", GT, [v(GT, 2.5, 2.5)], f(0.2), f(0.7),
-        all, es3fShaderOperatorTests.unaryGenTypeFuncs(Math.round)));
+        all, es3fShaderOperatorTests.unaryGenTypeFuncs(roundToEven)));
+    comm.push(op("roundEven", "roundEven", GT, [v(GT, 2.5, 2.5)], f(0.2), f(0.7),
+        all, es3fShaderOperatorTests.unaryGenTypeFuncs(roundToEven)));
+    comm.push(op("ceil", "ceil", GT, [v(GT, 2.5, 2.5)], f(0.2), f(0.5),
+        all, es3fShaderOperatorTests.unaryGenTypeFuncs(Math.ceil)));
+    comm.push(op("fract", "fract", GT, [v(GT, 2.5, 2.5)], f(0.8), f(0.1),
+        all, es3fShaderOperatorTests.unaryGenTypeFuncs(fract)));
+    comm.push(op("mod", "mod", GT, [v(GT, -2.0, 2.0), v(GT, 0.9, 6.0)], f(0.5), f(0.5),
+        mediumhighp, es3fShaderOperatorTests.binaryGenTypeFuncs(mod)));
+    comm.push(op("mod", "mod", GT, [v(FV, -2.0, 2.0), v(F, 0.9, 6.0)], f(0.5), f(0.5),
+        mediumhighp, es3fShaderOperatorTests.binaryVecScalarFuncs(deMath.modScale)));
+    comm.push(op("min", "min", GT, [v(GT, -1.0, 1.0), v(GT, -1.0, 1.0)], f(0.5), f(0.5),
+        all, es3fShaderOperatorTests.binaryGenTypeFuncs(Math.min)));
+    comm.push(op("min", "min", GT, [v(FV, -1.0, 1.0), v(F, -1.0, 1.0)], f(0.5), f(0.5),
+        all, es3fShaderOperatorTests.binaryVecScalarFuncs(minVecScalar)));
+    comm.push(op("min", "min", IGT, [v(IGT, -4.0, 4.0), v(IGT, -4.0, 4.0)], f(0.125), f(0.5),
+        all, es3fShaderOperatorTests.binaryGenTypeFuncs(Math.min, gluShaderUtil.DataType.INT,
+        gluShaderUtil.DataType.INT)));
+    comm.push(op("min", "min", IGT, [v(IV, -4.0, 4.0), v(I, -4.0, 4.0)], f(0.125), f(0.5),
+        all, es3fShaderOperatorTests.binaryVecScalarFuncs(minVecScalar, gluShaderUtil.DataType.INT,
+        gluShaderUtil.DataType.INT)));
+    comm.push(op("min", "min", UGT, [v(UGT, 0.0, 8.0), v(UGT, 0.0, 8.0)], f(0.125), f(0.0),
+        all, es3fShaderOperatorTests.binaryGenTypeFuncs(Math.min, gluShaderUtil.DataType.INT,
+        gluShaderUtil.DataType.INT)));
+    comm.push(op("min", "min", UGT, [v(UV, 0.0, 8.0), v(U, 0.0, 8.0)], f(0.125), f(0.0),
+        all, es3fShaderOperatorTests.binaryVecScalarFuncs(minVecScalar, gluShaderUtil.DataType.UINT,
+        gluShaderUtil.DataType.UINT)));
+    comm.push(op("max", "max", GT, [v(GT, -1.0, 1.0), v(GT, -1.0, 1.0)], f(0.5), f(0.5),
+        all, es3fShaderOperatorTests.binaryGenTypeFuncs(Math.max)));
+    comm.push(op("max", "max", GT, [v(FV, -1.0, 1.0), v(F, -1.0, 1.0)], f(0.5), f(0.5),
+        all, es3fShaderOperatorTests.binaryVecScalarFuncs(maxVecScalar)));
+    comm.push(op("max", "max", IGT, [v(IGT, -4.0, 4.0), v(IGT, -4.0, 4.0)], f(0.125), f(0.5),
+        all, es3fShaderOperatorTests.binaryGenTypeFuncs(Math.max, gluShaderUtil.DataType.INT,
+        gluShaderUtil.DataType.INT)));
+    comm.push(op("max", "max", IGT, [v(IV, -4.0, 4.0), v(I, -4.0, 4.0)], f(0.125), f(0.5),
+        all, es3fShaderOperatorTests.binaryVecScalarFuncs(maxVecScalar, gluShaderUtil.DataType.INT,
+        gluShaderUtil.DataType.INT)));
+    comm.push(op("max", "max", UGT, [v(UGT, 0.0, 8.0), v(UGT, 0.0, 8.0)], f(0.125), f(0.0),
+        all, es3fShaderOperatorTests.binaryGenTypeFuncs(Math.max, gluShaderUtil.DataType.INT,
+        gluShaderUtil.DataType.INT)));
+    comm.push(op("max", "max", UGT, [v(UV, 0.0, 8.0), v(U, 0.0, 8.0)], f(0.125), f(0.0),
+        all, es3fShaderOperatorTests.binaryVecScalarFuncs(maxVecScalar, gluShaderUtil.DataType.UINT,
+        gluShaderUtil.DataType.UINT)));
+    comm.push(op("clamp", "clamp", GT, [v(GT, -1.0, 1.0), v(GT, -1.0, 1.0), v(GT, 0.5, 1.0)], f(0.5), f(0.5),
+        all, es3fShaderOperatorTests.ternaryGenTypeFuncs(deMath.clamp)));
+    comm.push(op("clamp", "clamp", GT, [v(FV, -1.0, 1.0), v(F, -1.0, 1.0), v(F, 0.5, 1.0)], f(0.5), f(0.5),
+        all, es3fShaderOperatorTests.ternaryVecScalarScalarFuncs(clampVecScalarScalar)));
+    comm.push(op("clamp", "clamp", IGT, [v(IGT, -4.0, 4.0), v(IGT, -2.0, 2.0), v(IGT, 2.0, 4.0)], f(0.125), f(0.5),
+        all, es3fShaderOperatorTests.ternaryGenTypeFuncs(deMath.clamp, gluShaderUtil.DataType.INT,
+        gluShaderUtil.DataType.INT)));
+    comm.push(op("clamp", "clamp", IGT, [v(IGT, -4.0, 4.0), v(I, -2.0, 2.0), v(I, 2.0, 4.0)], f(0.125), f(0.5),
+        all, es3fShaderOperatorTests.ternaryVecScalarScalarFuncs(clampVecScalarScalar, gluShaderUtil.DataType.INT,
+        gluShaderUtil.DataType.INT)));
+    comm.push(op("clamp", "clamp", UGT, [v(UGT, 0.0, 8.0), v(UGT, 2.0, 6.0), v(UGT, 6.0, 8.0)], f(0.125), f(0.0),
+        all, es3fShaderOperatorTests.ternaryGenTypeFuncs(deMath.clamp, gluShaderUtil.DataType.UINT,
+        gluShaderUtil.DataType.UINT)));
+    comm.push(op("clamp", "clamp", UGT, [v(UV, 0.0, 8.0), v(U, 2.0, 6.0), v(U, 6.0, 8.0)], f(0.125), f(0.0),
+        all, es3fShaderOperatorTests.ternaryVecScalarScalarFuncs(clampVecScalarScalar, gluShaderUtil.DataType.UINT,
+        gluShaderUtil.DataType.UINT)));
+    comm.push(op("mix", "mix", GT, [v(GT, -1.0, 1.0), v(GT, -1.0, 1.0), v(GT, 0.5, 1.0)], f(0.5), f(0.5),
+        all, es3fShaderOperatorTests.ternaryGenTypeFuncs(mix)));
+    comm.push(op("mix", "mix", GT, [v(FV, -1.0, 1.0), v(FV, -1.0, 1.0), v(F, 0.5, 1.0)], f(0.5), f(0.5),
+        all, es3fShaderOperatorTests.ternaryVecVecScalarFuncs(mixVecVecScalar)));
 
     funcInfoGroups.push(comm);
 
@@ -2321,13 +2528,15 @@ es3fShaderOperatorTests.ShaderOperatorTests.prototype.init = function() {
         mediumhighp, es3fShaderOperatorTests.ternaryVecVecVecFuncs(faceforward)));
     geom.push(op("reflect", "reflect", GT, [v(GT, -0.8, -0.5), v(GT, 0.5, 0.8)], f(0.5), f(0.5),
         mediumhighp, es3fShaderOperatorTests.binaryVecVecFuncs(reflect)));
-    //TODO: It's failing
     geom.push(op("refract", "refract", GT, [v(GT, -0.8, 1.2), v(GT, -1.1, 0.5), v(F, 0.2, 1.5)], f(0.5), f(0.5),
         mediumhighp, es3fShaderOperatorTests.ternaryVecVecScalarFuncs(refract)));
 
     funcInfoGroups.push(geom);
 
     // 8.6 Vector Relational Functions.
+    var floatgeom = new es3fShaderOperatorTests.BuiltinFuncGroup("float_compare", "Floating point comparison tests.");
+    //geom.push(op("lessThan", "lessThan", BV, [v(FV, -1.0, 1.0), v(FV, -1.0, 1.0)], f(1.0), f(0.0),
+    //    all, es3fShaderOperatorTests.unaryScalarGenTypeFuncs(lessThan)));
 
 
 
