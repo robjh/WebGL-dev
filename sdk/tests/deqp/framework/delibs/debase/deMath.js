@@ -1017,45 +1017,4 @@ deMath.deFractExp = function(x) {
     return result;
 };
 
-/**
- * @param {number} x
- * @return {number}
- */
-deMath.deFloatRadians = function(x) {
-    return x * (Math.PI / 180.0);
-};
-
-/**
- * @param {number} x
- * @return {number}
- */
-deMath.deFloatDegrees = function(x) {
-    return x * (180.0 / Math.PI);
-};
-
-/**
- * @param {number} x
- * @return {number}
- */
-deMath.deFloatExp2 = function(x) {
-    return Math.exp(x * Math.LN2);
-};
-
-/**
- * @param {number} x
- * @return {number}
- */
-deMath.deFloatLog2 = function(x) {
-    return Math.log(x) * Math.LOG2E;
-};
-
-/**
- * @param {number} x
- * @return {number}
- */
-deMath.deFloatRsq = function(x) {
-    var s = Math.sqrt(x);
-    return s == 0.0 ? 0.0 : (1.0 / s);
-};
-
 });

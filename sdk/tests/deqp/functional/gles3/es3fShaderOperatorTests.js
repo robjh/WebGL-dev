@@ -240,8 +240,8 @@ var anyNotEqualVec = function(a, b) {
 };
 
 /**
- * @param {Array<boolean>} a
- * @return {Array<boolean>}
+ * @param {Array<number>} a
+ * @return {Array<number>}
  */
 var boolNotVec = function(a) {
 	var res = [];
@@ -300,14 +300,14 @@ var logicalXor = function(a, b) {
  * @param {number} a
  */
 var exp2 = function(a) {
-    return deMath.deFloatExp2(a);
+    return deFloatExp2(a);
 };
 
 /**
  * @param {number} a
  */
 var inverseSqrt = function(a) {
-    return deMath.deFloatRsq(a);
+    return deFloatRsq(a);
 };
 
 /**
@@ -444,16 +444,8 @@ var fract = function(a) {
  * @param {number} a
  * @return {number}
  */
-var log2 = function(a) {
-    return deMath.deFloatLog2(a);
-}
-
-/**
- * @param {number} a
- * @return {number}
- */
 var radians = function(a) {
-    return deMath.deFloatRadians(a);
+    return deFloatRadians(a);
 }
 
 /**
@@ -461,7 +453,7 @@ var radians = function(a) {
  * @return {number}
  */
 var degrees = function(a) {
-    return deMath.deFloatDegrees(a);
+    return deFloatDegrees(a);
 }
 
 /**
@@ -611,8 +603,10 @@ var reflect = function(a, b) {
 var refract = function (a, b, c) {
 	var cosAngle = dot(b, a);
     var k = 1 - c * c * (1 - cosAngle * cosAngle);
-	if (k < 0)
-		return new Array(a.length).fill(0)
+	if (k < 0){
+        var res = new Array(a.length);
+		return res.fill(0)
+    }
 	else
 		return deMath.subtract(deMath.scale(a, c), deMath.scale(b, c * cosAngle + Math.sqrt(k)));
 };
@@ -645,6 +639,47 @@ var boolNot = function(a) {
 
 var bitwiseNot = function(a) {
     return ~a;
+};
+
+/**
+ * @param {number} x
+ * @return {number}
+ */
+var deFloatRadians = function(x) {
+    return x * (Math.PI / 180.0);
+};
+
+/**
+ * @param {number} x
+ * @return {number}
+ */
+var deFloatDegrees = function(x) {
+    return x * (180.0 / Math.PI);
+};
+
+/**
+ * @param {number} x
+ * @return {number}
+ */
+var deFloatExp2 = function(x) {
+    return Math.exp(x * Math.LN2);
+};
+
+/**
+ * @param {number} x
+ * @return {number}
+ */
+var deFloatLog2 = function(x) {
+    return Math.log(x) * Math.LOG2E;
+};
+
+/**
+ * @param {number} x
+ * @return {number}
+ */
+var deFloatRsq = function(x) {
+    var s = Math.sqrt(x);
+    return s == 0.0 ? 0.0 : (1.0 / s);
 };
 
 /**
@@ -2627,7 +2662,7 @@ es3fShaderOperatorTests.ShaderOperatorTests.prototype.init = function() {
     exps.push(op("exp2", "exp2", GT, [v(GT, -7.0, 2.0)], f(1.0), f(0.0),
         mediumhighp, es3fShaderOperatorTests.unaryGenTypeFuncs(exp2)));
     exps.push(op("log2", "log2", GT, [v(GT, 0.1, 10.0)], f(1.0), f(0.0),
-        mediumhighp, es3fShaderOperatorTests.unaryGenTypeFuncs(log2)));
+        mediumhighp, es3fShaderOperatorTests.unaryGenTypeFuncs(Math.log2)));
     exps.push(op("sqrt", "sqrt", GT, [v(GT, 0.0, 10.0)], f(0.3), f(0.0),
         mediumhighp, es3fShaderOperatorTests.unaryGenTypeFuncs(Math.sqrt)));
     exps.push(op("inversesqrt", "inversesqrt", GT, [v(GT, 0.5, 10.0)], f(1.0), f(0.0),
