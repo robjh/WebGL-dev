@@ -1017,14 +1017,17 @@ goog.scope(function() {
                     ' draw calls, (element es3fTransformFeedbackTests.count, TF state): ' +
                     s.testCases[s.iterations[this.m_iterNdx]]
                 );
-                this.runTest(s.testCases[s.iterations[this.m_iterNdx]], seed);
+                this.draw(s.testCases[s.iterations[this.m_iterNdx]], seed);
+                this.m_state = es3fTransformFeedbackTests.State.VERIFY;
+                break;
+            case es3fTransformFeedbackTests.State.VERIFY:
                 this.m_testPassed = this.verify(s.testCases[s.iterations[this.m_iterNdx]]);
                 this.m_iterNdx += 1;
-                if (this.m_testPassed && this.m_iterNdx < numIterations)
+                if (this.m_testPassed && this.m_iterNdx < numIterations) {
+                    this.m_state = es3fTransformFeedbackTests.State.DRAW;
                     break;
-                else
+                } else
                     this.m_state = es3fTransformFeedbackTests.State.FINISH;
-            //case es3fTransformFeedbackTests.State.VERIFY:
             case es3fTransformFeedbackTests.State.FINISH:
                 if (!this.m_testPassed) testFailedOptions('Result comparison failed', false);
                 else testPassedOptions('Result comparison succeeded', true);
@@ -1035,7 +1038,7 @@ goog.scope(function() {
 
     };
 
-    es3fTransformFeedbackTests.TransformFeedbackCase.prototype.runTest = function(calls, seed) {
+    es3fTransformFeedbackTests.TransformFeedbackCase.prototype.draw = function(calls, seed) {
     	var _min = function(x, y) { return x < y ? x : y; };
 
     	var rnd = new deRandom.Random(seed);
