@@ -232,7 +232,7 @@ var maxVecScalar = function(a, b) {
  * @param {number} a
  * @param {number} b
  * @param {number} c
- * @return {Array<number>}
+ * @return {number}
  */
 var mix = function(a, b, c) {
     return a * (1.0 - c) + b * c;
@@ -260,6 +260,53 @@ var clampVecScalarScalar = function(a, b, c) {
     var res = [];
     for (var i = 0; i < a.length; i++)
         res[i] = deMath.clamp(a[i], b, c);
+    return res;
+};
+
+/**
+ * @param {number} a
+ * @param {number} b
+ * @return {number}
+ */
+var step = function(a, b) {
+    return b < a ? 0.0 : 1.0;
+};
+
+/**
+ * @param {number} a
+ * @param {Array<number>} b
+ * @return {Array<number>}
+ */
+var stepScalarVec = function(a, b) {
+    var res = [];
+    for (var i = 0; i < b.length; i++)
+        res[i] = step(a, b[i]);
+    return res;
+};
+
+/**
+ * @param {number} a
+ * @param {number} b
+ * @param {number} c
+ * @return {number}
+ */
+var smoothStep = function(a, b, c) {
+    if (c <= a) return 0.0;
+	if (c >= b) return 1.0;
+	var t = deMath.clamp((c - a) / (b - a), 0.0, 1.0);
+	return t * t * (3.0 - 2.0 * t);
+};
+
+/**
+ * @param {number} a
+ * @param {number} b
+ * @param {Array<number>} c
+ * @return {Array<number>}
+ */
+var smoothStepScalarScalarVec = function(a, b, c) {
+    var res = [];
+    for (var i = 0; i < c.length; i++)
+        res[i] = smoothStep(a, b, c[i]);
     return res;
 };
 
@@ -954,28 +1001,30 @@ es3fShaderOperatorTests.ternaryVecScalarScalarFuncs = function(func, dataTypeOut
 };
 
 /**
- * Generate binary functions of form: vec = func(vec, vec)
- * @param {function(Array<number>, Array<number>): Array<number>} func
+ * Generate binary functions of form: vec = func(scalar, scalar, vec)
+ * @param {function(number, number, Array<number>): Array<number>} func
  * @param {gluShaderUtil.DataType=} dataTypeIn
  * @param {gluShaderUtil.DataType=} dataTypeOut
  */
-es3fShaderOperatorTests.binaryVecVecFuncs = function(func, dataTypeOut, dataTypeIn) {
+es3fShaderOperatorTests.ternaryScalarScalarVecFuncs = function(func, dataTypeOut, dataTypeIn) {
     /**
-     * @param {function(Array<number>, Array<number>): Array<number>} func
-     * @param {Array<number>} input1
-     * @param {Array<number>} input2
+     * @param {function(number, number, Array<number>): Array<number>} func
+     * @param {number} input1
+     * @param {number} input2
+     * @param {Array<number>} input3
      */
-    var run = function(output, func, input1, input2) {
+    var run = function(output, func, input1, input2, input3) {
         var in1 = convert(input1, dataTypeIn);
         var in2 = convert(input2, dataTypeIn);
-        var value = func(in1, in2);
+        var in3 = convert(input3, dataTypeIn);
+        var value = func(in1, in2, in3);
         value = convert(value, dataTypeOut);
         cp(output, value);
     };
     var functions = {};
-    functions.vec2 = function(c) { run(c.color, func, deMath.swizzle(c.in_[0], [3, 1]), deMath.swizzle(c.in_[1], [1, 0])); };
-    functions.vec3 = function(c) { run(c.color, func, deMath.swizzle(c.in_[0], [2, 0, 1]), deMath.swizzle(c.in_[1], [1, 2, 0])); };
-    functions.vec4 = function(c) { run(c.color, func, deMath.swizzle(c.in_[0], [1, 2, 3, 0]), deMath.swizzle(c.in_[1], [3, 2, 1, 0])); };
+    functions.vec2 = function(c) { run(c.color, func, c.in_[0][3], c.in_[1][0], deMath.swizzle(c.in_[2], [2, 1])); };
+    functions.vec3 = function(c) { run(c.color, func, c.in_[0][3], c.in_[1][0], deMath.swizzle(c.in_[2], [3, 1, 2])); };
+    functions.vec4 = function(c) { run(c.color, func, c.in_[0][3], c.in_[1][0], deMath.swizzle(c.in_[2], [0, 3, 2, 1])); };
     return functions;
 };
 
@@ -1004,6 +1053,32 @@ es3fShaderOperatorTests.ternaryVecVecVecFuncs = function(func, dataTypeOut, data
     functions.vec2 = function(c) { run(c.color, func, deMath.swizzle(c.in_[0], [3, 1]), deMath.swizzle(c.in_[1], [1, 0]), deMath.swizzle(c.in_[2], [2, 1])); };
     functions.vec3 = function(c) { run(c.color, func, deMath.swizzle(c.in_[0], [2, 0, 1]), deMath.swizzle(c.in_[1], [1, 2, 0]), deMath.swizzle(c.in_[2], [3, 1, 2])); };
     functions.vec4 = function(c) { run(c.color, func, deMath.swizzle(c.in_[0], [1, 2, 3, 0]), deMath.swizzle(c.in_[1], [3, 2, 1, 0]), deMath.swizzle(c.in_[2], [0, 3, 2, 1])); };
+    return functions;
+};
+
+/**
+ * Generate binary functions of form: vec = func(vec, vec)
+ * @param {function(Array<number>, Array<number>): Array<number>} func
+ * @param {gluShaderUtil.DataType=} dataTypeIn
+ * @param {gluShaderUtil.DataType=} dataTypeOut
+ */
+es3fShaderOperatorTests.binaryVecVecFuncs = function(func, dataTypeOut, dataTypeIn) {
+    /**
+     * @param {function(Array<number>, Array<number>): Array<number>} func
+     * @param {Array<number>} input1
+     * @param {Array<number>} input2
+     */
+    var run = function(output, func, input1, input2) {
+        var in1 = convert(input1, dataTypeIn);
+        var in2 = convert(input2, dataTypeIn);
+        var value = func(in1, in2);
+        value = convert(value, dataTypeOut);
+        cp(output, value);
+    };
+    var functions = {};
+    functions.vec2 = function(c) { run(c.color, func, deMath.swizzle(c.in_[0], [3, 1]), deMath.swizzle(c.in_[1], [1, 0])); };
+    functions.vec3 = function(c) { run(c.color, func, deMath.swizzle(c.in_[0], [2, 0, 1]), deMath.swizzle(c.in_[1], [1, 2, 0])); };
+    functions.vec4 = function(c) { run(c.color, func, deMath.swizzle(c.in_[0], [1, 2, 3, 0]), deMath.swizzle(c.in_[1], [3, 2, 1, 0])); };
     return functions;
 };
 
@@ -2509,6 +2584,14 @@ es3fShaderOperatorTests.ShaderOperatorTests.prototype.init = function() {
         all, es3fShaderOperatorTests.ternaryGenTypeFuncs(mix)));
     comm.push(op("mix", "mix", GT, [v(FV, -1.0, 1.0), v(FV, -1.0, 1.0), v(F, 0.5, 1.0)], f(0.5), f(0.5),
         all, es3fShaderOperatorTests.ternaryVecVecScalarFuncs(mixVecVecScalar)));
+    comm.push(op("step", "step", GT, [v(GT, -1.0, 1.0), v(GT, -1.0, 1.0)], f(0.5), f(0.25),
+        all, es3fShaderOperatorTests.binaryGenTypeFuncs(step)));
+    comm.push(op("step", "step", GT, [v(F, -1.0, 1.0), v(FV, -1.0, 0.0)], f(0.5), f(0.25),
+        all, es3fShaderOperatorTests.binaryScalarVecFuncs(stepScalarVec)));
+    comm.push(op("smoothstep", "smoothstep", GT, [v(GT, -0.5, 0.0), v(GT, 0.1, 1.0), v(GT, -1.0, 1.0)], f(0.5), f(0.5),
+        all, es3fShaderOperatorTests.ternaryGenTypeFuncs(smoothStep)));
+    comm.push(op("smoothstep", "smoothstep", GT, [v(F, -0.5, 0.0), v(F, 0.1, 1.0), v(FV, -1.0, 1.0)], f(0.5), f(0.5),
+        all, es3fShaderOperatorTests.ternaryScalarScalarVecFuncs(smoothStepScalarScalarVec)));
 
     funcInfoGroups.push(comm);
 
