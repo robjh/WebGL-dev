@@ -125,11 +125,36 @@ var lessThan = function(a, b) {
 };
 
 /**
+ * @param {Array<number>} a
+ * @param {Array<number>} b
+ * @return {Array<number>}
+ */
+var lessThanVec = function(a, b) {
+    var res = [];
+    for (var i = 0; i < a.length; i++)
+        res[i] = a[i] < b[i];
+    return res
+};
+
+/**
  * @param {number} a
  * @param {number} b
+ * @return {number}
  */
 var lessThanEqual = function(a, b) {
     return a <= b ? 1 : 0;
+};
+
+/**
+ * @param {Array<number>} a
+ * @param {Array<number>} b
+ * @return {Array<number>}
+ */
+var lessThanEqualVec = function(a, b) {
+    var res = [];
+    for (var i = 0; i < a.length; i++)
+        res[i] = a[i] <= b[i];
+    return res;
 };
 
 /**
@@ -141,11 +166,35 @@ var greaterThan = function(a, b) {
 };
 
 /**
+ * @param {Array<number>} a
+ * @param {Array<number>} b
+ * @return {Array<number>}
+ */
+var greaterThanVec = function(a, b) {
+    var res = [];
+    for (var i = 0; i < a.length; i++)
+        res[i] = a[i] > b[i];
+    return res;
+};
+
+/**
  * @param {number} a
  * @param {number} b
  */
 var greaterThanEqual = function(a, b) {
     return a >= b ? 1 : 0;
+};
+
+/**
+ * @param {Array<number>} a
+ * @param {Array<number>} b
+ * @return {Array<number>}
+ */
+var greaterThanEqualVec = function(a, b) {
+    var res = [];
+    for (var i = 0; i < a.length; i++)
+        res[i] = a[i] >= b[i];
+    return res;
 };
 
 /**
@@ -160,11 +209,68 @@ var allEqual = function(a, b) {
 /**
  * @param {Array<number>} a
  * @param {Array<number>} b
+ * @return {Array<number>}
+ */
+var allEqualVec = function(a, b) {
+    var res = [];
+    for (var i = 0; i < a.length; i++)
+        res[i] = a[i] == b[i];
+    return res;
+};
+
+/**
+ * @param {Array<number>} a
+ * @param {Array<number>} b
  * @return {number}
  */
 var anyNotEqual = function(a, b) {
     return !deMath.equal(a, b) ? 1 : 0;
 };
+
+/**
+ * @param {Array<number>} a
+ * @param {Array<number>} b
+ * @return {Array<number>}
+ */
+var anyNotEqualVec = function(a, b) {
+    var res = [];
+    for (var i = 0; i < a.length; i++)
+        res[i] = a[i] != b[i];
+    return res;
+};
+
+/**
+ * @param {Array<boolean>} a
+ * @return {Array<boolean>}
+ */
+var boolNotVec = function(a) {
+	var res = [];
+	for (var i = 0; i < a.length; i++)
+		res[i] = !a[i];
+	return res;
+}
+
+/**
+ * @param {Array<number>} a
+ * @return {boolean}
+ */
+var boolAny = function(a) {
+	for (var i = 0; i < a.length; i++)
+		if (a[i] == true)
+			return true;
+	return false;
+}
+
+/**
+ * @param {Array<number>} a
+ * @return {boolean}
+ */
+var boolAll = function(a) {
+	for (var i = 0; i < a.length; i++)
+		if (a[i] == false)
+			return false;
+	return true;
+}
 
 /**
  * @param {number} a
@@ -780,6 +886,25 @@ es3fShaderOperatorTests.unaryScalarGenTypeFuncs = function(func, dataTypeOut, da
     functions.vec2 = function(c) { run(c.color, func, deMath.swizzle(c.in_[0], [3, 1])); };
     functions.vec3 = function(c) { run(c.color, func, deMath.swizzle(c.in_[0], [2, 0, 1])); };
     functions.vec4 = function(c) { run(c.color, func, deMath.swizzle(c.in_[0], [1, 2, 3, 0])); };
+    return functions;
+};
+
+/**
+ * Generate unary functions which always have bolean return type
+ * @param {function(Array<number>): boolean} func
+ * @param {gluShaderUtil.DataType=} dataTypeIn
+ * @param {gluShaderUtil.DataType=} dataTypeOut
+ */
+es3fShaderOperatorTests.unaryBooleanGenTypeFuncs = function(func, dataTypeOut, dataTypeIn) {
+    var run = function(output, func, input) {
+        output[0] = convert(func(convert(input, dataTypeIn)), dataTypeOut);
+    };
+
+    var functions = {};
+    functions.scalar = function(c) { run(c.color, func, [c.in_[0][2] > 0.0]); };
+    functions.vec2 = function(c) { run(c.color, func, greaterThanVec(deMath.swizzle(c.in_[0], [3, 1]), [0, 0])); };
+    functions.vec3 = function(c) { run(c.color, func, greaterThanVec(deMath.swizzle(c.in_[0], [2, 0, 1]), [0, 0, 0])); };
+    functions.vec4 = function(c) { run(c.color, func, greaterThanVec(deMath.swizzle(c.in_[0], [1, 2, 3, 0]), [0, 0, 0, 0])); };
     return functions;
 };
 
@@ -2617,12 +2742,62 @@ es3fShaderOperatorTests.ShaderOperatorTests.prototype.init = function() {
     funcInfoGroups.push(geom);
 
     // 8.6 Vector Relational Functions.
-    var floatgeom = new es3fShaderOperatorTests.BuiltinFuncGroup("float_compare", "Floating point comparison tests.");
-    //geom.push(op("lessThan", "lessThan", BV, [v(FV, -1.0, 1.0), v(FV, -1.0, 1.0)], f(1.0), f(0.0),
-    //    all, es3fShaderOperatorTests.unaryScalarGenTypeFuncs(lessThan)));
+    var floatComp = new es3fShaderOperatorTests.BuiltinFuncGroup("float_compare", "Floating point comparison tests.");
+    floatComp.push(op("lessThan", "lessThan", BV, [v(FV, -1.0, 1.0), v(FV, -1.0, 1.0)], f(1.0), f(0.0),
+        all, es3fShaderOperatorTests.binaryVecVecFuncs(lessThanVec)));
+    floatComp.push(op("lessThanEqual", "lessThanEqual", BV, [v(FV, -1.0, 1.0), v(FV, -1.0, 1.0)], f(1.0), f(0.0),
+        all, es3fShaderOperatorTests.binaryVecVecFuncs(lessThanEqualVec)));
+    floatComp.push(op("greaterThan", "greaterThan", BV, [v(FV, -1.0, 1.0), v(FV, -1.0, 1.0)], f(1.0), f(0.0),
+        all, es3fShaderOperatorTests.binaryVecVecFuncs(greaterThanVec)));
+    floatComp.push(op("greaterThanEqual", "greaterThanEqual", BV, [v(FV, -1.0, 1.0), v(FV, -1.0, 1.0)], f(1.0), f(0.0),
+        all, es3fShaderOperatorTests.binaryVecVecFuncs(greaterThanEqualVec)));
+    floatComp.push(op("equal", "equal", BV, [v(FV, -1.0, 1.0), v(FV, -1.0, 1.0)], f(1.0), f(0.0),
+        all, es3fShaderOperatorTests.binaryVecVecFuncs(allEqualVec)));
+    floatComp.push(op("notEqual", "notEqual", BV, [v(FV, -1.0, 1.0), v(FV, -1.0, 1.0)], f(1.0), f(0.0),
+        all, es3fShaderOperatorTests.binaryVecVecFuncs(anyNotEqualVec)));
 
+    funcInfoGroups.push(floatComp);
 
+    var intComp = new es3fShaderOperatorTests.BuiltinFuncGroup("int_compare", "Integer comparison tests.");
+    intComp.push(op("lessThan", "lessThan", BV, [v(IV, 5.2, 4.9), v(IV, -5.0, 5.0)], f(1.0), f(0.0),
+        all, es3fShaderOperatorTests.binaryVecVecFuncs(lessThanVec, gluShaderUtil.DataType.INT,
+        gluShaderUtil.DataType.INT)));
+    intComp.push(op("lessThanEqual", "lessThanEqual", BV, [v(IV, 5.2, 4.9), v(IV, -5.0, 5.0)], f(1.0), f(0.0),
+        all, es3fShaderOperatorTests.binaryVecVecFuncs(lessThanEqualVec, gluShaderUtil.DataType.INT,
+        gluShaderUtil.DataType.INT)));
+    intComp.push(op("greaterThan", "greaterThan", BV, [v(IV, 5.2, 4.9), v(IV, -5.0, 5.0)], f(1.0), f(0.0),
+        all, es3fShaderOperatorTests.binaryVecVecFuncs(greaterThanVec, gluShaderUtil.DataType.INT,
+        gluShaderUtil.DataType.INT)));
+    intComp.push(op("greaterThanEqual", "greaterThanEqual", BV, [v(IV, 5.2, 4.9), v(IV, -5.0, 5.0)], f(1.0), f(0.0),
+        all, es3fShaderOperatorTests.binaryVecVecFuncs(greaterThanEqualVec, gluShaderUtil.DataType.INT,
+        gluShaderUtil.DataType.INT)));
+    intComp.push(op("equal", "equal", BV, [v(IV, 5.2, 4.9), v(IV, -5.0, 5.0)], f(1.0), f(0.0),
+        all, es3fShaderOperatorTests.binaryVecVecFuncs(allEqualVec, gluShaderUtil.DataType.INT,
+        gluShaderUtil.DataType.INT)));
+    intComp.push(op("notEqual", "notEqual", BV, [v(IV, 5.2, 4.9), v(IV, -5.0, 5.0)], f(1.0), f(0.0),
+        all, es3fShaderOperatorTests.binaryVecVecFuncs(anyNotEqualVec, gluShaderUtil.DataType.INT,
+        gluShaderUtil.DataType.INT)));
 
+    funcInfoGroups.push(intComp);
+
+    var boolComp = new es3fShaderOperatorTests.BuiltinFuncGroup("bool_compare", "Boolean comparison tests.");
+    boolComp.push(op("equal", "equal", BV, [v(BV, 5.2, 4.9), v(BV, -5.0, 5.0)], f(1.0), f(0.0),
+        na, es3fShaderOperatorTests.binaryVecVecFuncs(allEqualVec, gluShaderUtil.DataType.BOOL,
+        gluShaderUtil.DataType.BOOL)));
+    boolComp.push(op("notEqual", "notEqual", BV, [v(BV, 5.2, 4.9), v(BV, -5.0, 5.0)], f(1.0), f(0.0),
+        na, es3fShaderOperatorTests.binaryVecVecFuncs(anyNotEqualVec, gluShaderUtil.DataType.BOOL,
+        gluShaderUtil.DataType.BOOL)));
+    boolComp.push(op("any", "any", B, [v(BV, -1.0, 0.3)], f(1.0), f(0.0),
+        na, es3fShaderOperatorTests.unaryBooleanGenTypeFuncs(boolAny, gluShaderUtil.DataType.BOOL,
+        gluShaderUtil.DataType.BOOL)));
+    boolComp.push(op("all", "all", B, [v(BV, -0.3, 1.0)], f(1.0), f(0.0),
+        na, es3fShaderOperatorTests.unaryBooleanGenTypeFuncs(boolAll, gluShaderUtil.DataType.BOOL,
+        gluShaderUtil.DataType.BOOL)));
+    boolComp.push(op("not", "not", BV, [v(BV, -1.0, 1.0)], f(1.0), f(0.0),
+        na, es3fShaderOperatorTests.unaryArrayFuncs(boolNotVec, gluShaderUtil.DataType.BOOL,
+        gluShaderUtil.DataType.BOOL)));
+
+    funcInfoGroups.push(boolComp);
 
     var s_shaderTypes = [
         gluShaderProgram.shaderType.VERTEX,
