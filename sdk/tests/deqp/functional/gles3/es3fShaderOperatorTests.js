@@ -2816,21 +2816,30 @@ es3fShaderOperatorTests.ShaderOperatorTests.prototype.init = function() {
     funcInfoGroups.push(intComp);
 
     var boolComp = new es3fShaderOperatorTests.BuiltinFuncGroup("bool_compare", "Boolean comparison tests.");
+    var evalBoolEqual = es3fShaderOperatorTests.binaryVecVecFuncs(allEqualVec, gluShaderUtil.DataType.BOOL,
+        gluShaderUtil.DataType.BOOL);
+    var evalBoolNotEqual = es3fShaderOperatorTests.binaryVecVecFuncs(anyNotEqualVec, gluShaderUtil.DataType.BOOL,
+        gluShaderUtil.DataType.BOOL);
+    var evalBoolAny = es3fShaderOperatorTests.unaryBooleanGenTypeFuncs(boolAny, gluShaderUtil.DataType.BOOL,
+        gluShaderUtil.DataType.BOOL);
+    evalBoolAny.scalar = null;
+    var evalBoolAll = es3fShaderOperatorTests.unaryBooleanGenTypeFuncs(boolAll, gluShaderUtil.DataType.BOOL,
+        gluShaderUtil.DataType.BOOL);
+    evalBoolAll.scalar = null;
+    var evalBoolNot = es3fShaderOperatorTests.unaryArrayFuncs(boolNotVec, gluShaderUtil.DataType.BOOL,
+        gluShaderUtil.DataType.BOOL);
+    evalBoolNot.scalar = null;
+
     boolComp.push(op("equal", "equal", BV, [v(BV, 5.2, 4.9), v(BV, -5.0, 5.0)], f(1.0), f(0.0),
-        na, es3fShaderOperatorTests.binaryVecVecFuncs(allEqualVec, gluShaderUtil.DataType.BOOL,
-        gluShaderUtil.DataType.BOOL)));
+        na, evalBoolEqual));
     boolComp.push(op("notEqual", "notEqual", BV, [v(BV, 5.2, 4.9), v(BV, -5.0, 5.0)], f(1.0), f(0.0),
-        na, es3fShaderOperatorTests.binaryVecVecFuncs(anyNotEqualVec, gluShaderUtil.DataType.BOOL,
-        gluShaderUtil.DataType.BOOL)));
+        na, evalBoolNotEqual));
     boolComp.push(op("any", "any", B, [v(BV, -1.0, 0.3)], f(1.0), f(0.0),
-        na, es3fShaderOperatorTests.unaryBooleanGenTypeFuncs(boolAny, gluShaderUtil.DataType.BOOL,
-        gluShaderUtil.DataType.BOOL)));
+        na, evalBoolAny));
     boolComp.push(op("all", "all", B, [v(BV, -0.3, 1.0)], f(1.0), f(0.0),
-        na, es3fShaderOperatorTests.unaryBooleanGenTypeFuncs(boolAll, gluShaderUtil.DataType.BOOL,
-        gluShaderUtil.DataType.BOOL)));
+        na, evalBoolAll));
     boolComp.push(op("not", "not", BV, [v(BV, -1.0, 1.0)], f(1.0), f(0.0),
-        na, es3fShaderOperatorTests.unaryArrayFuncs(boolNotVec, gluShaderUtil.DataType.BOOL,
-        gluShaderUtil.DataType.BOOL)));
+        na, evalBoolNot));
 
     funcInfoGroups.push(boolComp);
 

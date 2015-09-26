@@ -1005,8 +1005,6 @@ goog.scope(function() {
     };
 
     es3fTransformFeedbackTests.TransformFeedbackCase.prototype.iterate = function() {
-        // static vars
-        // debugger;
         var s = es3fTransformFeedbackTests.TransformFeedbackCase.s_iterate;
         var numIterations = s.iterations.length;
         var seed = deMath.deMathHash(this.m_iterNdx);
@@ -1163,14 +1161,14 @@ goog.scope(function() {
 
     	// Check and log query status right after submit
     	var query = this.m_primitiveQuery;
-    	(function() {
-            debugger;
-    		var available = false; // deUint32
-    		available = gl.getQueryParameter(query, gl.QUERY_RESULT_AVAILABLE); // formerly glGetQueryObjectuiv()
 
-    		bufferedLogToConsole('gl.TRANSFORM_FEEDBACK_PRIMITIVES_WRITTEN status after submit: ' +
-    			(available != false ? 'true' : 'false'));
-    	})();
+		var available = gl.getQueryParameter(query, gl.QUERY_RESULT_AVAILABLE);
+
+        if (available) {
+            this.m_testPassed = false;
+            this.m_state = es3fTransformFeedbackTests.State.FINISH;
+            testFailedOptions('Transform feedback query result must not be available the same frame as they are issued.', true);
+        }
 
     	// Compare result buffers.
     	for (var bufferNdx = 0; bufferNdx < this.m_outputBuffers.length; ++bufferNdx) {
@@ -1229,14 +1227,10 @@ goog.scope(function() {
     			bufferedLogToConsole('Error: Transform feedback buffer overrun detected');
     			this.m_outputsOk = false;
     		}
-
-    	//    Javascript, and lazy memory management
-    	//    gl.unmapBuffer(gl.TRANSFORM_FEEDBACK_BUFFER);
-
     	}
     };
+
     es3fTransformFeedbackTests.TransformFeedbackCase.prototype.verify = function(calls) {
-    	debugger;
     	// Check status after mapping buffers.
     	var mustBeReady = this.m_outputBuffers.length > 0; // Mapping buffer forces synchronization. // const bool
     	var expectedCount = es3fTransformFeedbackTests.computeTransformFeedbackPrimitiveCount(this.m_primitiveType, calls); // const int
@@ -1257,12 +1251,7 @@ goog.scope(function() {
     		return;
     	}
 
-
     	var numPrimitives = /** @type {number} */ (gl.getQueryParameter(this.m_primitiveQuery, gl.QUERY_RESULT));
-
-    	// TODO(kbr): queries must not be available the same frame as they're issued. Have to
-    	// restructure the logic to make this work.
-    	// queryOk = false;
 
     	if (!mustBeReady && available == false)
     		bufferedLogToConsole('ERROR: gl.TRANSFORM_FEEDBACK_PRIMITIVES_WRITTEN result not available after mapping buffers!');
