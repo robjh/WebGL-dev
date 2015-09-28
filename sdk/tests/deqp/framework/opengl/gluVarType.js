@@ -309,7 +309,7 @@ goog.scope(function() {
      * @return {gluVarType.VarType}
      */
     gluVarType.newTypeBasic = function(basicType, flags) {
-        if (!gluShaderUtil.typeIsBoolean(basicType))
+        if (!gluShaderUtil.isDataTypeBoolOrBVec(basicType))
             return new gluVarType.VarType().VarTypeBasic(basicType, /** @type {framework.opengl.gluShaderUtil.precision}*/ (flags));
         else
             return new gluVarType.VarType().VarTypeBoolean(basicType);

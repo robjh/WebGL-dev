@@ -178,22 +178,6 @@ gluShaderUtil.DataType = {
 };
 
 /**
- * @param {gluShaderUtil.DataType} dataType
- * @return {boolean}
- */
-gluShaderUtil.typeIsBoolean = function(dataType) {
-    switch (dataType) {
-        case gluShaderUtil.DataType.BOOL:
-        case gluShaderUtil.DataType.BOOL_VEC2:
-        case gluShaderUtil.DataType.BOOL_VEC3:
-        case gluShaderUtil.DataType.BOOL_VEC4:
-            return true;
-        default:
-            return false;
-    }
-};
-
-/**
  * Returns type of float scalars
  * @param {gluShaderUtil.DataType} dataType
  * @return {string} type of float scalar
