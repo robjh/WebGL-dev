@@ -212,8 +212,11 @@ var TestFailedException = function (message) {
    this.name = "TestFailedException";
 };
 
-function testPassed(msg)
-{
+/**
+ * @param  {string=} msg
+ */
+function testPassed(msg) {
+    msg = msg || 'Pass';
     if (_currentTestName)
       msg = _currentTestName + ': ' + msg;
 
@@ -226,8 +229,11 @@ function testPassed(msg)
     }
 }
 
-function testFailed(msg)
-{
+/**
+ * @param  {string=} msg
+ */
+function testFailed(msg) {
+    msg = msg || 'Fail';
     if (_currentTestName)
       msg = _currentTestName + ': ' + msg;
 
@@ -691,4 +697,3 @@ function finishTest() {
   epilogue.src = basePath + "js-test-post.js";
   document.body.appendChild(epilogue);
 }
-
