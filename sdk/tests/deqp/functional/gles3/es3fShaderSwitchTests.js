@@ -24,7 +24,6 @@ goog.require('framework.common.tcuStringTemplate');
 goog.require('framework.common.tcuTestCase');
 goog.require('modules.shared.glsShaderRenderCase');
 
-
 goog.scope(function() {
     var es3fShaderSwitchTests = functional.gles3.es3fShaderSwitchTests;
     var glsShaderRenderCase = modules.shared.glsShaderRenderCase;
@@ -105,11 +104,11 @@ goog.scope(function() {
     };
 
     /**
-     * @param  {string} name
-     * @param  {string} desc
-     * @param  {es3fShaderSwitchTests.SwitchType} type
-     * @param  {boolean} isVertex
-     * @param  {string} switchBody
+     * @param {string} name
+     * @param {string} desc
+     * @param {es3fShaderSwitchTests.SwitchType} type
+     * @param {boolean} isVertex
+     * @param {string} switchBody
      * @return {es3fShaderSwitchTests.ShaderSwitchCase}
      */
     es3fShaderSwitchTests.makeSwitchCase = function(name, desc, type, isVertex, switchBody) {
@@ -126,8 +125,7 @@ goog.scope(function() {
         if (isVertex) {
             vtx += "out mediump vec4 v_color;\n";
             frag += "in mediump vec4 v_color;\n";
-        }
-        else {
+        } else {
             vtx += "out highp vec4 v_coords;\n";
             frag += "in highp vec4 v_coords;\n";
         }
@@ -142,21 +140,21 @@ goog.scope(function() {
         vtx += "\n" +
             "void main (void)\n" +
             "{\n" +
-            "    gl_Position = a_position;\n";
+            " gl_Position = a_position;\n";
         frag += "\n" +
                 "void main (void)\n" +
                 "{\n";
 
         // Setup.
-        op += "    highp vec4 coords = " + (isVertex ? "a_coords" : "v_coords") + ";\n";
-        op += "    mediump vec3 res = vec3(0.0);\n\n";
+        op += " highp vec4 coords = " + (isVertex ? "a_coords" : "v_coords") + ";\n";
+        op += " mediump vec3 res = vec3(0.0);\n\n";
         vtx += isVertex ? op : '';
         frag += isVertex ? '' : op;
         op = '';
 
         // Switch body.
         var params = {};
-        params["CONDITION"] = type == es3fShaderSwitchTests.SwitchType.STATIC ? "2"     :
+        params["CONDITION"] = type == es3fShaderSwitchTests.SwitchType.STATIC ? "2" :
                               type == es3fShaderSwitchTests.SwitchType.UNIFORM ? "ui_two" :
                               type == es3fShaderSwitchTests.SwitchType.DYNAMIC ? "int(floor(coords.z*1.5 + 2.0))" : "???";
 
@@ -168,12 +166,11 @@ goog.scope(function() {
         op = '';
 
         if (isVertex) {
-            vtx += "    v_color = vec4(res, 1.0);\n";
-            frag += "    o_color = v_color;\n";
-        }
-        else {
-            vtx += "    v_coords = a_coords;\n";
-            frag += "    o_color = vec4(res, 1.0);\n";
+            vtx += " v_color = vec4(res, 1.0);\n";
+            frag += " o_color = v_color;\n";
+        } else {
+            vtx += " v_coords = a_coords;\n";
+            frag += " o_color = vec4(res, 1.0);\n";
         }
 
         vtx += "}\n";
@@ -217,251 +214,251 @@ goog.scope(function() {
         // 2: yzw
         // 3: zyx
         es3fShaderSwitchTests.makeSwitchCases(this, "basic", "Basic switch statement usage",
-            '   switch (${CONDITION})\n' +
-            '    {\n' +
-            '        case 0:        res = coords.xyz;    break;\n' +
-            '        case 1:        res = coords.wzy;    break;\n' +
-            '        case 2:        res = coords.yzw;    break;\n' +
-            '        case 3:        res = coords.zyx;    break;\n' +
-            '    }\n');
+            ' switch (${CONDITION})\n' +
+            ' {\n' +
+            ' case 0: res = coords.xyz; break;\n' +
+            ' case 1: res = coords.wzy; break;\n' +
+            ' case 2: res = coords.yzw; break;\n' +
+            ' case 3: res = coords.zyx; break;\n' +
+            ' }\n');
 
         es3fShaderSwitchTests.makeSwitchCases(this, "const_expr_in_label", "Constant expression in label",
-            '    const int t = 2;\n' +
-            '    switch (${CONDITION})\n' +
-            '    {\n' +
-            '        case int(0.0):    res = coords.xyz;    break;\n' +
-            '        case 2-1:        res = coords.wzy;    break;\n' +
-            '        case 3&(1<<1):    res = coords.yzw;    break;\n' +
-            '        case t+1:        res = coords.zyx;    break;\n' +
-            '    }\n');
+            ' const int t = 2;\n' +
+            ' switch (${CONDITION})\n' +
+            ' {\n' +
+            ' case int(0.0): res = coords.xyz; break;\n' +
+            ' case 2-1: res = coords.wzy; break;\n' +
+            ' case 3&(1<<1): res = coords.yzw; break;\n' +
+            ' case t+1: res = coords.zyx; break;\n' +
+            ' }\n');
 
         es3fShaderSwitchTests.makeSwitchCases(this, "default_label", "Default label usage",
-            '    switch (${CONDITION})\n' +
-            '    {\n' +
-            '        case 0:        res = coords.xyz;    break;\n' +
-            '        case 1:        res = coords.wzy;    break;\n' +
-            '        case 3:        res = coords.zyx;    break;\n' +
-            '        default:    res = coords.yzw;\n' +
-            '    }\n');
+            ' switch (${CONDITION})\n' +
+            ' {\n' +
+            ' case 0: res = coords.xyz; break;\n' +
+            ' case 1: res = coords.wzy; break;\n' +
+            ' case 3: res = coords.zyx; break;\n' +
+            ' default: res = coords.yzw;\n' +
+            ' }\n');
 
         es3fShaderSwitchTests.makeSwitchCases(this, "default_not_last", "Default label usage",
-            '    switch (${CONDITION})\n' +
-            '    {\n' +
-            '        case 0:        res = coords.xyz;    break;\n' +
-            '        default:    res = coords.yzw;    break;\n' +
-            '        case 1:        res = coords.wzy;    break;\n' +
-            '        case 3:        res = coords.zyx;    break;\n' +
-            '    }\n');
+            ' switch (${CONDITION})\n' +
+            ' {\n' +
+            ' case 0: res = coords.xyz; break;\n' +
+            ' default: res = coords.yzw; break;\n' +
+            ' case 1: res = coords.wzy; break;\n' +
+            ' case 3: res = coords.zyx; break;\n' +
+            ' }\n');
 
         es3fShaderSwitchTests.makeSwitchCases(this, "no_default_label", "No match in switch without default label",
-            '    res = coords.yzw;\n\n' +
-            '    switch (${CONDITION})\n' +
-            '    {\n' +
-            '        case 0:        res = coords.xyz;    break;\n' +
-            '        case 1:        res = coords.wzy;    break;\n' +
-            '        case 3:        res = coords.zyx;    break;\n' +
-            '    }\n');
+            ' res = coords.yzw;\n\n' +
+            ' switch (${CONDITION})\n' +
+            ' {\n' +
+            ' case 0: res = coords.xyz; break;\n' +
+            ' case 1: res = coords.wzy; break;\n' +
+            ' case 3: res = coords.zyx; break;\n' +
+            ' }\n');
 
         es3fShaderSwitchTests.makeSwitchCases(this, "fall_through", "Fall-through",
-            '    switch (${CONDITION})\n' +
-            '    {\n' +
-            '        case 0:        res = coords.xyz;    break;\n' +
-            '        case 1:        res = coords.wzy;    break;\n' +
-            '        case 2:        coords = coords.yzwx;\n' +
-            '        case 4:        res = vec3(coords);    break;\n' +
-            '        case 3:        res = coords.zyx;    break;\n' +
-            '    }\n');
+            ' switch (${CONDITION})\n' +
+            ' {\n' +
+            ' case 0: res = coords.xyz; break;\n' +
+            ' case 1: res = coords.wzy; break;\n' +
+            ' case 2: coords = coords.yzwx;\n' +
+            ' case 4: res = vec3(coords); break;\n' +
+            ' case 3: res = coords.zyx; break;\n' +
+            ' }\n');
 
         es3fShaderSwitchTests.makeSwitchCases(this, "fall_through_default", "Fall-through",
-            '    switch (${CONDITION})\n' +
-            '    {\n' +
-            '        case 0:        res = coords.xyz;    break;\n' +
-            '        case 1:        res = coords.wzy;    break;\n' +
-            '        case 3:        res = coords.zyx;    break;\n' +
-            '        case 2:        coords = coords.yzwx;\n' +
-            '        default:    res = vec3(coords);\n' +
-            '    }\n');
+            ' switch (${CONDITION})\n' +
+            ' {\n' +
+            ' case 0: res = coords.xyz; break;\n' +
+            ' case 1: res = coords.wzy; break;\n' +
+            ' case 3: res = coords.zyx; break;\n' +
+            ' case 2: coords = coords.yzwx;\n' +
+            ' default: res = vec3(coords);\n' +
+            ' }\n');
 
         es3fShaderSwitchTests.makeSwitchCases(this, "conditional_fall_through", "Fall-through",
-            '    highp vec4 tmp = coords;\n' +
-            '    switch (${CONDITION})\n' +
-            '    {\n' +
-            '        case 0:        res = coords.xyz;    break;\n' +
-            '        case 1:        res = coords.wzy;    break;\n' +
-            '        case 2:\n' +
-            '            tmp = coords.yzwx;\n' +
-            '        case 3:\n' +
-            '            res = vec3(tmp);\n' +
-            '            if (${CONDITION} != 3)\n' +
-            '                break;\n' +
-            '        default:    res = tmp.zyx;        break;\n' +
-            '    }\n');
+            ' highp vec4 tmp = coords;\n' +
+            ' switch (${CONDITION})\n' +
+            ' {\n' +
+            ' case 0: res = coords.xyz; break;\n' +
+            ' case 1: res = coords.wzy; break;\n' +
+            ' case 2:\n' +
+            ' tmp = coords.yzwx;\n' +
+            ' case 3:\n' +
+            ' res = vec3(tmp);\n' +
+            ' if (${CONDITION} != 3)\n' +
+            ' break;\n' +
+            ' default: res = tmp.zyx; break;\n' +
+            ' }\n');
 
         es3fShaderSwitchTests.makeSwitchCases(this, "conditional_fall_through_2", "Fall-through",
-            '    highp vec4 tmp = coords;\n' +
-            '    mediump int c = ${CONDITION};\n' +
-            '    switch (c)\n' +
-            '    {\n' +
-            '        case 0:        res = coords.xyz;    break;\n' +
-            '        case 1:        res = coords.wzy;    break;\n' +
-            '        case 2:\n' +
-            '            c += ${CONDITION};\n' +
-            '            tmp = coords.yzwx;\n' +
-            '        case 3:\n' +
-            '            res = vec3(tmp);\n' +
-            '            if (c == 4)\n' +
-            '                break;\n' +
-            '        default:    res = tmp.zyx;        break;\n' +
-            '    }\n');
+            ' highp vec4 tmp = coords;\n' +
+            ' mediump int c = ${CONDITION};\n' +
+            ' switch (c)\n' +
+            ' {\n' +
+            ' case 0: res = coords.xyz; break;\n' +
+            ' case 1: res = coords.wzy; break;\n' +
+            ' case 2:\n' +
+            ' c += ${CONDITION};\n' +
+            ' tmp = coords.yzwx;\n' +
+            ' case 3:\n' +
+            ' res = vec3(tmp);\n' +
+            ' if (c == 4)\n' +
+            ' break;\n' +
+            ' default: res = tmp.zyx; break;\n' +
+            ' }\n');
 
         es3fShaderSwitchTests.makeSwitchCases(this, "scope", "Basic switch statement usage",
-            '    switch (${CONDITION})\n' +
-            '    {\n' +
-            '        case 0:        res = coords.xyz;    break;\n' +
-            '        case 1:        res = coords.wzy;    break;\n' +
-            '        case 2:\n' +
-            '        {\n' +
-            '            mediump vec3 t = coords.yzw;\n' +
-            '            res = t;\n' +
-            '            break;\n' +
-            '        }\n' +
-            '        case 3:        res = coords.zyx;    break;\n' +
-            '    }\n');
+            ' switch (${CONDITION})\n' +
+            ' {\n' +
+            ' case 0: res = coords.xyz; break;\n' +
+            ' case 1: res = coords.wzy; break;\n' +
+            ' case 2:\n' +
+            ' {\n' +
+            ' mediump vec3 t = coords.yzw;\n' +
+            ' res = t;\n' +
+            ' break;\n' +
+            ' }\n' +
+            ' case 3: res = coords.zyx; break;\n' +
+            ' }\n');
 
         es3fShaderSwitchTests.makeSwitchCases(this, "switch_in_if", "Switch in for loop",
-            '    if (${CONDITION} >= 0)\n' +
-            '    {\n' +
-            '        switch (${CONDITION})\n' +
-            '        {\n' +
-            '            case 0:        res = coords.xyz;    break;\n' +
-            '            case 1:        res = coords.wzy;    break;\n' +
-            '            case 2:        res = coords.yzw;    break;\n' +
-            '            case 3:        res = coords.zyx;    break;\n' +
-            '        }\n' +
-            '    }\n');
+            ' if (${CONDITION} >= 0)\n' +
+            ' {\n' +
+            ' switch (${CONDITION})\n' +
+            ' {\n' +
+            ' case 0: res = coords.xyz; break;\n' +
+            ' case 1: res = coords.wzy; break;\n' +
+            ' case 2: res = coords.yzw; break;\n' +
+            ' case 3: res = coords.zyx; break;\n' +
+            ' }\n' +
+            ' }\n');
 
         es3fShaderSwitchTests.makeSwitchCases(this, "switch_in_for_loop", "Switch in for loop",
-            '    for (int i = 0; i <= ${CONDITION}; i++)\n' +
-            '    {\n' +
-            '        switch (i)\n' +
-            '        {\n' +
-            '            case 0:        res = coords.xyz;    break;\n' +
-            '            case 1:        res = coords.wzy;    break;\n' +
-            '            case 2:        res = coords.yzw;    break;\n' +
-            '            case 3:        res = coords.zyx;    break;\n' +
-            '        }\n' +
-            '    }\n');
+            ' for (int i = 0; i <= ${CONDITION}; i++)\n' +
+            ' {\n' +
+            ' switch (i)\n' +
+            ' {\n' +
+            ' case 0: res = coords.xyz; break;\n' +
+            ' case 1: res = coords.wzy; break;\n' +
+            ' case 2: res = coords.yzw; break;\n' +
+            ' case 3: res = coords.zyx; break;\n' +
+            ' }\n' +
+            ' }\n');
 
         es3fShaderSwitchTests.makeSwitchCases(this, "switch_in_while_loop", "Switch in while loop",
-            '    int i = 0;\n' +
-            '    while (i <= ${CONDITION})\n' +
-            '    {\n' +
-            '        switch (i)\n' +
-            '        {\n' +
-            '            case 0:        res = coords.xyz;    break;\n' +
-            '            case 1:        res = coords.wzy;    break;\n' +
-            '            case 2:        res = coords.yzw;    break;\n' +
-            '            case 3:        res = coords.zyx;    break;\n' +
-            '        }\n' +
-            '        i += 1;\n' +
-            '    }\n');
+            ' int i = 0;\n' +
+            ' while (i <= ${CONDITION})\n' +
+            ' {\n' +
+            ' switch (i)\n' +
+            ' {\n' +
+            ' case 0: res = coords.xyz; break;\n' +
+            ' case 1: res = coords.wzy; break;\n' +
+            ' case 2: res = coords.yzw; break;\n' +
+            ' case 3: res = coords.zyx; break;\n' +
+            ' }\n' +
+            ' i += 1;\n' +
+            ' }\n');
 
         es3fShaderSwitchTests.makeSwitchCases(this, "switch_in_do_while_loop", "Switch in do-while loop",
-            '    int i = 0;\n' +
-            '    do\n' +
-            '    {\n' +
-            '        switch (i)\n' +
-            '        {\n' +
-            '            case 0:        res = coords.xyz;    break;\n' +
-            '            case 1:        res = coords.wzy;    break;\n' +
-            '            case 2:        res = coords.yzw;    break;\n' +
-            '            case 3:        res = coords.zyx;    break;\n' +
-            '        }\n' +
-            '        i += 1;\n' +
-            '    } while (i <= ${CONDITION});\n');
+            ' int i = 0;\n' +
+            ' do\n' +
+            ' {\n' +
+            ' switch (i)\n' +
+            ' {\n' +
+            ' case 0: res = coords.xyz; break;\n' +
+            ' case 1: res = coords.wzy; break;\n' +
+            ' case 2: res = coords.yzw; break;\n' +
+            ' case 3: res = coords.zyx; break;\n' +
+            ' }\n' +
+            ' i += 1;\n' +
+            ' } while (i <= ${CONDITION});\n');
 
         es3fShaderSwitchTests.makeSwitchCases(this, "if_in_switch", "Basic switch statement usage",
-            '    switch (${CONDITION})\n' +
-            '    {\n' +
-            '        case 0:        res = coords.xyz;    break;\n' +
-            '        case 1:        res = coords.wzy;    break;\n' +
-            '        default:\n' +
-            '            if (${CONDITION} == 2)\n' +
-            '                res = coords.yzw;\n' +
-            '            else\n' +
-            '                res = coords.zyx;\n' +
-            '            break;\n' +
-            '    }\n');
+            ' switch (${CONDITION})\n' +
+            ' {\n' +
+            ' case 0: res = coords.xyz; break;\n' +
+            ' case 1: res = coords.wzy; break;\n' +
+            ' default:\n' +
+            ' if (${CONDITION} == 2)\n' +
+            ' res = coords.yzw;\n' +
+            ' else\n' +
+            ' res = coords.zyx;\n' +
+            ' break;\n' +
+            ' }\n');
 
         es3fShaderSwitchTests.makeSwitchCases(this, "for_loop_in_switch", "Basic switch statement usage",
-            '    switch (${CONDITION})\n' +
-            '    {\n' +
-            '        case 0:        res = coords.xyz;    break;\n' +
-            '        case 1:\n' +
-            '        case 2:\n' +
-            '        {\n' +
-            '            highp vec3 t = coords.yzw;\n' +
-            '            for (int i = 0; i < ${CONDITION}; i++)\n' +
-            '                t = t.zyx;\n' +
-            '            res = t;\n' +
-            '            break;\n' +
-            '        }\n' +
-            '        default:    res = coords.zyx;    break;\n' +
-            '    }\n');
+            ' switch (${CONDITION})\n' +
+            ' {\n' +
+            ' case 0: res = coords.xyz; break;\n' +
+            ' case 1:\n' +
+            ' case 2:\n' +
+            ' {\n' +
+            ' highp vec3 t = coords.yzw;\n' +
+            ' for (int i = 0; i < ${CONDITION}; i++)\n' +
+            ' t = t.zyx;\n' +
+            ' res = t;\n' +
+            ' break;\n' +
+            ' }\n' +
+            ' default: res = coords.zyx; break;\n' +
+            ' }\n');
 
         es3fShaderSwitchTests.makeSwitchCases(this, "while_loop_in_switch", "Basic switch statement usage",
-            '    switch (${CONDITION})\n' +
-            '    {\n' +
-            '        case 0:        res = coords.xyz;    break;\n' +
-            '        case 1:\n' +
-            '        case 2:\n' +
-            '        {\n' +
-            '            highp vec3 t = coords.yzw;\n' +
-            '            int i = 0;\n' +
-            '            while (i < ${CONDITION})\n' +
-            '            {\n' +
-            '                t = t.zyx;\n' +
-            '                i += 1;\n' +
-            '            }\n' +
-            '            res = t;\n' +
-            '            break;\n' +
-            '        }\n' +
-            '        default:    res = coords.zyx;    break;\n' +
-            '    }\n');
+            ' switch (${CONDITION})\n' +
+            ' {\n' +
+            ' case 0: res = coords.xyz; break;\n' +
+            ' case 1:\n' +
+            ' case 2:\n' +
+            ' {\n' +
+            ' highp vec3 t = coords.yzw;\n' +
+            ' int i = 0;\n' +
+            ' while (i < ${CONDITION})\n' +
+            ' {\n' +
+            ' t = t.zyx;\n' +
+            ' i += 1;\n' +
+            ' }\n' +
+            ' res = t;\n' +
+            ' break;\n' +
+            ' }\n' +
+            ' default: res = coords.zyx; break;\n' +
+            ' }\n');
 
         es3fShaderSwitchTests.makeSwitchCases(this, "do_while_loop_in_switch", "Basic switch statement usage",
-            '    switch (${CONDITION})\n' +
-            '    {\n' +
-            '        case 0:        res = coords.xyz;    break;\n' +
-            '        case 1:\n' +
-            '        case 2:\n' +
-            '        {\n' +
-            '            highp vec3 t = coords.yzw;\n' +
-            '            int i = 0;\n' +
-            '            do\n' +
-            '            {\n' +
-            '                t = t.zyx;\n' +
-            '                i += 1;\n' +
-            '            } while (i < ${CONDITION});\n' +
-            '            res = t;\n' +
-            '            break;\n' +
-            '        }\n' +
-            '        default:    res = coords.zyx;    break;\n' +
-            '    }\n');
+            ' switch (${CONDITION})\n' +
+            ' {\n' +
+            ' case 0: res = coords.xyz; break;\n' +
+            ' case 1:\n' +
+            ' case 2:\n' +
+            ' {\n' +
+            ' highp vec3 t = coords.yzw;\n' +
+            ' int i = 0;\n' +
+            ' do\n' +
+            ' {\n' +
+            ' t = t.zyx;\n' +
+            ' i += 1;\n' +
+            ' } while (i < ${CONDITION});\n' +
+            ' res = t;\n' +
+            ' break;\n' +
+            ' }\n' +
+            ' default: res = coords.zyx; break;\n' +
+            ' }\n');
 
         es3fShaderSwitchTests.makeSwitchCases(this, "switch_in_switch", "Basic switch statement usage",
-            '    switch (${CONDITION})\n' +
-            '    {\n' +
-            '        case 0:        res = coords.xyz;    break;\n' +
-            '        case 1:\n' +
-            '        case 2:\n' +
-            '            switch (${CONDITION} - 1)\n' +
-            '            {\n' +
-            '                case 0:        res = coords.wzy;    break;\n' +
-            '                case 1:        res = coords.yzw;    break;\n' +
-            '            }\n' +
-            '            break;\n' +
-            '        default:    res = coords.zyx;    break;\n' +
+            ' switch (${CONDITION})\n' +
+            ' {\n' +
+            ' case 0: res = coords.xyz; break;\n' +
+            ' case 1:\n' +
+            ' case 2:\n' +
+            ' switch (${CONDITION} - 1)\n' +
+            ' {\n' +
+            ' case 0: res = coords.wzy; break;\n' +
+            ' case 1: res = coords.yzw; break;\n' +
+            ' }\n' +
+            ' break;\n' +
+            ' default: res = coords.zyx; break;\n' +
             '}\n');
 
         // Negative cases.
