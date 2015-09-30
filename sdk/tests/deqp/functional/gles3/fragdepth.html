@@ -18,7 +18,6 @@
 var wtu = WebGLTestUtils;
 var gl = wtu.create3DContextWithWrapperThatThrowsOnGLError('canvas', null, 2);
 
-gl.getError();
     try {
         functional.gles3.es3fFragDepthTests.run(gl);
     }

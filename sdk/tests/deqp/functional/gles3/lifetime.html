@@ -23,8 +23,6 @@ var wtu = WebGLTestUtils;
 /** @type {WebGL2RenderingContext} */ var gl = wtu.create3DContextWithWrapperThatThrowsOnGLError('canvas', null, 2);
 
     try{
-        /* TODO: remove next line */
-        gl.getError();
         functional.gles3.es3fLifetimeTests.run(gl);
     }
     catch(err)

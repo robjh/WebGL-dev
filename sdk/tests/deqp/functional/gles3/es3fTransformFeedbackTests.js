@@ -114,7 +114,7 @@ goog.scope(function() {
     /** es3fTransformFeedbackTests.findAttributeNameEquals
      * Replaces original implementation of "VaryingNameEquals" and "AttributeNameEquals" in the C++ version
      * Returns an es3fTransformFeedbackTests.Attribute or es3fTransformFeedbackTests.Varying object which matches its name with the passed string value in the function
-     * @param {Array<es3fTransformFeedbackTests.Attribute> || Array.<es3fTransformFeedbackTests.Varying>} array
+     * @param {(Array<es3fTransformFeedbackTests.Attribute> | Array<es3fTransformFeedbackTests.Varying>)} array
      * @param {string} name
      * @return { (es3fTransformFeedbackTests.Attribute | es3fTransformFeedbackTests.Varying | null)}
      */

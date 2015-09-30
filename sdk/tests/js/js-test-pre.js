@@ -216,7 +216,7 @@ var TestFailedException = function (message) {
  * @param  {string=} msg
  */
 function testPassed(msg) {
-    msg = msg || 'Pass';
+    msg = msg || 'Passed';
     if (_currentTestName)
       msg = _currentTestName + ': ' + msg;
 
@@ -233,7 +233,7 @@ function testPassed(msg) {
  * @param  {string=} msg
  */
 function testFailed(msg) {
-    msg = msg || 'Fail';
+    msg = msg || 'Failed';
     if (_currentTestName)
       msg = _currentTestName + ': ' + msg;
 
